@@ -1,0 +1,143 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/wp_title/}}
+
+{{Languages|
+{{en|Template Tags/wp_title}}
+{{ja|テンプレートタグ/wp_title}}
+{{zh-cn|函数参考/wp_title}}
+{{ru|Теги шаблонов/wp title}}
+}}
+
+== Description ==
+
+Display or retrieve page <code>&lt;title&gt;</code> for all areas of blog.
+
+The text for the <code>&lt;title&gt;</code> element is generated based on the type of post, page, archive, etc., being displayed. You may also append or prepend a string to this using the function's parameters. The result may be displayed directly, or returned for further processing.
+
+You can also specify what separator is to be used between the different segments of the title. By default, the separator is displayed before the page title, so that the blog title will be before the page title. This is not good for title display, since the blog title shows up on most tabs and not what is important, which is the page that the user is looking at.
+
+The main reason to have the blog title to the right is for browsers supporting tabs. You can achieve this by using the <tt>$seplocation</tt> parameter and setting the value to <tt>'right'</tt>.
+
+== Usage ==
+
+%%% <?php wp_title( $sep, $display, $seplocation ); ?> %%%
+
+=== Best practices ===
+
+Plugins might use the [[Plugin_API/Filter_Reference/wp_title|wp_title]] filter to generate a value. While it is possible to construct a "title" by doing things such as concatenating with <code>bloginfo</code> (the Site Name), if you do not use the <code>wp_title</code> function in your theme, you will likely have errors or unexpected behavior.
+
+=== Required for public themes ===
+
+This function, and not a work-around, is required for publicly by WordPress standards.
+
+== Parameters ==
+
+The function always returns a value from the database, and the parameters define what information is appended to the database value, where it is appended, and how it is formatted. 
+
+{{Parameter|$sep|string|Short for "separator" is a string appended before or after the value returned from the database. The string may be zero characters, see Examples, below. The '''sep''' string typically separates the Site Title (or a similar string) from the "title" of the post or page.|optional|&amp;raquo; (&raquo;)}}
+
+{{Parameter|$display|boolean|Formats the return value either for display as text (<code>TRUE</code>) or as a parameter for another PHP function (<code>FALSE</code>).|optional|<code>TRUE</code>}}
+
+{{Parameter|$seplocation|string|Defines whether the '''sep''' string is added before (prepended, or to the left) or after (appended, or to the right) of the value returned from the database. If '''seplocation''' is <code>right</code>, then the function appends the '''sep''' string to the database value: said differently, the '''sep''' is placed to the right of the title of the post or page. If '''seplocation''' is <code>left</code> ''or any value other than <code>right</code>'', then the function prepends the '''sep''' string to the database value. Said differently, the function adds the '''sep''' to the left of the title of the post or page. Special case: if '''$display''' is <code>FALSE</code> and you do not define the '''$seplocation''' parameter, the function will prepend a space to the entire string.|optional|<code>left</code>}}
+
+== Return Values ==
+The function returns a concatenated string. It always queries the database for a default string; the value of the default string depends on the type of post or page:
+; Single post: the title of the post
+; Date-based archive : the date (e.g., "2006", "2006 - January")
+; Category : the name of the category
+; Author page : the public name of the user
+
+The function then prepends or appends the '''sep''' string and returns the entire value.
+
+== Examples ==
+
+=== Default ===
+
+If you do not pass any parameters for a single post, for example:
+<pre> <title><?php wp_title(); ?></title></pre>
+
+If the title of the post is "Hello world!", then the function will return
+<pre> &raquo; Hello world!</pre>
+
+=== Zero-character '''sep''' ===
+
+The '''sep''' string may be zero characters, which will remove '''&raquo;''' from the returned value. To do this, set the '''sep''' parameter to zero characters, for example:
+
+<pre> <title><?php wp_title(''); ?></title></pre>
+
+If the title of the post is "Hello world!", then the function will return:
+<pre> Hello world!</pre>
+
+=== Customizing with the filter ===
+If you want to change the way that the title displays on different pages you can use a filter.
+<pre>
+/**
+ * Filters wp_title to print a neat <title> tag based on what is being viewed.
+ *
+ * @param string $title Default title text for current view.
+ * @param string $sep Optional separator.
+ * @return string The filtered title.
+ */
+function theme_name_wp_title( $title, $sep ) {
+	if ( is_feed() ) {
+		return $title;
+	}
+	
+	global $page, $paged;
+
+	// Add the blog name
+	$title .= get_bloginfo( 'name', 'display' );
+
+	// Add the blog description for the home/front page.
+	$site_description = get_bloginfo( 'description', 'display' );
+	if ( $site_description && ( is_home() || is_front_page() ) ) {
+		$title .= " $sep $site_description";
+	}
+
+	// Add a page number if necessary:
+	if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
+		$title .= " $sep " . sprintf( __( 'Page %s', '_s' ), max( $paged, $page ) );
+	}
+
+	return $title;
+}
+add_filter( 'wp_title', 'theme_name_wp_title', 10, 2 );
+</pre>
+
+=== Covering Homepage ===
+
+If you are using a custom homepage with custom loops and stuff or a custom front-page, you will have an empty wp_title. Here goes a neat hack to add the description/tagline at the wp_title place on homepage:
+
+<pre><title><?php wp_title(''); ?></title></pre>
+
+Then in your "functions.php" from theme file :
+<pre>add_filter( 'wp_title', 'baw_hack_wp_title_for_home' );
+function baw_hack_wp_title_for_home( $title )
+{
+  if( empty( $title ) && ( is_home() || is_front_page() ) ) {
+    return __( 'Home', 'theme_domain' ) . ' | ' . get_bloginfo( 'description' );
+  }
+  return $title;
+}</pre>
+You can format this string as you want of course.
+
+== See Also ==
+* The [[Plugin_API/Filter_Reference/wp_title|wp_title]] filter
+
+== Change Log ==
+
+* Since: [[Version 1.0|1.0.0]]
+* [[Version 2.5|2.5.0]]: Added the <code>$seplocation</code> parameter
+
+== Source File ==
+
+<code>wp_title()</code> is in {{Trac|wp-includes/general-template.php}}.
+
+== Related ==
+
+{{Tag Post Tags}}
+
+{{Tag Footer}}
+
+{{Copyedit}}
+
+[[Category:Template Tags]]

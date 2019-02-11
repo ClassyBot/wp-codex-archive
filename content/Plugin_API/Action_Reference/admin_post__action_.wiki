@@ -1,0 +1,53 @@
+{{Stub}}
+==Description==
+This hook allows you to create custom handlers for your own custom GET and POST requests. The <tt>admin_post_</tt> hook follows the format <code>"admin_post_$youraction"</code>, where <tt>$youraction</tt> is your GET or POST request's <tt>'action'</tt> parameter.
+
+==Usage==
+If you needed to create a request or form handler for an <tt>"add_foobar"</tt> action request, you would create a hook like this:
+<pre>
+add_action( 'admin_post_add_foobar', 'prefix_admin_add_foobar' );
+
+function prefix_admin_add_foobar() {
+    // Handle request then generate response using echo or leaving PHP and using HTML
+}
+</pre>
+
+Using the above example, any time a GET or POST request is sent to WordPress, and the request's <tt>'action'</tt> parameter is set to <tt>'add_foobar'</tt>, this hook will be automatically executed. For example, the following HTML content would execute the above hook when the user clicks either Submit.
+
+<pre>
+<a href="http://www.example.com/wp-admin/admin-post.php?action=add_foobar&data=foobarid">Submit</a>
+</pre>
+<pre>
+<form action="http://www.example.com/wp-admin/admin-post.php" method="post">
+  <input type="hidden" name="action" value="add_foobar">
+  <input type="hidden" name="data" value="foobarid">
+  <input type="submit" value="Submit">
+</form>
+</pre>
+
+Note: The data value (<tt>foobarid</tt>) would be available in your hook function from the <tt>$_GET</tt>, <tt>$_POST</tt> or <tt>$_REQUEST</tt> array as is applicable.
+
+==Example==
+This allows you to hook the above GET or POST requests.
+
+<pre>
+add_action( 'admin_post_add_foobar', 'prefix_admin_add_foobar' );
+//this next action version allows users not logged in to submit requests
+
+//if you want to have both logged in and not logged in users submitting, you have to add both actions!
+
+add_action( 'admin_post_nopriv_add_foobar', 'prefix_admin_add_foobar' );
+
+
+function prefix_admin_add_foobar() {
+    status_header(200);
+    die("Server received '{$_REQUEST['data']}' from your browser.");
+    //request handlers should die() when they complete their task
+}
+</pre>
+
+== Related ==
+&nbsp;
+
+[[Category:Actions]]
+[[Category:New_page_created]]

@@ -1,0 +1,87 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Examples"><span class="tocnumber">2</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Show_only_posts_and_pages"><span class="tocnumber">2.1</span> <span class="toctext">Show only posts and pages</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Remove_specific_post_types_from_results"><span class="tocnumber">2.2</span> <span class="toctext">Remove specific post types from results</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Source_File"><span class="tocnumber">3</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#External_Resources"><span class="tocnumber">4</span> <span class="toctext">External Resources</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_link_query_args&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <b>"wp_link_query_args"</b> filter is used to filter the array of arguments passed to the <code>wp_link_query</code> function which is responsible for building the list of linkable content in the modal window that displays when you insert a link. <code>wp_link_query_args</code> allows you to alter the query before the list is rendered on the page.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_link_query_args&amp;action=edit&amp;section=2" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Any allowable WP_Query parameters can be passed to <code>wp_link_query_args</code>. One example is filtering out post types:
+</p>
+<h3><span class="mw-headline" id="Show_only_posts_and_pages">Show only posts and pages</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_link_query_args&amp;action=edit&amp;section=3" title="Edit section: Show only posts and pages">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If you wanted only allow posts and pages to show up in the linked results, you could do something like this. In this example, we're going to check to make sure we aren't in the admin, so results would only be filtered on the front end, but admins could still add links to all post types.
+</p>
+<pre>
+function my_wp_link_query_args( $query ) {
+
+     // check to make sure we are not in the admin
+     if (&#160;!is_admin() ) {
+          $query['post_type'] = array( 'post', 'pages' ); // show only posts and pages
+     }
+
+     return $query;
+
+}
+
+add_filter( 'wp_link_query_args', 'my_wp_link_query_args' ); 
+</pre>
+<h3><span class="mw-headline" id="Remove_specific_post_types_from_results">Remove specific post types from results</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_link_query_args&amp;action=edit&amp;section=4" title="Edit section: Remove specific post types from results">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>You'd use something like this if you only wanted to remove specific post types from the results.
+</p>
+<pre>
+function remove_these_post_types_from_wp_link_query_args( $query ) {
+
+     // this is the post type I want to exclude
+     $cpt_to_remove = 'article';
+
+    // find the corresponding array key
+    $key = array_search( $cpt_to_remove, $query['post_type'] ); 
+
+    // remove the array item
+    if( $key )
+        unset( $query['post_type'][$key] );
+
+    return $query;
+
+}
+
+add_filter( 'wp_link_query_args', 'remove_these_post_types_from_wp_link_query_args' );
+</pre>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_link_query_args&amp;action=edit&amp;section=5" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <code>wp_link_query_args</code> filter is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/class-wp-editor.php#L0">wp-includes/class-wp-editor.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_link_query_args&amp;action=edit&amp;section=6" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/a/116027">Excluding post type from WordPress link builder</a></li>
+<li> <a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/ticket/18042">Original Trac Ticket - Need a way to override wp_link_query()</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004108
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.011 seconds
+Preprocessor visited node count: 51/1000000
+Preprocessor generated node count: 126/1000000
+Post‐expand include size: 141/2097152 bytes
+Template argument size: 62/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.208      1 - -total
+100.00%    2.208      1 - Template:Trac
+ 37.33%    0.824      1 - Template:CurrentVersion
+-->

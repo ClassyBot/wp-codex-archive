@@ -1,0 +1,157 @@
+{{Languages|
+{{en|WordPress Coding Standards}}
+{{it|Standard di codifica di WordPress}}
+{{ja|WordPress コーディング基準}}
+{{pt-br|Padroes_de_Codificacao_do_WordPress}}
+{{zh-hans|WordPress 代码规范}}
+}}
+
+Algumas partes legadas da estrutura de código do WordPress para marcação de PHP estão despadronizadas. O WordPress está trabalhando para, gradualmente, melhorar isto ajudando os usuários a manter um estilo consistente então o código poderá permanecer limpo e de fácil leitura.
+
+Tenha esses tópicos em mente quando estiver codificando para o WordPress, seja para desenvolvimento pesado, [[Writing a Plugin|Plugins]], ou [[Theme Development|WordPress Themes]]. As orientações são similares ao [http://pear.php.net/manual/en/standards.php Pear standards] de várias formas, mas diferem em alguns aspectos.
+
+Veja também [http://comox.textdrive.com/pipermail/wp-hackers/2006-July/006930.html esse post na lista wp-hackers].
+
+Tem também uma página com os padrões propostos para [[Inline Documentation]].
+
+;Aspas simples e duplas :Use aspas simples e duplas quando apropriado. Se você não estiver tratando nada na string, use use aspas simples. Você nunca deve escapar aspas HTML numa string, porque você apenas precisa alternar entre os tipos de aspas, assim:
+
+<pre><nowiki>echo '<a href="/link/estatico" title="Yeah yeah!">Nome do link</a>';
+echo "<a href='$link' title='$titulodolink'>$nomedolink</a>";</nowiki></pre>
+
+:A única exceção é no JavaScript, que as vezes reques aspas simples ou duplas. Textos que venham dentro de atributos devem passar pelo <tt>attribute_escape()</tt> assim as aspas simples ou duplas não fecham o atributo e invalidam o XHTML causando um problema de segurança.
+
+;Indentação : Sua indentação deve sempre refletir uma estrutura lógica. Use '''tabs reais''' e '''não espaços''', pois isso permite maior flexibilidade entre clientes.
+
+:Exceção: se você tem um bloco de código que seja mais legível se estiver alinhado, use espaços:
+
+<pre><nowiki>
+[tab]$foo   = 'algumvalor';
+[tab]$foo2  = 'algumvalor2';
+[tab]$foo34 = 'algumvalor3';
+[tab]$foo5  = 'algumvalor4';
+</nowiki></pre>
+
+:Regra de ouro: tabs devem ser usadas no início das linhas e espaços devem ser usados no meio das linhas.
+
+;Estilo das Chaves : Chaves devem ser usadas em multiplos blocos:
+
+<pre><nowiki>
+if ( condicao ) {
+    acao1();
+    acao2();
+} elseif ( condicao2 && condicao3 ) {
+    acao3();
+    acao4();
+} else {
+   acaopadrao();
+}
+</nowiki></pre>
+
+:No mais, se você tiver um bloco muito grande, considere quebrá-lo em dois ou mais blocos ou funções.
+consider whether it can be broken into two or more shorter blocks or functions. Caso seja realmente necessária a existência desse longo bloco, por favor ponha um pequeno comentário no final para que as pessoas percebam de relance o que aquela chave de fechamento está fechando -- normalmente isso é apropriado para blocos lógicos, maiores que cerca de 35 linhas, mas qualquer código que não seja intuitivamente óbvio pode ser comentado.
+
+:blocos de uma linha apenas pode omitir as chaves para ficarem mais concisos:
+
+<pre><nowiki>
+if ( condicao )
+    acao1();
+elseif ( condicao2 )
+    acao2();
+else
+    acao3();
+</nowiki></pre>
+
+:se qualquer um dos blocos relacionados tiver mais de uma linha então todos os blocos relacionados devem possuir chaves :
+
+<pre><nowiki>
+if ( condicao ) {
+    acao1();
+} elseif ( condicao2 ) {
+    acao2a();
+    acao2b();
+}
+</nowiki></pre>
+
+:loops devem sempre conter chaves para melhorar a legibilidade, e permitir poucas linhas de edição para posteriores correções ou adição de novas funcionalidades :
+
+<pre><nowiki>
+foreach ( $itens as $item ) {
+    processar_item( $item );
+}
+</nowiki></pre>
+
+;include_once  vs. require_once :Aprenda a diferença entre [http://us3.php.net/manual/en/function.include-once.php <tt>include_once</tt>] e [http://us3.php.net/manual/en/function.require-once.php <tt>require_once</tt>], e use o mais apropriado. Para citar a [http://us3.php.net/manual/en/function.include.php php página do manual php sobre o include()]: "Os dois construtores são identicos em todos os aspectos exceto em como eles tratam as falhas. include() produz um Alerta (Warning) enquanto o require() resulta num Erro Fatal (Fatal Error)." Erros Fatais interrompem a execução do script.
+
+;Expressões regulares: Expressões regulares compatíveis com Perl (PCRE, funções <tt>preg_</tt>) devem ser usadas preferencialmente às homólogas POSIX. Nunca use o alternador <tt>/e</tt>, ao invés dele use <tt>preg_replace_callback</tt>.
+
+;Não utilize as abreviações PHP :'''Nunca use as tags de abertura do PHP abreviadas''' (<tt>&lt;? ... ?&gt;</tt> ou <tt>&lt;?=$var?&gt;</tt>). Sempre use as tags inteiras (<tt>&lt;?php ... ?&gt;</tt>). '''Tenha certeza de remover todos os espaços em branco após o fechamento das tags.'''
+
+;Uso de espaços :Sempre ponha espaços após as vírgulas e em ambos os lados das atribuições de operadores lógicos como "<tt>x == 23</tt>", "<tt>foo && bar</tt>", "<tt>array( 1, 2, 3 )</tt>", assim como em ambos os lados dos parentesis de abertura e fechamento de blocos <tt>if</tt>, <tt>elseif</tt>, <tt>foreach</tt>, <tt>for</tt> e <tt>switch</tt> (ex. <tt>foreach ( $foo as $bar ) { ...</tt>). Quando definindo funções, faça assim: <tt>function minhafuncao( $param1 = 'foo', $param2 = 'bar' ) {</tt> e quando chamando uma funcao, faça assim: <tt>minhafuncao( $param1, funcparam( $param2 ) );</tt>
+
+;Formatado declarações SQL :Quando formatando declarações SQL você pode quebrá-la em várias linhas e indentá-la caso ela seja complexa. Apesar de a maioria das declarações funcionarem bem em uma linha. Sempre capitalize as partes das instruções SQL como <tt>UPDATE</tt> ou <tt>WHERE</tt>.
+
+:Funções que atualizam o banco de dados devem esperar que seus parâmetros não tenham as barras de escape (\) quando passadas. O escape de ser feito o mais próximo da hora da consulta possível, de preferência usando <tt>$wpdb-&gt;prepare()</tt>
+
+:<tt>$wpdb-&gt;prepare()</tt> é um método que cuida do escape, aspas, e fusão dos inteiros (int-casting) para as consultas SQL. Ela usa um subconjunto de estilo e formação da <tt>sprintf()</tt>. Exemplo :
+
+<pre><nowiki>
+$var = "perigo'"; // dado cru que precise, ou não, ser escapado
+$id  = algum_numero_foo(); // dado que esperemos que seja inteiro, mas não temos certeza
+
+$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_title = %s WHERE ID = %d", $var, $id ) );
+</nowiki></pre>
+
+: <tt>%s</tt> é usado para marcadores de texto e %d é usado para marcadores inteiros. Note que eles não possuem 'aspas'! <tt>$wpdb-&gt;prepare()</tt> irá cuidar do escape e das aspas para nós. O benefício disso é que não precisamos nos lembrar de usar <tt>$wpdb-&gt;escape()</tt> manualmente, e também que fica de fácil leitura quer os dados tenham sido escapados ou não, porque isso acontence logo quando a consulta é feita.
+
+: Veja [[Data Validation#Database|Validação de Dados para o Banco de Dados]] para mais informações.
+
+;Consulta Banco de Dados :Evite acessar o banco de dados diretamente. Se existir alguma função que consiga o dado que você precisa, use-a. Abstração do banco de dados (usando funções ao invés de consultas) ajuda a manter seu código sempre compatível e, em casos em que o resultado é guardado na memória (cache), ela pode ser muito mais rápida. Se você precisar tocar no banco de dados, entre em contato com alguns desenvolvedores postando uma mensagem no [[Mailing_Lists#Hackers|wp-hackers mailing list]]. Eles podem considerar criar uma função para as novas versões do WordPress que atenda essa funcionalidade que você precisa.
+
+;Variáveis, funções, nomes de arquivos, e operadores :Use letras minúsculas em nomes de variáveis e funções (nunca CamelCase). Separe palavras por sublinhados (underscores).
+
+<pre><nowiki>
+function algum_nome( $alguma_variavel ) { [...] }
+</nowiki></pre>
+
+:Arquivos devem ser nomeados descritivamente usando letras minúsculas. Hífens devem separar as palavras.
+
+<pre><nowiki>
+nome-do-meu-plugin.php
+</nowiki></pre>
+
+:Se você não for usar uma variável mais de uma vez, não a crie. Isso inclui consultas. Sempre use as funções da [[Function_Reference/wpdb Class|wpdb Class]] quando interagir com o banco de dados.
+
+:Tudo bem em usar operadores [[Wikipedia:Ternary_operation|ternarios]], mas sempre teste se a declaração é verdadeira (true), não false (false). Caso contrário fica confuso.
+
+<pre><nowiki>// BOM exemplo:
+// (se declaracao for verdadeira) ? (faca isso) : (se for falsa, faca isso);
+$generomusicao = ( 'jazz' == $musica ) ? 'legal' : 'blah';
+</nowiki>
+</pre>
+
+:Outro ponto importante no exemplo acima, quando fizer comparação lógica sempre ponha a variável do lado direito, como acima. Se você esquecer um igual, um erro será lançado ao invés da avaliação ser verdadeira e a declaração ser executada. Isso não toma nenhum tempo extra para ser feito, então se evitar um erro já vale a pena.
+
+;Valores de sinalização de argumentos de função auto-explicativos :Prefira valores em string a apenas <tt>true</tt> e <tt>false</tt> quando chamar funções.
+<pre><nowiki>//RUIM
+function comer( $oque, $devagar = true ) {
+    ...
+}
+comer( 'cogumelos' );
+comer( 'cogumelos', true ); // O que significa true?
+comer( 'comida de cachorro', false ); // O que significa false? O oposto de true?
+</nowiki></pre>
+
+Já que o PHP não suporta argumentos em forma de nomes, os valores dos sinalizadores não tem significados e toda vez que aparece uma função como essa nós temos que pesquisar pela definição da função. O código pode ficar mais legível se usarmos textos descritivos, ao invés de boleanos:
+
+<pre><nowiki>//BOM
+function comer( $oque, $velocidade = 'devagar' ) {
+    ...
+}
+comer( 'cogumelos' );
+comer( 'cogumelos', 'devagar' );
+comer( 'comida de cachorro', 'rapido' );
+
+</nowiki></pre>
+
+[[Category:WordPress Development]]

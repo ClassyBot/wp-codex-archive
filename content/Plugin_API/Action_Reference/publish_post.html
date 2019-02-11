@@ -1,0 +1,62 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Example"><span class="tocnumber">2</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Notes"><span class="tocnumber">3</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/publish_post&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>publish_post</tt> is an action triggered whenever a post is updated and its new status is "publish". See documentation: <a rel="nofollow" class="external free" href="https://developer.wordpress.org/reference/hooks/new_status_post-post_type/">https://developer.wordpress.org/reference/hooks/new_status_post-post_type/</a>
+</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/publish_post&amp;action=edit&amp;section=2" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The example below will send an email via <tt><a href="https://codex.wordpress.org/Function_Reference/wp_mail" title="Function Reference/wp mail">wp_mail()</a></tt> to the post author when their article is published.
+</p>
+<pre>function post_published_notification( $ID, $post ) {
+    $author = $post-&gt;post_author; /* Post author ID. */
+    $name = get_the_author_meta( 'display_name', $author );
+    $email = get_the_author_meta( 'user_email', $author );
+    $title = $post-&gt;post_title;
+    $permalink = get_permalink( $ID );
+    $edit = get_edit_post_link( $ID, '' );
+    $to[] = sprintf( '%s &lt;%s&gt;', $name, $email );
+    $subject = sprintf( 'Published:&#160;%s', $title );
+    $message = sprintf ('Congratulations,&#160;%s! Your article “%s” has been published.' . "\n\n", $name, $title );
+    $message .= sprintf( 'View:&#160;%s', $permalink );
+    $headers[] = '';
+    wp_mail( $to, $subject, $message, $headers );
+}
+add_action( 'publish_post', 'post_published_notification', 10, 2 );</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/publish_post&amp;action=edit&amp;section=3" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>This action hook is not deprecated!</b>
+</p><p>Previously, on both this page and the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference" title="Plugin API/Action Reference">Action Reference</a> page, <tt>publish_post</tt> had been identified as deprecated since <a href="https://codex.wordpress.org/Version_2.3" title="Version 2.3">WordPress 2.3</a>. That was incorrect. Since Version 2.3, <tt>publish_post</tt> is an action that adheres to the new form of post status transition actions <tt>{status}_{post_type}</tt>. For more information, see <a href="https://codex.wordpress.org/Post_Status_Transitions" title="Post Status Transitions">Post Status Transitions</a>.
+</p><p><b>Custom Post Types</b>
+</p><p>To trigger this action for a custom post type, use publish_{$custom_post_type}.
+e.g. if your post type is 'book' use:
+</p>
+<pre>add_action( 'publish_book', 'post_published_notification', 10, 2 );</pre>
+<p><br />
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/publish_post&amp;action=edit&amp;section=4" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/Post_Status_Transitions" title="Post Status Transitions">Post Status Transitions</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004054
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.012 seconds
+Preprocessor visited node count: 32/1000000
+Preprocessor generated node count: 60/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

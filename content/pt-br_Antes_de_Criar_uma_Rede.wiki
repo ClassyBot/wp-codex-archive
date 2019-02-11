@@ -1,0 +1,115 @@
+{{Languages|
+{{en|Before You Create A Network}}
+{{pt-br|Antes de Criar uma Rede}}
+{{ja|ネットワーク作成の前に}}
+}}
+
+Esta seção apresenta alguns requisitos a serem considerados antes de começar a criar uma rede WordPress.
+
+== Você realmente precisa de uma rede? ==
+Os sites em uma rede são separados, muito parecido com os blogs separados do WordPress.com. Eles não ficam ''interligados'' (há plugins pode criar vários tipos de interconexões entre os sites). Se você está pensando em criar sites que estão fortemente interligados, que compartilham dados e então compartilham usuários, uma rede WordPress pode não ser a melhor solução.
+
+Por exemplo, se você só quer diferentes páginas da web apareçam diferenciadas, então você provavelmente pode conseguir isso em um único site usando um plugin para mudar temas, modelos ou folhas de estilo.
+
+Outro exemplo, se você quer que diferentes grupos de usuários tenham acesso a informações de modo diferente, então provavelmente você pode conseguir o que deseja em um único site usando um plugin para mudar as capacidades, menus e funções.
+
+Este guia descreve como instalar manualmente o WordPress Multisite em sua instalação atual do WordPress.
+
+== Tipos de Rede ==
+Você pode escolher entre diversos tipos de rede dependendo de como você quer que sua rede lide com URLs, e se ela irá permitir que usuários criem novos sites sob demanda.
+
+Diferentes tipos de rede possuem diferente requisitos de servidor, as quais são descritas na seção abaixo. Se você não tem total controle sobre seu servidor então certos tipos de rede talvez não sejam disponíveis para você. Por exemplo, você não deve ter controle de seu servidor pois usa um ambiente de hospedagem compartilhada. Nesse caso você deverá negociar os requisitos com quem quer que opere seu servidor.
+
+Os sites em uma rede possuem diferentes URLs. Você pode escolher um entre dois tipos de URL para especificar o site:
+
+* Cada site tem um "domínio" diferente. Por exemplo: <tt>exemplo1.com</tt>, <tt>exemplo2.com</tt>, <tt>site1.exemplo.com</tt>, <tt>site2.exemplo.com</tt>.
+* Cada site tem um "diretório" diferente. Por exemplo: <tt>exemplo.com/site1</tt>, <tt>exemplo.com/site2</tt>
+
+[[File:sites-edit-site.png||Propriedades de um site numa rede. A URL do site é http://example3.com/]]
+
+Você também pode escolher se autoriza ou não que usuários criem novos sites sob demanda. Sites sob demanda baseados em domínios normalmente só são possíveis usando sub-domínios como <tt>site1.exemplo.com</tt> e <tt>site2.exemplo.com</tt>. Sites sob demanda baseados em diretórios também são possíveis.
+
+O processo de instalação de multisite usa diferentes terminologias. Uma "instalação de sub-domínios" cria uma rede baseada em domínios, mesmo que você use diferentes domínios, e não sub-domínios, para seus sites. Uma "instalação de sub-diretórios" cria uma rede baseada em diretórios, mesmo que não use sistema de diretórios de arquivos.
+
+Após a conclusão da instalação da rede, o WordPress usa a terminologia "domínio" e "diretório" para cada domínio e diretório na interface administrativa da rede. Um super admin (que é um administrador de rede) pode editar as configurações de domínio e diretório, apesar de não ser usual fazer isso com sites em produção pois isso muda suas URLs.
+
+Plugins podem extender as opções disponíveis e ajudar na administração. Por exemplo, você pode usar o plugin [http://wordpress.org/extend/plugins/wordpress-mu-domain-mapping/ WordPress MU Domain Mapping] para ajuda-lo a mapear sites individuais com domínios independentes. Para outro exemplo, você pode usar o plugin [http://wordpress.org/extend/plugins/networks-for-wordpress/ Networks for WordPress] para configurar multiplas rede na mesma instalação do WordPress.
+
+== Requisitos do Administrador ==
+Para criar uma rede você precisar ser o administrador de uma instalação do WordPress, e normalmente você precisará de acesso ao sistema de arquivos do servidor para que você possa editar arquivos e criar diretórios. Por exemplo, você pode acessar o sistema de arquivos do servidor usando [[Glossary#FTP|FTP]], ou usando um gerenciador de arquivos no [[Glossary#cPanel|cPanel]], ou de alguma outra forma.
+
+Você não precisa, necessariamente, de nenhum conhecimento de [[Glossary#Developer|desenvolvimento em WordPress]], [[Glossary#PHP|PHP]], [[Glossary#HTML|HTML]], [[Glossary#CSS|CSS]], administração de servidores ou administração de sistemas, apesar de essas coisas serem úteis para sanar problemas ou customizar sua rede após a instalação.
+
+== Server Requirements ==
+When you are planning a network, it can sometimes be helpful to use a development server for initial testing. However, setting up a development server that exactly matches your production server is not always possible, and transferring an entire network to a production server may not be easy. A test site on your production server is sometimes a more useful way to test your planned network.
+
+Some server requirements depend on the type of multisite network you want to create, as follows.
+
+=== Domain-based ===
+Also known as 'Subdomain' installs, a Domain-based network uses URLs like <code>http://subsite.example.com</code>
+
+For a domain-based network you require to map different domain names to the same directory in the server's file system where WordPress is installed. You can do this in various ways, for example:
+
+* by configuring wildcard subdomains
+* by configuring virtual hosts, specifying the same document root for each
+* by creating addon domains or subdomains in [[Glossary#cPanel|cPanel]] or in a similar web hosting control panel
+
+On-demand domain-based sites require the wildcard subdomains method. You can create additional sites manually in the same network using other methods.
+
+Whichever methods you use, you will need to configure your DNS (to map the domain name to the server's IP address) and server (to map the domain name to the WordPress installation directory). WordPress will then map the domain name to the site.
+
+WordPress ''must'' be installed in the root of your webfolder (i.e. <tt>public_html</tt>) for subdomains to function correctly. They will not function in a subdirectory.
+
+External links:
+*[http://en.wikipedia.org/wiki/Wildcard_DNS_record Wildcard DNS record] (Wikipedia)
+*[http://httpd.apache.org/docs/2.0/en/vhosts/ Apache Virtual Host] (Apache HTTP Server documentation)
+*[http://etwiki.cpanel.net/twiki/bin/view/AllDocumentation/CpanelDocs/CpanelDomains cPanel Domains] (cPanel documentation)
+
+For some examples of how to configure wildcard subdomains on various systems, see: [[Configuring Wildcard Subdomains]]
+
+=== Path-based ===
+Also known as 'Subfolder' installs, a path-based network uses URLs like <code>http://example.com/subsite</code>
+
+If you are using pretty permalinks in your site already, then a path-based network will work as well, and you do not need any of the other information in this section. That said, be aware that your main site will use the following URL pattern for posts: <code>http://example.com/blog/[postformat]/</code>
+
+At this time, you <strong>cannot</strong> remove the blog slug.
+
+For a path-based network you normally require [[Glossary#mod_rewrite|mod_rewrite]] to be loaded on the Apache server, support for it in [[Glossary#.htaccess|.htaccess]] files, and Options FollowSymLinks either already enabled or at least not permanently disabled. If you have access to the server configuration, then you could use a Directory section instead of a .htaccess file.
+
+The requirement is the same for on-demand path-based sites.
+
+'''Example:''' Configuring mod_rewrite in an Apache server on Ubuntu Linux.
+
+: To check if mod_rewrite is running, create 'nano /var/www/test.php' and inside that file put '<?php phpinfo(); ?>' then go to your web browser and try loading test.php and search for mod_rewrite in the loaded apache modules.
+
+: If not loaded, then use command from cli 'sudo a2enmod rewrite'; 'sudo nano /etc/apache2/sites-enabled/000-default' changing the Allow None to Allow All under the /var/www sections (2 places) and 'sudo /etc/init.d/apache2 restart' Otherwise you won't get sub sites to show up. The above is under Ubuntu server 10.04 with LAMP, other distros will likely be similar (Centos 6.0 also does not have set under default). Ubuntu 12.04 LAMP needs "Allow from All" rather than the older "Allow All" noted above.
+
+== WordPress Settings Requirements ==
+When you install a multisite network you start from an existing WordPress installation. If it is a fresh install with its own domain name, then you do not need to read this section. If it is an established site, or not reachable using just a domain name, then the following requirements apply to allow it to be converted to a multisite network.
+
+[[Giving WordPress Its Own Directory|Giving WordPress its own directory]] will not work in WordPress 3.0 with multisite enabled. If you wish to install WordPress in a folder AND have that folder name it will work. Domain mapping, however, will not work.
+
+If you have <code>www</code> in the settings for your domain URL, and plan to use <em>subdomains</em> for multisite, make sure that <strong>both</strong> the site address and the WordPress address are the same.  If you plan on changing them to <code>domain.com</code> or <code>www.domain.com</code>, do so <em>before</em> you begin the rest of the setup for multisite, as changing the domain name after the fact is more complicated.
+
+You '''cannot create a network''' in the following cases:<!-- network_step1() function -->
+* "WordPress address (URL)" is different from "Site address (URL)".
+* "WordPress address (URL)" uses a port number other than ':80', ':443'.
+
+You ''cannot choose '''Sub-domain''' Install'' (for a domain-based network) in the following cases:<!-- allow_subdomain_install() function -->
+* The WordPress URL contains a path, not just a domain. (That is, WordPress is not installed in a document root, or you are not using the URL of that document root.)
+* "WordPress address (URL)" is <code>localhost</code>.
+* "WordPress address (URL)" is IP address such as <var>127.0.0.1</var>.
+
+(Note that you can create a domain-based network on your local machine for testing purposes by using your hosts file to map some other hostnames to the IP address 127.0.0.1, so that you never have to use the hostname <code>localhost</code>.)
+
+<!-- allow_subdirectory_install() function -->
+You ''cannot choose '''Sub-directory''' Install'' (for a path-based network) if your existing WordPress installation has been set up for more than a month, due to issues with existing permalinks. (This problem will be fixed in a future version. See [[Multisite_Network_Administration#Switching_network_types|Switching network types]] for more information.)
+
+(See {{Trac|wp-admin/network.php}} for more detail)
+
+[[Category:pt-br:WPMS]]
+[[Category:pt-br:Network]]
+[[Category:pt-br:UI Link]]
+[[Category:pt-br:Hosting]]
+
+{{Traduz}}

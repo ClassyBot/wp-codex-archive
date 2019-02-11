@@ -1,0 +1,82 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_init" title="Plugin API/Action Reference/admin init">English</a> • 
+<strong class="selflink">Italiano</strong> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Descrizione"><span class="tocnumber">1</span> <span class="toctext">Descrizione</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Utilizzo"><span class="tocnumber">2</span> <span class="toctext">Utilizzo</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Esempio:_Controllo_degli_accessi"><span class="tocnumber">3</span> <span class="toctext">Esempio: Controllo degli accessi</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Esempio:_Controllo_degli_accessi_con_redirezione"><span class="tocnumber">4</span> <span class="toctext">Esempio: Controllo degli accessi con redirezione</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Esempio:_Registrare_nuove_impostazioni"><span class="tocnumber">5</span> <span class="toctext">Esempio: Registrare nuove impostazioni</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Descrizione">Descrizione</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_dei_plugin/Riferimento_azioni/admin_init&amp;action=edit&amp;section=1" title="Edit section: Descrizione">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>admin_init</tt> è attivata prima di qualunque altra cosa quando un utente accede all'area di amministrazione. Non ha parametri, per cui può essere usata per il callback di una specifica funzione.
+</p>
+<h2><span class="mw-headline" id="Utilizzo">Utilizzo</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_dei_plugin/Riferimento_azioni/admin_init&amp;action=edit&amp;section=2" title="Edit section: Utilizzo">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>&lt;?php add_action( 'admin_init', 'nome_funzione' );&#160;?&gt;</pre>
+<p>dove "nome_funzione" è il nome della funzione da chiamare.
+</p>
+<h2><span class="mw-headline" id="Esempio:_Controllo_degli_accessi">Esempio: Controllo degli accessi</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_dei_plugin/Riferimento_azioni/admin_init&amp;action=edit&amp;section=3" title="Edit section: Esempio: Controllo degli accessi">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Consideriamo il seguente esempio:
+</p>
+<pre>
+function restrict_admin(){
+	//se l'utente non è un amministratore, interrompe l'esecuzione di WordPress e stampa un messaggio
+	if (&#160;! current_user_can( 'manage_options' ) ) {
+		wp_die( __('Non sei autorizzato ad accedere a questa sezione del sito') );
+	}
+}
+add_action( 'admin_init', 'restrict_admin', 1 );
+</pre>
+<p>In questo esempio viene bloccato l'accesso al pannello di amministrazione per gli utenti che non hanno il <a href="https://codex.wordpress.org/Roles_and_Capabilities#Administrator" title="Roles and Capabilities">ruolo di amministratore</a>.
+</p>
+<h2><span class="mw-headline" id="Esempio:_Controllo_degli_accessi_con_redirezione">Esempio: Controllo degli accessi con redirezione</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_dei_plugin/Riferimento_azioni/admin_init&amp;action=edit&amp;section=4" title="Edit section: Esempio: Controllo degli accessi con redirezione">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Questo esempio funziona in modo simile al precedente, ma redirige all'home page automaticamente gli utenti che non hanno la capacità specificata.
+</p>
+<pre>
+function restrict_admin_with_redirect() {
+	if (&#160;! current_user_can( 'manage_options' ) &amp;&amp; $_SERVER['PHP_SELF']&#160;!= '/wp-admin/admin-ajax.php' ) {
+		wp_redirect( site_url() ); exit;
+	}
+}
+
+add_action( 'admin_init', 'restrict_admin_with_redirect' );
+</pre>
+<h2><span class="mw-headline" id="Esempio:_Registrare_nuove_impostazioni">Esempio: Registrare nuove impostazioni</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_dei_plugin/Riferimento_azioni/admin_init&amp;action=edit&amp;section=5" title="Edit section: Esempio: Registrare nuove impostazioni">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Un altro tipico impiego è quello di registrare una nuova impostazione che deve essere utilizzata da un plugin:
+</p>
+<pre>
+function myplugin_settings() {
+    register_setting( 'myplugin', 'myplugin_setting_1', 'intval' );
+    register_setting( 'myplugin', 'myplugin_setting_2', 'intval' );
+}
+add_action( 'admin_init', 'myplugin_settings' );
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004341
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 68/1000000
+Preprocessor generated node count: 243/1000000
+Post‐expand include size: 545/2097152 bytes
+Template argument size: 206/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.850      1 - Template:Languages
+100.00%    3.850      1 - -total
+ 32.23%    1.241      1 - Template:en
+ 30.49%    1.174      1 - Template:it
+-->

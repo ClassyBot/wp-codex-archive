@@ -1,0 +1,674 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/wp_enqueue_script/}}
+
+__TOC__
+
+{{Languages|
+{{en|Function Reference/wp_enqueue_script}}
+{{es|Referencia de Funciones/wp_enqueue_script}}
+{{ja|関数リファレンス/wp_enqueue_script}}
+{{ko|Function Reference/wp_enqueue_script}}
+{{ru|Справочник по функциям/wp_enqueue_script}}
+{{zh-cn|函数参考/wp_enqueue_script}}
+}}
+
+== Description ==
+
+Links a script file to the generated page at the right time according to the script dependencies, if the script has not been already included and if all the dependencies have been registered. You could either link a script with a handle previously registered using the <tt>[[Function Reference/wp_register_script|wp_register_script()]]</tt> function, or provide this function with all the parameters necessary to link a script.
+
+This is the recommended method of linking JavaScript to a WordPress generated page.
+
+== Usage ==
+
+%%%<?php wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer ); ?>%%%
+See [[#Notes|Notes]] for information about what action [[Glossary#Hook|hooks]] should be used to call the function.
+
+== Parameters ==
+
+{{Parameter|$handle|string|Name used as a handle for the script. As a special case, if the string contains a '?' character, the preceding part of the string refers to the registered handle, and the succeeding part is appended to the URL as a query string. A version must be used with this special case.}}
+
+{{Parameter|$src|string|URL to the script, e.g. ''http://<nowiki/>example.com/wp-content/themes/my-theme/my-theme-script.js''. You should never hardcode URLs to local scripts. To get a proper URL to local scripts, use <tt>[[Function Reference/plugins_url|plugins_url()]]</tt> for [[Glossary#Plugin|plugins]] and <tt>[[Function Reference/get_template_directory_uri|get_template_directory_uri()]]</tt> for [[Glossary#Themes|themes]]. Remote scripts can be specified with a protocol-agnostic URL, e.g. ''//otherdomain.com/js/their-script.js''. This parameter is only required when the script with the given <tt>$handle</tt> has not been already registered using <tt>[[Function Reference/wp_register_script|wp_register_script()]]</tt>. See [[#Default Scripts Included and Registered by WordPress|Default Scripts Included and Registered by WordPress]].|optional|false}}
+
+{{Parameter|$deps|array|Array of the handles of all the registered scripts that this script depends on, that is the scripts that must be loaded before this script. This parameter is only required when the script with the given <tt>$handle</tt> has not been already registered using <tt>[[Function Reference/wp_register_script|wp_register_script()]]</tt>. Default handles are all in lower case.|optional|array()}}
+
+{{Parameter|$ver|string|String specifying the script version number, if it has one, which is concatenated to the end of the path as a query string. If no version is specified or set to ''false'', then WordPress automatically adds a version number equal to the current version of WordPress you are running. If set to ''null'' no version is added. This parameter is used to ensure that the correct version is sent to the client regardless of caching, and so should be included if a version number is available and makes sense for the script.|optional|false}}
+
+{{Parameter|$in_footer|boolean|Normally, scripts are placed in <tt><head></tt> of the HTML document. If this parameter is ''true'', the script is placed before the <tt></body></tt> end tag. This requires the theme to have the <tt>[[Plugin API/Action Reference/wp footer|wp_footer()]]</tt> template tag in the appropriate place.|optional|false}}
+
+== Return Values ==
+
+{{Return||void|This function does not return a value.}}
+
+== Examples ==
+
+== Using a Hook ==
+
+Scripts and styles from a single action hook
+
+<pre>
+/**
+ * Proper way to enqueue scripts and styles
+ */
+function theme_name_scripts() {
+	wp_enqueue_style( 'style-name', get_stylesheet_uri() );
+	wp_enqueue_script( 'script-name', get_template_directory_uri() . '/js/example.js', array(), '1.0.0', true );
+}
+
+add_action( 'wp_enqueue_scripts', 'theme_name_scripts' );
+</pre>
+
+=== Link the script.aculo.us Library ===
+
+The following is an example of basic usage which links the script.aculo.us library [[#Default_Scripts_Included_and_Registered_by_WordPress|already included and registered]] by WordPress with the ''scriptaculous'' handle.
+
+<pre>
+<?php
+function my_scripts_method() {
+    wp_enqueue_script( 'scriptaculous' );
+}
+
+add_action( 'wp_enqueue_scripts', 'my_scripts_method' ); // wp_enqueue_scripts action hook to link only on the front-end
+?>
+</pre>
+
+The above example links the script.aculo.us library only on the front-end. If the library was needed within the [[Administration Screens|administration screens]], you could use the [[Plugin_API/Action_Reference/admin_enqueue_scripts|admin_enqueue_scripts]] action [[Glossary#Hook|hook]] instead, however, this would enqueue it on ''all'' the administration screens, which often leads to plugin/core conflicts, ultimately breaking the WordPress administration screens experience. Instead, you should only link it on the individual screens you need it, see the [[#Link_Scripts_Only_on_a_Plugin_Administration_Screen|Link Scripts Only on a Plugin Administration Screen]] section for an example of that.
+
+=== Link a Theme Script Which Depends on jQuery ===
+
+JavaScript files included in themes often require another JavaScript file to be loaded in advance to use its functions or variables. [[#Parameters|Using the <tt>$deps</tt> parameter]], the <tt>wp_enqueue_script()</tt> and <tt>[[Function Reference/wp_register_script|wp_register_script()]]</tt> functions allows you to mark dependencies when registering a new script. This will cause WordPress to automatically link these dependencies to the HTML page before the new script is linked. If the [[#Default_Scripts_Included_and_Registered_by_WordPress|handles]] of these dependencies are [[Function Reference/wp_deregister_script|not registered]], WordPress will not link the new script. This example requires the jQuery library for the ''custom_script.js'' theme script:
+
+<pre>
+<?php
+
+function my_scripts_method() {
+	wp_enqueue_script(
+		'custom-script',
+		get_stylesheet_directory_uri() . '/js/custom_script.js',
+		array( 'jquery' )
+	);
+}
+
+add_action( 'wp_enqueue_scripts', 'my_scripts_method' );
+
+?>
+</pre>
+
+=== Link a Plugin Script That Depends on script.aculo.us ===
+
+This example is intended to be used within a [[Writing a Plugin#Plugin_Files|plugin file]] to register and link a new plugin script that depends on the script.aculo.us library. See the [[#Link_a_Theme_Script_Which_Depends_on_jQuery|example above]] for information about dependencies.
+
+<pre>
+<?php
+function my_scripts_method() {
+	wp_enqueue_script(
+		'newscript',
+		plugins_url( '/js/newscript.js' , __FILE__ ),
+		array( 'scriptaculous' )
+	);
+}
+
+add_action( 'wp_enqueue_scripts', 'my_scripts_method' );
+?>
+</pre>
+
+=== Link Scripts Only on a Plugin Administration Screen ===
+
+This example links a script only on a specific [[Administration Screens|administration screen]], as opposed to the scenario described in the paragraph below the code of the [[#Link_the_script.aculo.us_Library|first example]].
+
+<pre>
+<?php
+    add_action( 'admin_init', 'my_plugin_admin_init' );
+    add_action( 'admin_menu', 'my_plugin_admin_menu' );
+
+    function my_plugin_admin_init() {
+        /* Register our script. */
+        wp_register_script( 'my-plugin-script', plugins_url( '/script.js', __FILE__ ) );
+    }
+
+    function my_plugin_admin_menu() {
+        /* Add our plugin submenu and administration screen */
+        $page_hook_suffix = add_submenu_page( 'edit.php', // The parent page of this submenu
+                                  __( 'My Plugin', 'myPlugin' ), // The submenu title
+                                  __( 'My Plugin', 'myPlugin' ), // The screen title
+				  'manage_options', // The capability required for access to this submenu
+				  'my_plugin-options', // The slug to use in the URL of the screen
+                                  'my_plugin_manage_menu' // The function to call to display the screen
+                               );
+
+        /*
+          * Use the retrieved $page_hook_suffix to hook the function that links our script.
+          * This hook invokes the function only on our plugin administration screen,
+          * see: http://codex.wordpress.org/Administration_Menus#Page_Hook_Suffix
+          */
+        add_action('admin_print_scripts-' . $page_hook_suffix, 'my_plugin_admin_scripts');
+    }
+
+    function my_plugin_admin_scripts() {
+        /* Link our already registered script to a page */
+        wp_enqueue_script( 'my-plugin-script' );
+    }
+
+    function my_plugin_manage_menu() {
+        /* Display our administration screen */
+    }
+?>
+</pre>
+
+=== Load a Script from a Child Theme without Dependencies ===
+
+Register and enqueue the script in the same callback function with no dependencies, in the footer. See [[Function_Reference/wp_register_script|wp_register_script()]] for details. In this example, <tt>google_analytics_object.js</tt> is the Google Analytics tracking code (provided by Google) in a file.
+
+<pre>
+<?php
+add_action( 'wp_enqueue_scripts', 'child_add_scripts' );
+
+/**
+ * Register and enqueue a script that does not depend on a JavaScript library.
+ */
+function child_add_scripts() {
+    wp_register_script(
+        'google-analytics',
+        get_stylesheet_directory_uri() . '/google_analytics_object.js',
+        false,
+        '1.0',
+        true
+    );
+
+    wp_enqueue_script( 'google-analytics' );
+}
+</pre>
+
+== jQuery noConflict Wrappers ==
+
+The jQuery library included with WordPress is set to the [http://docs.jquery.com/Using_jQuery_with_Other_Libraries ''noConflict()''] mode  (see {{Trac|wp-includes/js/jquery/jquery.js|tags/{{CurrentVersion}}|3}}). This is to prevent compatibility problems with other JavaScript libraries that WordPress can link.
+
+In the ''noConflict()'' mode, the global <tt>$</tt> shortcut for <tt>jQuery</tt> is not available, so you can still use:
+<pre>
+jQuery(document).ready(function(){
+    jQuery(#somefunction) ...
+});
+</pre>
+
+but the following will either throw an error, or use the <tt>$</tt> shortcut as assigned by another library.
+<pre>
+$(document).ready(function(){
+     $(#somefunction) ...
+});
+</pre>
+
+However, if you really like the short <tt>$</tt> instead of <tt>jQuery</tt>, you can use the following wrapper around your code:
+<pre>
+jQuery(document).ready(function($) {
+    // Inside of this function, $() will work as an alias for jQuery()
+    // and other libraries also using $ will not be accessible under this shortcut
+});
+</pre>
+
+That wrapper will cause your code to be executed when the DOM is fully constructed. If, for some reason, you want your code to execute immediately instead of waiting for the [http://api.jquery.com/ready/ DOM ready] event, then you can use this wrapper method instead:
+<pre>
+(function($) {
+    // Inside of this function, $() will work as an alias for jQuery()
+    // and other libraries also using $ will not be accessible under this shortcut
+})(jQuery);
+</pre>
+
+Alternatively, you can always reasign <tt>jQuery</tt> to another shortcut of your choice and leave the <tt>$</tt> shorcut to other libraries:
+<pre>
+var $j = jQuery;
+</pre>
+
+== Default Scripts Included and Registered by WordPress ==
+
+By default, WordPress installation includes many popular scripts commonly used by web developers besides the scripts used by WordPress itself. Some of them are listed in the table below.
+
+For a detailed list of names that can be used in place of the <code>$handle</code> parameter, see [[Function Reference/wp_register_script#Handles and Their Script Paths Registered by WordPress|Handles and Their Script Paths Registered by WordPress]].
+
+Note that in [[Version 3.5]], WordPress changed its naming convention for minified scripts and styles. Before, minified scripts and styles had the ''.js'' and ''.css'' extensions, unminified had ''.dev.js'' and ''.dev.css''. However, following the change, the extensions are ''.min.js'' and ''.min.css'' for minified files, ''.js'' and ''.css'' for unminified, respectively.
+
+{| class="wikitable" style="width:100%;"
+|-
+! width="25%" | '''Script Name'''
+! width="35%" | '''Handle'''
+! width="40%" | '''Needed Dependency *'''
+|-
+| [http://www.defusion.org.uk/ Image Cropper]
+| Image cropper (not used in core, see jcrop)
+|-
+| [http://deepliquid.com/content/Jcrop.html Jcrop]
+| jcrop
+|-
+| [http://code.google.com/p/swfobject/ SWFObject]
+| swfobject
+|-
+| [http://swfupload.org/ SWFUpload]
+| swfupload
+|-
+| [http://swfupload.org/ SWFUpload Degrade]
+| swfupload-degrade
+|-
+| [http://swfupload.org/ SWFUpload Queue]
+| swfupload-queue
+|-
+| [http://swfupload.org/ SWFUpload Handlers]
+| swfupload-handlers
+|-
+| [http://jquery.com/ jQuery]
+| jquery
+| json2 (for AJAX calls)
+|-
+| [http://plugins.jquery.com/project/form/ jQuery Form]
+| jquery-form
+| jquery
+|-
+| [http://plugins.jquery.com/project/color/ jQuery Color]
+| jquery-color
+| jquery
+|-
+| [http://masonry.desandro.com/ jQuery Masonry]
+| jquery-masonry
+| jquery
+|-
+| [http://masonry.desandro.com/ Masonry (native Javascript)]
+| masonry
+|-
+| [http://jqueryui.com/ jQuery UI Core]
+| jquery-ui-core
+| jquery
+|-
+| [http://jqueryui.com/widget/ jQuery UI Widget]
+| jquery-ui-widget
+| jquery
+|-
+| [http://jqueryui.com/demos/accordion/ jQuery UI Accordion]
+| jquery-ui-accordion
+| jquery
+|-
+| [http://jqueryui.com/demos/autocomplete/ jQuery UI Autocomplete]
+| jquery-ui-autocomplete
+| jquery
+|-
+| [http://jqueryui.com/demos/button/ jQuery UI Button]
+| jquery-ui-button
+| jquery
+|-
+| [http://jqueryui.com/demos/datepicker/ jQuery UI Datepicker]
+| jquery-ui-datepicker
+| jquery
+|-
+| [http://jqueryui.com/demos/dialog/ jQuery UI Dialog]
+| jquery-ui-dialog
+| jquery
+|-
+| [http://jqueryui.com/demos/draggable/ jQuery UI Draggable]
+| jquery-ui-draggable
+| jquery
+|-
+| [http://jqueryui.com/demos/droppable/ jQuery UI Droppable]
+| jquery-ui-droppable
+| jquery
+|-
+| [http://jqueryui.com/menu/ jQuery UI Menu]
+| jquery-ui-menu
+| jquery
+|-
+| jQuery UI Mouse
+| jquery-ui-mouse
+| jquery
+|-
+| [http://jqueryui.com/demos/position/ jQuery UI Position]
+| jquery-ui-position
+| jquery
+|-
+| [http://jqueryui.com/demos/progressbar/ jQuery UI Progressbar]
+| jquery-ui-progressbar
+| jquery
+|-
+| [http://jqueryui.com/demos/selectable/ jQuery UI Selectable]
+| jquery-ui-selectable
+| jquery
+|-
+| [http://jqueryui.com/demos/resizable/ jQuery UI Resizable]
+| jquery-ui-resizable
+| jquery
+|-
+| [http://jqueryui.com/selectmenu/ jQuery UI Selectmenu]
+| jquery-ui-selectmenu
+| jquery
+|-
+| [http://jqueryui.com/demos/sortable/ jQuery UI Sortable]
+| jquery-ui-sortable
+| jquery
+|-
+| [http://jqueryui.com/demos/slider/ jQuery UI Slider]
+| jquery-ui-slider
+| jquery
+|-
+| [http://jqueryui.com/demos/spinner/ jQuery UI Spinner]
+| jquery-ui-spinner
+| jquery
+|-
+| [http://jqueryui.com/demos/tooltip/ jQuery UI Tooltips]
+| jquery-ui-tooltip
+| jquery
+|-
+| [http://jqueryui.com/demos/tabs/ jQuery UI Tabs]
+| jquery-ui-tabs
+| jquery
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects]
+| jquery-effects-core
+| jquery
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Blind]
+| jquery-effects-blind
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Bounce]
+| jquery-effects-bounce
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Clip]
+| jquery-effects-clip
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Drop]
+| jquery-effects-drop
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Explode]
+| jquery-effects-explode
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Fade]
+| jquery-effects-fade
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Fold]
+| jquery-effects-fold
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Highlight]
+| jquery-effects-highlight
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Pulsate]
+| jquery-effects-pulsate
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Scale]
+| jquery-effects-scale
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Shake]
+| jquery-effects-shake
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Slide]
+| jquery-effects-slide
+| jquery-effects-core
+|-
+| [http://jqueryui.com/effect/ jQuery UI Effects - Transfer]
+| jquery-effects-transfer
+| jquery-effects-core
+|-
+| [http://mediaelementjs.com/ MediaElement.js (WP 3.6+)]
+| wp-mediaelement
+| jquery
+|-
+| [http://trainofthoughts.org/blog/2007/02/15/jquery-plugin-scheduler/ jQuery Schedule]
+| schedule
+| jquery
+|-
+| [https://web.archive.org/web/20111017233444/http://plugins.jquery.com/project/suggest jQuery Suggest]
+| suggest
+| jquery
+|-
+| [http://codex.wordpress.org/ThickBox ThickBox]
+| thickbox
+|-
+| [http://cherne.net/brian/resources/jquery.hoverIntent.html jQuery HoverIntent]
+| hoverIntent
+| jquery
+|-
+| [http://plugins.jquery.com/project/hotkeys jQuery Hotkeys]
+| jquery-hotkeys
+| jquery
+|-
+| [http://code.google.com/p/tw-sack/ Simple AJAX Code-Kit]
+| sack
+|-
+| [http://www.alexking.org QuickTags]
+| quicktags
+|-
+| [https://github.com/automattic/Iris Iris (Colour picker)]
+| iris
+| jquery
+|-
+| [http://acko.net/dev/farbtastic Farbtastic (deprecated)]
+| farbtastic
+| jquery
+|-
+| [http://mattkruse.com ColorPicker (deprecated)]
+| colorpicker
+| jquery
+|-
+| [http://tinymce.moxiecode.com/ Tiny MCE]
+| tiny_mce
+|-
+| Autosave
+| autosave
+|-
+| WordPress AJAX Response
+| wp-ajax-response
+|-
+| List Manipulation
+| wp-lists
+|-
+| WP Common
+| common
+|-
+| WP Editor
+| editorremov
+|-
+| WP Editor Functions
+| editor-functions
+|-
+| AJAX Cat
+| ajaxcat
+|-
+| Admin Categories
+| admin-categories
+|-
+| Admin Tags
+| admin-tags
+|-
+| Admin custom fields
+| admin-custom-fields
+|-
+| Password Strength Meter
+| password-strength-meter
+|-
+| Admin Comments
+| admin-comments
+|-
+| Admin Users
+| admin-users
+|-
+| Admin Forms
+| admin-forms
+|-
+| XFN
+| xfn
+|-
+| Upload
+| upload
+|-
+| PostBox
+| postbox
+|-
+| Slug
+| slug
+|-
+| Post
+| post
+|-
+| Page
+| page
+|-
+| Link
+| link
+|-
+| Comment
+| comment
+|-
+| Threaded Comments
+| comment-reply
+|-
+| Admin Gallery
+| admin-gallery
+|-
+| Media Upload
+| media-upload
+|-
+| Admin widgets
+| admin-widgets
+|-
+|  Word Count
+| word-count
+|-
+| Theme Preview 
+| theme-preview
+|-
+| [https://github.com/douglascrockford/JSON-js JSON for JS]
+| json2
+|-
+| [http://www.plupload.com/ Plupload Core]
+| plupload
+|-
+| [http://www.plupload.com/example_all_runtimes.php Plupload All Runtimes]
+| plupload-all
+|-
+| [http://www.plupload.com/example_all_runtimes.php Plupload HTML4]
+| plupload-html4
+|-
+| [http://www.plupload.com/example_all_runtimes.php Plupload HTML5]
+| plupload-html5
+|-
+| [http://www.plupload.com/example_all_runtimes.php Plupload Flash]
+| plupload-flash
+|-
+| [http://www.plupload.com/example_all_runtimes.php Plupload Silverlight]
+| plupload-silverlight
+|-
+| [http://underscorejs.org/ Underscore js]
+| underscore
+|-
+| [http://backbonejs.org/ Backbone js]
+| backbone
+|}
+
+
+{| class="wikitable" style="width:100%;"
+|-
+! colspan=4 | '''Removed from Core'''
+|-
+! width="25%" | '''Script Name'''
+! width="30%" | '''Handle'''
+! width="20%" | '''Removed Version'''
+! width="25%" | '''Replaced With'''
+|-
+| [http://script.aculo.us Scriptaculous Root]
+| scriptaculous-root
+| WP 3.5
+| Google Version
+|-
+| [http://script.aculo.us Scriptaculous Builder]
+| scriptaculous-builder
+| WP 3.5
+| Google Version
+|-
+| [http://script.aculo.us Scriptaculous Drag &amp; Drop]
+| scriptaculous-dragdrop
+| WP 3.5
+| Google Version
+|-
+| [http://script.aculo.us Scriptaculous Effects]
+| scriptaculous-effects
+| WP 3.5
+| Google Version
+|-
+| [http://script.aculo.us Scriptaculous Slider]
+| scriptaculous-slider
+| WP 3.5
+| Google Version
+|-
+| [http://script.aculo.us/ Scriptaculous] Sound
+| scriptaculous-sound
+| WP 3.5
+| Google Version
+|-
+| [http://script.aculo.us Scriptaculous Controls]
+| scriptaculous-controls
+| WP 3.5
+| Google Version
+|-
+| [http://script.aculo.us Scriptaculous]
+| scriptaculous
+| WP 3.5
+| Google Version
+|-
+| [http://www.prototypejs.org/ Prototype Framework]
+| prototype
+| WP 3.5
+| Google Version
+|-
+|}
+
+'''The list is far from complete.''' For a complete list of registered files inspect <tt>$GLOBALS['wp_scripts']</tt> in the admin UI. Registered scripts might change per requested page.
+
+--------
+
+''* The listed dependencies are not complete.''
+
+== Notes ==
+
+* The function should be called using the [[Plugin API/Action Reference/wp_enqueue_scripts|wp_enqueue_scripts]] action [[Glossary#Hook|hook]] if you want to call it on the front-end of the site, like in the [[#Examples|examples above]]. To call it on the [[Administration Screens|administration screens]], use the [[Plugin_API/Action_Reference/admin_enqueue_scripts|admin_enqueue_scripts]] action hook. For the [[Login Screen|login screen]], use the [[Plugin_API/Action_Reference/login_enqueue_scripts|login_enqueue_scripts]] action hook. Calling it outside of an action hook can lead to problems, see the [http://core.trac.wordpress.org/ticket/11526 ticket #11526] for details.
+* Prior to [[Version 3.3]], the function will have no effect if it is called using the [[Plugin_API/Action_Reference/wp_head|wp_head]] or [[Plugin_API/Action_Reference/wp_print_scripts|wp_print_scripts]] action hooks or later, as this is too late to enqueue the files even if the <tt>$in_footer</tt> parameter is set to ''true''.
+* As of [[Version 3.3]], the function can be called mid-page (before the <tt>[[Plugin API/Action Reference/wp footer|wp_footer()]]</tt> template tag) or using the [[Plugin_API/Action_Reference/wp_head|wp_head]] action hook. This will place the script in the footer as if the <tt>$in_footer</tt> parameter was set to ''true''.
+* If you try to register or enqueue an already registered handle with different parameters, the new parameters will be ignored. Instead, use <tt>[[Function_Reference/wp_deregister_script|wp_deregister_script()]]</tt> and register the script again with the new parameters.
+* jQuery UI Effects is '''not''' included with the ''jquery-ui-core'' handle.
+* This function relies on the use of <tt>[[Function Reference/wp_head|wp_head()]]</tt> and <tt>[[Function Reference/wp_footer|wp_footer()]]</tt> by the active theme. This means that it may not work with a few very old themes that do not call these functions. This is useful to keep in mind when debugging ancient themes.
+* Uses: <tt>WP_Scripts::add()</tt>, <tt>WP_Scripts::add_data()</tt> and <tt>WP_Scripts::enqueue()</tt>.
+* Uses global: (<tt>unknown type</tt>) <tt>$wp_scripts</tt>.
+
+== Change Log ==
+
+* Since: [[Version 2.6|2.6]] (BackPress version: r16)
+
+== Source File ==
+
+<tt>wp_enqueue_script()</tt> is located in {{Trac|wp-includes/functions.wp-scripts.php}}.
+
+==Resources==
+
+* [http://www.prelovac.com/vladimir/best-practice-for-adding-javascript-code-to-wordpress-plugin Best practice for adding JavaScript code to WordPress plugins]
+*[http://planetozh.com/blog/2008/04/how-to-load-javascript-with-your-wordpress-plugin/ How To: Load Javascript With Your WordPress Plugin]
+*[http://noteslog.com/post/how-to-load-javascript-in-wordpress-plugins/ How to load JavaScript in WordPress plugins]
+*[http://www.devlounge.net/articles/using-javascript-and-css-with-your-wordpress-plugin  Using JavaScript and CSS with your WordPress Plugin]
+* [http://www.lost-in-code.com/platforms/wordpress/wordpress-using-javascript-libraries-with-your-plugin-or-theme/ Using Javascript libraries with your Wordpress plugin or theme]
+* [http://www.ericmmartin.com/5-tips-for-using-jquery-with-wordpress/ 5 Tips For Using jQuery with WordPress]
+* [http://beerpla.net/2010/01/13/wordpress-plugin-development-how-to-include-css-and-javascript-conditionally-and-only-when-needed-by-the-posts/ How to Include CSS and JavaScript Conditionally, and Only When Needed by the Posts]
+* [http://fusi0n.org/coding/make-your-wordpress-plugins-use-a-different-version-of-a-bundled-javascript-library Make Your WordPress Plugins Use a Different Version of a Bundled JavaScript Library] Replacing built-in JavaScript libraries is usually a bad idea. Do this only on sites you administer personally.
+* [http://scribu.net/wordpress/optimal-script-loading.html How to load JavaScript like a WordPress Master] Highly recommended.
+* [http://justintadlock.com/archives/2009/08/06/how-to-disable-scripts-and-styles How to disable scripts and styles]
+* [http://twentyfiveautumn.com/2012/03/14/loading-javascript-on-the-frontend-with-your-wordpress-plugin/ Loading javascript on the frontend with your WordPress plugin]
+* [http://www.cybersprocket.com/?s=wordpress+javascript JavaScript Tips and Tricks for WordPress 3.x]
+* [[ThickBox|Developing for WordPress's customized version of ThickBox]]
+* [http://generatewp.com/register_script/ WordPress Script Registration Generator]
+
+== Related ==
+{{Enqueue Functions Related}}
+
+{{Tag Footer}}
+{{Copyedit}}
+
+[[Category:Functions]]

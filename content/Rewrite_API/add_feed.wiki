@@ -1,0 +1,54 @@
+==Description==
+Add a new feed type like /atom1/.
+
+Requires one-time use of [[Rewrite_API/flush_rules|flush_rules()]] to take effect.
+
+== Usage ==
+
+%%%<?php add_feed( $feedname, $function ); ?>%%%
+'''Use the <tt>init</tt> action to call this function.'''
+
+== Parameters ==
+{{Parameter|$feedname|string|Name of the feed as it will appear in the feed URL|required}}
+
+{{Parameter|$function|callback|Callback to run on feed display.|required}}
+
+== Return Values ==
+
+{{Return||string|Feed action name.}}
+
+== Example ==
+
+<pre>
+ <?php
+/* Add the feed. */
+function my_custom_rss_init(){
+	add_feed('my_custom_feed', 'my_custom_rss');
+}
+add_action('init', 'my_custom_rss_init');
+
+/* Filter the type, this hook wil set the correct HTTP header for Content-type. */
+function my_custom_rss_content_type( $content_type, $type ) {
+	if ( 'my_custom_feed' === $type ) {
+		return feed_content_type( 'rss2' );
+	}
+	return $content_type;
+}
+add_filter( 'feed_content_type', 'my_custom_rss_content_type', 10, 2 );
+
+/* Show the RSS Feed on domain.com/?feed=my_custom_feed or domain.com/feed/my_custom_feed. */
+function my_custom_rss() {
+	// Do your magic, with XML for example.
+}
+ ?>
+</pre>
+
+== Change Log ==
+
+Since: [[Version 2.1|2.1]]
+
+== Source File ==
+<tt>add_feed()</tt> is located in {{Trac|wp-includes/rewrite.php}}
+
+==Related ==
+{{Rewrite API}}

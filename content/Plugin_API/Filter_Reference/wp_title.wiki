@@ -1,0 +1,66 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/hooks/wp_title/}}
+
+==Description==
+The <code>wp_title</code> filter is used to filter the title of the page (called with <code>[[Function_Reference/wp_title|wp_title()]]</code>). This filters the text appearing in the HTML <title> tag (sometimes called the "title tag" or "meta title"), not the post, page, or category title. 
+
+A plugin (or theme) can register as a content filter with the code:
+
+<code><pre><?php add_filter( 'wp_title', 'filter_function_name', 10, 2 ) ?></pre></code>
+
+Where 'filter_function_name' is the function WordPress should call when the content is being retrieved. Note that the filter function  <b>must</b> return the content after it is finished processing, or the title will be blank and other plugins also filtering the content may generate errors.
+
+'''filter_function_name''' should be unique function name. It cannot match any other function name already declared.
+
+== Parameters ==
+{{Parameter|$title|string|Title of the page.}}
+{{Parameter|$sep|string|How to separate the various items within the page title. Default is '&raquo;'.|optional}}
+{{Parameter|$seplocation|string|Direction to display title, 'right'.|optional}}
+
+== Examples ==
+
+=== header.php ===
+<pre>
+<title><?php wp_title('&#124;', true, 'right'); ?></title>
+</pre>
+
+=== functions.php ===
+<pre>
+/**
+ * Creates a nicely formatted and more specific title element text
+ * for output in head of document, based on current view.
+ *
+ * @since Twenty Twelve 1.0
+ *
+ * @param string $title Default title text for current view.
+ * @param string $sep Optional separator.
+ * @return string Filtered title.
+ */
+function twentytwelve_wp_title( $title, $sep ) {
+	global $paged, $page;
+
+	if ( is_feed() )
+		return $title;
+
+	// Add the site name.
+	$title .= get_bloginfo( 'name' );
+
+	// Add the site description for the home/front page.
+	$site_description = get_bloginfo( 'description', 'display' );
+	if ( $site_description && ( is_home() || is_front_page() ) )
+		$title = "$title $sep $site_description";
+
+	// Add a page number if necessary.
+	if ( $paged >= 2 || $page >= 2 )
+		$title = "$title $sep " . sprintf( __( 'Page %s', 'twentytwelve' ), max( $paged, $page ) );
+
+	return $title;
+}
+add_filter( 'wp_title', 'twentytwelve_wp_title', 10, 2 );
+</pre>
+
+==See Also==
+* [[Plugin_API#Create_a_Filter_Function|Creating a Filter Function]]
+* [[Function_Reference/add_filter|add_filter()]]
+* [[Function_Reference/wp_title|wp_title()]]
+
+[[Category:Filters]]

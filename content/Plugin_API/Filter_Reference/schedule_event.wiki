@@ -1,0 +1,52 @@
+== Description ==
+The schedule_event filter is fired when a new event is added to the cron schedule. It sends one parameter: the event being scheduled.
+
+== Usage ==
+%%%<?php function filter_handler( $event ){ ...... }
+
+add_filter( 'schedule_event' , 'filter_handler' , '10', 1 ); ?>%%%
+
+The following example of using this hook eliminates all checks for plugins
+
+== Parameters ==
+{{Parameter|$event|object|The event being scheduled as an object with the following properties: hook, timestamp, schedule, args.}}
+
+== Return Values ==
+; <tt>(object)</tt> : $event (Return false to cancel the event.)
+
+== Examples ==
+%%%<?php
+function filter_cron_events($event) {
+	switch ($event->hook) {
+		case 'wp_version_check':
+		case 'wp_update_plugins':
+		case 'wp_update_themes':
+		case 'wp_update_themes':
+			$event = false;
+		break;
+	}
+	return $event;
+}
+
+add_filter( 'schedule_event', 'filter_cron_events', '10', 1);
+?>%%%
+
+== Notes == 
+
+In WordPress 3.21, the following recurring events are scheduled by the core: wp_version_check, wp_update_plugins, wp_update_themes, wp_schedule_delete, and (for the main site of multisite installs only) wp_update_network_counts.
+
+In WordPress 3.21, the following single events are scheduled on demand by the core: publish_future_post, do_pings, importer_scheduled_cleanup.
+
+== Source File ==
+<tt>schedule_event</tt> is located in {{Trac|wp-includes/cron.php}}.
+
+== Change Log ==
+(wp_insert_post) Since: 2.1.0
+== Related ==
+== See Also ==
+[[Plugin_API/Filter_Reference]]
+
+
+{{Stub}}
+[[Category:Filters]]
+[[Category:New page created]]

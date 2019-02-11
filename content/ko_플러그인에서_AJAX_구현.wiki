@@ -1,0 +1,190 @@
+{{Languages|
+{{en|AJAX in Plugins}}
+{{ja|AJAX in Plugins}}
+{{ko|플러그인에서 AJAX 구현}}
+}}
+
+==소개==
+이 문서는 플러그인 개발자에 촛점을 두고, 플러그인에 Ajax 를 구현하는 방법에 대해 설명합니다. 이 문서를 읽기 전에, 당신은 다음과 같은 사항들을 알고 있어야 합니다 :
+
+* [[AJAX|Ajax]] - Ajax에 대한 전반적인 이해
+* [[ko:Writing a Plugin|플러그인 만들기 (한글)]] - 플러그인을 만드는 방법
+* [[ko:Plugin API|플러그인 API (한글)]] - 필터와 액션이 무엇이고, 사용하는 방법
+* 워드프레스의 페이지, 포스트 또는 특정 화면 상에 HTML을 추가하는 방법을 알아야 합니다. 예를 들어, 당신이 만든 관리 화면에 Ajax 를 구현하고 싶다면 [[Adding Administration Menus|워드프레스에 관리 메뉴 추가하기]] 를 읽고 이해할 필요가 있습니다.
+만약 단일 포스트를 출력하는 화면 상에 Ajax를 구현하고 싶다면 화면 상에 HTML 이 추가되는 지점의 필터나 액션을 확인해 보아야 합니다. 이 문서는 위 사항들에 대해서는 다루지 않습니다.
+
+== 관리자 화면 상에서 Ajax 구현 ==
+
+워드프레스 코어에 Ajax 가 내장된 이후로 관리자 화면에서 당신의 플러그인에 Ajax 를 구현하는 것이 꽤나 간편해졌습니다.
+
+아래의 짧은 예제에서 페이지의 푸터에 자바스크립트를 삽입하기 위해서 PHP를 사용하였습니다. 이 스크립트는 페이지가 완전히 로드되었을 때 AJAX 요청 이벤트를 발생시킵니다 :
+
+<code><pre>
+<?php
+add_action( 'admin_footer', 'my_action_javascript' ); // 하단에 자바스크립트 코드를 작성.
+
+function my_action_javascript() { ?>
+	<script type="text/javascript" >
+	jQuery(document).ready(function($) {
+
+		var data = {
+			'action': 'my_action',
+			'whatever': 1234
+		};
+	
+		// 2.8 이후 버전에서 관리자 헤더에 항상 ajaxurl이 정의되어 있습니다. (admin-ajax.php)
+		$.post(ajaxurl, data, function(response) {
+			alert('Got this from the server: ' + response);
+		});
+	});
+	</script> <?php
+}
+</pre></code>
+
+{{참고|[[Version 2.8|버전 2.8]] 이후로, 자바스크립트 전역변수인 <tt>ajaxurl</tt>을 사용할 수 있습니다. 그래서 PHP 파일로부터  스크립트를 별도의 자바스크립트 파일로 분리시켜 사용하는 경우에도 ajaxurl을 사용할 수 있습니다. 주의할 점은 오직 관리자측, 백엔드에서만 가능하다는 점입니다.}}
+
+그런 다음, AJAX 요청을 다루는 PHP 함수를 작성합니다.
+
+<pre>
+<?php 
+
+add_action( 'wp_ajax_my_action', 'my_action_callback' );
+
+function my_action_callback() {
+	global $wpdb; // 데이터베이스에 접근할 수 있는 방법을 제공
+
+	$whatever = intval( $_POST['whatever'] );
+
+	$whatever += 10;
+
+        echo $whatever;
+
+	wp_die(); // 적당한 response 를 반환하고 즉시 종료.
+}
+</pre>
+
+자바스크립트 코드에서 'action' 키의 값 'my_action' 을 주목하세요. 우리가 작성한 액션 'wp_ajax_my_action'과 이름이 절반 정도 일치합니다. 이것은 admin-ajax.php 를 통해 서버측 PHP 함수를 호출할 때 사용되는 값입니다. 따라서 자바스크립트에서 AJAX 요청을 할 때 action 의 키 값과 액션 이름이 매치되어야 합니다. 액션 이름 접두사는 항상 'wp_ajax_' 입니다. 만약 action 을 정의하지 않으면 admin-ajax.php 는 종료되며, <code>0</code>을 반환합니다.
+
+디테일한 사항들을 조금만 추가해 주면 됩니다. 에러 확인이나 올바른 곳에서 왔는지 요청을 확인하거나 (check_ajax_referer() 함수 사용) 하는 등의 디테일한 사항을 추가해야 할 필요가 있겠지만, 처음 플러그인에 ajax를 구현하는 데 충분하리라 생각됩니다.
+
+<tt>die()</tt>나 <tt>exit()</tt> 함수를 사용하지 않고, <tt>[[Function_Reference/wp_die | wp_die()]]</tt> 함수를 사용하는 것에 주목하세요. Ajax 콜백 함수에서 대부분의 경우에 <tt>wp_die()</tt> 를 사용해야 합니다. 이 함수는 워드프레스와 더 통합된 기능을 제공하고, 코드를 테스트하는 것도 쉽게 만들어 줍니다.
+
+=== 자바스크립트 파일 분리 ===
+이전 예제와 같습니다만, 자바스크립트를 외부 파일()<tt>js/my_query.js</tt>)로 분리시킨 점에서 차이가 있습니다. 경로는 플러그인 폴더로부터 상대경로로 합니다.
+<pre>
+jQuery(document).ready(function($) {
+	var data = {
+		'action': 'my_action',
+		'whatever': ajax_object.we_value      // We pass php values differently!
+	};
+	// We can also pass the url value separately from ajaxurl for front end AJAX implementations
+	jQuery.post(ajax_object.ajax_url, data, function(response) {
+		alert('Got this from the server: ' + response);
+	});
+});
+</pre>
+
+외부 자바스크립트 파일을 사용하려면 첫번째로 <tt>wp_enqueue_script()</tt> 를 사용해서 스크립트를 추가 해줘야 페이지 상에 코드가 추가됩니다. 추가적으로 자바스크립트 객체 속성에 값을 넘기기위해서  <tt>wp_localize_script()</tt>를 반드시 사용합니다. 왜냐하면 PHP의 <code>echo</code> 로 자바스크립트 파일에 값을 직접 넣어 줄 수 없기 때문입니다. 핸들러 함수는 이전 예제와 동일합니다.
+
+<pre>
+<?php
+add_action( 'admin_enqueue_scripts', 'my_enqueue' );
+function my_enqueue($hook) {
+    if( 'index.php' != $hook ) {
+	// 대시보드 패널에만 적용.
+	return;
+    }
+        
+	wp_enqueue_script( 'ajax-script', plugins_url( '/js/my_query.js', __FILE__ ), array('jquery') );
+
+	// 자바스크립트에서 객체 속성에 접근하려면 ajax_object.ajax_url, ajax_object.we_value 처럼 사용해서 접근할 수 있다.
+	wp_localize_script( 'ajax-script', 'ajax_object',
+            array( 'ajax_url' => admin_url( 'admin-ajax.php' ), 'we_value' => 1234 ) );
+}
+
+// 이전 예제와 동일한 핸들러 함수
+add_action( 'wp_ajax_my_action', 'my_action_callback' );
+function my_action_callback() {
+	global $wpdb;
+	$whatever = intval( $_POST['whatever'] );
+	$whatever += 10;
+        echo $whatever;
+	wp_die();
+}
+</pre>
+
+== 보여지는 면(Viewer-Facing Side)에서 Ajax 구현 ==
+
+워드프레스 2.8 이후로 <tt>[[Plugin_API/Action_Reference/wp_ajax_(action)|wp_ajax_(action)]]</tt> 과 같은 hook이 생겼습니다.
+
+* <tt>[[Plugin_API/Action_Reference/wp_ajax_nopriv_(action)|wp_ajax_nopriv_(action)]]</tt> 는 로그인 하지 않은 사용자들에게 실행되는 ajax 액션 입니다.
+
+그래서 로그인한 사용자와 그렇지 않은 사용자 모두에게 동일한 액션을 하려면 다음과 같은 액션을 사용할 수 있습니다 :
+<pre>
+add_action( 'wp_ajax_my_action', 'my_action_callback' );
+add_action( 'wp_ajax_nopriv_my_action', 'my_action_callback' );
+</pre>
+
+'''참고 1 :''' 관리자 화면과는 달리, [http://buddypress.org/ 버디프레스] 또는 다른 Ajax 의존 플러그인을 설치하지 않은 이상 자바스크립트 전역 변수 <code>ajaxurl</code> 이 자동으로 정의되지 않습니다. 그래서 자바스크립트 전역변수에 의지하는 대신 자바스크립트 네임스페이스 객체에 속성과 <code>ajaxurl</code> 를 정의합니다. 또한 URL을 스크립트에서 사용 가능하게 만드려고 [[Function Reference/wp_localize_script | wp_localize_script()]] 를 사용할 수도 있습니다. generate it using this expression: <code>admin_url( 'admin-ajax.php' )</code>
+
+'''참고 2 :''' 프론드-엔드, 백-엔드 모두 Ajax 는 <tt>admin-ajax.php</tt> 를 사용해서 요청을 합니다. 그래서 action 을 다루는 코드에서  <tt>[[Function Reference/is_admin | is_admin()]]</tt> 함수는 항상 '''true'''를 반환합니다. 프론드-엔드와 백-엔드를 구별하여 선택적으로 Ajax 스크립트 핸들러를 불러오게 하려면 <tt>wp_ajax_(action)</tt> 와 <tt>wp_ajax_nopriv_(action)</tt>을 '''반드시''' '''''is_admin() === true''''' 분기문 안에 집어 넣어야 합니다.
+
+WP Admin context 에서 Ajax 요청할 땐 <tt>wp_ajax_</tt> 또는 <tt>wp_ajax_nopriv_</tt> 액션이 실행됩니다. 권한이 없는 사용자와 일반 방문자가 상승된 권한으로 요청을 발생시킬 수 있기 때문에 코드를 작성할 때 주의가 필요합니다. 그렇다 하더라도 그 권한은 승인되지는 않습니다.
+
+<pre>
+if ( is_admin() ) {
+    add_action( 'wp_ajax_my_frontend_action', 'my_frontend_action_callback' );
+    add_action( 'wp_ajax_nopriv_my_frontend_action', 'my_frontend_action_callback' );
+    add_action( 'wp_ajax_my_backend_action', 'my_backend_action_callback' );
+    // 다른 백-엔드 액션 훅을 여기에 추가하세요.
+} else {
+    // Ajax 를 사용하지 않는 프론트-엔드 액션 훅을 여기에 추가하세요.
+}
+</pre>
+
+* 모든 사용자들에게 액션 <tt>my_frontend_action</tt>이 적용됩니다. ( wp_ajax_my_frontend_action, wp_ajax_nopriv_my_frontend_action )
+* 로그인한 사용자들에게만 <tt>wp_ajax_my_backend_action</tt>이 적용됩니다.
+
+== Error Return Values ==
+
+If the Ajax request fails in <tt>[http://core.trac.wordpress.org/browser/trunk/wp-admin/admin-ajax.php wp-admin/admin-ajax.php]</tt>, the response will be '''''-1''''' or '''''0''''', depending on the reason for the failure. Additionally, if the request succeeds, but the Ajax <tt>action</tt> does not match a WordPress hook defined with <tt>add_action('wp_ajax_(action)', ...)</tt> or <tt>add_action('wp_ajax_nopriv_(action)', ...)</tt>, then <tt>admin-ajax.php</tt> will respond '''''0'''''.
+
+== Debugging ==
+To parse AJAX, WordPress must be reloaded through the admin-ajax.php script, which means that any PHP errors encountered in the initial page load will also be present in the AJAX parsing. If error_reporting is enabled, these will be echoed to the output buffer, polluting your AJAX response with error messages.
+
+Because of this, care must be taken when debugging Ajax as any PHP notices or messages returned may confuse the parsing of the results or cause your Javascript to error. 
+
+One option if you can't eliminate the messages and must run with [[Debugging_in_WordPress|debug turned on]] is to clear the buffer immediately before returning your data.
+
+<pre>
+    ob_clean();
+    echo $whatever;
+    wp_die();
+</pre>
+
+It is also possible to use tools such as FirePHP to log debug messages to your browsers debug console. An alternative approach is to use a debugging proxy such as fiddler.
+
+* [http://www.firephp.org/ FirePHP]
+* [http://wpengineer.com/1219/firephp-and-wordpress/ WPEngineer - FirePHP and Wordpress]
+* [http://www.fiddler2.com/fiddler2/ Fiddler]
+
+== Further Reading - External Resources ==
+
+* [http://ocaoimh.ie/2008/11/01/make-your-wordpress-plugin-talk-ajax/ Make your WordPress plugin talk AJAX] - examples on viewer-side AJAX for plugins
+* [http://solislab.com/5-tips-for-using-ajax-in-wordpress/ 5 tips for properly using AJAX in WordPress themes and plugins]
+* [http://byronyasgur.wordpress.com/2011/06/27/frontend-forward-facing-ajax-in-wordpress/ Frontend (forward facing) Ajax in WordPress]
+* [http://web-profile.com.ua/wordpress/dev/ajax-in-wordpress/ Using Ajax in WordPress]
+* [http://pippinsplugins.com/using-ajax-your-plugin-wordpress-admin/ Using Ajax in Your Plugin and WordPress Admin]
+* [http://pippinsplugins.com/loading-scripts-correctly-in-the-wordpress-admin/ Loading Scripts Correctly in the WordPress Admin]
+* [http://www.jackreichert.com/2013/03/24/using-ajax-in-wordpress-development-the-quickstart-guide/ Using AJAX in WordPress Development. The Quick-and-Dirty QuickStart Guide]
+
+== Related References ==
+ 
+* [[Plugin_API/Action_Reference/wp_ajax_(action)|The 'wp_ajax_' hook]]
+* [[Function_Reference/WP_Ajax_Response|WP_Ajax_Response (responding to AJAX requests)]]
+* [[Function_Reference/wp_send_json|wp_send_json function]]
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Plugins]]
+[[Category:UI Link]]

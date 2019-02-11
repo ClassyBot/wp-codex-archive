@@ -1,0 +1,92 @@
+{{Languages|
+{{en|Function Reference/antispambot}}
+{{it|Riferimento funzioni/antispambot}}
+{{pt-br|Referência de Função/antispambot}}
+}}
+
+== Description ==
+Converts selected email addresses characters to [[wikipedia:HTML_entities|HTML entities]] to block spam bots. Not all characters in the email address are converted: the selection is random and changes each time the function is called.
+
+== Usage ==
+%%%<?php antispambot( $email_address, $hex_encoding ) ?>%%%
+
+== Parameters ==
+{{Parameter|$email_address|string|Email address.}}
+{{Parameter|$hex_encoding|integer|0 or 1. Use 0 to only allow decimal encoding (&amp;#123;) and 1 to also allow hex encoding (&amp;x7B;).|optional|0}}
+
+== Return Values ==
+; (string) : Converted email address.
+
+== Examples ==
+<pre>
+/**
+ * Hide email from Spam Bots using a shortcode.
+ *
+ * @param array  $atts    Shortcode attributes. Not used.
+ * @param string $content The shortcode content. Should be an email address.
+ *
+ * @return string The obfuscated email address. 
+ */
+function wpcodex_hide_email_shortcode( $atts , $content = null ) {
+	if ( ! is_email( $content ) ) {
+		return;
+	}
+
+	$content = antispambot( $content );
+
+	$email_link = sprintf( 'mailto:%s', $content );
+
+	return sprintf( '<a href="%s">%s</a>', esc_url( $email_link, array( 'mailto' ) ), esc_html( $content ) );
+}
+add_shortcode( 'email', 'wpcodex_hide_email_shortcode' );
+</pre>
+
+To use this in your WordPress Content area all you have to do it wrap it in a short code. 
+
+<pre>
+[email]john.doe@mysite.com[/email]
+</pre>
+
+You can also use this in a plain text widget if you add this filter to your function file as well.
+
+<pre>
+add_filter( 'widget_text', 'shortcode_unautop' );
+add_filter( 'widget_text', 'do_shortcode' );
+</pre>
+
+
+=== Default Usage ===
+<pre>
+<?php
+echo esc_html( antispambot( 'john.doe@mysite.com' ) );
+?>
+</pre>
+This will output the email like this in the HTML:
+<pre>
+&amp;#106;&amp;#111;h&amp;#110;&amp;#46;&amp;#100;&amp;#111;&amp;#101;&amp;#64;mysit&amp;#101;.&amp;#99;&amp;#111;&amp;#109;
+</pre>
+But it will appear as a normal email address to anyone using a web browser: 
+<pre>
+john.doe@mysite.com
+</pre>
+
+== Notes ==
+
+== Change Log ==
+Since: 0.71
+
+== Source File ==
+<tt>antispambot()</tt> is located in {{Trac|wp-includes/formatting.php}}.
+
+== Related ==
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

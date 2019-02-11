@@ -1,0 +1,200 @@
+{{Languages|
+{{en|Multilingual_WordPress}}
+{{fr|Site multilingue avec WordPress}}
+{{ja|WordPress で多言語サイトを作成する}}
+{{ko|Multilingual_WordPress}}
+{{zh-tw|Multilingual_WordPress}}
+}}
+
+(en cours de rédaction - under construction - soyez patient).
+
+<i>Cette page n'est pas une traduction stricto sensu de la page en anglais mais une adaptation enrichie pour (bien) réfléchir avant de construire un site (bi)multilingue avec une installation monosite (ou multisite) de WordPress.</i>
+
+Tout d'abord, WordPress est parfaitement adaptable (prêt à la [https://make.wordpress.org/polyglots/teams/ traduction]) à plus d'une centaine de langues (translation ready). On parle alors de localisation (l10n) qui est l'adaptation sur le plan linguistique et culturel pour une cible déterminée.
+Mais, par défaut une seule localisation n'est possible car le coeur (core) de WP  n'est pas architecturé pour être multilingue. Il faut donc mettre en place une de ces deux approches :
+
+* la première sur une installation monosite du moteur WordPress (la mise en place la plus courante),
+* la deuxième sur une [http://codex.wordpress.org/fr:Créer_un_réseau installation multisite (network)] de WordPress (ex WPMU) où une langue sera affectée à chacune des instances.
+
+Dans les deux cas, des extensions (plugins) sont nécessaires pour faciliter la navigation entre les langues, l'administration et le travail des auteurs/traducteurs.
+
+Comme WordPress est un gestionnaire de contenus (CMS = Content Management System), ne sont pas cataloguées ici les extensions ou processus qui traduisent à la volée les pages affichées sur le navigateur du visiteur.
+
+== Quelques réflexions sur ce qu'est un site internet multilingue ==
+
+Il n'y a pas qu'une seule sorte de sites multilingues. Quelques exemples (qui vont impliquer une stratégie de contenu différente) :
+
+* site avec contenu en miroir : chaque page, article a nécessairement son pendant dans les autres langues, les menus sont similaires,
+* site adapté : les contenus, l'organisation voir le look sont différents dans chaque langue. Un contenu n'a pas nécessairement son clone.
+* site ciblé pour un pays multilingue (Canada, Belgique, Suisse,...) : les drapeaux ne sont pas utilisés pour les liens afin de passer d'un sous-site à un autre ou voir l'article et la page traduite. Car, comme le rappelle [http://www.w3.org/International/geo/html-tech/tech-lang.html#ri20040808.173208643 W3C] dans ses bonnes pratiques, une langue n'est pas liée loin s'en faut à un pays, une nation.
+* site incluant une boutique ou une échoppe : la taille de la boutique va impliquer des choix techniques issus d'une analyse préalable approfondie.
+* site où certaines des pages sont rédigées en plusieurs langues au sein du même texte.
+* site où une ou plusieurs des langues concernées s'écrivent de droite à gauche (RTL) et vont nécessiter de vérifier que le thème choisi va pouvoir prendre en compte cet aspect dans les feuilles de style
+* ...
+
+== Anticiper les effets de l'extension, son activation, sa désactivation ==
+
+<i>Pour ceux qui souhaitent comprendre ce qui peut se passer "sous le capot", quand on choisit et conduit le projet transformation multilingue du moteur WordPress :</i>
+
+=== L'utilisation partielle ou totale des technologies GNU gettext ===
+
+Pour adapter la langue du tableau de bord, des textes structurants du thème et des extensions, WordPress utilise la technologie [https://make.wordpress.org/polyglots/handbook/tools/gettext/ GNU gettext] reposant sur des fichiers .mo (forme compacte de fichier texte .po) et des fonctions dans le code source pour "traduire".
+Les extensions multilingues vont souvent utiliser ces contenus (en totalité ou partiellement, directement ou via des tampons (cache)) pour chaque texte à afficher dans la bonne langue selon les attentes du visiteur ou de l'administrateur/auteur. Au lieu de se faire au moment de la configuration initiale du site, ces changements de langue vont se faire à la volée lors des cheminements de navigation du visiteur.
+
+Depuis la version 4.0, WordPress a débuté la séparation des fichiers de langue mo,po qui contiennent les textes pour le côté administration (backend) et ceux pour le côté visiteur (frontend).
+
+=== Effets et impacts sur la base de données ===
+
+Le moteur WordPress utilise une base de données avec 11 tables. 
+
+Que va-t-il se passer quand l'extension multilingue choisie est activée sur une installation monosite ?
+Quelles sont les grands types de modifications que vont opérer les extensions sachant que chaque développeur a privilégié l'une ou l'autre ou plusieurs ?
+
+* ajout de tables dans la base,
+* modification des contenus des champs (colonnes de la table concernée, par exemple titre ou contenu de la table post) pour faire coexister entre des balises les différentes langues, (<i>en autres termes, après l'activation de l'extension opérant cette modification, les champs sont irréversiblement modifiés !!!</i>),
+* utilisation de taxonomies (depuis WordPress 2.3), pour affecter la langue à un (custom) post et éventuellement les liens entr'eux.
+* utilisation des champs personnalisés (post_meta) pour contenir les liens des posts dans d'autres langues ou des caractéristiques spécifiques liées au contenu du post (texte original ou traduit, ...)
+* utilisation des "custom post types"
+* utilisation de la table Options
+* ...
+
+Pour les développeurs : Normalement, une extension doit inclure dans son dossier, un fichier 'uninstall.php' qui est activé par WP lors de la suppression definitive de celle-ci et donc remet l'installation dans son état initial. En examinant les sources dans ce fichier, on peut se faire une première idée des impacts sur la base gérées par l'extension multilingue.
+
+=== L'administration d'un site web multilingue ===
+
+Pour gérer ou administrer un site multilingue, on va trouver des nouvelles fonctionnalités et des réglages pour :
+
+* placer, paramétrer les sélectionneurs de langues (template tag, widget, item de menu),
+* insérer (ou non) dans les URIs le composant de langue (paramètre, permalinks, sous-domaine, ...)
+* affecter la langue d'un article, d'une page,...
+* trier, regrouper les articles par langue
+* décider si des customs post type gérés par d'autres extensions seront traduisibles pour répondre au contexte multilingue.
+* télécharger pour le noyau, le thème, les extensions des fichiers de language disponibles
+* ...
+
+L'édition et les liens entre les articles/pages (post) dans chaque langue peut se faire de plusieurs façons :
+
+* avec une nouvelle boite de paramétrages (metabox) apparaissant dans chaque écran d'édition d'un post,
+* avec des liens qui ouvrent un autre onglet sur le navigateur,
+* avec des insertions riches permettant de faire cohabiter sur un même écran les différentes versions,
+* avec des nouvelles colonnes dans les listes de post incluant des icônes ou liens,
+* ...
+
+D'autres réglages vont permettre de définir ce qui se passe quand on lance la création d'un post à traduire à partir d'un post existant.
+Parfois des additifs optionnels à l'extension ouvrent des passerelles vers des services de traduction humains ou automatisés.
+
+=== Précautions indispensables ===
+
+* Faire TOUJOURS une sauvegarde de l'installation et notamment la base de données mySQL.
+* Ne pas faire d'essais d'une extension sur un site en exploitation/production. Privilégier les tests sur un site clone.
+* Même si c'est parfois un peu difficile ou fastidieux, bien explorer la documentation disponible.
+* Le passage d'un site monolingue existant à une structure multilingue doit être fait avec toutes les précautions préalablement décrites.
+
+== Installation multilingue avec  WordPress monosite ==
+
+Le moteur WordPress est activé par défaut en mode monosite.
+
+Pour devenir un site bilingue ou multilingue, il faut choisir une extension dédiée à cette transformation. Cette extension opère de très nombreuses modifications à la volée via les nombreux filtres offerts par le noyau WP afin que les textes et l'environnement de navigation (menu, widget,...) s'affiche dans la bonne langue : celle de l'article lu, celle du navigateur du visiteur la première fois sur le site qui va le découvrir dans sa langue, ...
+
+=== Les extensions identifiées sur le dépôt WordPress ===
+
+Les extensions déposées sur le site WordPress sont obligatoirement libres via la licence GPL V2+. 
+Les extensions ici listées sont compatibles avec la dernière version de WP 4.2.2 (à vérifier).
+
+Par ordre alphabétique :
+
+* [https://wordpress.org/plugins/translatepress-multilingual/ TranslatePress]
+* [https://wordpress.org/plugins/bogo/ Bogo]
+* [https://wordpress.org/plugins/ceceppa-multilingua/ Ceceppa Multilingua]
+* [https://wordpress.org/plugins/polylang/ Polylang]
+* [https://wordpress.org/plugins/qtranslate-x/ qTranslate X]
+* [https://wordpress.org/plugins/wpglobus/ WPGlobus]
+* [https://wordpress.org/plugins/xili-language/ xili-language]
+
+==== Les autres ====
+
+D'autres extensions "libres" sont disponibles sur GitHuB : (bien vérifier les compatibilités de version)
+
+* [https://github.com/Automattic/babble  projet babble]
+
+Les extensions commerciales :
+
+* [https://wpml.org WPML]
+
+== Comparaison installation monosite versus multisite ==
+
+De l'importance d'une analyse préalable poussée...
+
+=== Arguments en faveur du monosite ===
+
+* projet de petite taille avec fréquentation moyenne
+* partage du même thème
+* administration simple (selon l'ergonomie voulue par l'auteur de l'extension)
+* ...
+
+=== Arguments en faveur du multisite ===
+* projet de moyenne, grande taille avec fréquentation sans limite,
+* bonne séparation entre les langues ciblées avec possibilité de thèmes, extensions communes ou différentes pour chaque localisation,
+* choix adaptable pour personnaliser l'administration
+* l'extension concentre les transformations essentiellement sur le versant administration, peu de filtres sont activés sur le versant visiteur puisque chaque langue puise directement ces données d'une seule instanciation du moteur WP
+* .
+
+== Site internet multilingue avec  WordPress multisite (network) ==
+
+Ici, le moteur WordPress est activé en mode multisite (network) avec chacune des instances dédiées à chacune des langues avec un thème unique ou des thèmes adaptés à chacune. Selon les extensions, la génération des instances est faite par cette extension ou doit être faite au préalable avant l'affectation d'une langue à une instance du réseau (network) WP.
+
+
+=== Les extensions identifiées sur le dépôt WordPress ===
+
+Les extensions déposées sur le site WordPress sont obligatoirement libres via la licence GPL V2+. Certaines mettent à disposition gratuitement les options de base mais les additifs (addons) et compléments seront payants.
+
+Par ordre alphabétique :
+* [https://wordpress.org/plugins/multilingual-press/ Multilingual Press]
+* [https://wordpress.org/plugins/multisite-language-switcher/ Multisite Language Switcher]
+* [https://wordpress.org/plugins/zanto/ Zanto WP Translation]
+
+==== Les autres ====
+D'autres extensions "libres" sont disponibles sur GitHuB :
+
+* ...
+
+== En somme, quelle est la situation avec WordPress 4.2 ==
+
+Comme ont pu le voir les participants des WordCamp francophones depuis plusieurs années, la situation évolue favorablement dans la suite de l'évolution du noyau WordPress et de ses étapes majeurs (3.0 et 4.0). L'état des lieux est aussi différent pour un débutant qui souhaite une mise en place facile et auto-guidé sans (trop) se soucier de ce qui se passe techniquement que pour un intégrateur/développeur qui attend une extension richement paramétrable et personnalisable répondant aux contextes multiples.
+
+=== Un grand choix ===
+
+Quand on fait la liste de toutes les extensions disponibles, on pourrait croire que le choix sera difficile. Mais, si l'on suit les règles et préconisations de WordPress (et son modèle de données sous jacent), le choix se restreint très vite comme on peut le voir dans des exposés et publications bien argumentées.
+Attention, le critère "Nombre de téléchargement" ou "Nombre d'installations actives" ne doit pas être votre premier critère de choix.
+
+=== La nécessité de bien analyser la situation de votre projet ===
+
+* le projet
+* sa pérennité
+* la robustesse des données
+* la reversibilité
+
+=== Une collaboration souhaitable avec les développeurs ===
+
+Que cela soit pour les thèmes ou les extensions, l'idéal serait que ceux-ci soient directement "localisables"  et ainsi compatibles avec un environnement multilingue où les textes s'afficheront dans la langue appropriée.
+Cela n'est pas le cas :
+* il ne faut donc pas lésiner sur le travail préparatoire, les choix des composants et les tests avant de faire l'architecture du projet,
+* il faut aussi promouvoir la collaboration entre les concepteurs et poursuivre le chemin parcouru dans l'évolution du noyau et son internationalisation (i18n).
+
+* ...
+
+(en cours de rédaction - under construction - soyez patient).
+
+== A lire  ==
+
+* Les comptes-rendus de WordCamp (en France depuis 2009 à Paris et dans les grandes villes),
+* Les tableaux comparatifs,
+* Les articles cités par [http://www.wordpress-fr.net le réseau wordpress-fr],
+* ...
+
+== A lire (en anglais) ==
+* [[WordPress in Your Language]]
+* [[Multilingual Codex]]
+
+[[Category:About WordPress]]
+[[Category:Translating WordPress]]

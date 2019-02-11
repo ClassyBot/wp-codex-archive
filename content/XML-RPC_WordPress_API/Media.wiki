@@ -1,0 +1,130 @@
+== wp.getMediaItem ==
+
+Retrieve a media item (i.e, attachment).
+
+Added in WordPress 3.1.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>attachment_id</tt>
+
+=== Return Values ===
+
+* struct
+** string <tt>attachment_id</tt> (Added in WordPress 3.4)
+** datetime <tt>date_created_gmt</tt>
+** int <tt>parent</tt>: ID of the parent post.
+** string <tt>link</tt>: URL to the media item itself (the actual .jpg/.pdf/etc file, eg <tt>http://domain.tld/wp-content/uploads/2013/09/foo.jpg</tt>)
+** string <tt>title</tt>
+** string <tt>caption</tt>
+** string <tt>description</tt>
+** MediaItemMetadata <tt>metadata</tt>
+** string <tt>thumbnail</tt>: URL to the media item thumbnail (eg <tt>http://domain.tld/wp-content/uploads/2013/09/foo-150x150.jpg</tt>)
+
+MediaItemMetadata
+* struct
+** int <tt>width</tt>
+** int <tt>height</tt>
+** string <tt>file</tt>: The filename, including path from the uploads directory (eg "<tt>2013/09/foo.jpg</tt>")
+** struct <tt>sizes</tt>: A struct (array) of MediaItemSize objects describing each of the sizes of this media item which are available. Note that not every size exists for every media item.
+*** MediaItemSize <tt>thumbnail</tt>
+*** MediaItemSize <tt>medium</tt>
+*** MediaItemSize <tt>large</tt>
+*** MediaItemSize <tt>post-thumbnail</tt>
+** PostThumbnailImageMeta <tt>image_meta</tt> 
+
+MediaItemSize
+* struct
+** string <tt>file</tt>: The filename of this version of the media item, at this size, without the path (eg. "<tt>foo-768x1024.jpg</tt>" or "<tt>foo-940x198.jpg</tt>")
+** string <tt>width</tt>
+** string <tt>height</tt>
+** string <tt>mime-type</tt> : image/jpeg or ...
+
+PostThumbnailImageMeta
+* struct
+** int aperture
+** string credit
+** string camera
+** string caption
+** int created_timestamp
+** string copyright
+** int focal_length
+** int iso
+** int shutter_speed
+** string title
+
+=== Errors ===
+
+* 403
+** If the user lacks the <tt>[[Roles_and_Capabilities#upload_files|upload_files]]</tt> cap.
+* 404
+** If no attachment with that <tt>attachment_id</tt> exists.
+
+=== Notes ===
+
+In the MediaItemMetadata the <tt>file</tt> value includes the path from the uploads directory (usually <tt>wp-content/uploads</tt>) like "<tt>2013/09/foo.jpg</tt>" while in the <tt>MediaItemSize</tt> structs, the <tt>file</tt> value contains only the name of the file like "<tt>foo.jpg</tt>".
+
+== wp.getMediaLibrary ==
+
+Retrieve list of media items.
+
+Added in WordPress 3.1.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>filter</tt>: Optional (and all members are optional).
+** int <tt>number</tt>: Total number of media items to retrieve.
+** int <tt>offset</tt>
+** int <tt>parent_id</tt>: Limit to attachments on this post ID. <tt>0</tt> shows unattached media items. Empty string shows all media items.
+** string <tt>mime_type</tt>
+
+=== Return Values ===
+
+* array
+** struct: see [[#wp.getMediaItem]]
+
+=== Errors ===
+
+* 401
+** If the user lacks the <tt>[[Roles_and_Capabilities#upload_files|upload_files]]</tt> cap.
+
+== wp.uploadFile ==
+
+Upload a media file.
+
+=== Parameters ===
+
+* int <tt>blogid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>data</tt>
+** string <tt>name</tt>: Filename.
+** string <tt>type</tt>: File MIME type.
+** base64 <tt>bits</tt>: binary data. Needs to be base64-encoded.
+** bool <tt>overwrite</tt>: Optional. Has no effect (see [https://core.trac.wordpress.org/ticket/17604#no0 17604]). Was intended to overwrite an existing attachment of the same name. (Added in WordPress 2.2)
+** int <tt>post_id</tt>: Optional. Allows an attachment to be assigned to a post. (User must have permission to edit the assigned post)
+
+=== Return Values ===
+
+* struct
+** string <tt>id</tt> (Added in WordPress 3.4)
+** string <tt>file</tt>: Filename.
+** string <tt>url</tt>
+** string <tt>type</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#upload_files|upload_files]]</tt> cap.
+* 500
+** File upload failure.
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Feeds]]

@@ -1,0 +1,89 @@
+{{Avançado}}
+
+Aqui estão algumas coisas adicionais que você precisar saber sobre a administração avançada de uma rede de sites WordPress.
+
+===Acesso do Usuário===
+Por padrão, todos os usuários que são adicionados à sua rede terá acesso de <em>assinante</em> <strong>a todos os sites</strong> dentro da sua rede.
+
+Além disso, os administradores dos subsites não podem instalar novos temas ou plugins. Somente o administrador da rede toda (também conhecido como Super Admin) tem essa capacidade.
+
+===Links Permanentes===
+Enquanto os links permanentes continuará a funcionar, o blog principal (ou seja, o primeiro criado) '''terá uma entrada extra <code>blog</code>''', tornando a sua URLs <code>exemplo.com/blog/YYYY/MM/POSTAGEM</code>.
+
+Isto é para evitar colisões com subpastas. Atualmente não há nenhuma maneira fácil de mudar, pois isso impede WordPress de auto-detecção de colisões entre o seu site principal e quaisquer subsites. Esta questão será abordada e personalizável, em uma futura versão do WordPress.
+
+Veja que o prefixo <code>blog</code> '''não''' estará em endereços de páginas, por exemplo <code>exemplo.com/PAGINA</code>. 
+
+Se tentar criar uma página estática no primeiro blog, com o nome de outro blog já existente, o link permanente da página vai ter um sufixo (ex. <code>exemplo/PAGINA-2 </code>). Se você criar um novo blog com o slug de uma página estática já existente, a página estática não será mais acessível. Para evitar isso, você pode adicionar nomes de suas páginas estáticas para a Lista Negra de modo que nenhum blog com esse nome possa ser criado.
+
+===Plugins do WordPress ===
+:Os Plugins WordPress tem agora uma maior flexibilidade, dependendo de sua aplicação em toda a rede.
+* '''Plugins específicos para sites:''' Os Plugins WordPress para serem ativados ou desativados por admins de blogs individuais, são armazenadas em <tt>plugins</tt>. Você precisa habilitar a página de plugins para administradores de sites individuais em Rede > Opções.
+* '''Plugins de Rede:''' Os Plugins WordPress na pasta <tt>plugins</tt> podem ser ativados em toda rede pelo super admin.
+* '''Plugins que devem ser usados por todos:''' Plugins para serem usados por todos os sites da rede, também devem ser instalados no blog principal.
+
+===Categorias e Tags===
+:Termos Globais estão desativados no WordPress 3.0 por padrão. Você pode usar o plugin [http://wordpress.org/extend/plugins/wordpress-mu-sitewide-tags/ Sitewide Tags WordPress] ou similares para incorporar tags globais na página portal/inicial do site da rede, ou para sites específicos da rede, assim,aumentando a navegação baseada em micro-categorias.
+
+===Alternando entre subdomínios e subpastas===
+Se sua instalação tem mais de um mês, ao tentar ativar o multisite, será notificado a usar '''sites em subdomínios'''. Isto é para certificar que nenhuma página estática conflite com subsites. Se estiver certo que não terá este problema, então pode mudar essa opção após a instalação inicial que será feita em subdomínios.
+
+No seu arquivo <code>wp-config.php</code>, mude a chamada de definição para SUBDOMAIN_INSTALL:
+
+;Para sudomínios
+:<pre>define( 'SUBDOMAIN_INSTALL', true );</pre>
+;Para subpastas
+:<pre>define( 'SUBDOMAIN_INSTALL', false );</pre>
+
+Também é preciso mudar o arquivo <code>.htaccess</code> para sua nova configuração. Tenha cuidado, você pode ter problemas se tentar isso depois de estar em uma configuração ou outra por qualquer período de tempo, então proceda com cautela.
+
+===.htaccess e Mod Rewrite===
+Ao contrário de sites únicos WordPress, que podem funcionar com "links quase legíves" para [[pt-br:Usando Links Permanentes|Links Permanentes]], portanto não precisam de Mod_Rewrite.
+
+Já o modo de MultiSite <em>requer</em> seu uso para URLs, no formato subsites. Isso requer o uso de um arquivo .htaccess, cujo formato será um pouco diferente se você estiver usando subpastas ou subdomínios. 
+
+Os exemplos abaixo são o padrão de entradas .htaccess para WordPress em Subpastas e subdomínios, quando o WordPress é instalado na pasta raiz do seu site. Se você tiver WordPress em sua própria pasta, você vai precisar alterar o valor para <tt>RewriteBase</tt> adequadamente.
+
+Lembre-se que são apenas <strong>EXEMPLOS</strong> e funcionam, mas nem sempre em todas as instalações.
+
+<strong>Exemplo para Subpastas</strong>
+<pre>
+# BEGIN WordPress
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+
+# uploaded files
+RewriteRule ^([_0-9a-zA-Z-]+/)?files/(.+) wp-includes/ms-files.php?file=$2 [L]
+
+# add a trailing slash to /wp-admin
+RewriteRule ^([_0-9a-zA-Z-]+/)?wp-admin$ $1wp-admin/ [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule  ^[_0-9a-zA-Z-]+/(wp-(content|admin|includes).*) $1 [L]
+RewriteRule  ^[_0-9a-zA-Z-]+/(.*\.php)$ $1 [L]
+RewriteRule . index.php [L]
+# END WordPress
+</pre>
+
+<strong>Exemplo para Subdiretórios</strong>
+<pre>
+# BEGIN WordPress
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+
+# uploaded files
+RewriteRule ^files/(.+) wp-includes/ms-files.php?file=$1 [L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule . index.php [L]
+# END WordPress
+</pre>
+
+{{DEFAULTSORT:R}}
+{{Codex-pt}}

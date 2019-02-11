@@ -1,0 +1,110 @@
+<p><br />
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Stages"><span class="tocnumber">1.1</span> <span class="toctext">Stages</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Groups"><span class="tocnumber">1.2</span> <span class="toctext">Groups</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="#Methods_and_Properties"><span class="tocnumber">2</span> <span class="toctext">Methods and Properties</span></a>
+<ul>
+<li class="toclevel-2 tocsection-5"><a href="#Properties"><span class="tocnumber">2.1</span> <span class="toctext">Properties</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Methods"><span class="tocnumber">2.2</span> <span class="toctext">Methods</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Examples"><span class="tocnumber">3</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Change_Log"><span class="tocnumber">4</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Source_File"><span class="tocnumber">5</span> <span class="toctext">Source File</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>WP_Dependencies</code> is a class defined in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/class.wp-dependencies.php#L0">wp-includes/class.wp-dependencies.php</a></code> that helps process items in an order defined by dependencies (a dependent item is processed later than a dependency). It's an abstract class in that it's intended to be extended, rather than used directly. <code>WP_Dependencies</code> is the base for <code><a href="/index.php?title=Class_Reference/WP_Scripts&amp;action=edit&amp;redlink=1" class="new" title="Class Reference/WP Scripts (page does not exist)">WP_Scripts</a></code> and <code><a href="https://codex.wordpress.org/Class_Reference/WP_Styles" title="Class Reference/WP Styles">WP_Styles</a></code>, and is a collection of <code><a href="https://codex.wordpress.org/Class_Reference/_WP_Dependency" title="Class Reference/ WP Dependency">_WP_Dependency</a></code>s.
+</p>
+<h3><span class="mw-headline" id="Stages">Stages</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=2" title="Edit section: Stages">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>An item goes through various stages of processing as various methods are called:
+</p>
+<ol>
+ <li>registered: <code>add()</code></li>
+ <li>enqueued: <code>enqueue()</code></li>
+ <li>to_do: <code>all_deps()</code></li>
+ <li>done: <code>do_items()</code></li>
+</ol>
+<p>The <code>query()</code> method can be used to determine whether a given item is in a given stage.
+</p>
+<h3><span class="mw-headline" id="Groups">Groups</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=3" title="Edit section: Groups">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Separate processing runs can be identified by different groups (identified by integers). For example, items output in the document &lt;head&gt; might go in one group, while items output in the footer may go in another. An enqueued item that was processed in a group associated with an earlier run is skipped in later runs. The base <code>WP_Dependencies</code> doesn't create groups on its own; child classes must do this.
+</p>
+<h2><span class="mw-headline" id="Methods_and_Properties">Methods and Properties</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=4" title="Edit section: Methods and Properties">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Properties">Properties</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=5" title="Edit section: Properties">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<dl><dt> $registered&#160;</dt>
+<dd> registered items. An item must be registered before it can be processed.</dd>
+<dt> $queue&#160;</dt>
+<dd> items to process during the next run. Not necessarily in order.</dd>
+<dt> $to_do&#160;</dt>
+<dd> items to process during the next run, in processing order.</dd>
+<dt> $done&#160;</dt>
+<dd> items that have already been processed.</dd>
+<dt> $args&#160;</dt>
+<dd> query string arguments for the items.</dd>
+<dt> $groups&#160;</dt>
+<dd> (internal) records earliest group each item was processed in.</dd>
+<dt> $group&#160;</dt>
+<dd> (internal) current group.</dd></dl>
+<h3><span class="mw-headline" id="Methods">Methods</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=6" title="Edit section: Methods">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<dl><dt> do_item( $handle )&#160;</dt>
+<dd> Process an item. Must be overriden by children. Return TRUE if item was successfully processed.</dd>
+<dt> do_items( $handles = false, $group = false )&#160;</dt>
+<dd> process items in <var>$handles</var> (defaults to <var>$queue</var>).</dd>
+<dt> all_deps( $handles, $recursion = false, $group = false )&#160;</dt>
+<dd> Recursively builds array of items to process taking dependencies into account. Does NOT catch infinite loops.</dd>
+<dt> add( $handle, $src, $deps = array(), $ver = false, $args = null )&#160;</dt>
+<dd> Adds the item only if no item of that name already exists</dd>
+<dt> add_data( $handle, $key, $value )&#160;</dt>
+<dd> Adds extra data if an item with the given handle has already been added.</dd>
+<dt> get_data( $handle, $key )&#160;</dt>
+<dd> Gets data associated with a certain handle.</dd>
+<dt> remove ( $handles )&#160;</dt>
+<dd> Unregister items.</dd>
+<dt> enqueue ( $handles )&#160;</dt>
+<dd> Add item to the processing queue.</dd>
+<dt> dequeue ( $handles )&#160;</dt>
+<dd> Remove item from the processing queue.</dd>
+<dt> query ( $handle, $list = 'registered' )&#160;</dt>
+<dd> Check whether given item is in the given stage (registered, enqueued/queue, to_do, done).</dd>
+<dt> set_group ( $handle, $recursion, $group )&#160;</dt>
+<dd> set the group for the given handle and (if not recursing) the current run.</dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=7" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=8" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since <a href="https://codex.wordpress.org/Version_2.6" title="Version 2.6">2.6</a>.
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Dependencies&amp;action=edit&amp;section=9" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>WP_Dependencies</code> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/class.wp-dependencies.php#L0">wp-includes/class.wp-dependencies.php</a></code>.
+</p>
+<div style="background-color:#DFDFDF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Class_Reference" title="Class Reference">Class Reference</a> and index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003738
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.023 seconds
+Preprocessor visited node count: 72/1000000
+Preprocessor generated node count: 200/1000000
+Post‐expand include size: 862/2097152 bytes
+Template argument size: 278/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    8.508      1 - -total
+ 55.80%    4.748      1 - Template:Class_Footer
+ 41.40%    3.522      1 - Template:Message
+ 41.33%    3.516      2 - Template:Trac
+ 18.51%    1.575      2 - Template:CurrentVersion
+-->

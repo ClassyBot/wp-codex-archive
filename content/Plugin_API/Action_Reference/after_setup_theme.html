@@ -1,0 +1,126 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="https://codex.wordpress.org/it:API_dei_plugin/Riferimento_azioni/after_setup_theme" title="it:API dei plugin/Riferimento azioni/after setup theme">Italiano</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/after_setup_theme&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This hook is called during each page load, after the theme is initialized. It is generally used to perform basic setup, registration, and init actions for a theme.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/after_setup_theme&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>&lt;?php add_action( 'after_setup_theme', 'function_name' );&#160;?&gt;</pre>
+<p>where <tt>"function_name"</tt> is the name of the function to be called.
+</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/after_setup_theme&amp;action=edit&amp;section=3" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This example is taken from the Twenty Twelve theme.
+</p>
+<pre>
+/** Tell WordPress to run twentytwelve_setup() when the 'after_setup_theme' hook is run. */
+add_action( 'after_setup_theme', 'twentytwelve_setup' );
+
+/**
+ * Sets up theme defaults and registers support for various WordPress features.
+ *
+ * Note that this function is hooked into the after_setup_theme hook, which runs
+ * before the init hook. The init hook is too late for some features, such as indicating
+ * support post thumbnails.
+ *
+ * To override twentytwelve_setup() in a child theme, add your own twentytwelve_setup to your child theme's
+ * functions.php file.
+ *
+ * @uses add_theme_support() To add support for post thumbnails and automatic feed links.
+ * @uses register_nav_menus() To add support for navigation menus.
+ * @uses add_custom_background() To add support for a custom background.
+ * @uses add_editor_style() To style the visual editor.
+ * @uses load_theme_textdomain() For translation/localization support.
+ * @uses add_custom_image_header() To add support for a custom header.
+ * @uses register_default_headers() To register the default custom header images provided with the theme.
+ * @uses set_post_thumbnail_size() To set a custom post thumbnail size.
+ *
+ * @since Twenty Twelve 1.0
+ */
+function twentytwelve_setup() {
+
+	// This theme styles the visual editor with editor-style.css to match the theme style.
+	add_editor_style();
+
+	// Post Format support. You can also use the legacy "gallery" or "asides" (note the plural) categories.
+	add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );
+
+	// This theme uses post thumbnails
+	add_theme_support( 'post-thumbnails' );
+
+	// Add default posts and comments RSS feed links to head
+	add_theme_support( 'automatic-feed-links' );
+
+	// Make theme available for translation
+	// Translations can be filed in the /languages/ directory
+	load_theme_textdomain( 'twentytwelve', get_template_directory() . '/languages' );
+
+	$locale = get_locale();
+	$locale_file = get_template_directory() . "/languages/$locale.php";
+	if ( is_readable( $locale_file ) )
+		require_once( $locale_file );
+
+	// This theme uses wp_nav_menu() in one location.
+	register_nav_menus( array(
+		'primary' =&gt; __( 'Primary Navigation', 'twentytwelve' ),
+		'Secondary' =&gt; __( 'Secondary Navigation', 'twentytwelve' ),
+	) );
+
+	// This theme allows users to set a custom background
+	add_custom_background();
+
+	// Your changeable header business starts here
+	if (&#160;! defined( 'HEADER_TEXTCOLOR' ) )
+		define( 'HEADER_TEXTCOLOR', '' );
+
+	// No CSS, just IMG call. The&#160;%s is a placeholder for the theme template directory URI.
+	if (&#160;! defined( 'HEADER_IMAGE' ) )
+		define( 'HEADER_IMAGE', '%s/images/headers/path.jpg' );
+
+	// The height and width of your custom header. You can hook into the theme's own filters to change these values.
+	// Add a filter to twentytwelve_header_image_width and twentytwelve_header_image_height to change these values.
+	define( 'HEADER_IMAGE_WIDTH', apply_filters( 'twentytwelve_header_image_width', 940 ) );
+	define( 'HEADER_IMAGE_HEIGHT', apply_filters( 'twentytwelve_header_image_height', 198 ) );
+
+	// We'll be using post thumbnails for custom header images on posts and pages.
+	// We want them to be 940 pixels wide by 198 pixels tall.
+	// Larger images will be auto-cropped to fit, smaller ones will be ignored. See header.php.
+	set_post_thumbnail_size( HEADER_IMAGE_WIDTH, HEADER_IMAGE_HEIGHT, true );
+
+	// Don't support text inside the header image.
+	if (&#160;! defined( 'NO_HEADER_TEXT' ) )
+		define( 'NO_HEADER_TEXT', true );
+
+	// Add a way for the custom header to be styled in the admin panel that controls
+	// custom headers. See twentytwelve_admin_header_style(), below.
+	// add_custom_image_header( '', 'twentytwelve_admin_header_style' );
+
+	// ... and thus ends the changeable header business.
+
+}
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004050
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.011 seconds
+Preprocessor visited node count: 42/1000000
+Preprocessor generated node count: 195/1000000
+Post‐expand include size: 573/2097152 bytes
+Template argument size: 234/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    4.602      1 - Template:Languages
+100.00%    4.602      1 - -total
+ 25.36%    1.167      1 - Template:it
+ 24.53%    1.129      1 - Template:en
+-->

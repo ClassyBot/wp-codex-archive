@@ -1,0 +1,233 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Creating">Tables with Plugins 日本語</a> 
+<a href="https://codex.wordpress.org/%D0%9F%D0%BB%D0%B0%D0%B3%D0%B8%D0%BD%D1%8B:_%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5_%D1%82%D0%B0%D0%B1%D0%BB%D0%B8%D1%86_%D0%91%D0%94" title="Плагины: создание таблиц БД">Русский</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Create_Database_Tables"><span class="tocnumber">1</span> <span class="toctext">Create Database Tables</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Database_Table_Prefix"><span class="tocnumber">1.1</span> <span class="toctext">Database Table Prefix</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Creating_or_Updating_the_Table"><span class="tocnumber">1.2</span> <span class="toctext">Creating or Updating the Table</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Adding_Initial_Data"><span class="tocnumber">1.3</span> <span class="toctext">Adding Initial Data</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#A_Version_Option"><span class="tocnumber">1.4</span> <span class="toctext">A Version Option</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#The_Whole_Function"><span class="tocnumber">1.5</span> <span class="toctext">The Whole Function</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Calling_the_functions"><span class="tocnumber">2</span> <span class="toctext">Calling the functions</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Adding_an_Upgrade_Function"><span class="tocnumber">3</span> <span class="toctext">Adding an Upgrade Function</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Resources"><span class="tocnumber">4</span> <span class="toctext">Resources</span></a></li>
+</ul>
+</div>
+
+<p>If you are <a href="https://codex.wordpress.org/Writing_a_Plugin" title="Writing a Plugin">writing a plugin</a> for WordPress, you will almost certainly find that you need to store some information in the WordPress database. There are two types of information you could store:
+</p>
+<ul><li> <b>Setup information</b> -- user choices that are entered when the user first sets up your plugin, and don't tend to grow much beyond that (for example, in a tag-related plugin, the user's choices regarding the format of the tag cloud in the sidebar).<br />Setup information will generally be stored using the <a href="https://codex.wordpress.org/Writing_a_Plugin#Saving_Plugin_Data_to_the_Database" title="Writing a Plugin">WordPress <i>options</i> mechanism</a>.</li>
+<li> <b>Data</b> -- information that is added as the user continues to use your plugin, which is generally expanded information related to posts, categories, uploads, and other WordPress components (for example, in a statistics-related plugin, the various page views, referrers, and other statistics associated with each post on your site).<br />Data can be stored in a separate MySQL/MariaDB table, which will have to be created.  Before jumping in with a whole new table, however, consider if storing your plugin's data in <a href="https://codex.wordpress.org/Writing_a_Plugin#Saving_Plugin_Data_to_the_Database" title="Writing a Plugin">WordPress' Post Meta</a> (a.k.a. Custom Fields) would work.  Post Meta is the preferred method; use it when possible/practical.</li></ul>
+<p>This article describes how to have your plugin automatically create a MySQL/MariaDB table to store its data.  Note that as an alternative to following the steps here, you could have the plugin user run an install script when they install your plugin. Another approach would be to have the user execute an SQL query on their own, using something like <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a>. But neither of those options is very satisfactory, since a user could easily forget to run the install script or mess up the query (and they might not have phpMyAdmin available). 
+</p><p>So, it is recommended that you follow the steps below to have your plugin automatically create its database tables:
+</p>
+<ol><li> Write a PHP function that creates the table.</li>
+<li> Ensure that WordPress calls the function when the plugin is activated.</li>
+<li> Create an upgrade function, if a new version of your plugin needs to have a different table structure.</li></ol>
+<h2><span class="mw-headline" id="Create_Database_Tables">Create Database Tables</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=1" title="Edit section: Create Database Tables">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The first step in making your plugin create database tables automatically is to create a PHP function within your plugin that adds a table or tables to the WordPress MySQL/MariaDB database. For purposes of this article, we'll assume you want to call this function <tt>jal_install</tt>.
+</p>
+<h3><span class="mw-headline" id="Database_Table_Prefix">Database Table Prefix</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=2" title="Edit section: Database Table Prefix">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In the <tt>wp-config.php</tt> file, a WordPress site owner can define a database table prefix. By default, the prefix is "wp_", but you'll need to check on the actual value and use it to define your database table name. This value is found in the <tt>$wpdb-&gt;prefix</tt> variable. (If you're developing for a version of WordPress older than 2.0, you'll need to use the <tt>$table_prefix</tt> global variable, which is deprecated in version 2.1). 
+</p><p>So, if you want to create a table called <tt>(prefix)liveshoutbox</tt>, the first few lines of your table-creation function will be:
+</p>
+<pre>
+function jal_install () {
+   global $wpdb;
+
+   $table_name = $wpdb-&gt;prefix . "liveshoutbox"; 
+}
+</pre>
+<h3><span class="mw-headline" id="Creating_or_Updating_the_Table">Creating or Updating the Table</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=3" title="Edit section: Creating or Updating the Table">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The next step is to actually create the database table. Rather than executing an SQL query directly, we'll use the <tt>dbDelta</tt> function in <tt>wp-admin/includes/upgrade.php</tt> (we'll have to load this file, as it is not loaded by default). The <tt>dbDelta</tt> function examines the current table structure, compares it to the  desired table structure, and either adds or modifies the table as necessary, so it can be very handy for updates (see <tt>wp-admin/upgrade-schema.php</tt> for more examples of how to use <tt>dbDelta</tt>). Note that the <tt>dbDelta</tt> function is rather picky, however. For instance:
+</p>
+<ul><li> You must put each field on its own line in your SQL statement.</li>
+<li> You must have two spaces between the words PRIMARY KEY and the definition of your primary key.</li>
+<li> You must use the key word KEY rather than its synonym INDEX and you must include at least one KEY.</li>
+<li> KEY must be followed by a SINGLE SPACE then the key name then a space then open parenthesis with the field name then a closed parenthesis.</li>
+<li> You must not use any apostrophes or backticks around field names.</li>
+<li> Field types must be all lowercase.</li>
+<li> SQL keywords, like CREATE TABLE and UPDATE, must be uppercase.</li>
+<li> You must specify the length of all fields that accept a length parameter. int(11), for example.</li></ul>
+<p>With those caveats, here are the next lines in our function, which will actually create or update the table. You'll need to substitute your own table structure in the <tt>$sql</tt> variable:
+</p>
+<pre>
+global $wpdb;
+
+$charset_collate = $wpdb-&gt;get_charset_collate();
+
+$sql = "CREATE TABLE $table_name (
+  id mediumint(9) NOT NULL AUTO_INCREMENT,
+  time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+  name tinytext NOT NULL,
+  text text NOT NULL,
+  url varchar(55) DEFAULT '' NOT NULL,
+  PRIMARY KEY  (id)
+) $charset_collate;";
+
+require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+dbDelta( $sql );
+</pre>
+<p><b>Note:</b> Above we set the default character set and collation for the table. If we don't do this, some characters could end up being converted to just <tt>?</tt>'s when saved in our table. In this example we use <tt>$wpdb-&gt;get_charset_collate()</tt> to get the character set and collation. That function was introduced in WordPress 3.5, and if you need to support versions before that you will need create the charset/collate string yourself (you could copy the source of that function).
+</p>
+<h3><span class="mw-headline" id="Adding_Initial_Data">Adding Initial Data</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=4" title="Edit section: Adding Initial Data">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Finally, you may want to add some data to the table you just created. Here is an example of how to do that:
+</p>
+<pre>
+$welcome_name = 'Mr. WordPress';
+$welcome_text = 'Congratulations, you just completed the installation!';
+
+$table_name = $wpdb-&gt;prefix . 'liveshoutbox';
+
+$wpdb-&gt;insert( 
+	$table_name, 
+	array( 
+		'time' =&gt; current_time( 'mysql' ), 
+		'name' =&gt; $welcome_name, 
+		'text' =&gt; $welcome_text, 
+	) 
+);
+
+</pre>
+<p><b>NOTE:</b> <strong>For more on using WPDB, see <a href="https://codex.wordpress.org/Class_Reference/wpdb" title="Class Reference/wpdb">wpdb</a> class.</strong> In this case, we're using <tt>$wpdb-&gt;insert</tt>, so our data will automatically be escaped. If you need to use another method like <tt>$wpdb-&gt;query</tt> instead, it's a good idea to run the variables through the <tt>$wpdb-&gt;prepare</tt> function before passing the query to the database to prevent security problems, even though we defined <tt>$welcome_name</tt> and <tt>$welcome_text</tt> in this function and know that there are no SQL special characters in them. 
+</p>
+<h3><span class="mw-headline" id="A_Version_Option">A Version Option</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=5" title="Edit section: A Version Option">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Another excellent idea is to add an option to record a version number for your database table structure, so you can use that information later if you need to update the table:
+</p>
+<pre>
+add_option( "jal_db_version", "1.0" );
+</pre>
+<h3><span class="mw-headline" id="The_Whole_Function">The Whole Function</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=6" title="Edit section: The Whole Function">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This function is done. Let's see it all in one piece. Note that the version number is now stored in a global variable.
+</p>
+<pre>
+&lt;?php
+
+global $jal_db_version;
+$jal_db_version = '1.0';
+
+function jal_install() {
+	global $wpdb;
+	global $jal_db_version;
+
+	$table_name = $wpdb-&gt;prefix . 'liveshoutbox';
+	
+	$charset_collate = $wpdb-&gt;get_charset_collate();
+
+	$sql = "CREATE TABLE $table_name (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+		name tinytext NOT NULL,
+		text text NOT NULL,
+		url varchar(55) DEFAULT '' NOT NULL,
+		PRIMARY KEY  (id)
+	) $charset_collate;";
+
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	dbDelta( $sql );
+
+	add_option( 'jal_db_version', $jal_db_version );
+}
+
+function jal_install_data() {
+	global $wpdb;
+	
+	$welcome_name = 'Mr. WordPress';
+	$welcome_text = 'Congratulations, you just completed the installation!';
+	
+	$table_name = $wpdb-&gt;prefix . 'liveshoutbox';
+	
+	$wpdb-&gt;insert( 
+		$table_name, 
+		array( 
+			'time' =&gt; current_time( 'mysql' ), 
+			'name' =&gt; $welcome_name, 
+			'text' =&gt; $welcome_text, 
+		) 
+	);
+}
+</pre>
+<h2><span class="mw-headline" id="Calling_the_functions">Calling the functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=7" title="Edit section: Calling the functions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Now that we have the initialization function defined, we want to make sure that WordPress calls this function when the plugin is activated by a WordPress administrator. To do that, we will use the <tt>activate_</tt> action hook. If your plugin file is <tt>wp-content/plugins/plugindir/pluginfile.php</tt>, you'll add the following line to the main body of your plugin:
+</p>
+<pre>
+register_activation_hook( __FILE__, 'jal_install' );
+register_activation_hook( __FILE__, 'jal_install_data' );
+</pre>
+<p>See <a href="https://codex.wordpress.org/Function_Reference/register_activation_hook" title="Function Reference/register activation hook">Function_Reference/register_activation_hook</a> for more details.
+</p>
+<h2><span class="mw-headline" id="Adding_an_Upgrade_Function">Adding an Upgrade Function</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=8" title="Edit section: Adding an Upgrade Function">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Over the lifetime of your plugin, you may find that you need to change the plugin's database structure in an upgraded version. To do that, you will need to create update code within your plugin that will detect that a new version has been installed, and upgrade the database structure. The easiest thing to do is to add the code to the <tt>jal_install</tt> function we just created.
+</p><p>So, let's assume that the function above was used to create database version 1.0 of your plugin, and you are now upgrading to version 1.1 so that the URL field can be wider (100 characters instead of 55). You will need to add the following lines to the end of your <tt>jal_install</tt> function, to check the version and upgrade if necessary:
+</p>
+<pre>
+&lt;?php
+
+global $wpdb;
+$installed_ver = get_option( "jal_db_version" );
+
+if ( $installed_ver&#160;!= $jal_db_version ) {
+
+	$table_name = $wpdb-&gt;prefix . 'liveshoutbox';
+
+	$sql = "CREATE TABLE $table_name (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+		name tinytext NOT NULL,
+		text text NOT NULL,
+		url varchar(100) DEFAULT '' NOT NULL,
+		PRIMARY KEY  (id)
+	);";
+
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	dbDelta( $sql );
+
+	update_option( "jal_db_version", $jal_db_version );
+}
+</pre>
+<p>You'll also need to change the global <tt>$jal_db_version</tt> variable at the top of the file, and of course you'll want to change the initialization section created above to use the new table structure.
+</p><p>Since 3.1 the activation function registered with <tt><a href="https://codex.wordpress.org/Function_Reference/register_activation_hook" title="Function Reference/register activation hook"> register_activation_hook()</a></tt> is not called when a plugin is updated. So to run the above code after the plugin is upgraded, you need to check the plugin db version on another hook, and call the function manually if the the database version is old. Like this:
+</p>
+<pre>
+function myplugin_update_db_check() {
+    global $jal_db_version;
+    if ( get_site_option( 'jal_db_version' )&#160;!= $jal_db_version ) {
+        jal_install();
+    }
+}
+add_action( 'plugins_loaded', 'myplugin_update_db_check' );
+</pre>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Creating_Tables_with_Plugins&amp;action=edit&amp;section=9" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>For further reading on plugin development, check out <a href="https://codex.wordpress.org/Plugin_Resources" title="Plugin Resources">Plugin Resources</a>, a comprehensive list of plugin resources. You may also find this post from the <a href="https://codex.wordpress.org/Mailing_Lists#Hackers" title="Mailing Lists">wp-hackers mailing list</a> to be helpful: <a rel="nofollow" class="external text" href="http://lists.automattic.com/pipermail/wp-hackers/2005-May/000940.html">WordPress Hackers Mailing List: Answer to Plugin Requires Additional Tables</a>. Also see: <a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/questions/4852/post-meta-vs-seperate-database-tables">Post meta vs separate database tables</a>.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211003743
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.027 seconds
+Preprocessor visited node count: 134/1000000
+Preprocessor generated node count: 394/1000000
+Post‐expand include size: 672/2097152 bytes
+Template argument size: 294/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    5.327      1 - Template:Languages
+100.00%    5.327      1 - -total
+ 23.63%    1.259      1 - Template:ja
+ 23.34%    1.243      1 - Template:ru
+ 22.56%    1.202      1 - Template:en
+-->

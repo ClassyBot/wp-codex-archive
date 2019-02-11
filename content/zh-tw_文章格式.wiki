@@ -1,0 +1,141 @@
+{{Languages|
+{{en|Post Formats}}
+{{ja|Post Formats}}
+{{pt-br|Formatos de Posts}}
+{{ru|Форматы записей}}
+{{zh-tw|文章格式}} 
+{{zh-hans|文章格式}} 
+}}
+
+[[zh-tw:文章格式|文章格式]]是在[[Version 3.1]]中引進的一種[[Theme Features|佈景主題功能]]，文章格式是一種可以被佈景用來訂製文章展示的中介資料，文章格式功能提供了一個標準化的格式列表，可用於所有支援此功能的佈景主題。佈景主題不需要支援列表的所有格式，新的格式不能由佈景主題來推出，甚至是外掛也不行，此列表的標準化以一致的方式提供眾多的佈景主題跟外部的部落格工具存取此功能的途徑之間的相容性。
+
+總之，有了支援文章格式的佈景主題，部落客可以從一個單選按鈕列表透過選擇文章格式來改變每一篇文章的樣子。 
+
+以 '''Asides''' 為例，以前一個稱作 Asides 的分類被新增，指定為該分類的文章在顯示的時候基於[[Template_Tags/post_class|post_class()]] 或者 [[Conditional Tags|in_category('asides')]]所設定的樣式規則而與別的文章不同，有了文章格式，這個新的方法允許佈景主題設定文章格式（例如，[[Function_Reference/add_theme_support|add_theme_support('post-formats', array('aside'))]]），然後就可以在儲存文章的時候在發表中介資訊框裡選擇文章格式，通過呼叫函式[[Function_Reference/get_post_format|get_post_format( $post->ID )]]就能確定文章所屬格式，而[[Template_Tags/post_class|post_class()]]將會新增"format-asides"類別，以用於純CSS樣式編輯。
+
+==支援的格式==
+
+目前支援以下文章格式，如果佈景主題有支援的話。
+
+請注意實際的文章內容紀錄不會改變，佈景可以使用這個使用者所選擇的格式來顯示不同的文章，例如，佈景可以停止"Status"的文章標題的顯示，如何顯示完全取決於佈景，但是這裡有一些一般性的準則。
+
+* '''aside''' - 典型樣式就是沒有標題。類似於Facebook中更新的一條消息。
+* '''gallery''' - 圖庫，文章可能會有圖庫簡碼以及圖片附件。
+* '''link''' - 一個到另一個網站的連結，佈景可能會使用文章內容中的第一個<a href=””>標記作為那篇文章的外部連結，另一個方法可能就是假如文章只有一個URL，那麼URL跟標題(post_title)會是附加到錨點的名稱。
+* '''image''' - 單張圖片，文章中的第一個 <img /> 標記將會被認為是該圖片。另外，如果文章只包含一個 URL 連結，則被認為是該圖片的 URL 地址，而文章標題(post_title)將會作為圖片的標題屬性。
+* '''quote''' -  一個引用，可能會有blockquote標記含括引用的內容，同樣地，引用可能只是有來源/作者作為標題的內容。
+* '''status''' - 一個簡短的狀態更新，類似Twitter狀態更新。
+* '''video''' - 一個影片，文章內容中第一個<video />標記或object/embed會被認為是影片，同樣地，如果文章只有一個URL，會被認為是影片的URL，假如部落格的影片支援有啟用也有可能包含的影片是文章的附件（如通過外掛）。
+* '''audio''' - 一個音訊檔案，可用於播客。
+* '''chat''' - 聊天記錄，類似於：
+<pre>
+張三: foo
+李四: bar
+張三: foo 2
+</pre>
+
+注意：在撰寫或編輯一篇文章時，Standard用於設計沒有指定文章格式的文章，另外，如果指定的格式無效，則標準（無格式）將被使用。
+
+== 函式參考 ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''模板標記'''
+|-
+|
+* <tt>[[Function_Reference/set_post_format | set_post_format()]]</tt>
+* <tt>[[Function_Reference/get_post_format | get_post_format()]]</tt>
+* <tt>[[Function_Reference/get_post_format_link | get_post_format_link()]]</tt>
+* <tt>[[Function_Reference/get_post_format_string | get_post_format_string()]]</tt>
+* <tt>[[Function_Reference/has_post_format | has_post_format()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''其他函式'''
+|-
+|
+快將推出...
+|}
+|}
+
+== 增加佈景支援 ==
+
+佈景需要在functions.php檔中使用[[Function_Reference/add_theme_support|add_theme_support()]]透過傳遞一個像下列的格式陣列來告訴WordPress支援什麼文章格式：
+
+<pre>add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );</pre>
+
+注意你必須在init被呼叫前呼叫這個！一個好的hook（掛鉤）使用就是after_setup_theme hook（掛鉤）。
+
+== 使用格式 ==
+
+在佈景主題裡，使用[[Function_Reference/get_post_format|get_post_format()]]來檢查文章的格式，並從而改變它的展示，注意預設格式的文章會傳回FALSE值，或利用[[Function_Reference/has_post_format|has_post_format()]] [[Conditional Tags|conditional tag]]：
+
+<pre>
+if ( has_post_format( 'video' )) {
+  echo 'this is the video format';
+}
+</pre>
+
+另一個使用格式的方法就是透過樣式規則，佈景主題應該在包圍文章的外覆程式碼中使用這個[[Template_Tags/post_class|post_class()]]函式來增加動態的樣式類別，文章格式會用這種"format-foo"名稱的方式來產生額外的類別來增加。 
+
+例如，我們可以用這種方式隱藏狀態格式文章的文章標題：
+<pre>
+.format-status .post-title {
+display:none;
+}
+</pre>
+
+=== 建議的風格 ===
+
+雖然您可以設計自己的風格和格式，顯示您認為合適的任何方式，每個格式適合於某種類型的“風格”，因為出於現代用法，將每種格式的使用目的牢記在心中是好的，因為這將給予他們很容易被讀者直觀地確認為特定類型的東西。
+
+例如，aside、link跟status格式通常沒有標題或作者資訊的顯示，這些格式簡短且次要，aside可能有一段或兩段，而link可能只有一句有連到一些URL的連結來裡面，link跟aside這兩者可以有一個連到單篇文章頁面的連結（使用the_permalink()），並因此允許評論，但是status格式很可能不會有這樣的一個連結。
+
+另一方面一個圖片的文章通常只有一個圖片，隨著圖片有或沒有說明文字，一個音訊/影片文章是一樣的但是在文章內會有音訊/影片，這三種格式不是使用外掛就是使用standard [[Embeds]]來顯示內容，標題及作者可能都不會顯示，因為內容可能是不言自明。
+
+quote格式特別適合於張貼一篇沒有額外資訊的人的簡單引用，假如你把引用放進文章內容，並且把引用人的名稱放進文章的標題，然後你可以設計文章的樣式這樣可以用the_content()、重新設計成一個引用文字的格式來顯示，以及使用the_title()來顯示引用人的名稱作為署名。
+
+特別地chat在很多情況下可能會造成等寬型態的顯示，對於某些.format-chat樣式，你可以使用等寬字型來使它顯示文章內容，也許在一個灰色背景的div或類似的地方，從而直觀地識別它是一個聊天會話。
+
+===子佈景主題的格式===
+[[Child Themes]]繼承父佈景主題定義的文章格式，在子佈景主題呼叫[[Function_Reference/add_theme_support|add_theme_support()]]文章格式將'''覆寫'''現有的列表，卻不會新增進來，呼叫[[Function_Reference/remove_theme_support|remove_theme_support('post-formats')]]會一起刪除。
+
+== 向後相容 ==
+
+假如你的外掛或佈景主題需要跟舊版的WordPress相容，你需要建立post-format-$format這個項目為 "post_format"分類，例如，
+
+<pre>
+wp_insert_term('post-format-aside', 'post_format');
+</pre>
+
+你也必須使用[[Function_Reference/register_taxonomy|register_taxonomy()]]註冊post_format分類。
+
+== 來源檔案 ==
+* {{Trac|wp-includes/post.php}}
+
+== 外部資源  ==
+
+* [http://ottopress.com/2010/post-types-and-formats-and-taxonomies-oh-my/ Post Types and Formats and Taxonomies, oh my!] by Otto
+* [http://andrewnacin.com/2011/01/27/on-standardized-post-formats/ On standardized Post Formats] by Andrew Nacin
+* [http://markjaquith.wordpress.com/2010/11/12/post-formats-vs-custom-post-types/ Post Formats vs. Post Types] by Mark Jaquith
+* [http://lisasabin-wilson.com/wordpress-3-1-post-formats-reference WordPress 3.1 Post Formats Reference] by Lisa Sabin-Wilson
+* [http://dougal.gunters.org/blog/2010/12/10/smarter-post-formats Smarter Post Formats?] by Dougal Campbell
+
+== 相關 ==
+{{Post Formats}}
+
+[[Category:Advanced Topics]]
+
+==譯者信息==
+本文檔由[http://codex.wordpress.org/User:Achi ㄚ琪(Stephen Liu)]翻譯<br />
+譯者部落格：[http://job.achi.idv.tw 工作達人]<br />
+E-Mail：2notebook@yahoo.com.tw
+
+[[Category:Advanced Topics]]

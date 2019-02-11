@@ -1,0 +1,182 @@
+{{Languages|
+{{en|How to Pass Tag Parameters}}
+{{it|Come passare i parametri}}
+{{ja|テンプレートタグ/タグパラメータの渡し方}}
+}}
+
+== Introduzione == 
+
+I [[it:Tag dei template|tag dei template]] sono funzioni [[it:Glossario#PHP|PHP]] che è possibile inserire all'interno delle proprie pagine template di WordPress per fornire contenuto dinamico al vostro sito. Proprio come le funzioni PHP, molti tag dei template accettano argomenti o parametri. I parametri dei tag dei template sono variabili che si possono usare per modificare l'output del tag o modificarne il funzionamento in qualche modo. Si può pensare ai parametri come ad opzioni o impostazioni che permettono di personalizzare il funzionamento dei tag dei template.
+
+Per quanto riguarda i parametri, i tag dei template di WordPress possono essere di tre tipi:
+
+# [[#Tag senza parametri|Tag senza parametri]]
+# [[#Tag con parametri in stile funzione PHP|Tag con parametri in stile funzione PHP]]
+# [[#Tag con parametri in stile query-string|Tag con parametri in stile query-string]]
+
+== Tag senza parametri ==
+
+Alcuni tag dei template non hanno opzioni e quindi non hanno parametri da passare loro.
+
+Il tag [[Template Tags/the_author_firstname | the_author_firstname()]] è uno di quelli che non accetta alcun parametro. Questo tag semplicemente visualizza il nome dell'autore di un articolo. I tag senza parametri non devono avere nulla tra le parentesi di apertura e chiusura della funzione:
+
+ <?php the_author_firstname(); ?>
+
+== Tag con parametri in stile funzione PHP ==
+
+Per quanto riguarda i tag dei template che possono accettare parametri, alcuni di essi richiedono che siano nello [http://www.php.net/manual/it/functions.arguments.php stile standard di PHP]. Per questi tag, i parametri vengono passati ad una funzione mettendo uno o più valori all'interno delle parentesi della funzione.
+
+Il tag [[Template Tags/bloginfo|bloginfo()]] accetta un parametro (conosciuto come il parametro '''show''') che indica quale informazione del sito visualizzare:
+
+%%% <?php bloginfo('name'); ?>%%%
+
+Il tag [[Template Tags/wp_title|wp_title()]] accetta due parametri: il primo è il parametro '''sep''' o separatore, ed il secondo indica se fare '''echo''' o visualizzare il risultato: 
+
+%%% <?php wp_title(' - ', TRUE); ?> %%%
+
+Il primo parametro è racchiuso tra apici singoli mentre il secondo parametro no in quanto il primo è una ''stringa'' ed il secondo un parametro ''booleano''. (Si veda [[#Tipi di parametri|Tipi di parametri]] per informazioni sui tipi di parametri e su come utilizzarli.)
+
+Punti importanti da tenere a mente per i parametri in stile funzione PHP:
+
+:* Alcune funzioni accettano parametri multipli.  
+:* I parametri multipli sono separati da virgole.  
+:* '''L'ordine dei parametri è importante!''' 
+
+Quando si passano i parametri alla funzione di un tag di template, bisogna assicurarsi di specificare i valori per tutti i parametri ''fino all'ultimo che si desidera modificare'', altrimenti il tag potrebbe non funzionare nel modo atteso. Ad esempio il tag di template [[Template Tags/get_archives|get_archives()]] ha sei parametri:
+
+%%% <?php get_archives('type', 'limit', 'format', 'before', 'after', show_post_count); ?>  %%%
+
+Per visualizzare la lista degli archivi nel modo desiderato, supponiamo che si voglia modificare solo il terzo ('''format''') ed il quinto ('''after''') parametro. Per fare ciò è necessario assicurarsi di immettere anche i valori predefiniti del primo, secondo e quarto parametro, come nel seguente esempio:
+
+<nowiki> <?php get_archives('', '', 'custom', '', '<br />'); ?></nowiki> 
+
+Si noti l'uso di apici singoli per indicare valori ''vuoti'' per i parametri, che <nowiki>''</nowiki>in questo caso<nowiki>''</nowiki> forza i valori predefiniti per questi parametri specifici. Porre attenzione al fatto che i valori predefiniti possono essere sovrascritti quando si passano parametri vuoti, come nel caso di un parametro che specifica una stringa di testo, e che non c'è modo di passare un valore booleano vuoto. Verificare quindi la documentazione per conoscere il valore predefinito di un parametro e, quando ne è specificato uno, utilizzarlo come valore per il parametro (si veda anche [[#Tipi di parametri|Tipi di parametri]] per informazioni sui tipi di parametri). Il sesto parametro non è stato specificato; ciò perché WordPress utilizza il valore predefinito per tutti i parametri rimasti indefiniti.
+
+Assicurarsi di seguire attentamente la documentazione relativa ad un tag di template ed inserire i parametri nell'ordine atteso dalla funzione. Infine, per utilizzare i valori predefiniti per tutti i parametri di un tag di template, utilizzare il tag senza specificare alcun valore per i parametri:
+
+%%%<?php get_archives(); ?>%%%
+
+== Tag con parametri in stile query-string ==
+
+L'ultimo tipo di tag di template fa uso di quello che viene definito stile query-string per il passaggio dei parametri. Questi forniscono un utile 'contenitore' per quei tag che utilizzano [[#Tag con parametri in stile funzione PHP|lo stile funzione PHP per i parametri]] ed hanno un numero relativamente elevato di parametri. Ad esempio il tag di template [[Template_Tags/wp_list_cats|wp_list_cats()]] è un contenitore di [[Template_Tags/list_cats|list_cats()]], un tag con diciotto parametri!
+
+Se si desidera impostare il parametro '''exclude''' di list_cats() (il diciassettesimo nella lista dei parametri) lasciando gli altri con i valori predefiniti, si deve fare così:
+
+ <?php list_cats(TRUE, 'All', 'ID', 'asc', &#39;&#39;, TRUE, FALSE, FALSE, 
+ TRUE, TRUE, FALSE, &#39;&#39;, &#39;&#39;, FALSE, &#39;&#39;, &#39;&#39;, '10,11,12'); ?> 
+
+''Oppure'' si può utilizzare wp_list_cats():
+
+ <?php wp_list_cats('exclude=10,11,12'); ?> 
+
+Per cui i tag in stile query-string sono utili nel senso che permettono di modificare i valori dei soli parametri desiderati, senza la necessità di fornire i valori per tutti o quasi tutti gli altri parametri. Tuttavia, non tutti i tag di template in stile funzione PHP hanno un equivalente in stile query-string. (Si noti che i nomi dei tag che accettano parametri in stile query-string iniziano solitamente con un prefisso 'wp_', come in wp_list_cats(), ma conviene sempre controllare la documentazione di un tag per verificare il metodo con cui esso accetta i parametri, se presenti.)
+
+Il tag [[Template Tags/wp_list_authors|wp_list_authors()]] ha sei parametri, dei quali qui ne impostiamo tre:
+
+ <?php wp_list_authors('show_fullname=1&feed=rss&optioncount=1'); ?>
+
+Per prima cosa, tutti i parametri sono racchiusi da apici singoli o doppi. Quindi ogni parametro viene immesso nel formato ''parametro=valore'', utilizzando come separatore una e commerciale (ampersand - &amp;). Scomposto, il tag precedente dice:
+
+:* Il parametro '''show_fullname''' (un parametro di tipo ''booleano'') è uguale a <tt>1</tt> (true).
+:: E 
+:* Il parametro '''feed''' (un parametro di tipo ''stringa'') è uguale a <tt>rss</tt>.
+:: E
+:* Il parametro '''optioncount''' (un parametro di tipo ''booleano'') è uguale a <tt>1</tt> (true).
+
+(Si veda [[#Tipi di parametri|Tipi di parametri]] per informazioni sui tipi di parametri e su come utilizzarli.)
+
+I parametri in stile query-string non devono essere immessi in un ordine specifico. L'unica cosa di cui preoccuparsi è indicare correttamente il nome del parametro. Se la leggibilità è un problema, è possibile separare i parametri con uno spazio:
+
+ <?php wp_list_authors('show_fullname=1 & feed=rss & optioncount=1'); ?>
+
+&Egrave; anche possibile suddividere la query-string su più righe (si noti il formato specifico che racchiude ogni coppia parametro/valore tra apici singoli ed un punto all'inizio di ciascuna riga):
+
+ <?php wp_list_authors(
+                       'show_fullname=1'
+                       .'&feed=rss'
+                       .'&optioncount=1'
+                       ); ?>
+
+Ci sono alcune limitazioni quando si utilizzano tag in stile query-string, tra cui il non poter passare alcuni caratteri come ad esempio la e commerciale (&amp;) o le virgolette (singole o doppie). In questi casi si dovrà utilizzare un array associativo.
+
+ <?php $params = array( 'type'   => 'postbypost',
+                        'limit'  => 5,
+                        'format' => 'custom',
+                        &#39;before' => '&lt;li&gt;&amp;bull;&amp;nbsp;',
+                        &#39;after'  => '&lt;/li&gt;' );
+ wp_get_archives($params); ?>
+
+== Tipi di parametri ==
+
+Ci sono tre tipi di parametri che occorre conoscere in riferimento ai tag dei template di WordPress: stringa, intero e booleano. Ognuno viene gestito in maniera leggermente differente come descritto di seguito.
+
+=== String ===
+
+Una stringa è una riga di testo e può essere ugualmente un singolo carattere così come diverse decine di parole. Un parametro stringa è spesso la selezione tra due o più opzioni possibili come nel caso del parametro '''show''' di [[Template Tags/bloginfo|bloginfo()]]. Altre volte una stringa è intesa come un testo da visualizzare, come il parametro '''sep''' in [[Template Tags/wp_title|wp_title()]].
+
+Nei tag che utilizzano [[#Tag con parametri in stile funzione PHP|parametri in stile funzione PHP]], i valori stringa devono essere racchiusi tra apici singoli (') o doppi ("). Se un apice singolo è necessario come parte della stringa, si devono mischiare gli apici (utilizzando l'apice doppio per racchiudere il parametro nel caso in cui il valore del parametro contenga un apice singolo) o si deve usare il carattere di escape di PHP (una barra rovesciata: <tt>\</tt>), come nell'esempio seguente che assegna un apice singolo per i parametri '''before''' e '''after''' in [[Template Tags/the_title|the_title()]]:
+
+ <?php the_title('\&#39;', '\&#39;'); ?> 
+
+<div id="Int"><!-- Non rimuovere! --></div>
+=== Integer ===
+Un integer è un numero intero (…, -2, -1, 0, 1, 2, …). I parametri di tipo intero vengono spesso utilizzati per informazioni basate su data o archivio, come ad esempio i parametri '''anno''' e '''mese''' del tag [[Function_Reference/get_month_link|get_month_link()]] oppure per specificare un valore numerico di qualcosa del sito, come ad esempio il parametro '''id''' del tag [[Template_Tags/get_permalink|get_permalink()]].
+
+Quando vengono passati ad un [[#Tag con parametri in stile funzione PHP|tag con parametri in stile funzione PHP]], è possibile passare i valori interi racchiusi tra apici o meno, in entrambi i casi vengono gestiti correttamente. Quindi i seguenti esempi sono entrambi validi:
+
+ <?php get_permalink('100'); ?> 
+
+ <?php get_permalink(100); ?>
+
+<div id="Bool"><!-- Non rimuovere! --></div>
+=== Boolean ===
+
+I parametri booleani prevedono solo i valori <tt>TRUE</tt> (vero) e <tt>FALSE</tt> (falso).
+
+Ad esempio, il tag [[Template_Tags/the_date|the_date()]] ha un parametro '''echo''' che accetta <tt>TRUE</tt> o <tt>FALSE</tt> come valore; impostando il parametro a <tt>TRUE</tt>, la data viene visualizzata sulla pagina, mentre il valore <tt>FALSE</tt> fa sì che il tag "restituisca" la data come un valore da utilizzare successivamente da altro codice PHP.
+
+Un parametro booleano può essere indicato tramite un valore numerico: <tt>1</tt> per <tt>TRUE</tt>, <tt>0</tt> per <tt>FALSE</tt>. Per un valore booleano in un [[#Tag con parametri in stile funzione PHP|tag con parametri in stile funzione PHP]], valgono le seguenti equivalenze:
+
+:* <tt>1</tt> = <tt>TRUE</tt> = <tt>true</tt> 
+:* <tt>0</tt> = <tt>FALSE</tt> = <tt>false</tt>
+
+Tuttavia, '''NON''' si devono racchiudere i valori booleani all'interno di apici. Per i [[#Tag con parametri in stile query-string|tag con parametri in stile query-string]] utilizzare solo valori booleani numerici (<tt>1</tt> o <tt>0</tt>).
+
+=== Callback ===
+
+(string, array) Un callback può essere un riferimento al nome di una funzione o metodo all'interno di una classe/oggetto. Ecco un semplice esempio di una funzione di callback:
+
+  add_action('wp_head', 'myfuncprefix_add_meta_tag'); // il nome della funzione è passato come stringa
+  function myfuncprefix_add_meta_tag(){
+    echo '<meta name="description" content="Questo è un meta tag di esempio" />';
+  }
+
+Se si fa riferimento ad un metodo all'interno di una classe/oggetto, questo può essere all'interno o all'esterno dell'oggetto. Il parametro si aspetta un array con 2 elementi, prima l'oggetto (object), poi il metodo (string). Ecco alcuni esempi:
+
+  class Myclassprefix_Some_Class {
+    function __construct(){
+      add_action('wp_head', array($this, 'myfuncprefix_add_meta_tag'));
+    }
+    function myfuncprefix_add_meta_tag(){
+      echo '<meta name="description" content="Questo è un meta tag di esempio" />';
+    }
+  }
+
+&Egrave; anche possibile fare questo al di fuori della classe:
+
+  class Myclassprefix_Some_Class {
+    function myfuncprefix_add_meta_tag(){
+      echo '<meta name="description" content="Questo è un meta tag di esempio" />';
+    }
+  }
+  
+  $some_class = new Myclassprefix_Some_Class;
+  
+  add_action('wp_head', array($some_class, 'myfuncprefix_add_meta_tag'));
+
+Nota: Non si devono mai passare elementi aggiuntivi all'array nella funzione di callback. Ne accetta solo 2: elementi aggiuntivi faranno sì che il callback non funzioni.
+
+{{it:Tag Footer}}
+
+[[Category:Template Tags]]
+[[Category:Advanced Topics]]

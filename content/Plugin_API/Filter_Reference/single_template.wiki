@@ -1,0 +1,56 @@
+The "single_template" filter can be used to load a custom template for a given post. It will replace the template used whenever the "single" template is called.
+
+A plugin can register as a content filter with the code:
+
+ <?php add_filter( "single_template", "plugin_function_name" ); ?>
+
+Where "plugin_function_name" is the function WordPress should call when the content is being retrieved. Note that the filter function the plugin defines must return the a full path to a template file or the resulting page will be blank. The template file should have the same entries as the "single.php" file has in the theme.
+
+This is especially useful for plugins using [[Function_Reference/register_post_type|Custom Post Types]] to load template files specific to your new post type.
+
+== Example with Custom Post Type ==
+
+<pre>
+<?php
+function get_custom_post_type_template($single_template) {
+     global $post;
+
+     if ($post->post_type == 'my_post_type') {
+          $single_template = dirname( __FILE__ ) . '/post-type-template.php';
+     }
+     return $single_template;
+}
+add_filter( 'single_template', 'get_custom_post_type_template' );
+?>
+</pre>
+
+The example code will load the template file "post-type-template.php" located in your plugins folder for any posts or pages that have the type of 'my_post_type' else uses default template.
+
+== Add single-{post_type}-{slug}.php to Template Hierarchy ==
+
+This example loads the template file single-{post_type}-{slug}.php (i.e. single-event-wordcamp.php) only if the file exists, otherwise loads default template.
+
+<pre>
+<?php
+function add_posttype_slug_template( $single_template )
+{
+	$object = get_queried_object();
+	$single_postType_postName_template = locate_template("single-{$object->post_type}-{$object->post_name}.php");
+	if( file_exists( $single_postType_postName_template ) )
+	{
+		return $single_postType_postName_template;
+	} else {
+		return $single_template;
+	}
+}
+add_filter( 'single_template', 'add_posttype_slug_template', 10, 1 );
+?>
+</pre>
+
+== Related ==
+* Action Hook: [[Plugin_API/Action_Reference/template_redirect|template_redirect]]
+* Filter Hook: [[Plugin_API/Filter_Reference/template_include|template_include]]
+* Filter Hook: [[Plugin_API/Filter_Reference/single_template|single_template]]
+* Filter Hook: [[Filter_Reference/type_template|{$type}_template]]
+
+{{Tag Footer}}

@@ -1,0 +1,79 @@
+Like the rest of WordPress, the XML-RPC API contains numerous hooks to customize or extend its behavior.
+
+== Actions ==
+
+All built-in XML-RPC methods use the action <tt>xmlrpc_call</tt>, with a parameter equal to the method's name (e.g., <tt>wp.newPost</tt>). The action is performed after the user has been authenticated but before the rest of the method logic begins.
+
+== <tt>xmlrpc_methods</tt> Filter ==
+
+The <tt>xmlrpc_methods</tt> filter allows for customization of the methods exposed by the XML-RPC server. It can be used to both add new methods and remove built-in methods.
+
+=== Add Simple Method ===
+
+Here is an example of adding a simple method that does not require user authentication or input sanitation:
+
+<pre>
+function mynamespace_subtractTwoNumbers( $args ) {
+    $number1 = (int) $args[0];
+    $number2 = (int) $args[1];
+    return $number1 - $number2;
+}
+
+function mynamespace_new_xmlrpc_methods( $methods ) {
+    $methods['mynamespace.subtractTwoNumbers'] = 'mynamespace_subtractTwoNumbers';
+    return $methods;   
+}
+add_filter( 'xmlrpc_methods', 'mynamespace_new_xmlrpc_methods');
+</pre>
+
+'''''Note:''''' Passing a single argument to a XML-RPC call will not result in an array. You then can request the value by just using $args.
+
+=== Add Authenticated Method ===
+
+Here is an example which authenticates the user:
+
+<pre>
+function mynamespace_getUserID( $args ) {
+    global $wp_xmlrpc_server;
+    $wp_xmlrpc_server->escape( $args );
+
+    $blog_id  = $args[0];
+    $username = $args[1];
+    $password = $args[2];
+
+    if ( ! $user = $wp_xmlrpc_server->login( $username, $password ) )
+        return $wp_xmlrpc_server->error;
+
+    return $user->ID;    
+}
+
+function mynamespace_new_xmlrpc_methods( $methods ) {
+    $methods['mynamespace.getUserID'] = 'mynamespace_getUserID';
+    return $methods;   
+}
+add_filter( 'xmlrpc_methods', 'mynamespace_new_xmlrpc_methods');
+</pre>
+
+Note that the method uses the <tt>escape</tt> method on the server class to sanitize the input values. It is best practice to always escape the input, especially if your method accesses the database.
+
+=== Remove a method ===
+
+Here is an example of removing the built-in <tt>demo.addTwoNumbers</tt> method:
+
+<pre>
+function mynamespace_remove_xmlrpc_methods( $methods ) {
+    unset( $methods['demo.addTwoNumbers'] );
+    return $methods;   
+}
+add_filter( 'xmlrpc_methods', 'mynamespace_remove_xmlrpc_methods');
+</pre>
+
+== <tt>wp_xmlrpc_server_class</tt> Filter ==
+
+In extremely rare cases, it may be necessary for a plugin to entirely replace the standard XML-RPC server implementation (which lives in <tt>wp-includes/class-wp-xmlrpc-server.php</tt>).
+
+In such cases, the <tt>wp_xmlrpc_server_class</tt> filter can be used to change the name of the class instantiated to serve XML-RPC requests. The new class must have a <tt>serve_request</tt> method.
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Feeds]]

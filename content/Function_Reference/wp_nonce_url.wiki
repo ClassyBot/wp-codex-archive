@@ -1,0 +1,97 @@
+{{Languages|
+{{en|Function Reference/wp nonce url}}
+{{ja|関数リファレンス/wp_nonce_url}}
+}}
+
+== Description ==
+Retrieve URL with [[Wordpress_Nonce_Implementation|nonce]] added to URL query.
+
+The returned result is escaped for display.
+
+== Usage ==
+%%%<?php wp_nonce_url( $actionurl, $action, $name ); ?>%%%
+
+== Parameters ==
+{{Parameter|$actionurl|string|URL to add nonce action}}
+{{Parameter|$action|string|nonce action name|optional|-1}}
+{{Parameter|$name|string|nonce name|optional, since 3.6|_wpnonce}}
+
+== Return Values ==
+; (string) : URL with nonce action added.
+
+== Examples ==
+<!-- Need creative examples. Feel free to link to external examples. -->
+Plugin authors can safely add links that perform tasks using a combination of <code>wp_nonce_url()</code> and <code>[[Function Reference/admin_url|admin_url()]]</code>.
+
+For instance, start by creating the link users can click to do something interesting:
+
+<pre class="php">function my_plugin_do_something () {
+?&gt;
+&lt;h2&gt;&lt;?php esc_html_e('My Plugin Admin Screen', 'my-plugin-textdomain');?&gt;&lt;/h2&gt;
+&lt;p&gt;
+    &lt;a href="&lt;?php print wp_nonce_url(admin_url('options.php?page=my_plugin_settings'), 'doing_something', 'my_nonce');?&gt;"
+        class="button button-primary"&gt;&lt;?php esc_html_e('Do Something!', 'my-plugin-textdomain');?&gt;&lt;/a&gt;
+    &lt;span class="description"&gt;&lt;?php esc_html_e('This button does something interesting.', 'my-plugin-textdomain');?&gt;&lt;/span&gt;
+&lt;/p&gt;
+&lt;?php
+}
+</pre>
+
+Then, to detect when the user clicks the link, check the nonce validity using <code>[[Function Reference/wp_verify_nonce|wp_verify_nonce()]]</code> in the function you defined when you called [[Function Reference/add_menu_page|add_menu_page()]] or one of its [[Administration Menus]] wrappers. If the nonce isn't valid, the link wasn't clicked, so display the link. Otherwise, do "something interesting."
+
+<pre class="php">add_action('admin_menu', 'add_my_plugin_admin_screen');
+function add_my_plugin_admin_screen () {
+    add_options_page(
+        __('My Plugin Settings', 'my-plugin-textdomain'),
+        __('My Plugin', 'my-plugin-textdomain'),
+        'manage_options',
+        'my_plugin_settings',
+        'my_plugin_do_something'
+    );
+}
+
+function my_plugin_do_something () {
+    if (!isset($_GET['my_nonce']) || !wp_verify_nonce($_GET['my_nonce'], 'doing_something')) {
+?&gt;
+&lt;h2&gt;&lt;?php esc_html_e('My Plugin Admin Screen', 'my-plugin-textdomain');?&gt;&lt;/h2&gt;
+&lt;p&gt;
+    &lt;a href="&lt;?php print wp_nonce_url(admin_url('options.php?page=my_plugin_settings'), 'doing_something', 'my_nonce');?&gt;"
+        class="button button-primary"&gt;&lt;?php esc_html_e('Do Something!', 'my-plugin-textdomain');?&gt;&lt;/a&gt;
+    &lt;span class="description"&gt;&lt;?php esc_html_e('This button does something interesting.', 'my-plugin-textdomain');?&gt;&lt;/span&gt;
+&lt;/p&gt;
+&lt;?php
+    } else {
+        // User pressed "Do Something!" button, so
+        // do something interesting.
+    }
+}
+</pre>
+
+Note that the recommended "context" parameter of the nonce is used to disambiguate which button was pressed. If you make more than one button users can press, make sure each button has a different nonce name and/or context.
+
+== Notes ==
+
+== Change Log ==
+Since: 2.0.4
+
+== Source File ==
+<tt>wp_nonce_url()</tt> is located in {{Trac|wp-includes/functions.php}}.
+
+== Related ==
+
+{{Nonce Functions}}
+
+== See also ==
+* [[WordPress Nonces]]
+
+== External Resources ==
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ Mark Jaquith - WordPress Nonces]
+* [http://www.prelovac.com/vladimir/improving-security-in-wordpress-plugins-using-nonces Vladimir Prelovac - Using Nonces in WordPress Plugins]
+* Wikipedia: [[wikipedia:Cryptographic_nonce|Cryptographic Nonce]]
+* Nicolas Sebastiani: [https://www.bynicolas.com/code/wordpress-nonce/ https://www.bynicolas.com/code/wordpress-nonce/ ]
+
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

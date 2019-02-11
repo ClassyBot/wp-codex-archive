@@ -1,0 +1,215 @@
+{{Languages|
+{{en|Writing a Plugin}}
+{{ar|كتابة الإضافة}}
+{{bn|প্লাগইন লেখা}}
+{{es|Escribiendo un Plugin}}
+{{it|Scrivi un Plugin}}
+{{ja|Writing a Plugin}}
+{{ko|Writing a Plugin}}
+{{pt-br|Escrevendo um Plugin}}
+{{ru|Написание плагина}}
+{{th|Writing a Plugin}}
+{{zh-hans|开发一个插件}}
+<!-- {{zh-tw|開發一個外掛}} -->
+}}
+
+= Introduction =
+
+[[Plugins|WordPress Plugins]] allow you to easily modify, customize, and enhance a WordPress site. Instead of changing the core program code of WordPress, you can add functionality with WordPress Plugins. Here is a basic definition.
+
+A '''WordPress Plugin''' is a program or a set of one or more functions written in the PHP scripting language, that adds a specific set of features or services to the WordPress site. You can seamlessly  integrate a plugin with the site using access points and methods provided by the WordPress [[Plugin API|Plugin Application Program Interface (API)]]. 
+
+Wish that WordPress had some new or modified functionality? The first thing to do is to search various WordPress Plugin repositories and sources to see if someone has already created a WordPress Plugin that suits your needs. If not, this article will guide you through the process of creating your own WordPress Plugin.
+
+''This article assumes you are already familiar with the basic functionality of WordPress and with PHP programming.''
+
+Resources
+
+* To understand how WordPress Plugins work and how to install them on your WordPress blog, see [[Plugins]].
+* There is a comprehensive list of articles and resources for Plugin developers in [[Plugin Resources]], including external articles on writing WordPress Plugins and articles on special topics.
+* To learn the basics about how WordPress Plugins are written, view the source code for a well-written Plugin like [[Plugins#Default Plugins|Hello Dolly]], which is distributed with WordPress.
+* Once you have written your WordPress Plugin, read [[Plugin Submission and Promotion]] to learn how to distribute it and share it with others.
+
+= Creating a Plugin =
+
+This section of the article goes through the steps you need to follow – and some things you need to to consider – when creating a well-structured WordPress Plugin.
+
+== Names, Files, and Locations ==
+
+=== Plugin Name ===
+
+The first task in creating a WordPress Plugin is to think about what the Plugin will do, then choose a (preferably unique) name for your Plugin. Check out the [[Plugins]] page (and the other repositories linked there) to verify that your name is unique. You could also do a Google search on your proposed name. Most Plugin developers choose to use names that describe what the Plugin does: for instance, a weather-related Plugin would probably have the word "weather" in the name. The name can be made up of multiple words.
+
+=== Plugin Files ===
+
+The next step is to create a PHP file with a name derived from your chosen Plugin name. For instance, if your Plugin is going to be called "Fabulous Functionality", you might call your PHP file ''fabulous-functionality.php''. People who install your Plugin will be putting this PHP file into the WordPress Plugins directory in their installation – usually ''wp-content/plugins/'' – so no two Plugins in that directory can have the same PHP file name.
+
+Your Plugin filename should also be unique so that your Plugin will not conflict with another in the Plugin Repository. A good solution is to use your name or the name of your company as a prefix, without spaces or special characters –for example, ''mycompanyname-fabulous-functionality.php''.
+
+Your WordPress Plugin must have at least one PHP file; it could also contain JavaScript files, CSS files, image files and language files. If there are multiple files, pick a unique name for a directory and a name of your choice for the main PHP file. (This file name is often, but not essentially, the same as the directory name.) Example directory and file names could be ''mycompanyname-fabulous-functionality'' and ''mycompanyname-fabulous-functionality.php'' respectively. Put all your Plugin's files into the directory you've created and tell your Plugin users to upload the whole directory to ''wp-content/plugins/''.
+
+If you use a directory to contain your Plugin files, then the directory name will be used by WordPress when checking the WordPress Plugin Repository for updates. If your plugin only consists of a single PHP file, then the file name will be used. If WordPress tells you that a newer version of your Plugin is available, but you know nothing about a newer version, beware. It's possible that another Plugin with the same directory name or file name is in the Plugin Repository, and it's this one which WordPress is seeing.
+
+A WordPress installation can be configured so that the standard Plugin directory is changed from ''wp-content/plugins/'', so you must use [[Function_Reference/plugin_dir_path| plugin_dir_path()]] and [[Function_Reference/plugins_url| plugins_url()]] for absolute paths and URLs within your PHP code. For more details see [[Determining Plugin and Content Directories]].
+
+In the rest of this article, "the Plugin PHP file" refers to the main Plugin PHP file: whether it's directly in the ''wp-content/plugins/'' directory, or in a sub-directory.
+
+'''Security Note''': Consider blocking direct access to your plugin PHP files by adding the following line at the top of each of them. Also be sure to refrain from executing sensitive standalone PHP code before calling any WordPress functions.
+
+This can be achieved in a few ways. You can either check to see if the <code>ABSPATH</code> constant is defined, or check if a function such as <code>add_action</code> exists. Either method can be used to ensure PHP execution is only allowed when it is included as part of the core system.
+
+<pre>
+defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
+</pre>
+
+=== Readme File ===
+
+If you want to host your Plugin on https://wordpress.org/plugins/, you need to create a ''readme.txt'' file within your plugin directory in a standardized format. You can use the automatic [http://generatewp.com/plugin-readme/ plugin 'readme.txt' generator].
+
+The WordPress plugin repository uses the "Requires" and "Tested up to" versions from the ''readme.txt'' in the stable tag.
+
+=== Home Page ===
+
+It is very useful for users of the Plugin if you create a web page to act as a source of information for your WordPress Plugin. This page should describe how to install the Plugin, what it does, what versions of WordPress it is compatible with, what has changed from version to version of your Plugin, and how to use the Plugin.
+
+== File Headers ==
+
+Now it's time to put some information into your main Plugin PHP file.
+
+=== Standard Plugin Information ===
+[https://developer.wordpress.org/plugins/the-basics/header-requirements/ Read about this in the plugin developer handbook.]
+
+=== License ===
+[http://developer.wordpress.org/plugins/the-basics/including-a-software-license/ Read about this in the plugin developer handbook.]
+
+== Programming Your Plugin ==
+
+Next, it's time to make your Plugin actually do something. This section contains some general ideas about Plugin development and describes how to allow your Plugin to accomplish several tasks.
+
+=== WordPress Plugin Hooks ===
+
+Many WordPress Plugins accomplish their goals by connecting to one or more WordPress Plugin "hooks". The way Plugin hooks work is that at various times while WordPress is running, WordPress checks to see whether any Plugins have registered functions to run at that time. If so, then these functions are run. These functions modify the default behavior of WordPress.
+
+For instance, before WordPress adds the title of a post to browser output, it first checks to see if any Plugin has registered a function for the "filter" hook called "the_title". If so, the title text is passed in turn through each registered function and the final output is the end result of any and all of these registered functions. If your Plugin needs to add some information to the printed title, it can register a special function which is called when the "the_title" filter is called.
+
+Another example is the "action" hook "wp_footer". Just before the end of the HTML page generated by WordPress, this hook checks to see whether any Plugins have registered functions against it. If so, it runs them in turn.
+
+You can learn more about how to register functions for both filter and action hooks – and what Plugin hooks are available in WordPress – in the [[Plugin API]]. If you find a spot in the WordPress code where you'd like to have an action or filter, but WordPress doesn't have one, you can also suggest new hooks. (Suggestions will generally be taken; see [[Reporting Bugs]] to find out how you can submit a suggestion.)
+
+=== Template Tags ===
+
+Another way for a WordPress Plugin to add functionality to WordPress is by creating custom [[Template Tags]]. Someone who wants to use your Plugin can add these "tags" to their theme, in the sidebar, post content section, or wherever it is appropriate. For instance, a Plugin that adds geographical tags to posts might define a template tag function called <tt>geotag_list_states()</tt> for the sidebar, which lists all the states posts are tagged with, with links to the state-based archive pages the Plugin enables.
+
+To define a custom template tag, simply write a PHP function and document it for Plugin users on your Plugin's home page and/or in the Plugin's main PHP file. It's a good idea when documenting the function to give an example of exactly what needs to be added to the theme file to use the function, including the <tt><?php</tt> and <tt>?></tt>.
+
+===Saving Plugin Data to the Database===
+
+Most WordPress Plugins will need to get some input from the site owner or blog users and save it between sessions, for use in its filter functions, action functions, and template functions. This information has to be saved in the WordPress database, in order to be persistent between sessions. There are four (4) methods for saving Plugin data in the database:
+
+# Use the WordPress "option" mechanism (described below). This method is appropriate for storing relatively small amounts of relatively static, named pieces of data -- the type of data you'd expect the site owner to enter when first setting up the Plugin, and rarely change thereafter.
+# Post Meta (a.k.a. Custom Fields).  Appropriate for data associated with individual posts, pages, or attachments.  See [[Function_Reference/post_meta Function Examples|post_meta Function Examples]], [[Function Reference/add_post_meta|add_post_meta()]], and related functions.
+# Custom Taxonomy. For classifying posts or other objects like users and comments and/or for a user-editable name/value list of data consider using a Custom Taxonomy, especially when you want to access all posts/objects associated with a given taxonomy term. See [[Taxonomies#Custom_Taxonomies|Custom Taxonomies]].
+# Create a new, custom database table. This method is appropriate for data not associated with individual posts, pages, attachments, or comments -- the type of data that will grow as time goes on, and that doesn't have individual names. See [[Creating Tables with Plugins]] for information on how to do this.
+
+=== WordPress Options Mechanism ===
+
+See [[Creating Options Pages]] for info on how to create a page that will automatically save your options for you.
+
+WordPress has a mechanism for saving, updating, and retrieving individual, named pieces of data ("options") in the WordPress database. Option values can be strings, arrays, or PHP objects (they will be "serialized", or converted to a string, before storage, and unserialized when retrieved). Option names are strings, and they must be unique, so that they do not conflict with either WordPress or other Plugins. 
+
+It's also generally considered a good idea to minimize the number of options you use for your plugin. For example, instead of storing 10 different named options consider storing a serialized array of 10 elements as a single named option.
+
+Here are the main functions your Plugin can use to access WordPress options.
+
+<pre>
+add_option($name, $value, $deprecated, $autoload);
+</pre>
+: Creates a new option; does nothing if option already exists.
+;$name: Required (string). Name of the option to be added.
+;$value: Optional (mixed), defaults to empty string. The option value to be stored.
+;$deprecated: Optional (string), no longer used by WordPress, You may pass an empty string or null to this argument if you wish to use the following $autoload parameter.
+;$autoload: Optional, defaults to 'yes' (enum: 'yes' or 'no').  If set to 'yes' the setting is automatically retrieved by the <tt>wp_load_alloptions</tt> function.
+
+<pre>
+get_option($option);
+</pre>
+: Retrieves an option value from the database.
+;$option: Required (string).  Name of the option whose value you want returned. You can find a list of the default options that are installed with WordPress at the [[Option Reference]].
+
+<pre>
+update_option($option_name, $newvalue);
+</pre>
+: Updates or creates an option value in the database (note that <tt>add_option</tt> does not have to be called if you do not want to use the <tt>$deprecated</tt> or <tt>$autoload</tt> parameters).
+;$option_name: Required (string). Name of the option to update.
+;$newvalue: Required. (string|array|object) The new value for the option.
+
+=== Administration Panels ===
+
+Assuming that your Plugin has some options stored in the WordPress database (see section above), you will probably want it to have an administration panel that will enable your Plugin users to view and edit option values. The methods for doing this are described in [[Adding Administration Menus]].
+
+== Internationalizing Your Plugin ==
+
+Once you have the programming for your Plugin done, another consideration (assuming you are planning on distributing your Plugin) is ''internationalization''. Internationalization is the process of setting up software so that it can be ''localized''; localization is the process of translating text displayed by the software into different languages. WordPress is used all around the world, so it has internationalization and localization built into its structure, including localization of Plugins. 
+
+Please note that language files for Plugins '''ARE NOT''' automatically loaded. Add this to the Plugin code to make sure the language file(s) are loaded:
+
+ 	load_plugin_textdomain('your-unique-name', false, basename( dirname( __FILE__ ) ) . '/languages' );
+
+To fetch a string simply use '''__('String name','your-unique-name');''' to return the translation or '''_e('String name','your-unique-name');''' to echo the translation. Translations will then go into your plugin's /languages directory.
+
+It is highly recommended that you internationalize your Plugin, so that users from different countries can localize it. There is a comprehensive reference on internationalization, including a section describing how to internationalize your plugin, at [[I18n for WordPress Developers]].
+
+= Updating Your Plugin =
+
+This section describes the necessary steps to update your Plugin when you host it on https://wordpress.org/plugins/, including details about using [https://wordpress.org/plugins/about/svn/ Subversion] (SVN) with wordpress.org.
+
+Assuming you have already submitted your Plugin to the [[Plugin_Submission_and_Promotion|WordPress Plugin Repository]], over time you will probably find the need, and hopefully the time, to add features to your Plugin or fix bugs. Work on these changes and commit the changes to the trunk of your plugin as often as you want. The changes will be publicly visible, but only to the technically-minded people checking out your Plugin via SVN. What other users download through the website or their WordPress Plugin administration will not change.
+
+When you're ready to release a new version of the Plugin:
+* Make sure everything is committed and the new version actually works. Pay attention to all WordPress versions your Plugin supports and try to test it with all of them. Don't just test the new features; also make sure you didn't accidentally break some older functionality of the Plugin.
+* Change the version number in the header comment of the main PHP file to the new version number (in the trunk folder).
+* Change the version number in the 'Stable tag' field of the readme.txt file (in the trunk folder).
+* Add a new sub-section in the 'changelog' section of the readme.txt file, briefly describing what changed compared to the last release. This will be listed on the 'Changelog' tab of the Plugin page.
+* Commit these changes.
+* Create a new SVN tag as a copy of trunk, following [https://wordpress.org/plugins/about/svn/#task-3 this guide].
+
+Give the system a couple of minutes to work, and then check the wordpress.org Plugin page and a WordPress installation with your Plugin to see if everything updated correctly and the WordPress installation shows an update for your Plugin (the update checks might be cached, so this could take some time -- try visiting the 'available updates' page in your WordPress installation).
+
+Troubleshooting:
+* The Plugin's page on wordpress.org still lists the old version. Have you updated the 'stable tag' field in the trunk folder? Just creating a tag and updating the readme.txt in the tag folder is not enough!
+* The Plugin's page offers a zip file with the new version, but the button still lists the old version number and no update notification happens in your WordPress installations. Have you remembered to update the 'Version' comment in the main PHP file?
+* For other problems check Otto's good write-up of common problems: [https://make.wordpress.org/plugins/2012/06/09/the-plugins-directory-and-readme-txt-files/ The Plugins directory and readme.txt files]
+
+= Plugin Development Suggestions =
+
+This last section contains various suggestions regarding Plugin development. 
+
+* The code of a WordPress Plugin should '''follow the [https://make.wordpress.org/core/handbook/coding-standards/ WordPress Coding Standards]'''. Please consider the [https://make.wordpress.org/core/handbook/inline-documentation-standards/ Inline Documentation] Standards as well.
+* All the functions in your Plugin need to have unique names that are different from functions in the WordPress core, other Plugins, and themes. For that reason, it is a good idea to '''use a unique function name prefix on all of your Plugin's functions'''. A far superior possibility is to define your Plugin functions inside a class (which also needs to have a unique name).
+* '''Do not hardcode the WordPress database table prefix''' (usually "wp_") into your Plugins.  Be sure to use the <tt>$wpdb->prefix</tt> variable instead. 
+* Database reading is cheap, but writing is expensive. Databases are exceptionally good at fetching data and giving it to you, and these operations are (usually) lightning quick.  Making changes to the database, though, is a more complex process, and computationally more expensive. As a result, try to '''minimize the amount of <em>writing</em> you do to the database'''.  Get everything prepared in your code first, so that you can make only those write operations that you need.
+* '''Use WordPress' APIs instead of using direct SQL''' where possible. For example, use <tt>get_posts()</tt> or <tt>new WP_Query()</tt> instead of <tt>SELECT * FROM {$wpdb->prefix}_posts</tt>. 
+* '''Use the existing database tables instead of creating new custom tables''' if possible. Most use-cases can be accomplished with custom post types and meta data, custom taxonomy and/or one of the other standard tables and using the standard tables provides a lot of UI and other functionality ''"for free."'' Think very carefully before adding a table because it adds complexity to your plugin that many users and site builders prefer to avoid.
+* '''SELECT only what you need'''. Even though databases fetch data blindingly fast, you should still try to reduce the load on the database by only selecting that data which you need to use.  If you need to count the number of rows in a table don't <tt>SELECT * FROM</tt>, because all the data in all the rows will be pulled, wasting memory.  Likewise, if you only need the post_id and the post_author in your Plugin, then just <tt>SELECT</tt> those specific fields, to minimize database load. Remember: hundreds of other processes may be hitting the database at the same time.  The database and server each have only so many resources to spread around amongst all those processes.  Learning how to minimize your Plugin's hit against the database will ensure that your Plugin isn't the one that is blamed for abuse of resources.
+* '''Eliminate PHP errors in your plugin'''. Add <tt>define('WP_DEBUG', true);</tt> to your ''wp-config.php'' file, try all of your plugin functionality, and check to see if there are any errors or warnings. Fix any that occur, and continue in debug mode until they have all been eliminated.
+* '''Try not to echo <script> and <style> tags directly''' - instead use the recommended [[Function_Reference/wp_enqueue_style|wp_enqueue_style()]] and [[Function_Reference/wp_enqueue_script|wp_enqueue_script()]] functions. They help eliminate including duplicate scripts and styles as well as introduce dependency support. See posts by the following people for more info: [http://planetozh.com/blog/2008/04/how-to-load-javascript-with-your-wordpress-plugin/ Ozh Richard], [http://beerpla.net/2010/01/13/wordpress-plugin-development-how-to-include-css-and-javascript-conditionally-and-only-when-needed-by-the-posts/ Artem Russakovskii], and [http://www.prelovac.com/vladimir/best-practice-for-adding-javascript-code-to-wordpress-plugin Vladimir Prelovac].
+
+= External Resources =
+* [http://www.packtpub.com/article/anatomy-wordpress-plugin Anatomy of a WordPress Plugin Featuring Hello Dolly ] (09MAR11) 
+* [http://planetozh.com/blog/2009/09/top-10-most-common-coding-mistakes-in-wordpress-plugins/ Top 10 Most Common Coding Mistakes in WordPress Plugins] (11SEP09)
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ WordPress 2.0.3: Nonces (Secure your forms with nonces)] (02JUN06)
+* [http://amiworks.co.in/talk/simplified-ajax-for-wordpress-plugin-developers-using-jquery/ Simplified AJAX For WordPress Plugin Developers using Jquery](10APR08)
+* [http://dev.feijaocosta.com.br/criando-plugins-para-wordpress/ "Criando Plugins para WordPress" by Feijão Costa  (in Brazilian Portuguese)] (10JUN15)
+* [http://www.devlounge.net/extras/how-to-write-a-wordpress-plugin 12 part "How to Write a Wordpress Plugin" at DevLounge.net] by [http://ronalfy.com Ronald Huereca]
+* [http://ditio.net/2007/08/09/how-to-create-wordpress-plugin-from-a-scratch/ How to create WordPress Plugin from a scratch] (09AUG07)
+* [http://mitcho.com/code/hookpress/ HookPress], a plugin that enables extending WordPress in languages other than PHP via webhooks. (26SEP09)
+* [http://beerpla.net/2010/01/13/wordpress-plugin-development-how-to-include-css-and-javascript-conditionally-and-only-when-needed-by-the-posts/ How To Include CSS and JavaScript Conditionally And Only When Needed By The Posts] (13JAN10)
+* [http://aaron.jorb.in/blog/2010/03/wordpress-external-cron-plugin/ Demonstrating how to use the Settings API, WP_Http, and Pseudo-cron] (01MAR10)
+* [http://make.wordpress.org/plugins/ Make WordPress Plugins] - official blog with information for plugin authors (25JUN12)
+* [http://generatewp.com/ WordPress Generator] - GenerateWP provides user-friendly tools for developers to create advanced systems built on WordPress. (15JAN13)
+* [http://wpsettingsapi.jeroensormani.com/ WP Settings API Generator] - WP Settings API is a tool for developers to easily create options pages for your plugins. (10JUL14)
+* [http://www.yaconiello.com/blog/how-to-write-wordpress-plugin How to write a WordPress Plugin] - A simple how-to guide to writing a class based WordPress plugin with a settings page, custom post type and metaboxes that separates business and template logic in an easy to understand way. (31JAN13)
+
+[[Category:Plugins]]
+[[Category:WordPress Development]]
+[[Category:UI Link]]

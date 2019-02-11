@@ -1,0 +1,123 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/the_excerpt/}}
+{{Languages|
+{{en|Template Tags/the_excerpt}}
+{{ja|テンプレートタグ/the_excerpt}}
+}}
+
+== Description ==
+
+Displays the [[Excerpt|excerpt]] of the current post after applying several filters to it including auto-p formatting which turns double line-breaks into [[Glossary#HTML|HTML]] paragraphs. It uses <tt>get_the_excerpt()</tt> to first generate a '''trimmed-down version''' of the full post content should there not be an explicit excerpt for the post.
+
+The trimmed-down version contains a 'more' tag at the end which by default is the [&hellip;] or "hellip" symbol. A user-supplied excerpt is NOT by default given such a symbol. To add it, you must either modify the raw <tt>$post->post_excerpt</tt> manually in your template before calling <tt>the_excerpt()</tt>, add a filter for <tt>'get_the_excerpt'</tt> with a priority lower than 10, or add a filter for <tt>'wp_trim_excerpt'</tt> (comparing the first and second parameter, because a user-supplied excerpt does not get altered in any way by this function).
+
+See [[Function Reference/get_the_excerpt|get_the_excerpt()]] for more details.
+
+An auto-generated excerpt will also have all shortcodes and tags removed. It is trimmed down to a word-boundary and the default length is 55 words. For languages in which words are (or can be) described with single characters (ie. East-Asian languages) the word-boundary is actually the character.
+
+'''Note:''' If the current post is an [[Using Image and File Attachments|attachment]], such as in the ''attachment.php'' and ''image.php'' template loops, then the attachment caption is displayed.  Captions do not include the "[...]" text.
+
+== Usage ==
+
+%%% <?php the_excerpt(); ?> %%%
+
+This template tag must be used within [[The Loop]].
+
+== Parameters ==
+
+This tag has no parameters.
+
+== Comparison with more quicktag ==
+
+Excerpts provide an alternative to the use of the [[Customizing the Read More|<tt>&lt;!--more--&gt;</tt>]] quicktag. Whereas this more tag requires a post author to manually create a 'split' in the post contents, which is then used to generate a "read more" link on index pages, the excerpts require, but do not necessarily demand, a post author to supply a 'teaser' for the full post contents.
+
+The <tt>&lt;!--more--&gt;</tt> quicktag requires templates to use [[Template_Tags/the_content|<tt> the_content()</tt>]] whereas using excerpts requires, and allows, template writers to explicitly choose whether to display full posts (using <tt>the_content()</tt>) or excerpts (using <tt>the_excerpt()</tt>).
+
+The choice of whether to display a full post or an excerpt can then be based on factors such as the template used, the type of page, the category of the post, etcetera. In other words, with a <tt>&lt;!--more--&gt;</tt> quicktag the post author decides what happens, whereas the template writer is in control with excerpts. Moreover, although <tt>&lt;!--more--&gt;</tt> can be used to create a real split using the '''$stripteaser''' parameter, it would be hard and complicated to then differentiate based on characteristics, causing this to become a basically site-wide choice.
+
+== Examples ==
+
+=== Default Usage ===
+
+Displays the post excerpt. Used in templates that provide a form of index, ie. for home, category, tag, archive pages. Not used for single post views. Not meaningful for static pages.
+
+Used as a replacement for [[Template_Tags/the_content|the_content()]] to force excerpts to show within [[The Loop]].
+
+ <?php the_excerpt(); ?>
+
+=== Use with Conditional Tags ===
+
+Replaces the_content() tag with the_excerpt() when on archive or category pages.
+
+Both the examples below work for versions 1.5 and above.
+
+ <?php if ( is_category() || is_archive() ) {
+ 	the_excerpt();
+ } else {
+ 	the_content();
+ } ?>
+
+This example implies that there is only one template file being used for both categories and archives, e.g. simply <tt>archive.php</tt>. But also that the template shows even other things, so this could simply be <tt>index.php</tt>.
+
+=== Control Excerpt Length using Filters ===
+
+By default, excerpt length is set to 55 words.  To change excerpt length to 20 words using [[Plugin API/Filter Reference/excerpt length|excerpt_length]] filter, add the following code to <tt>functions.php</tt> file in your theme:
+
+ function custom_excerpt_length( $length ) {
+ 	return 20;
+ }
+ add_filter( 'excerpt_length', 'custom_excerpt_length', 999 );
+
+=== Remove [&hellip;] string using Filters ===
+
+In WordPress version 2.9, a new filter was added to make changing the [...] string in the excerpt. Do not use both of these methods in the same WordPress installation. Use the one appropriate for your WordPress version.
+
+==== For versions 2.9 and higher of WordPress ====
+
+By default, excerpt more string at the end is set to '[&hellip;]'. To change excerpt more string using [[Plugin API/Filter Reference/excerpt more|excerpt_more]] filter, add the following code to <tt>functions.php</tt> file in your theme:
+
+ function new_excerpt_more( $more ) {
+ 	return '[.....]';
+ }
+ add_filter('excerpt_more', 'new_excerpt_more');
+
+==== For versions 2.8.x and Older ====
+
+ function new_excerpt_more( $excerpt ) {
+ 	return str_replace( '[...]', '...', $excerpt );
+ }
+ add_filter( 'wp_trim_excerpt', 'new_excerpt_more' );
+
+=== Make the "read more" link to the post ===
+
+Place this in a theme's functions.php to make the "read more" link to the post
+
+<pre>
+function new_excerpt_more( $more ) {
+	return ' <a class="read-more" href="' . get_permalink( get_the_ID() ) . '">' . __( 'Read More', 'your-text-domain' ) . '</a>';
+}
+add_filter( 'excerpt_more', 'new_excerpt_more' );
+</pre>
+
+Note: This link will not appear in a new line. You'll need to use CSS on the <code>read-more</code> class.
+
+== Notes ==
+
+* Uses: [[Function_Reference/get_the_excerpt|get_the_excerpt()]].
+* Uses: [[Function_Reference/apply_filters|<tt>apply_filters()</tt>]] for '<tt>the_excerpt</tt>'.
+
+== Change Log  ==
+
+Since: 0.71
+
+== Source File ==
+
+<tt>the_excerpt()</tt> is located in {{Trac|wp-includes/post-template.php}}.
+
+== Related ==
+
+[[Function_Reference/get_the_excerpt|get_the_excerpt()]], {{Tag Post Tags}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]
+[[Category:UI Link]]

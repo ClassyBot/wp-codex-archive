@@ -1,0 +1,157 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/get_bloginfo/}}
+
+{{Languages|
+{{en|Template Tags/get_bloginfo}}
+{{ja|テンプレートタグ/get_bloginfo}}
+{{pt-br|Template Tags/get_bloginfo}}
+{{tr|Tema Etiketleri/get_bloginfo}}
+{{ru|Теги шаблонов/get_bloginfo}}
+}}
+
+== Description ==
+
+Returns information about your site which can then be used elsewhere in your PHP code. This function, as well as [[Template Tags/bloginfo|bloginfo()]], can also be used to display your site information anywhere within a template file.
+
+== Usage ==
+
+%%% <?php $bloginfo = get_bloginfo( $show, $filter ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$show|string|Keyword naming the information you want.|Optional|name}}
+
+:* ''''name'''' - Returns the "Site Title" set in [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]]. This data is retrieved from the "blogname" record in the [[Database Description#Table:_wp_options|wp_options table]].
+:* ''''description'''' - Returns the "Tagline" set in [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]]. This data is retrieved from the "blogdescription" record in the [[Database Description#Table:_wp_options|wp_options table]].
+:* ''''wpurl'''' - Returns the "WordPress address (URL)" set in [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]]. This data is retrieved from the "siteurl" record in the [[Database Description#Table:_wp_options|wp_options table]]. Consider using [[Function_Reference/site_url | site_url()]] instead, especially for multi-site configurations using paths instead of subdomains (it will return the root site not the current sub-site).
+:* ''''url'''' - Returns the "Site address (URL)" set in [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]]. This data is retrieved from the "home" record in the [[Database Description#Table:_wp_options|wp_options table]]. Equivalent to [[Function_Reference/home_url | home_url()]].
+:* ''''admin_email'''' - Returns the "E-mail address" set in [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]]. This data is retrieved from the "admin_email" record in the [[Database Description#Table:_wp_options|wp_options table]].
+:* ''''charset'''' - Returns the "Encoding for pages and feeds" set in [[Administration_Panels#Reading|Settings]] > [[Settings_Reading_SubPanel|Reading]]. This data is retrieved from the "blog_charset" record in the [[Database Description#Table:_wp_options|wp_options table]]. 
+:* ''''version'''' - Returns the WordPress Version you use. This data is retrieved from the <tt>$wp_version</tt> variable set in {{Trac|wp-includes/version.php}}.
+:* ''''html_type'''' - Returns the Content-Type of WordPress HTML pages (default: "text/html"). This data is retrieved from the "html_type" record in the [[Database Description#Table:_wp_options|wp_options table]]. Themes and plugins can override the default value using the <tt>[[Plugin_API/Filter_Reference|pre_option_html_type]]</tt> filter.
+:* ''''text_direction'''' - Returns the Text Direction of WordPress HTML pages.  Consider using [[Function_Reference/is_rtl | is_rtl()]] instead.
+:* ''''language'''' - Returns the language of WordPress.
+:* ''''stylesheet_url'''' - Returns the primary [[Glossary#CSS|CSS]] (usually ''style.css'') file URL of the active theme. Consider using [[Function_Reference/get_stylesheet_uri | get_stylesheet_uri()]] instead.
+:* ''''stylesheet_directory'''' - Returns the stylesheet directory URL of the active theme. (Was a local path in earlier WordPress versions.) Consider using [[Function_Reference/get_stylesheet_directory_uri | get_stylesheet_directory_uri()]] instead.
+:* ''''template_url'''' / ''''template_directory'''' - URL of the active theme's directory ('template_directory' was a local path before [[Version 2.6|2.6]]; see [[Function_Reference/get_theme_root|get_theme_root()]] and [[Function_Reference/get_template|get_template()]] for hackish alternatives.)  Within child themes, both get_bloginfo('template_url') and get_template() will return the <em>parent</em> theme directory. Consider using [[Function_Reference/get_template_directory_uri | get_template_directory_uri()]] instead (for the parent template directory) or [[Function_Reference/get_stylesheet_directory_uri | get_stylesheet_directory_uri()]] (for the child template directory).
+:* ''''pingback_url'''' - Returns the Pingback XML-RPC file URL (''xmlrpc.php'').
+:* ''''atom_url'''' - Returns the Atom feed URL (''/feed/atom'').
+:* ''''rdf_url'''' - Returns the RDF/RSS 1.0 feed URL (''/feed/rfd'').
+:* ''''rss_url'''' - Returns the RSS 0.92 feed URL (''/feed/rss'').
+:* ''''rss2_url'''' - Returns the RSS 2.0 feed URL (''/feed'').
+:* ''''comments_atom_url'''' - Returns the comments Atom feed URL (''/comments/feed'').
+:* ''''comments_rss2_url'''' - Returns the comments RSS 2.0 feed URL (''/comments/feed'').
+:* ''''siteurl'''' - Deprecated since version 2.2. Use [[Function_Reference/home_url | home_url()]], or get_bloginfo('url').
+:* ''''home'''' - Deprecated since version 2.2. Use [[Function_Reference/home_url | home_url()]], or get_bloginfo('url').
+
+{{Parameter|$filter|string|Keyword specifying how to filter what is retrieved.|Optional|raw}}
+
+:* ''''display'''' - Passes the value of <tt>$show</tt> through the [[Function_Reference/wptexturize | wptexturize()]] function before returning it to caller.
+:* ''''raw'''' - Returns the value of <tt>$show</tt> as is.
+
+== Examples ==
+
+===Default Usage===
+
+The default usage assigns your blog's title to the variable $blog_title.
+
+<pre>
+ <?php $blog_title = get_bloginfo(); ?>
+</pre>
+
+=== Blog Title ===
+
+This example assign your blog's title to the variable $blog_title.  This returns the same result as the default usage.
+
+<pre>
+ <?php $blog_title = get_bloginfo('name'); ?>
+</pre>
+
+===Blog Tagline ===
+
+Using this example:
+
+<pre>
+ <?php echo 'Your Blog Tagline is: ' . get_bloginfo ( 'description' );  ?><br />
+</pre>
+
+results in this being displayed on your blog:
+
+<pre>
+ Your Blog Tagline is: All things WordPress
+</pre>
+
+===Network Tagline ===
+
+Using this example, you can obtain the name and description for the network home:
+
+<pre>
+ <?php
+ switch_to_blog(1);
+ $site_title = get_bloginfo( 'name' );
+ $site_url = network_site_url( '/' );
+ $site_description = get_bloginfo( 'description' );
+ restore_current_blog();
+ echo 'The Network Home URL is: ' . $site_url;
+ echo 'The Network Home Name is: ' . $site_title;
+ echo 'The Network Home Tagline is: ' . $site_description;  
+?>
+</pre>
+
+results in this being displayed on your blog:
+
+<pre>
+ The Network Home URL is: http://example.com/
+ The Network Home Name is: Example
+ The Network Home Tagline is: The example site
+</pre>
+
+=== Template Directory ===
+Returns template directory URL to the active theme.
+
+=== Example output ===
+
+From version 2.7. On host <tt>example</tt>, the [[Settings_General_SubPanel|Blog address (URL)]] is shown at <tt>http://www.example.com/home</tt>, and the [[Settings_General_SubPanel|WordPress address (URL)]] is installed at <tt>http://www.example.com/home/wp</tt>.
+
+Note that directory URLs are missing trailing slashes.
+
+<pre>
+admin_email          = admin@example.com
+atom_url             = http://www.example.com/home/feed/atom
+charset              = UTF-8
+comments_atom_url    = http://www.example.com/home/comments/feed/atom
+comments_rss2_url    = http://www.example.com/home/comments/feed
+description          = Just another WordPress blog
+home                 = http://www.example.com/home (DEPRECATED! use url option instead)
+html_type            = text/html
+language             = en-US
+name                 = Testpilot
+pingback_url         = http://www.example.com/home/wp/xmlrpc.php
+rdf_url              = http://www.example.com/home/feed/rdf
+rss2_url             = http://www.example.com/home/feed
+rss_url              = http://www.example.com/home/feed/rss
+siteurl              = http://www.example.com/home (DEPRECATED! use url option instead)
+stylesheet_directory = http://www.example.com/home/wp/wp-content/themes/largo
+stylesheet_url       = http://www.example.com/home/wp/wp-content/themes/largo/style.css
+template_directory   = http://www.example.com/home/wp/wp-content/themes/largo
+template_url         = http://www.example.com/home/wp/wp-content/themes/largo
+text_direction       = ltr
+url                  = http://www.example.com/home
+version              = 3.5
+wpurl                = http://www.example.com/home/wp
+</pre>
+
+== Change Log ==
+
+Since: [[Version 0.71|0.71]]
+
+== Source File ==
+<tt>get_bloginfo()</tt> is located in <tt>{{Trac|wp-includes/general-template.php|tags/{{CurrentVersion}}|400}}</tt>.
+
+== Related ==
+* [[Template_Tags/bloginfo|<tt>bloginfo()</tt>]]
+* [[Function_Reference/get_admin_url|<tt>get_admin_url()</tt>]]
+{{Theme Paths}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

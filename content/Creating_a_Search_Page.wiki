@@ -1,0 +1,154 @@
+{{Languages|
+{{en|Creating_a_Search_Page}}
+{{ja|検索ページの作成}}
+}}
+
+__TOC__
+A Search Page is a WordPress [[Pages|Page]] with a custom [[Pages#Page_Templates|Page template]] to give users more information for searching your site.
+
+== Things You Need to Know  ==
+
+Different WordPress Themes feature different [[Templates|template files]]. Some include a <tt>[[Template_Hierarchy##search-result|search.php]]</tt> template file. This is '''not''' a ''Search Page'', it is merely a template that displays the search results.  There is also a template file called <tt>searchform.php</tt>. This is a template file that is often included in the sidebar of many themes and generates the search box form. If there isn't one in your theme, you can easily copy it from the Default theme.
+
+To create your own custom Search Page, you will need to create a [[Pages#Page_Templates|Page template]] to include your search form and the information you want your users to see before they search your site.
+
+Check your WordPress Theme to see if it includes a <tt>page.php</tt> template file.  The Default WordPress Theme does include this template, but many do not.  If it does, then follow [[#Using the page.php|these instructions]].  If it does not, we have the information you need to [[#Creating a Search Page Template|create your own]].
+
+== Creating a Search Page Template ==
+
+1. Using a [[Glossary#Text editor|text editor]], open the <tt>page.php</tt> and save as <tt>searchpage.php</tt>. If you do not have a <tt>page.php</tt>, you can create one based upon your Theme's <tt>index.php</tt> template file.<br />
+'''Note:''' The filename <tt>search.php</tt> is reserved as a special template name, so avoid its usage; the suggested <tt>searchpage.php</tt> just makes it easy to recognize in the list of files.<br />
+2. After saving it, edit the file:
+* Delete [[The Loop]] (i.e. basically everything within your content <tt>div</tt>), leaving the <tt>div</tt> tags intact.
+* Add a [[Designing Headings|heading]] such as "Search Posts" or something similar. You can use an existing class from your CSS style sheet, or create a new one.
+* Copy the following into the content <tt>div</tt> or any other <tt>div</tt> that contains the content of your Page:
+
+<pre><?php get_search_form(); ?></pre>
+
+* At the top of your <tt>searchpage.php</tt>, before anything else, add this to give your Search Page a heading WordPress will recognize in the Administration Screens:
+
+<pre><?php
+/*
+Template Name: Search Page
+*/
+?></pre>
+
+3. Save the file.<br />
+4. Upload the file to your theme directory (if you made changes to your <tt>style.css</tt> style sheet file, upload that, too).
+
+If you create <tt>searchpage.php</tt> from page.php in Twenty Seventeen, it would be as like as followings:
+
+<pre>
+<?php
+/*
+Template Name: Search Page
+*/
+?>
+<?php
+get_header(); ?>
+
+<div class="wrap">
+	<div id="primary" class="content-area">
+		<main id="main" class="site-main" role="main">
+
+			<?php get_search_form(); ?>
+
+		</main>&lt;!-- #main -->
+	</div>&lt;!-- #primary -->
+</div>&lt;!-- .wrap -->
+
+<?php get_footer();
+</pre>
+
+== Creating a Search Page ==
+
+Based on the Search Page Template, we will create the seach page.
+
+# In the [[Administration Screens|Administration Screen]] go to Pages > Add New.
+# In the title field enter '''Search'''.<br />'''Do not write anything in the content area.'''
+# While still on the same page, look for ''Page Attributes'' on right side menu.
+# Select the drop-down menu in ''Template'', and select ''Search Page''.
+# Click the '''Publish''' button.
+
+It will show simple search form such as
+<div style="border: 1px solid #000000;">
+[[Image:custom_search_page_1.jpg|600px]]
+</div>
+== Linking to Your Search Page ==
+
+You can now make a link to your custom Search Page in several ways.
+
+=== Using the Page ID ===
+Whether or not you use permalinks, you can link to your new Search Page by using Page ID number of the Page. Insert the next line into your any posts, pages or templates
+
+<pre><a href="index.php?page_id=17" title="Search Page">Search Page</a></pre>
+
+OR you may insert the next line into templates
+
+<pre><a href="<?php echo home_url(); ?>/?page_id=17">Search Page</a></pre>
+
+=== Using the Page Slug ===
+The Page slug is set in the [[Write_Page_SubPanel|Edit Page]] screen. It is the name of the page if you are using [[Using Permalinks|Permalinks]]. You can manually change this.  An example of a Page slug link would be:
+<pre><a href="/wordpress/search-page/" title="Search Page">Search Page</a></pre>
+for any posts, pages or templates when slug is 'search-page'. OR you may insert the next line into templates
+
+<pre><a href="<?php echo home_url(); ?>/wordpress/search-page/" title="Search Page">Search Page</a></pre>
+
+=== Using <tt>wp_list_pages()</tt> ===
+If you are using the [[Template Tags/wp_list_pages|<tt>wp_list_pages()</tt>]] template tag, the page name would be automatically generated in your Pages list.
+
+== Customizing Your Search Page ==
+
+Now that you have created your custom Search Page, you can customize the display. Open your <tt>searchpage.php</tt> in a text editor and edit it there.  
+Above the <tt>get_search_form()</tt> function for your <tt>searchform.php</tt> within the content <tt>div</tt>, you can add text to help visitors search your site.
+
+<pre>
+<p>
+My Site features articles about 
+<a title="WordPress Articles" href="/category/wordpress/">WordPress</a>, 
+<a title="Web Design Articles" href="/category/web-design/">web page design</a>, 
+<a title="Development Articles" href="/category/website-development/">website development</a>,
+and <a title="CSS Articles" href="/category/css/">CSS</a>.
+</p>
+<p>To search my website, please use the form below.</p>
+
+<?php get_search_form(); ?>
+</pre>
+<div style="border: 1px solid #000000;">
+[[Image:custom_search_page_2.jpg|600px]]
+</div>
+You might want to include a list of keywords or other information, images, or details to customize your custom Search Page.
+
+== Preserving Search Page Results and Pagination ==
+
+Search results and Pagination may stop working when applying customization to the search template. To avoid these issues the first thing any developer needs to do is add the following code to the start of their Search template to ensure that the original WordPress query is preserved. To customize the query append additional arguments to <em>(array) $search_query</em>. Execute the $search_query through a new $wp_query object, more information on the WP_Query object can be found at [[Class_Reference/WP_Query|WP_Query]].
+
+<pre>
+<?php
+
+global $query_string;
+
+wp_parse_str( $query_string, $search_query );
+$search = new WP_Query( $search_query );
+
+?>
+</pre>
+
+Additional customization arguments can be found at [[Class_Reference/WP_Query|WP_Query]].
+
+== Display Total Results ==
+
+To access the total number of search results from <tt>search.php</tt>, a search result page, you should retrieve the total number of posts found using the wp_query object.
+<pre><?php
+global $wp_query;
+$total_results = $wp_query->found_posts;
+?>
+</pre>
+More information on WP_Query can be found at [[Class_Reference/WP_Query|WP_Query]].
+
+== Related ==
+{{Theme Templates}}
+
+[[Category:Getting Started]]
+[[Category:WordPress Lessons]]
+[[Category:Templates]]

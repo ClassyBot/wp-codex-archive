@@ -1,0 +1,233 @@
+{{Nháp}}{{Vietnamese_Category}}
+WordPress 2.6 and later has greatly improved support for administration over SSL out of the box.
+
+To easily enable (and enforce) administration over SSL, there are two constants that you can define in your blog's [[Editing_wp-config.php|wp-config.php]] file. It is not sufficient to define these constants in a plugin file; they must be defined in your [[Editing_wp-config.php|wp-config.php]] file.
+
+== Sử dụng SSL khi đăng nhập ==
+
+The constant FORCE_SSL_LOGIN can be set to true to force all logins to happen over SSL.
+
+=== Ví dụ ===
+
+<pre>
+  define('FORCE_SSL_LOGIN', true);
+</pre>
+
+== Sử dụng SSL khi đăng nhập ''và'' cho trang quản lí ==
+
+The constant FORCE_SSL_ADMIN can be set to true to force all logins '''and''' all admin sessions to happen over SSL.
+
+=== Ví dụ ===
+<pre>
+  define('FORCE_SSL_ADMIN', true);
+</pre>
+
+== Which Should I Use? ==
+
+FORCE_SSL_LOGIN is for when you want to secure logins so that passwords are not sent in the clear, but you still want to allow non-SSL admin sessions (since SSL can be slow).
+
+FORCE_SSL_ADMIN is for when you want to secure logins '''and''' the admin area so that both passwords and cookies are never sent in the clear. This is the most secure option.
+
+== Further Information ==
+
+The rest of this article serves as information in case you're using an older version of WordPress (which ideally you shouldn't!) or your SSL setup is somewhat different (ie. your SSL certificate is for a different domain).
+
+----
+
+UPDATE : [http://www.kerrins.co.uk/blog/admin-ssl/ Admin-SSL Plugin] (formerly Secure-Admin) makes use of installed Private or Shared SSL certificate and is compatible with WordPress 2.2+ and WordPress MU 1.3+.
+
+----
+
+Sometimes, you want your whole wp-admin to run over a secure connection using the https protocol.  Conceptually, the procedure works like this:
+
+# Set up two virtual hosts with the same url (the blog url), one secure, the other not.
+# On the secure virtual host, set up a rewrite rule that shuttles all non-wp-admin traffic to the insecure site.
+# On the insecure virtual host, set up a rewrite rule that shuttles all traffic to wp-admin to the secure host.
+# Put in a filter (via a plugin) that filters the links in wp-admin so that once activated, administrative links are rewritten to use https and that edits cookies to work only over encrypted connections.
+
+The following guide is for WordPress 1.5 and Apache running mod_rewrite, using rewrite rules in httpd.conf (as opposed to .htaccess files) but could easily be modified to fit other hosting scenarios.
+
+=== Virtual Hosts ===
+
+You need a (virtual) host configured for the secure server in addition to the non-secure site.  In this example, the secure virtual host uses the same <code>DocumentRoot</code> as the insecure host.  Hypothetically, you could use a host with a different name, such as wpadmin.mysite.com and link the document root to the wpadmin directory.  
+
+Please ask your ISP to set up a secure virtual host for you, or if you have administrative access set up your own.  Note that [http://httpd.apache.org/docs-2.0/ssl/ssl_faq.html#vhosts2 you cannot use name based virtual hosting to identify different SSL servers].
+
+==== Rewrite Rules For The Insecure Host ====
+
+In the .htaccess or virtual host stanza in httpd.conf for your insecure host, add this rewrite rule to automatically go to the secure host when you browse to <nowiki>http://www.mysite.com/wp-admin/</nowiki>
+
+<pre>
+  RewriteRule ^/wp-admin/(.*) https://www.mysite.com/wp-admin/$1 [C]
+</pre>
+
+If you are using permalink rewrite rules, this line must come before <code>RewriteRule ^.*$ - [S=40]</code>.
+
+==== Rewrite Rules For Secure Host (Optional) ====
+
+These rewrite rules are optional.  They disable access to the public site over a secure connection.  If you wish to remain logged in to the public portion of your site using the plugin below, you must ''not'' add these rules, as the plugin disables the cookie over unencrypted connections.
+
+The secure virtual host should have two rewrite rules in an .htaccess file or in the virtual host declaration (see [[Using Permalinks]] for more on rewriting):
+
+<pre>
+   RewriteRule !^/wp-admin/(.*) - [C]
+   RewriteRule ^/(.*) http://www.mysite.com/$1 [QSA,L]
+</pre>
+
+The first rule excludes the wp-admin directory from the next rule, which shuffles traffic to the secure site over to the insecure site, to keep things nice and seamless for your audience.
+
+==== Setting Wordpress URI ====
+
+For some plugins to work, and for other reasons, you may wish to set your WordPress URI in options to reflect the https protocol by making this setting <nowiki>https://mysite.com</nowiki>.  Your blog address should not change.
+
+====Example Config Stanzas ====
+
+<pre>
+<VirtualHost nnn.nnn.nnn.nnn:443>
+        ServerName www.mysite.com
+
+        SSLEngine On
+        SSLCertificateFile    /etc/apache2/ssl/thissite.crt
+        SSLCertificateKeyFile /etc/apache2/ssl/thissite.pem
+        SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
+
+        DocumentRoot /var/www/mysite
+
+        <IfModule mod_rewrite.c>
+                RewriteEngine On
+                RewriteRule !^/wp-admin/(.*) - [C]
+                RewriteRule ^/(.*) http://www.mysite.com/$1 [QSA,L]
+        </IfModule>
+        ...
+</VirtualHost>
+
+# Insecure site
+<VirtualHost *>
+        ServerName www.mysite.com
+
+        DocumentRoot /var/www/ii/mysite
+
+        <Directory /var/www/ii/mysite >
+                <IfModule mod_rewrite.c>
+                        RewriteEngine On
+                        RewriteBase /
+                        RewriteCond %{REQUEST_FILENAME} -f [OR]
+                        RewriteCond %{REQUEST_FILENAME} -d
+                        RewriteRule ^wp-admin/(.*) https://www.mysite.com/wp-admin/$1 [C]
+                        RewriteRule ^.*$ - [S=40]
+                        RewriteRule ^feed/(feed|rdf|rss|rss2|atom)/?$ /index.php?&feed=$1 [QSA,L]
+                        ...
+                </IfModule>
+         </Directory>
+         ...
+</VirtualHost></pre>
+
+==== Rewrite for Login and Registration ====
+
+It is probably a good idea to utilize SSL for user logins and registrations.  Consider the following substitute RewriteRules.
+
+===== Insecure =====
+
+<pre>RewriteRule ^/wp-(admin|login|register)(.*) https://www.mysite.com/wp-$1$2 [C]</pre>
+
+===== Secure =====
+
+<pre>RewriteRule !^/wp-(admin|login|register)(.*) - [C]</pre>
+
+==== Rewrite for sites running on port 443 or port 80====
+
+<pre>
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# For a site running on port 443 or else (http over ssl)
+RewriteCond %{SERVER_PORT}  !^80$
+RewriteRule !^wp-(admin|login|register)(.*) - [C]
+RewriteRule ^(.*)$ http://%{SERVER_NAME}/$1 [L]
+
+# For a site running on port 80 (http)
+RewriteCond %{SERVER_PORT}  ^80$
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^wp-(admin|login|register)(.*) https://%{SERVER_NAME}:10001/wp-$1$2 [L]
+
+RewriteCond %{SERVER_PORT}  ^80$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+
+</IfModule>
+
+</pre>
+
+=== Official WordPress Secure-Admin Plugin ===
+
+This is the official plugin that was originally released by the WordPress team but suffered from broken code, this has since been fixed and made publicly available.
+
+Main Features:
+* Admin pages/links forced to https
+* Login page forced to https
+* Public pages remain http
+* Cookie Encryption
+* Simple Setup: Upload/Click to Active
+
+Download : [http://www.kerrins.co.uk/blog/admin-ssl/ Admin SSL Plugin] (Secure Admin is not compatible with WordPress 2.5+)
+
+=== The Link Filter Plugin ===
+
+The Link Filter plugin is available at [http://www.invisibleinstitute.com/2005/06/wordpress-administration-over-ssl/ Invisible Institute Secure Admin Links Plugin], and is WordPress 1.5.1+ compatible.
+
+This plugin processes URLs that point to files in wp-admin and replaces the http request in href tags with an https request.  It also uses pluggable functions to modify wp_set_cookie() to only work with encrypted connections.  This may cause confusion if your site requires registration functionality, as the user will have to visit the https:// site for their cookies to successfully authenticate.
+
+=== Force SSL Plugin ===
+
+This plugin forces an SSL connection, both on the front-end and the admin back-end interface. In addition to using this plugin, you should change the Wordpress and Blog address URIs to begin with "https". You might also want to change the URI in the Options -> Misc admin area so that file uploads will generate the "https" link for uploaded images.
+
+<pre>
+<?php
+/*
+Plugin Name: Force SSL
+Plugin URI: http://wordpress.org
+Description:  For those will an SSL certificate, this plugin forces a HTTPS connection for security purposes.
+Version: 1.0
+Author: Mr. Wordpress
+Author URI: http://wordpress.org
+*/
+
+function force_ssl() {
+    if($_SERVER["HTTPS"] != "on") {
+		$newurl = "https://" . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];		
+		wp_redirect($newurl);
+		exit();
+		}
+    }
+
+add_action('plugins_loaded', 'force_ssl');
+?>
+</pre>
+
+=== Summary ===
+This method does ''not'' fix some [http://wordpress.org/support/topic/24558#post-154136 inherent security risks] in WordPress, nor does it protect you against man-in-the-middle attacks or other risks that can cripple secure connections.
+
+However, this ''should'' make it much harder for a malicious person to steal your cookies and/or authentication headers (if using a server based [http://dev.webadmin.ufl.edu/~dwc/2005/03/10/http-authentication-plugin/ authentication mechanism], which is [http://norman.rasmussen.org/77/imap-authentication-plugin/ now possible] starting with WordPress 1.5) and use them to impersonate you and gain access to wp-admin.  It also obfuscates the ability to sniff your content, which could be important for legal blogs which may have drafts of documents that need strict protection.
+
+=== Verification ===
+
+On the author's server, logs indicate that both GET and POST requests are over SSL and that all traffic to wp-admin on the insecure host is being shuttled over to the secure host.
+
+Sample POST log line:
+<pre>
+[Thu Apr 28 09:34:33 2005] [info] Subsequent (No.5) HTTPS request received for child 6 (server foo.com:443)
+xx.xxx.xxx.xxx - - [28/Apr/2005:09:34:33 -0500] "POST /wp-admin/post.php HTTP/1.1" 302 - "https://foo.com/wp-admin/post.php?acti
+on=edit&post=71" "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.7) Gecko/20050414 Firefox/1.0.3"
+</pre>
+
+More testing, preferably with a packet sniffer and some hardcore network analysis tools, would help to confirm.
+
+=== Limitations ===
+
+The author assumes (but hasn't checked) that if the user has stored cookies/told their browser to remember passwords (not based on form fields but if using certain external auth mechanism) and hits <nowiki>http://www.mysite.com/wp-admin/</nowiki>, those packets are sent in the clear and the cookie/auth headers could be intercepted.  Therefore, to ensure maximum security, the user should explicitly use the https host or always log in at the beginning of new sessions.
+
+[[Category:Advanced Topics]]

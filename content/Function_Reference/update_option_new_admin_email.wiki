@@ -1,0 +1,69 @@
+== Description ==
+
+This function intercepts changes to the administrator's email address. It keeps the address from being updated and instead sends the user a confirmation email, with a link to confirm the change.
+
+== Usage ==
+
+%%%<?php update_option_new_admin_email( $old_value, $value ); ?>%%%
+
+'''Note:''' This function is ''not'' intended to be called directly! See [[#Examples | below]].
+
+== Parameters ==
+
+{{Parameter|$old_value|string|The administrator's old email address.}}
+{{Parameter|$value|string|The new email address.}}
+
+== Returns Values ==
+
+This function does not return a value.
+
+== Examples ==
+
+This function is hooked to the <tt>[[Plugin_API/Action_Reference/update_option_(option) | 'update_option_new_admin_email']]</tt> and <tt>[[Plugin_API/Action_Reference/add_option_(option) | 'add_option_new_admin_email']]</tt> <tt>[[Function_Reference/do_action | actions]]</tt> by default. If for some reason you would like to disable it and allow administrators to change their email address without confirmation, you can do this:
+
+<pre>
+<?php
+
+remove_action( 'add_option_new_admin_email', 'update_option_new_admin_email' );
+remove_action( 'update_option_new_admin_email', 'update_option_new_admin_email' );
+
+/**
+ * Disable the confirmation notices when an administrator
+ * changes their email address.
+ *
+ * @see http://codex.wordpress.com/Function_Reference/update_option_new_admin_email
+ */
+function wpdocs_update_option_new_admin_email( $old_value, $value ) {
+
+    update_option( 'admin_email', $value );
+}
+add_action( 'add_option_new_admin_email', 'wpdocs_update_option_new_admin_email', 10, 2 );
+add_action( 'update_option_new_admin_email', 'wpdocs_update_option_new_admin_email', 10, 2 );
+
+?>
+</pre>
+
+== Notes ==
+
+* Uses: <tt>[[Function_Reference/apply_filters | apply_filters()]]</tt> - Calls <tt>[[Plugin_API/Filter_Reference/new_admin_email_content | 'new_admin_email_content']]</tt> with the template for the confirmation email message.
+* Uses: <tt>[[Function_Reference/wp_mail | wp_mail()]]</tt> - To send the confirmation email.
+
+== Change Log ==
+
+Since: [[Version_3.0 | 3.0.0]]
+
+== Source File ==
+
+<tt>update_option_new_admin_email()</tt> is located in {{Trac|wp-admin/includes/ms.php}}.
+
+== Related ==
+
+{{Tag Footer}}
+
+{{Copyedit}}
+
+[[Category:WPMS]]
+
+[[Category:Functions]]
+
+[[Category:New page created]]

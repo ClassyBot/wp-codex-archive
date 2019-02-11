@@ -1,0 +1,60 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/register_uninstall_hook/}}
+
+== Description ==
+
+Sets the uninstallation hook for a plugin. Available since WordPress 2.7.
+
+Registers the uninstall hook that will be called when the user clicks on the uninstall link that calls for the plugin to uninstall itself. The link won't be active unless the plugin hooks into the action.
+
+The plugin should not run arbitrary code outside of functions, when registering the uninstall hook. In order to run using the hook, the plugin will have to be included, which means that any code laying outside of a function will be run during the uninstall process. The plugin should not hinder the uninstall process.
+
+If the plugin can not be written without running code within the plugin, then the plugin should create a file named 'uninstall.php' in the base plugin folder. This file will be called, if it exists, during the uninstall process bypassing the uninstall hook. 
+
+When using 'uninstall.php' the plugin should always check for the <code>WP_UNINSTALL_PLUGIN</code> constant, before executing. The <code>WP_UNINSTALL_PLUGIN</code> constant is defined by WordPress at runtime during a plugin uninstall, it will not be present if 'uninstall.php' is requested directly. It will also not be present when using the uninstall hook technique. <code>WP_UNINSTALL_PLUGIN</code> is only defined when a uninstall.php file is found in the plugin folder.
+
+== Usage ==
+
+%%%<?php register_uninstall_hook($file, $callback) ?>%%%
+
+=== uninstall.php ===
+
+<pre>
+//if uninstall not called from WordPress exit
+if ( !defined( 'WP_UNINSTALL_PLUGIN' ) ) 
+    exit();
+
+$option_name = 'plugin_option_name';
+
+delete_option( $option_name );
+
+// For site options in multisite
+delete_site_option( $option_name );  
+
+//drop a custom db table
+global $wpdb;
+$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}mytable" );
+
+//note in multisite looping through blogs to delete options on each blog does not scale. You'll just have to leave them.
+</pre>
+
+== Parameters ==
+
+{{Parameter|$file|string|The PHP file that the callback is located within.}}
+
+{{Parameter|$callback|callback|The callback to run when the hook is called.}}
+
+== Notes ==
+
+Emphasis is put on using the 'uninstall.php' way of uninstalling the plugin rather than register_uninstall_hook.
+
+== Discussions ==
+
+* An activation, deactivation & uninstall helper class on [http://wordpress.stackexchange.com/questions/25910/uninstall-a-plugin-method-typical-features-how-to/25979#25979/ WordPress Answers]
+
+== Related ==
+
+* See also [[Function_Reference/register_activation_hook|register_activation_hook()]], [[Function_Reference/register_deactivation_hook|register_deactivation_hook()]]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

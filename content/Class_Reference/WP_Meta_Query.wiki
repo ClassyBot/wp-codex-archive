@@ -1,0 +1,221 @@
+{{Languages|
+{{en|Class Reference/WP Meta Query}}
+{{ja|クラスリファレンス/WP Meta Query}}
+}}
+
+==Description==
+
+WP_Meta_Query is a class defined in wp-includes/meta.php that generates the necessary SQL for meta-related queries. It was introduced in Version 3.2.0 and greatly improved the possibility to query posts by custom fields. In the WP core, it's used in the [[Class_Reference/WP_Query#Custom_Field_Parameters|WP_Query]] and [[Class_Reference/WP_User_Query#Custom_Field_Parameters|WP_User_Query]] classes, and since Version 3.5 in the [[Class_Reference/WP_Comment_Query#Custom_Field_Parameters|WP_Comment_Query]] class. Unless you're writing a custom SQL query, you should look in the *Custom Field Parameters* section for the corresponding class.
+
+==Usage==
+
+===Accepted Arguments===
+
+The following arguments can be passed in a key=>value paired array.
+
+* '''<tt>meta_key</tt>''' (''string'') - Custom field key. ( You must sanitize this yourself )
+* '''<tt>meta_value</tt>''' (''string|array'') - Custom field value. ( You must sanitize this yourself )
+* '''<tt>meta_type</tt>''' (''string'') - Custom field type (see '''<tt>type</tt>''' below for options).
+* '''<tt>meta_compare</tt>''' (''string'') - Operator to test the <tt>'meta_value'</tt> (see '''<tt>compare</tt>''' below for possible values).
+
+* '''<tt>meta_query</tt>''' (''array'') - Contains one or more arrays with the following keys:
+** '''<tt>key</tt>''' (''string'') - Custom field key.
+** '''<tt>value</tt>''' (''string''|''array'') - Custom field value. It can be an array only when <tt>'''compare'''</tt> is <tt>'IN'</tt>, <tt>'NOT IN'</tt>, <tt>'BETWEEN'</tt>, or <tt>'NOT BETWEEN'</tt>. You don't have to specify a value when using the <tt>'EXISTS'</tt> or <tt>'NOT EXISTS'</tt> comparisons in WordPress 3.9 and up. <br>(<strong>Note:</strong> Due to [http://core.trac.wordpress.org/ticket/23268 bug #23268], <tt>value</tt> was required for <tt>NOT EXISTS</tt> comparisons to work correctly prior to 3.9. You had to supply ''some'' string for the <tt>value</tt> parameter. An empty string or <tt>NULL</tt> will NOT work. However, any other string will do the trick and will NOT show up in your SQL when using <tt>NOT EXISTS</tt>. Need inspiration? How about <tt>'bug #23268'</tt>.)
+** '''<tt>compare</tt>''' (''string'') - Operator to test. Possible values are '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS' (only in WP >= 3.5), and 'NOT EXISTS' (also only in WP >= 3.5). Values 'REGEXP', 'NOT REGEXP' and 'RLIKE' were added in WordPress 3.7. Default value is '='.
+** '''<tt>type</tt>''' (''string'') - Custom field type. Possible values are 'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', 'UNSIGNED'. Default value is 'CHAR'.
+
+The <tt>'type'</tt> <tt>DATE</tt> works with the <tt>'compare'</tt> value <tt>BETWEEN</tt> only if the date is stored at the format <tt>YYYY-MM-DD</tt> and tested with this format.
+
+<em>Note:</em> The <tt>'meta_key'</tt>, <tt>'meta_value'</tt>, <tt>'meta_type'</tt> and <tt>'meta_compare'</tt> arguments will only work if you use the second method described below.
+
+===Initializing WP_Meta_Query===
+
+You generally have two options on how to initialize and use a new WP_Meta_Query object:
+
+<b>Passing an Array of query parameters to the constructor:</b>
+
+<pre>
+$meta_query_args = array(
+	'relation' => 'OR', // Optional, defaults to "AND"
+	array(
+		'key'     => '_my_custom_key',
+		'value'   => 'Value I am looking for',
+		'compare' => '='
+	)
+);
+$meta_query = new WP_Meta_Query( $meta_query_args );
+</pre>
+
+In this case, you pass an array of key/value pair arrays (which were described above in the <b>meta_query</b> argument).
+
+You can optionally pass the `relation` key and set it to either <b>OR</b> or <b>AND</b>. It defines the relation, when there is more than one meta query (whether all of the conditions should be met, or at least one of them needs to be met). 
+
+Nested arrays can be used to construct complex queries. For example, where _my_custom_key = value OR (_my_custom_key_2 = value AND _my_custom_key_3 = value).
+
+<pre>
+$meta_query_args = array(
+	'relation' => 'OR', // Optional, defaults to "AND"
+	array(
+		'key'     => '_my_custom_key',
+		'value'   => 'Value I am looking for',
+		'compare' => '='
+	),
+	array(
+		'relation' => 'AND',
+		array(
+			'key'     => '_my_custom_key_2',
+			'value'   => 'Value I am looking for 2',
+			'compare' => '='
+		),
+		array(
+			'key'     => '_my_custom_key_3',
+			'value'   => 'Value I am looking for 3',
+			'compare' => '='
+		)
+	)
+);
+$meta_query = new WP_Meta_Query( $meta_query_args );
+</pre>
+
+<b>Using the WP_Meta_Query::parse_query_vars( $query ) method:</b>
+You can use this method, if you want to use the simple query args(`meta_key`, `meta_value`, `meta_type`, `meta_compare`), or if you are unsure of the presence of meta query parameters.
+
+<pre>
+// $query_vars can have various contents, so an example is not added here, but you need to have it defined beforehand
+$meta_query = new WP_Meta_Query();
+// Won't work with an array( 'relation', array( 'key' => '...' ) )
+// as the parse_query_vars() method searches for the `meta_` prefix
+$meta_query->parse_query_vars( array(
+	'meta_key' => 'some_key',
+	// etc.
+) );
+</pre>
+
+===Getting the final SQL===
+You can retrieve the generated SQL by using the following method.
+
+<pre>$mq_sql = $meta_query->get_sql(
+	$type,
+	$primary_table,
+	$primary_id_column,
+	$context = null
+);</pre>
+
+List of Arguments:
+
+* '''<tt>$type</tt>''' (''string'') - Type of meta(''post'', ''comment'', ''user''').
+* '''<tt>$primary_table</tt>''' (''string'') - The table where we will be looking for rows. You can pass for instance <code>$wpdb->posts</code>, or the alias name if you are aliasing the table in your SQL query
+* '''<tt>$primary_id_column</tt>''' (''string'') - The column that holds the ID(for posts, it is ''ID'', for comments it is ''comment_ID'' and for users is ''ID'').
+* '''<tt>$context</tt>''' (''object'') - Optional - The main query object. It is only used when the result is passed to the ''get_meta_sql'' filter.
+
+On failure(for instance - lacking any meta query parameters in the query array), this function will return `false`. 
+
+On success, it will return an array like this: 
+<pre>
+array(
+	'join'  => $join_sql,
+	'where' => $where_sql
+)
+</pre>
+With each key holding the SQL for the corresponding section.
+
+'''Example: Single Meta Entry - Flat array'''
+
+''Query''
+
+<pre>
+// Note that this will produce a "key only" query
+// If you want a full one, add a meta_value and meta_compare array key/value pair
+$query_args = array(
+	'meta_key' => 'some_key_name',
+);
+$meta_query = new WP_Meta_Query();
+$meta_query->parse_query_vars( $query_args );
+$mq = $meta_query->get_sql(
+	'post',
+	$wpdb->posts,
+	'ID',
+	null
+);</pre>
+
+''Result''
+
+<pre>array (size=2)
+  'join' => string ' INNER JOIN wp_postmeta ON (wp_posts.ID = wp_postmeta.post_id)' (length=62)
+  'where' => string ' AND (wp_postmeta.meta_key = 'some_key' )' (length=40)</pre>
+
+'''Example: Multiple Meta Entries - Multi dimensional array:'''
+
+''Query:''
+
+<pre>$query_args = array( 'meta_query' => array(
+	'relation' => 'OR',
+	array(
+		'key' => 'foo_key',
+		// 'value' => 'foo',
+		// 'compare' => 'LIKE',
+	),
+	array(
+		'key' => 'bar_key',
+	),
+) );
+$meta_query = new WP_Meta_Query();
+$meta_query->parse_query_vars( $query_args );
+$mq_sql = $meta_query->get_sql(
+	'post',
+	$wpdb->posts,
+	'ID',
+	null
+);</pre>
+
+''Result:''
+
+<pre>'join' => string ' INNER JOIN wp_postmeta ON wp_posts.ID = wp_postmeta.post_id' (length=60)
+'where' => string ' AND (wp_postmeta.meta_key = 'foo_key' OR wp_postmeta.meta_key = 'bar_key' )' (length=75)</pre>
+
+''Note: This example will '''not''' append a space to the <tt>join</tt> statement, so you have to do it manually to not crash your query. The same goes for the <tt>where</tt> statement.''
+
+If you're using the <tt>value</tt> and <tt>compare</tt> parts of the <tt>meta_query</tt> input argument array, then the query string will look something like the following:
+
+<pre>'where' => string ' AND (wp_postmeta.meta_key = 'foo_key' OR  (mt1.meta_key = 'bar_key' AND CAST(mt1.meta_value AS CHAR) LIKE '%foo%') )'</pre>
+
+Keep in mind that <tt>mt1</tt> is the <tt>alias</tt> of the meta table and the <tt>join</tt> clause will look something like this and therefore use the <tt>JOIN</tt> '''twice''':
+
+<pre>'join' => string ' INNER JOIN wp_postmeta ON wp_posts.ID = wp_postmeta.post_id INNER JOIN wp_postmeta AS mt1 ON (wp_posts.ID = mt1.post_id)'</pre>
+
+Use that in further queries or form inside your <tt>posts_clauses</tt>, <tt>posts_where</tt> or <tt>posts_join</tt> filter callbacks.
+
+===Named sub-meta queries and multiple orderby arguments===
+
+Named meta sub-queries are particularly useful when you wish to sort by multiple different meta keys. If you pass the name (key) of your meta sub-query to the orderby array, WordPress will use that sub-query as the orderby parameter. See this example below:
+
+<pre>
+$q = new WP_Query( array(
+    'meta_query' => array(
+        'relation' => 'AND',
+        'state_clause' => array(
+            'key' => 'state',
+            'value' => 'Wisconsin',
+        ),
+        'city_clause' => array(
+            'key' => 'city',
+            'compare' => 'EXISTS',
+        ), 
+    ),
+    'orderby' => array( 
+        'city_clause' => 'ASC',
+        'state_clause' => 'DESC',
+    ),
+) );
+</pre>
+
+Props cybmeta on WPSE for [http://wordpress.stackexchange.com/a/246358/3687 this example].
+
+==Source File==
+<tt>WP_Meta_Query()</tt> is located in {{Trac|wp-includes/class-wp-meta-query.php}}.
+
+== Related ==
+
+{{Class Footer}}
+
+[[Category:Classes]]

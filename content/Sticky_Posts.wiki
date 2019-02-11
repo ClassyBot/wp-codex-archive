@@ -1,0 +1,149 @@
+{{Languages|
+{{en|Sticky Posts}}
+{{ja|Sticky Posts}}
+}}
+
+__TOC__
+'''Sticky Posts''' is a feature introduced with [[Version 2.7]]. A check box is included on the [[Administration_Panels|Administration]] > [[Administration_Panels#Posts|Posts]] > [[Posts Add New SubPanel|Add New]] Screen (In the ''Publish'' panel under ''Visibility''. Click ''edit'' to see the checkbox). If checked, the post will be placed at the top of the front page of posts, keeping it there until new posts are published. Please notice that this feature is [http://core.trac.wordpress.org/ticket/12702 only available for the built-in post type post] and not for custom post types.
+
+== Function Reference ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Template Tags'''
+|-
+|
+* <tt>[[Function Reference/is_sticky | is_sticky()]]</tt>
+* <tt>[[Function Reference/sticky_class | sticky_class()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Template Tags'''
+|-
+|
+* 
+* 
+|}
+
+|}
+
+== Display Sticky Posts ==
+
+'''Show Sticky Posts'''
+
+Display just the first sticky post:
+(Note: At least one post must be designated as a "sticky post" or else the loop will display all posts.)
+ 
+ $sticky = get_option( 'sticky_posts' );
+ $query = new WP_Query( 'p=' . $sticky[0] );
+
+Display just the first sticky post, if none return the last post published:
+
+ $args = array(
+ 	'posts_per_page' => 1,
+ 	'post__in'  => get_option( 'sticky_posts' ),
+ 	'ignore_sticky_posts' => 1
+ );
+ $query = new WP_Query( $args );
+
+Display just the first sticky post, if none return nothing:
+
+ $sticky = get_option( 'sticky_posts' );
+ $args = array(
+ 	'posts_per_page' => 1,
+ 	'post__in'  => $sticky,
+ 	'ignore_sticky_posts' => 1
+ );
+ $query = new WP_Query( $args );
+ if ( isset($sticky[0]) ) {
+ 	// insert here your stuff...
+ }
+
+Display the 6 most recently published posts and if any of these 6 are sticky, they are included. [https://wordpress.stackexchange.com/a/260951/48698 Contrary to its name, '''ignore_sticky_posts'''] will still include the sticky posts in a query but it will not prioritize them in the query. In the example below, if the 2nd, 8th, 9th, 10th, and 11th most recently published post are sticky; the 8th, 9th, 10, and 11th posts aren't included in the results, even if they are sticky, because of the ignore_sticky_posts is set true (value 1) and they are not one of the 6 most recently published posts. 
+
+ $args = array(
+ 	'posts_per_page'=> 6,
+ 	'ignore_sticky_posts' => 1
+ );
+ $query = new WP_Query($args);
+
+
+If you were to try to change ignore_sticky_posts to its default value, and if all of the sticky posts are not listed in the most recently published posts, additional posts will be appended on. In the query below, if only 1 of the 6 mostly recent published posts below are sticky and there 5 sticky posts; there will be 10 posts that will display. 
+[https://core.trac.wordpress.org/ticket/27282 This is a known bug]
+
+ $args = array(
+ 	'posts_per_page'=> 6,
+ 	'ignore_sticky_posts' => 0
+ );
+ $query = new WP_Query($args);
+
+ 
+
+'''Don't Show Sticky Posts'''
+
+Exclude all sticky posts from the query:
+
+ $query = new WP_Query( array( 'post__not_in' => get_option( 'sticky_posts' ) ) );
+
+Exclude sticky posts from a category. Return ALL posts within the category, but don't show sticky posts at the top. The 'sticky posts' will still show in their natural position (e.g. by date):
+
+ $query = new WP_Query( 'ignore_sticky_posts=1&posts_per_page=3&cat=6' );
+
+Exclude sticky posts from a category. Return posts within the category, but exclude sticky posts completely, and adhere to paging rules:
+
+ $paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
+ $sticky = get_option( 'sticky_posts' );
+ $args = array(
+ 	'cat' => 3,
+ 	'ignore_sticky_posts' => 1,
+ 	'post__not_in' => $sticky,
+ 	'paged' => $paged
+ );
+ $query = new WP_Query( $args );
+
+Note: Use <tt>get_query_var('page')</tt> if you want this query to work in a [[Pages#Page_Templates|Page template]] that you've set as your [[Creating_a_Static_Front_Page|static front page]].
+
+''' --- '''
+
+<pre>
+<?php
+/* Get all Sticky Posts */
+$sticky = get_option( 'sticky_posts' );
+
+/* Sort Sticky Posts, newest at the top */
+rsort( $sticky );
+
+/* Get top 5 Sticky Posts */
+$sticky = array_slice( $sticky, 0, 5 );
+
+/* Query Sticky Posts */
+$query = new WP_Query( array( 'post__in' => $sticky, 'ignore_sticky_posts' => 1 ) );
+?>
+</pre>
+
+== Style Sticky Posts ==
+
+To help theme authors perform simpler styling, the [[Function Reference/post_class|post_class()]] function is used to add ''class="..."'' to DIV, just add:
+
+<pre>
+<div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+</pre>
+
+The [[Function Reference/post_class|post_class()]] outputs the ''class="whatever"'' piece for that div. This includes several different classes of value: post, hentry (for hAtom microformat pages), category-X (where X is the slug of every category the post is in), and tag-X (similar, but with tags). '''It also adds "sticky" for posts marked as Sticky Posts'''.
+
+<pre>
+.sticky { color:red; }
+</pre>
+
+Note: The "sticky" class is only added for sticky posts on the first page of the home page (is_home() is true and is_paged() is false).
+
+== Related ==
+
+[[Category:Advanced Topics]]

@@ -1,0 +1,511 @@
+<br /><MarkJaquith>	Everyone ready?
+<br /><rboren>	let's do it
+<br /><Strider72>	hola
+<br /><MarkJaquith>	photomatt_: what's the status on Happy Cog stuff? That may influence a lot of stuff.
+<br /><photomatt_>	let's start by everyone saying what they'd like to talk about, free form
+<br /><skeltoac>	I want a puppy
+<br /><photomatt_>	then I'll collate and we can go in an order, and try to wrap it up by 1:30 at the latest	<MarkJaquith>	"Undo?" instead of JS "Are you sure?"
+<br /><photomatt_>	I'd like to spend a few minutes on development wp-hackers vs trac
+<br />* westi	arrives
+<br /><Strider72>	start with broad sweeps or little stuff?
+<br />* nikolayb	too
+<br /><skeltoac>	wp-hackers has been a clusterbomb lately
+<br /><photomatt_>	a better theme directory, perhaps with update support
+<br /><photomatt_>	one-click plugin upgrades from admin
+<br /><rboren>	Happy Cog, wpdb->prepare, jquery
+<br /><rboren>	New theme
+<br /><westi>	filter normalisation
+<br /><MarkJaquith>	Better "Manage > Posts" default view (like a mini dashboard for your posts -- default view sucks now)
+<br /><Nazgul>	wpdb-prepare indeed
+<br /><Strider72>	Theme concept: Currently you can base a theme off a different one with a changed CSS file. What about "use that other theme, except for this modified header file"?
+<br /><westi>	integrating GSOC stuff
+<br /><MarkJaquith>	Improved comment handling in the admin -- "Comment inbox" -- Gmail-esque Archive/Spam/Delete
+<br /><nikolayb>	code reuse from me
+<br /><westi>	Undo
+<br /><westi>	code reuse++
+<br /><Nazgul>	Solve notices
+<br /><josephscott>	some XML-RPC clean up, feature catch up.
+<br /><photomatt_>	Nazgul, nikolayb: I don't know what those mean
+<br /><photomatt_>	search posts and pages
+<br /><Nazgul>	Solve notices = ticket #3155
+<br /><Strider72>	links to Plugins' options pages on plugins page
+<br /><wp-trac-bot>	Nazgul: http://trac.wordpress.org/ticket/3155 major, high, 2.4, quix0r->anonymous, new, Several "notice" messages in WP 2.1-alpha3
+<br /><nikolayb>	photomatt_, there are a lot of places in the code which simlilar or the same code
+<br /><photomatt_>	so refactoring?
+<br />-->|	ai2097 (n=ai2097@pdpc/supporter/active/ai2097) has joined #wordpress-dev
+<br /><westi>	photomatt_: yes refactoring
+<br /><photomatt_>	okay, give me a minute and I'll divide this into user-facing and dev-facing
+<br />-->|	jared (n=jared@worldcharitypoker.org) has joined #wordpress-dev
+<br /><photomatt_>	okay I got it
+<br /><photomatt_>	if you'd like to add something just private message me
+<br /><photomatt_>	let's start with dev-facing since it's easier
+<br /><photomatt_>	any objections to wpdb->prepare? MarkJaquith any comments on implementation?
+<br /><photomatt_>	I'd be happy to see the death of sql injection
+<br /><rboren>	No objections. Will mess up some plugins, but buy us security.
+<br /><skeltoac>	plugins won't be able to query directly?
+<br /><MarkJaquith>	No, they'll still be able to. Plugin impact should be small.
+<br /><photomatt_>	that's what I expected
+<br /><rboren>	Just some double escaping.
+<br /><MarkJaquith>	Ryan is talking about a second component of that -- making all functions expect unslashed data.
+<br /><nikolayb>	maybe we should try to find a way to make a query with one call of a wpdb method
+<br /><rboren>	Yeah, I jump straight to component two. :-)
+<br /><photomatt_>	that has a much larger impact
+<br /><nikolayb>	now one has to call: $wpdb->get_results($wpdb->prepare(...));
+<br /><MarkJaquith>	Yeah. wpdb->prepare() should have no compat impact by itself.
+<br /><rboren>	Unless prepare also escapes.
+<br /><photomatt_>	right now inside of wp most variables are "safe"
+<br /><photomatt_>	for SQL use
+<br /><rboren>	Except when they get run through parse str
+<br /><rboren>	And of course most plugins don't escape a damn thing
+<br /><rboren>	But, two issues here. I think everyone wants prepare.
+<br /><josephscott>	parse_str is a problem.
+<br /><josephscott>	wouldn't mind seeing it go away
+<br /><photomatt_>	so the main thing to keep in mind for a change in how variables come in
+<br /><rboren>	We've had that in AP
+<br /><rboren>	API forever though
+<br /><photomatt_>	is that for our core code it's easy to adapt, but for plugins I could see it being tricky to make a plugin version compatible with before and after
+<br /><MarkJaquith>	The worst side effect is double-escaping -- it's not exactly catastrophic.
+<br /><photomatt_>	to a user that's unacceptable
+<br /><rboren>	Well, the bazillion plugins that don't escape at all will have no problems.
+<br /><jared>	As a plugin dev I'd suggest that those who are escaping now could check for the new prepare function(s) and handle both cases
+<br /><MarkJaquith>	We need to identify the functions that expect slashed data -- can't really get an idea of the impact until we have that.
+<br /><rboren>	All except one, I think.
+<br /><MarkJaquith>	And we need to move on this early in the cycle.
+<br /><photomatt_>	agreed on both with MarkJaquith
+<br /><photomatt_>	let's leave it there
+<br /><rboren>	next?
+<br /><MarkJaquith>	We can move forward with prepare() for any function that expects unslashed data. I'll post about how to implement.
+<br /><photomatt_>	rboren said "jquery", did you have anything specific there?
+<br /><rboren>	List manipulation from mdawaffe
+<br /><rboren>	AJAX
+<br /><rboren>	all moving to jquery
+<br /><photomatt_>	hear hear
+<br /><photomatt_>	next up, xml-rpc cleanup, josephscott?
+<br /><Nazgul>	Are we going to include the Google SoC page-reorder project into the core?
+<br /><josephscott>	I went though the current tickets: http://pastebin.ca/716344
+<br /><photomatt_>	Nazgul: hold off on that
+<br /><josephscott>	the xmlrpc.php file itself needs some clean up, spacing/tabs is icky and all over the place.
+<br /><Nazgul>	Ok, thought it was part of list-manipulation
+<br /><josephscott>	code is duplicated in some places and just plain broken in others.
+<br /><MarkJaquith>	it's also been a source of security issues, so it could use a bunch of eyes on it.
+<br /><josephscott>	(Alex C. mentioned some broken XML-RPC methods on the list a few weeks ago).
+<br /><photomatt_>	josephscott: main concern right now is that's an island
+<br /><josephscott>	in what way?
+<br /><photomatt_>	it really only has one person looking at it in any given time, patches get rubberstamped more than reviewed, and we did have that SQL prob
+<br /><josephscott>	I'd love to have more people on it
+<br /><josephscott>	there are still parts of it that I don't think have been looked at in a very long time
+<br /><westi>	its one area where a good test harness client would be _really_ useful
+<br /><photomatt_>	very good point
+<br /><photomatt_>	anyone want to look join in on xml-rpc and a possible test client?
+<br /><westi>	i have always reviewed patches in xmlrpc with trepidation - it usually involves installing and testing with a few clients before I am happy
+<br /><josephscott>	agreed, my hodge podge of test scripts is pretty basic at the moment.
+<br /><photomatt_>	a test client like APE would be generally useful to the web
+<br /><josephscott>	photomatt_: that's a good point, using the APE approach would be good.
+<br /><photomatt_>	okay that's kind of sitting there so let's move on
+<br /><photomatt_>	josephscott: could you send a note to wp-hackers to find a partner to work with on it?
+<br /><photomatt_>	it's like a developer singles site
+<br /><photomatt_>	quick loop back to Nazgul's question on page order manipulation
+<br /><bazza>	haha
+<br /><photomatt_>	Nazgul: could you expand?
+<br /><josephscott>	photomatt_: yes, I'll put out request on wp-hackers
+<br /><Nazgul>	There was a recent post on wp-hackers on somebodys SoC project which introduced a way of reordering pages on the backend
+<br /><Nazgul>	It required some core changes, because not everything was pluggable.
+<br /><Strider72>	that was outstanding
+<br /><photomatt_>	was it any good?
+<br /><mdawaffe>	that's "my" student's project
+<br /><photomatt_>	page_order is something we have in core that I wonder if it's not better as a widget configuration
+<br /><mdawaffe>	it's good - may need a tweak here or there
+<br /><photomatt_>	or a general menu editor
+<br /><Strider72>	http://bernardopadua.com/wp-sandbox/19-sep-2007/wp-admin/edit-pages.php
+<br /><Strider72>	sandbox version
+<br /><photomatt_>	login?
+<br /><MarkJaquith>	test/test
+<br /><MarkJaquith>	lucky first guess.
+<br /><Strider72>	from his email:
+<br /><Strider72>	I put it together in two ways: a complete wordpress package (
+<br /><Strider72>	http://www.bernardopadua.com/wordpress/downloads/wordpress_with_page_ordering_19_september_2007.zip)
+<br /><Strider72>	and a patch (
+<br /><Strider72>	http://www.bernardopadua.com/wordpress/patches/ajax%20sortable%20pages%20for%20wp.19-09-07.patch).
+<br /><photomatt_>	oh that's the one like the bbpress forum orderer
+<br /><mdawaffe>	inspired by, yes
+<br /><mdawaffe>	but better code
+<br /><mdawaffe>	and allows reordering when people have 1000 pages
+<br /><MarkJaquith>	Wow. It crashes Safari 2
+<br /><photomatt_>	it's flashy, but it's also doing a lot of things at once, not sure if the best approach is to allow reordering and re-parenting at the same time
+<br /><Strider72>	it's intuitive. I think both at once work.
+<br /><Strider72>	very similar to some desktop outlining programs I've seen
+<br /><rboren>	MarkJaquith: everything crashes Safari :-P
+<br /><photomatt_>	I'm pretty luke-cold. but I will ask liz at HC to see if she can work it into our post-redesign user tests to see how it does there
+<br /><photomatt_>	but I don't want to put it on the roadmap right now
+<br /><Nazgul>	Can we at leat look at what's needed to make it usable as a plugin?
+<br /><Strider72>	LOL. "luke-cold" :)
+<br /><MarkJaquith>	Nazgul: always. :-)
+<br /><photomatt_>	final dev topic: wp-hackers (and trac). what are your guys thoughts about that?
+<br /><westi>	it would be nicer if you didn't have to switch to an alternative view
+<br /><skeltoac>	Nazgul: yeah, that's way easy :)
+<br /><skeltoac>	mv wp-hackers wp-whiners
+<br /><rboren>	trac, good. wp-hackers, typical mailing list.
+<br /><Strider72>	I think it would hurt the community aspect of WP to sequester the "in-crowd" from the rest.
+<br /><westi>	with regard to trac it's good. it would be nice for all big changes to start as a ticket+patch and then be committed
+<br /><westi>	so as to promote review and discussion before commit
+<br /><skeltoac>	I don't like a closed-membership list
+<br /><skeltoac>	any more than I like an open-membership list
+<br /><rboren>	A lot of the more substantial discussion is done in trac.
+<br /><rboren>	Political stuff on the hackers list.
+<br /><photomatt_>	I can see part of the argument
+<br /><photomatt_>	that once something is a ticket + patch most decisions have been made
+<br /><MarkJaquith>	I think that some "policing" (I hate that word -- "guidance?") could be used to steer (or stop) the less productive conversations on wp-hackers.
+<br /><ai2097>	See also: "herding cats".
+<br /><Strider72>	policing would be good. Also, somebody suggested on list the use of "tags" in subject line.
+<br /><westi>	i think the developer FAQs should help
+<br /><josephscott>	having things brought up on the mailing list make it easier to discover what is going on. Harder to get a feel for where different topics are going on trac.
+<br /><MarkJaquith>	josephscott: yeah, I see a disconnect.
+<br /><westi>	tags in the subject line are nasty - they tend to encourage people to filter out stuff and then topics get missed
+<br /><photomatt_>	but honestly a lot of these things don't lend themselves to committee or group decision making
+<br /><photomatt_>	people could debate javascript libraries as long as they did php4/5
+<br /><ai2097>	westi: People read everything now? There's just too much mail.
+<br /><skeltoac>	I sure can't
+<br /><Nazgul>	I liked the idea of reintroducing the weekly IRC meetup's. It makes discussion easier than a "slow medium" as trac or wp-hackers
+<br /><Strider72>	Respectfully, Matt, how hard is it to delete a thread you're not interested in?
+<br /><westi>	i try to... i unsubscribe for ml i can't keep up with
+<br /><photomatt_>	delete threads? it's very easy
+<br /><skeltoac>	Strider72: when it re-appears more than 100 times, that's a lot of times I have to read that subject line
+<br /><photomatt_>	but that doesn't help the complaints that things need more dev presence
+<br /><ai2097>	westi: I'm much the same way -- but it's hard to drop the whole list when the iota of things I care about only shows up on it.
+<br /><Strider72>	true.
+<br /><photomatt_>	personally I have no problem debating or discussing an issue with people I know have put in time with WP
+<br /><skeltoac>	that's what makes a closed list attractive
+<br /><photomatt_>	I think it could be open-reading, but maybe closed-participation
+<br /><skeltoac>	and let people blog their opinions
+<br /><josephscott>	that might be a reasonable middle ground
+<br /><MarkJaquith>	How do people gain participation?
+<br /><josephscott>	especially if the archive supported trackback :-)
+<br /><skeltoac>	at that rate, we could move away from a list and toward a closed-comment, open-trackback blog
+<br /><Strider72>	Matt -- might be an idea, but it would help the community aspect if the criteria for "participation approval" is made crystal clear -- i.e. cut-and-dried rule
+<br /><photomatt_>	MarkJaquith: depends on how closed it is
+<br /><skeltoac>	good point Strider72, clubhouse rules cannot exist in one person's mind
+<br /><photomatt_>	my goal would be a 9:1 signal ratio
+<br /><MarkJaquith>	who would be in charge of admitting people? Kicking them out?
+<br /><Nazgul>	Link it to trac contributions?
+<br /><rboren>	You must have this many patches in WP to ride this ride?
+<br /><josephscott>	what have other projects done in this regard?
+<br /><MarkJaquith>	You must be X Props tall. :-)
+<br /><Strider72>	You' don't want people just coming into it to have the sense that it's a closed club. _Perception_ is very important here.
+<br /><photomatt_>	contirbutions is nice
+<br /><Nazgul>	It at leat proves som familiarity with the codebase.
+<br /><photomatt_>	because it's accessible to anyone
+<br /><rboren>	josephscott: Let the lists go up in flames and then the core contributors move somewhere else.
+<br /><photomatt_>	yet still a good barrier
+<br /><westi>	i think we must steer clear of quantitative qualifications - they need to be qualitative
+<br /><Nazgul>	But qualitative is subjective.
+<br /><photomatt_>	I think once you have the concept of a highly moderated lists
+<br /><josephscott>	tricky part would be weighing contributions then. Someone might only submit one or two patches, but they could be huge
+<br /><skeltoac>	I wouldn't mind voting on something like that
+<br /><photomatt_>	the people who aren't stick out way more, and it's easier to corral them or ask them to leave
+<br /><skeltoac>	let each member decide with their own criteria
+<br /><photomatt_>	even better, have it be # of posts allowed per contribution :)
+<br /><Strider72>	Votes are a good idea. What about a thing on Trac where people can +/- a ticket. If you have so many +es you're in.
+<br /><MarkJaquith>	Strider72: look at the idea forum. People +1 some really bad ideas.
+<br /><skeltoac>	I thought more like "anyone object to allowing so-and-so in?"
+<br /><josephscott>	like the old upload/download ration on BBSs.
+<br /><MarkJaquith>	Unless you mean +1s from vetted people.
+<br /><westi>	and -# number of posts for every bug you introduce ;-)
+<br /><Nazgul>	And the one fixing a ticket isn't always the reporter.
+<br /><photomatt_>	rather than nailing down the implementation detalis
+<br /><photomatt_>	I'm more interested in, generally, if core devs who currently don't particpate in wp-hackers would discuss more on a new thing
+<br /><skeltoac>	yes
+<br /><photomatt_>	I would
+<br /><skeltoac>	a blog with closed commenting and open trackbacks would be perfect for me
+<br /><ai2097>	Is this all-or-nothing open/closed, or -adding- a closed list to the open one?
+<br /><Nazgul>	Not a core-dev bit I would.
+<br /><skeltoac>	add Subscribe To to get that list-like feeling
+<br /><photomatt_>	ai2097: additive
+<br /><MarkJaquith>	I'm in favor of that. And it would be public readable?
+<br /><ai2097>	Would a bridge/mediator be assigned between the two?
+<br /><photomatt_>	I think everything should be public readable
+<br /><Strider72>	I will just say this... I'm pretty new to the hacker's list (and perhaps overly vocal considering), but I doubt I would have become much involved at all if not for the open approachability of the list.
+<br /><MarkJaquith>	No closed doors, just closed mics.
+<br /><filosofo>	who could create posts?
+<br /><skeltoac>	anyone who could comment
+<br /><skeltoac>	anyway, let's put implementation details off
+<br /><photomatt_>	we have to ask ourselves as well, if the kind of people who are core devs are driven away by wp-hackers, how many people who *could be* core devs are driven away?
+<br /><photomatt_>	next up
+<br /><photomatt_>	happy cog admin redesign
+<br /><photomatt_>	first, I think we should more generically refer to it as the "admin redesign"
+<br /><rboren>	yes
+<br /><rboren>	Let's not drag HC down in the flames that every UI discussion entails.
+<br /><photomatt_>	it's pretty much done on their end, which is mockups, they're just doing a few more screens
+<br /><Nazgul>	Any recent screenshots we can see?
+<br /><photomatt_>	important ones like post and dashboard are pretty final
+<br /><photomatt_>	there is some new functionality introduced
+<br /><photomatt_>	I'm not particularly interested in seeing the aesthetics debated
+<br /><MarkJaquith>	I'm more worried about ergonomics than aesthetics. :-)
+<br /><photomatt_>	as for more UI-based things, their decisions are largely based on user testing
+<br /><photomatt_>	including menu organization, UI placement, etc
+<br /><rboren>	I'm down with implementing what they have. The question is, can we get it all in 2.4?
+<br /><photomatt_>	I think so
+<br /><MarkJaquith>	How much functional change is there?
+<br /><photomatt_>	MarkJaquith: dashboard is the most changed
+<br /><photomatt_>	on the write page, the main change would be around categories and tags
+<br /><photomatt_>	I think I could get core to reasonably approximate their mockups in about 2 weeks
+<br /><rboren>	We'd have to do some admin menu back compat work.
+<br /><rboren>	I think the menu changes should go in ASAP
+<br /><westi>	the menu code needs some work anyway ;-)
+<br /><rboren>	It needs to be scrapped :-)
+<br /><photomatt_>	menu should be so simple, it astounds me
+<br /><rboren>	Permissions, dynamic reparenting, all add complexity.
+<br /><rboren>	And the cruft of back compat....
+<br /><MarkJaquith>	Seriously. It's complete crap. We have an API, and we have the desired result. And we're doing Cirque du Soleil in between.
+<br /><rboren>	Anyhow, due to the shaky nature of menus, would like to get those changes in early.
+<br /><rboren>	Cirque du Soleil on mushrooms
+<br /><MarkJaquith>	photomatt_: you say "pretty much done on their end" -- does that mean most of the screens are 100% done? Or that all of them are almost 100% done?
+<br /><photomatt_>	what I'd like to do with it is after I get back from london have a series of iterative changes over the course of about 2 weeks that are the "redesign", perhaps with some placeholders
+<br /><photomatt_>	so the dust should settle around the 19th
+<br /><photomatt_>	after that I think we should talk about what we think about it in practice, rather than theory, and then also HC can do some user testing on the working code rather than notecards or mockups
+<br />|<--	jared has left irc.freenode.net ("BitchX: a modern client for a old world")
+<br /><photomatt_>	and decide where to go from there
+<br /><MarkJaquith>	Cool.
+<br /><photomatt_>	once the core is in, the tasks become much more parallel
+<br /><photomatt_>	and we could split up what needs to be worked on
+<br /><photomatt_>	main functionality changes I can think of
+<br /><photomatt_>	widget-based dashboard
+<br /><photomatt_>	very different tag selector
+<br /><photomatt_>	ability to have multiple instances of any widget
+<br /><photomatt_>	image library
+<br /><photomatt_>	eom
+<br /><westi>	eom?
+<br /><MarkJaquith>	:-)
+<br /><photomatt_>	end of message :)
+<br /><Nazgul>	end of Matt?
+<br /><photomatt_>	maybe!
+<br /><Nazgul>	But I like those ideas.
+<br /><skeltoac>	walks in front of trains
+<br /><Strider72>	I love the "widget based dashboard idea.
+<br /><skeltoac>	roll-your-own always sounds sweet
+<br /><photomatt_>	other userfacing topics
+<br /><photomatt_>	undo?
+<br />* westi	remembers how nice WP-Dash was
+<br /><skeltoac>	lots of ways to implement undo, just a question of choosing one and making it go
+<br /><MarkJaquith>	To misquote Designing the Obvious: Modal JS AYS is the devil.
+<br /><westi>	undo would be nice so as to remove all the AYS
+<br /><skeltoac>	well, all the ays except on the emptying of the trash :)
+<br /><MarkJaquith>	Automated trash collection!
+<br /><photomatt_>	we could go about it in a way that is the death march of 2.4
+<br /><photomatt_>	I'd be pretty happy with something that just put a time-delay on actions
+<br /><photomatt_>	sort of like how facebookdoes it with friends
+<br /><westi>	time delay is bad
+<br /><MarkJaquith>	so, (1) Show action as completed (2) show undo link (3) do it later if they haven't clicked "undo"
+<br /><photomatt_>	you delete a comment, it goes to a little one-line message, and you can undo until you leave the page
+<br /><skeltoac>	there will be those concerned that when they delete it they want it gone, so an immediate-action model will be a want
+<br /><Strider72>	optional setting? "Enable undo"?
+<br /><photomatt_>	it also saves having to have a generic content bucket where we could stick any data from WP in
+<br /><westi>	it should be immediate or trash can like... i.e. you have to physically empty it
+<br /><photomatt_>	Strider72: you're fired
+<br /><photomatt_>	j/k
+<br /><westi>	we don't need a generic bucket
+<br /><skeltoac>	next time wink when you suggest a new option, Strider72
+<br /><Strider72>	eek
+<br /><Strider72>	;)
+<br /><MarkJaquith>	"Undo enabled. Undo?"
+<br /><westi>	posts go to deleted-post status , pages to deleted-page and comments deleted instead of comment/ping/trackback
+<br /><skeltoac>	haha MarkJaquith
+<br /><Strider72>	LOL
+<br /><MarkJaquith>	westi: so each thing has its own trash.
+<br /><westi>	yes
+<br /><Strider72>	"Are you sure you want to disable 'Are You Sure' messages?"
+<br /><MarkJaquith>	saves a lot of "move to trash" "remove from trash" code.
+<br /><photomatt_>	I don't know if it's necessary to provide it for *everything*
+<br /><westi>	indeed.. and as the tables already have the concept of status it should work easily
+<br /><photomatt_>	some places that might be 80% of the effort might be easier to leave out
+<br /><MarkJaquith>	Post deletion, comment deletion.
+<br /><MarkJaquith>	Category deletion
+<br /><photomatt_>	like categories, which also modify posts
+<br /><photomatt_>	yes
+<br /><westi>	i think post/page/comment deletion is the key
+<br /><ai2097>	What happens to comments if you delete the parent post is deleted?
+<br /><MarkJaquith>	ai2097: they're deleted.
+<br /><rboren>	post deletion would require updating taxonomy counts
+<br /><ai2097>	MarkJaquith: And what if you already deleted a -single- comment from that post? ;)
+<br /><photomatt_>	we're also talking about an anti-delete, not really undo
+<br /><ai2097>	Or are we not handling multi-level un... ah.
+<br /><MarkJaquith>	ai2097: nah, last-action undo.
+<br /><MarkJaquith>	photomatt_: yeah -- which makes delayed execution sound like the ticket.
+<br /><photomatt_>	some sites like digg have an actual timer
+<br /><photomatt_>	you can edit this comment for X seconds
+<br /><photomatt_>	most times when I've had an "oh shirt" moment
+<br /><Strider72>	give them a status of "deleted" until time to commit, then actually deletes?
+<br /><MarkJaquith>	I implemented that for MovableType back in 2003. :-)
+<br /><photomatt_>	it's been an accidental click and I just always hit enter on the confirmation
+<br /><photomatt_>	before my brain registers
+<br /><rboren>	MarkJaquith has volunteered. Huzzah!
+<br /><photomatt_>	if the comment minimized and queued the action for X seconds or until page unload that'd be enough I think
+<br /><MarkJaquith>	What about when JS is off? No protection?
+<br /><photomatt_>	yep
+<br /><skeltoac>	ew
+<br /><westi>	ew indeed. if we do away with the AYS then we need a trash can really
+<br /><skeltoac>	onunload is bad juju
+<br /><westi>	it's too easy to click on the wrong button
+<br /><photomatt_>	westi: not suggesting that
+<br /><photomatt_>	this isn't a global everywhere thing, just for places where mistakes are common
+<br /><skeltoac>	a trash can is awfully complex compared to a temporary "deleted" status
+<br /><photomatt_>	and it's easy
+<br /><westi>	skeltoac: a trash can for posts/pages/comments can be a deleted status
+<br /><ai2097>	skeltoac: I fail to see how they're different. ;)
+<br /><skeltoac>	counting on the browser to store program state?
+<br /><photomatt_>	trash can and multi-level undo would be pretty tough
+<br /><photomatt_>	more work than benefit
+<br /><MarkJaquith>	So: how to best implement last-action undo?
+<br /><photomatt_>	MarkJaquith: you brought this up. what user problem or scenario are you trying to solve?
+<br /><skeltoac>	simplest: pull back to draft/moderated and add a wp_cron job to delete it in a user-set amount of time, or just delete it if user set zero
+<br /><MarkJaquith>	photomatt_: mostly comment stuff that is really slow.
+<br /><westi>	just reworking the comment workflow to include undo of deletes would speed things up a lot (as well as other comment work flow changes like inline replying to comments in the admin back end)
+<br /><photomatt_>	maybe we could do comments first and see how it goes
+<br /><photomatt_>	we got a few months before shipping
+<br /><MarkJaquith>	photomatt_: did HC do anything with regard to comment handling?
+<br /><photomatt_>	MarkJaquith: did you want to tackle that?
+<br /><photomatt_>	not that impacts this discussion
+<br /><MarkJaquith>	photomatt_: yeah. I've been whiteboarding comments stuff for months.
+<br /><photomatt_>	okay, done
+<br /><photomatt_>	next up: searching posts and pages
+<br /><photomatt_>	top-voted idea
+<br /><photomatt_>	any thoughts?
+<br /><MarkJaquith>	Ryan and I discussed this several months ago.
+<br /><westi>	I believe it has had quite a discussion on trac too
+<br /><MarkJaquith>	We really didn't like mashing them together in the same loop. There's no way to put a page in a post listing and have it make sense. So our idea was to have a search generate another WP_Query object.
+<br /><skeltoac>	MarkJaquith: to make a unified result list make sense, it would have to be in relevance-order
+<br /><MarkJaquith>	skeltoac: right -- which we don't have.
+<br /><photomatt_>	IMO from a search interface POV they should be separated
+<br /><photomatt_>	when they're displayed
+<br /><MarkJaquith>	It requires theme support, and this way there is NO back compat issue.
+<br /><Strider72>	Make it a parameter of the search function. Then the theme designer can decide.
+<br /><skeltoac>	I pitched that in a kitchen discussion at Stinson
+<br /><MarkJaquith>	Themes that don't support won't shot page results.
+<br /><skeltoac>	show posts list, show pages list
+<br /><photomatt_>	so the idea is a new loop people could put on their search templates?
+<br /><MarkJaquith>	Yes.
+<br /><photomatt_>	perfect
+<br /><westi>	#1435 is the trac ticket
+<br /><wp-trac-bot>	westi: http://trac.wordpress.org/ticket/1435 major, high, 2.4, markjaquith->anonymous, new, Pages should be searched
+<br /><MarkJaquith>	rboren: where you at?
+<br />|<--	damejiar has left irc.freenode.net (Read error: 104 (Connection reset by peer))
+<br /><skeltoac>	I got a whole lot of "that sucks" from donncha_ and josephscott if I recall. Do those opinions stand?
+<br /><rboren>	Lurking about.
+<br />-->|	damejiar (n=chatzill@201.247.150.72) has joined #wordpress-dev
+<br /><MarkJaquith>	Still think we should split Page/Post results into two WP_Query objects?
+<br /><westi>	It would be nice to have a relavence search but I suspect that it a lot more work
+<br /><ai2097>	Unified search results in relevance order make a lot more sense user-wise. From a user perspective, relevance matters more than whether the content came from a page or a post.
+<br /><rboren>	That's best for back compat. Or have an option themes could use to get combined results that can be distinguished with post_type.
+<br /><skeltoac>	I agree westi, but we don't have a relevance search engine.
+<br /><josephscott>	do we have a way to measure relavance?
+<br /><photomatt_>	I think even if we could, pages and posts are very different
+<br /><rboren>	And a method of summarizing pages for display in the search list.
+<br /><photomatt_>	most people have a few of one and a bunch of the other
+<br /><Strider72>	+1 rboren
+<br /><rboren>	I just use google. ;-)
+<br /><ai2097>	But readers don't really want to know or care about that.
+<br /><skeltoac>	title + relevant excerpt is doable
+<br /><westi>	I guess the biggest question is: What do people expect to get out of having Pages in the search results?
+<br /><photomatt_>	2. how do the most popular plugins that address this do it (from a user point of view, not implementation)
+<br /><MarkJaquith>	I expect a little section at the top with a list of page titles. Or maybe in a little floated box.
+<br /><rboren>	Most require theme changes cause the combine results.
+<br /><photomatt_>	let's put those two on the todo, we don't have to decide or figure out right now
+<br /><MarkJaquith>	two?
+<br /><MarkJaquith>	(I'm taking notes)
+<br /><photomatt_>	those two questions
+<br /><skeltoac>	there is already page search in admin... I think I did it, so it can't be that hard
+<br /><Strider72>	take this: the_search_query(); instead allow the_search_query(posts); or the_search_query(pages); or the_search_query(both);
+<br /><skeltoac>	query_posts / query_pages
+<br /><photomatt_>	let's close out with a final topic
+<br /><photomatt_>	could every quickly check out alex gunsche's post to wp-hackers from a few minutes ago?
+<br /><photomatt_>	I'm curious what you think, and how we should respond
+<br /><photomatt_>	knowing that akismet is effectively a commercial plugin, too
+<br /><photomatt_>	though the circumstances are pretty different
+<br /><skeltoac>	bundling does not become wrong just because the plugin tastes bad
+<br /><MarkJaquith>	No, but they are tarnishing the trademark.
+<br /><ai2097>	skeltoac: However, it is not the official distribution. The question is, is this clearly indicated?
+<br /><skeltoac>	I don't know
+<br /><MarkJaquith>	They can do what they want -- but not in WordPress' name.
+<br /><skeltoac>	MarkJaquith: I don't know how to substantiate "tarnish" in that case
+<br /><photomatt_>	they are effectively our official german presence
+<br /><skeltoac>	it's up to the trademark holder I guess
+<br /><westi>	Looking at what they are doing.. I guess the problem is not the plugin it's self but the link to the signup page takes a referrer id
+<br /><Strider72>	At the least they need to make clear that _they_ bundled it. At best... ???
+<br /><photomatt_>	most of the international sites have some form of advertising on their sites
+<br /><rboren>	indeed
+<br /><MarkJaquith>	I don't have a problem with that. I have a problem with them modifying WordPress to do these things without rebranding.
+<br /><Nazgul>	Yes, but I "expect" to see adds on somebody else's site, not on my own.
+<br /><photomatt_>	some bundle plugins, but to my knowledge it's always something to do with the localization or calendar
+<br /><rboren>	yes, such as RTL support
+<br /><rboren>	And we've encouraged that in the past
+<br /><nikolayb>	I have changed the Bulgarian version also
+<br /><photomatt_>	Nazgul: it's not on by default like a sponsored theme, but it would be the equiv of us endorsing text-link-ads or a google plugin with the download
+<br /><MarkJaquith>	Well, I'd make a strong distinction between Google (Adsense?) and TLA.
+<br /><skeltoac>	if I held the trademark, I'd explain the offense and ask them to remove it
+<br /><Strider72>	on the other hand... they _are_ doing German users a real service. Is it legit for them to get soemthing in return?
+<br /><photomatt_>	are they entitled in that regard?
+<br /><skeltoac>	getting something doesn't have to mean distributing a referral product
+<br /><MarkJaquith>	Is the service a SERPs spamming service like TLA?
+<br /><skeltoac>	Alex said it was
+<br /><skeltoac>	dunno though
+<br /><photomatt_>	http://translate.google.com/translate?u=http%3A//www.linklift.de/&hl=en&langpair=de|en&tbb=1&ie=UTF-8
+<br /><Strider72>	It's not quite like me taking Wordpress, filling it with spam, and calling it "StevePress". Devil's advocate to an extent. This does rub me the wrong way.
+<br /><ai2097>	It's OK to bundle. It's OK to modify. It's not OK to pass it off as plain old WordPress. Is this agreeable?
+<br /><photomatt_>	http://translate.google.com/translate?u=http%3A//wordpress-deutschland.org/download/deutsch/&hl=en&langpair=de|en&tbb=1&ie=UTF-8
+<br /><Strider72>	+1 ai2079
+<br /><photomatt_>	what this probably impacts the most
+<br /><photomatt_>	is we weren't planning to create official mini-sites for languages with existing communities
+<br /><photomatt_>	like de, fr
+<br /><josephscott>	"additional plugins" seems intentionally vague
+<br /><photomatt_>	okay, I'll continue to look into it
+<br /><photomatt_>	toni speaks german and talk to olaf, so he should be able to get some more info for us
+<br /><photomatt_>	let's wrap things up for today, thanks everyone for coming out
+<br /><MarkJaquith>	Shall I post notes to wp-hackers?
+<br /><rboren>	Post to cabal.wordpress.org :-)
+<br /><photomatt_>	http://codex.wordpress.org/Version_2.4
+<br /><photomatt_>	I updated with a few of the things we talked about, feel free to edit
+<br /><MarkJaquith>	cool
+<br /><ai2097>	Is the transcript going there, too? I missed the first few minutes.
+<br /><--|	skeltoac has left #wordpress-dev
+<br /><MichaelH>	Will put log here http://codex.wordpress.org/IRC_Meetups/2007/September/September26RawLog
+<br /><westi>	A summary to hackers as well would probably be a good idea
+<br /><westi>	Just pointing at the codex page (and the raw log on the codex)
+<br /><photomatt_>	does anyone feel like they don't have anything to tackle before the next meeting?
+<br /><MarkJaquith>	I've got plenty to keep me busy.
+<br /><rboren>	Well, we didn't translate anything into direct actions.
+<br /><rboren>	But I'm sure we
+<br /><MarkJaquith>	I did.
+<br /><rboren>	we'll figure it out
+<br /><photomatt_>	I think josephscott had a few too
+<br /><rboren>	I'll commit mdawaffe's jquery stuff and nikolayb's js i18n stuff.
+<br /><josephscott>	I've got some
+<br /><rboren>	MarkJaquith gets prepare.
+<br /><nikolayb>	rboren, mine nees some tinkering
+<br /><photomatt_>	I'm going to follow up on de thing and finalizing HC
+<br /><mdawaffe>	rboren: I have up to date copies here
+<br /><photomatt_>	rboren: did you have anything you wanted to lead?
+<br /><rboren>	Okay, I'll wait for you two to refresh patches.
+<br /><nikolayb>	rboren, some things changed in the end of the 2.3 phase
+<br /><rboren>	photomatt_: When do you want to start doing admin stuff?
+<br /><rboren>	I could start with menus...
+<br /><photomatt_>	I'll start the 6th, hope to finish around 19th
+<br /><rboren>	I'll look over the high priority and "early" bugs and get that out of the way.
+<br /><rboren>	And then pick up whatever no one else wants.
+<br /><photomatt_>	cool, how about post/page search? could you answer the two questions for next week?
+<br /><rboren>	sure
+<br /><MarkJaquith>	Here's what I have: http://phpfi.com/265293
+<br /><MarkJaquith>	4. is Matt. 2. is Mike/Andy
+<br /><photomatt_>	cool, same time next week work for everybody?
+<br /><photomatt_>	that's a very nice list, MarkJaquith
+<br />* westi	heads off to bed..
+<br /><westi>	night all
+<br /><MarkJaquith>	Yeah, this is a good time.
+<br /><MarkJaquith>	g'night westi
+<br />=-=	westi is now known as westi|gone
+<br /><MichaelH>	do I hear </meetup>?
+<br /><photomatt_>	yes
+
+[[IRC Meetups|Back to IRC Meetups]]
+
+[[Category:About WordPress]]
+[[Category:Meetings]]
+[[Category:WordPress Development]]

@@ -1,0 +1,413 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/プラグイン">API/アクションフック一覧/pre get posts 日本語</a> 
+<a href="https://codex.wordpress.org/pt-br:Plugin_API/A%C3%A7%C3%B5es_e_Refer%C3%AAncias/pre_get_posts" title="pt-br:Plugin API/Ações e Referências/pre get posts">Português do Brasil</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Notes"><span class="tocnumber">3</span> <span class="toctext">Notes</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Argument_is_Passed_by_Reference"><span class="tocnumber">3.1</span> <span class="toctext">Argument is Passed by Reference</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Page_Requests"><span class="tocnumber">3.2</span> <span class="toctext">Page Requests</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Identifying_Target_Queries"><span class="tocnumber">3.3</span> <span class="toctext">Identifying Target Queries</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#A_Warning_About_Admin_Usage"><span class="tocnumber">3.4</span> <span class="toctext">A Warning About Admin Usage</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#A_Warning_About_Conditional_Functions"><span class="tocnumber">3.5</span> <span class="toctext">A Warning About Conditional Functions</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Offsets_.26_Pagination"><span class="tocnumber">3.6</span> <span class="toctext">Offsets &amp; Pagination</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Setting_Taxonomy_Args"><span class="tocnumber">3.7</span> <span class="toctext">Setting Taxonomy Args</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-11"><a href="#Examples"><span class="tocnumber">4</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-12"><a href="#Exclude_categories_on_your_main_page"><span class="tocnumber">4.1</span> <span class="toctext">Exclude categories on your main page</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="#Show_Only_One_Category_on_Home_Page"><span class="tocnumber">4.2</span> <span class="toctext">Show Only One Category on Home Page</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Exclude_Single_Posts_by_ID_From_Home_Page"><span class="tocnumber">4.3</span> <span class="toctext">Exclude Single Posts by ID From Home Page</span></a></li>
+<li class="toclevel-2 tocsection-15"><a href="#Exclude_Pages_from_Search_Results"><span class="tocnumber">4.4</span> <span class="toctext">Exclude Pages from Search Results</span></a></li>
+<li class="toclevel-2 tocsection-16"><a href="#Include_Custom_Post_Types_in_Search_Results"><span class="tocnumber">4.5</span> <span class="toctext">Include Custom Post Types in Search Results</span></a></li>
+<li class="toclevel-2 tocsection-17"><a href="#Only_Display_Search_Results_After_Specific_Date"><span class="tocnumber">4.6</span> <span class="toctext">Only Display Search Results After Specific Date</span></a></li>
+<li class="toclevel-2 tocsection-18"><a href="#Changing_the_number_of_posts_per_page.2C_by_post_type"><span class="tocnumber">4.7</span> <span class="toctext">Changing the number of posts per page, by post type</span></a></li>
+<li class="toclevel-2 tocsection-19"><a href="#Changing_the_number_of_posts_per_page_on_a_feed"><span class="tocnumber">4.8</span> <span class="toctext">Changing the number of posts per page on a feed</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-20"><a href="#Sample_WP_Query_Object"><span class="tocnumber">5</span> <span class="toctext">Sample WP_Query Object</span></a></li>
+<li class="toclevel-1 tocsection-21"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Articles"><span class="tocnumber">6.1</span> <span class="toctext">Articles</span></a></li>
+<li class="toclevel-2"><a href="#Code_Documentation"><span class="tocnumber">6.2</span> <span class="toctext">Code Documentation</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-22"><a href="#Resources"><span class="tocnumber">7</span> <span class="toctext">Resources</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This hook is called after the query variable object is created, but before the actual query is run.
+</p><p>The <b><tt>pre_get_posts</tt></b> action gives developers access to the <tt>$query</tt> object by reference (any changes you make to <tt>$query</tt> are made directly to the original object - no return value is necessary).
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_action</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'pre_get_posts'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'your_function_name'&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=3" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h4><span class="mw-headline" id="Argument_is_Passed_by_Reference">Argument is Passed by Reference</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=4" title="Edit section: Argument is Passed by Reference">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The <tt>$query</tt> object is passed to your function <b>by reference</b>. You do not need to declare globals or return a value. Any changes you make to the object from inside your function are made to the original immediately.
+</p>
+<h4><span class="mw-headline" id="Page_Requests">Page Requests</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=5" title="Edit section: Page Requests">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p><tt>pre_get_posts</tt> should not be used to alter the query for single Page requests (page templates) because 'is_page', 'is_singular', 'pagename' and other properties (depending if pretty permalinks are used) are already set by the parse_query() method. See: <a href="https://codex.wordpress.org/Query_Overview" title="Query Overview">Query Overview</a>. 
+</p><p>Similarly, <tt>pre_get_posts</tt> will not work if used in template files (e.g., archive.php), since they are called after the query has been completed.
+</p><p>Unless you are intimately familiar with these settings and are willing to coordinate them, it's suggested that you alter the main query for single page requests by using a <a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query">new WP_Query</a> in the <a href="https://codex.wordpress.org/Page_Templates" title="Page Templates">page template</a> itself.
+</p><p>You can check out the following post regarding the use of <tt>pre_get_posts</tt> on true pages and static front pages where we alter the pagination through <tt>pre_get_posts</tt> and the filters availble in the <tt>WP_Query</tt> class and using post injection in order to make <tt>pre_get_posts</tt> work
+</p>
+<ul><li> <a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/a/215027/31545">Using pre_get_posts on pages and static front pages</a></li></ul>
+<h4><span class="mw-headline" id="Identifying_Target_Queries">Identifying Target Queries</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=6" title="Edit section: Identifying Target Queries">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>When using <tt>pre_get_posts</tt>, be aware of the query you are changing. One useful function is <a href="https://codex.wordpress.org/Function_Reference/is_main_query" title="Function Reference/is main query">is_main_query()</a>, which can help you ensure that the query you are modifying is only the main query. Use it in combination with other <a href="https://codex.wordpress.org/Conditional_Tags" title="Conditional Tags">conditional tags</a> to only alter the main query on the pages you want.
+</p>
+<h4><span class="mw-headline" id="A_Warning_About_Admin_Usage">A Warning About Admin Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=7" title="Edit section: A Warning About Admin Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>This filter can also be used to affect admin screen queries. Be sure to check if your modification is affecting your post edit screens. For example, just checking <tt><a href="https://codex.wordpress.org/Function_Reference/is_main_query" title="Function Reference/is main query">is_main_query()</a></tt> and <tt><a href="https://codex.wordpress.org/Function_Reference/is_post_type_archive" title="Function Reference/is post type archive">is_post_type_archive('movie')</a></tt> will also change the query for the <tt>edit.php?post_type=movie</tt> admin screen, unless you also check for <tt>!<a href="https://codex.wordpress.org/Function_Reference/is_admin" title="Function Reference/is admin">is_admin()</a></tt>
+</p>
+<h4><span class="mw-headline" id="A_Warning_About_Conditional_Functions">A Warning About Conditional Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=8" title="Edit section: A Warning About Conditional Functions">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p><tt>pre_get_posts</tt> runs <b>before</b> <tt><a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query">WP_Query</a></tt> has been set up. Some template tags and conditional functions that rely on WP_Query will not work. For example, <tt><a href="https://codex.wordpress.org/Function_Reference/is_front_page" title="Function Reference/is front page">is_front_page()</a></tt> will <b>not</b> work, although <tt><a href="https://codex.wordpress.org/Function_Reference/is_home" title="Function Reference/is home">is_home()</a></tt><i>will</i> work. In such cases, you will need to work directly with the query vars, which are passed to the <tt>pre_get_posts</tt> hook as an argument (<tt>$query</tt> in examples on this page).
+</p>
+<h4><span class="mw-headline" id="Offsets_.26_Pagination">Offsets &amp; Pagination</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=9" title="Edit section: Offsets &amp; Pagination">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Using the <tt>offset</tt> argument in <b>any</b> WordPress query can break pagination. If you need to use offset and preserve pagination, please keep in mind that you will need to handle pagination manually. Read the codex article <a href="https://codex.wordpress.org/Making_Custom_Queries_using_Offset_and_Pagination" title="Making Custom Queries using Offset and Pagination">Making Custom Queries using Offset and Pagination</a> for more information.
+</p>
+<h4><span class="mw-headline" id="Setting_Taxonomy_Args">Setting Taxonomy Args</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=10" title="Edit section: Setting Taxonomy Args">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>If <tt><a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query">WP_Query</a></tt> determines that the result will be singular (<tt><a href="https://codex.wordpress.org/Function_Reference/is_singular" title="Function Reference/is singular">is_singular()</a></tt> is <tt>true</tt>), it will ignore the <tt>tax_query</tt> parameter.  To modify <tt>tax_query</tt>, use the <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/posts_clauses" title="Plugin API/Filter Reference/posts clauses">posts_clauses</a></tt> filter to add the required SQL statements.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=11" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Exclude_categories_on_your_main_page">Exclude categories on your main page</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=12" title="Edit section: Exclude categories on your main page">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This is how you can exclude categories of posts from displaying in your blog. For example, if you have 2 categories of posts (uncategorized '1' and another '1347') that you don't want to display on your 'home' blog page, you can use the following in your plugin or theme to omit these categories:
+</p>
+<pre>
+function exclude_category( $query ) {
+    if ( $query-&gt;is_home() &amp;&amp; $query-&gt;is_main_query() ) {
+        $query-&gt;set( 'cat', '-1,-1347' );
+    }
+}
+add_action( 'pre_get_posts', 'exclude_category' );
+</pre>
+<h3><span class="mw-headline" id="Show_Only_One_Category_on_Home_Page">Show Only One Category on Home Page</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=13" title="Edit section: Show Only One Category on Home Page">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Place this code in <tt>functions.php</tt> to cause the home page to display posts only from one category.
+</p>
+<pre>
+function my_home_category( $query ) {
+    if ( $query-&gt;is_home() &amp;&amp; $query-&gt;is_main_query() ) {
+        $query-&gt;set( 'cat', '123' );
+    }
+}
+add_action( 'pre_get_posts', 'my_home_category' );
+</pre>
+<p>Change "123" to the category ID you wish to display.
+</p>
+<h3><span class="mw-headline" id="Exclude_Single_Posts_by_ID_From_Home_Page">Exclude Single Posts by ID From Home Page</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=14" title="Edit section: Exclude Single Posts by ID From Home Page">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Excludes an array of single post ID's from your home page
+</p>
+<pre>
+function exclude_single_posts_home($query) {
+  if ($query-&gt;is_home() &amp;&amp; $query-&gt;is_main_query()) {
+    $query-&gt;set('post__not_in', array(7,11));
+  }
+}
+
+add_action('pre_get_posts', 'exclude_single_posts_home');
+</pre>
+<h3><span class="mw-headline" id="Exclude_Pages_from_Search_Results">Exclude Pages from Search Results</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=15" title="Edit section: Exclude Pages from Search Results">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Often when readers of your blog search for something, it is most likely to be in posts rather than pages. So, you might like to exclude pages in your search results. It is possible to create an action hook that limits the search results by showing only results from posts.
+</p><p>The following example demonstrates how to do that:
+</p>
+<pre>
+function search_filter($query) {
+  if (&#160;!is_admin() &amp;&amp; $query-&gt;is_main_query() ) {
+    if ($query-&gt;is_search) {
+      $query-&gt;set('post_type', 'post');
+    }
+  }
+}
+
+add_action('pre_get_posts','search_filter');
+</pre>
+<h3><span class="mw-headline" id="Include_Custom_Post_Types_in_Search_Results">Include Custom Post Types in Search Results</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=16" title="Edit section: Include Custom Post Types in Search Results">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<pre>
+function search_filter($query) {
+  if (&#160;!is_admin() &amp;&amp; $query-&gt;is_main_query() ) {
+    if ($query-&gt;is_search) {
+      $query-&gt;set('post_type', array( 'post', 'movie' ) );
+    }
+  }
+}
+
+add_action('pre_get_posts','search_filter');
+</pre>
+<h3><span class="mw-headline" id="Only_Display_Search_Results_After_Specific_Date">Only Display Search Results After Specific Date</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=17" title="Edit section: Only Display Search Results After Specific Date">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Uses the date_query from WP_Query. In this example, only returns results after 1/1/2013
+</p>
+<pre>
+add_action( 'pre_get_posts', 'date_search_filter' );
+function date_search_filter($query) {
+
+if (&#160;! is_admin() &amp;&amp; $query-&gt;is_main_query() ) {
+    if ($query-&gt;is_search) {
+
+$query-&gt;set( 'date_query', 
+    [    [
+    'after'     =&gt; 'January 1st, 2013',
+    'inclusive' =&gt; true,
+    ]    ] 
+    );
+    }
+  }
+}
+</pre>
+<h3><span class="mw-headline" id="Changing_the_number_of_posts_per_page.2C_by_post_type">Changing the number of posts per page, by post type</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=18" title="Edit section: Changing the number of posts per page, by post type">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>WordPress includes a single global setting for controlling the number of posts that appear on one loop page (under "Blog pages show at most" in the admin"). It is possible to create an action hook that changes / overrides the posts_per_page setting on a case-by-case basis. Best of all, this is done before the query is even executed (so there is no performance cost)! 
+</p><p>The following example demonstrates how to override the page size ('posts_per_page') for archives of specific post types:
+</p>
+<pre>
+function hwl_home_pagesize( $query ) {
+    if ( is_admin() ||&#160;! $query-&gt;is_main_query() )
+        return;
+
+    if ( is_home() ) {
+        // Display only 1 post for the original blog archive
+        $query-&gt;set( 'posts_per_page', 1 );
+        return;
+    }
+
+    if ( is_post_type_archive( 'movie' ) ) {
+        // Display 50 posts for a custom post type called 'movie'
+        $query-&gt;set( 'posts_per_page', 50 );
+        return;
+    }
+}
+add_action( 'pre_get_posts', 'hwl_home_pagesize', 1 );
+</pre>
+<h3><span class="mw-headline" id="Changing_the_number_of_posts_per_page_on_a_feed">Changing the number of posts per page on a feed</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=19" title="Edit section: Changing the number of posts per page on a feed">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>You can override the number of posts to show up in a specific feed using the posts_per_rss setting.
+</p>
+<pre>
+function bdn_feed_set_posts_per_rss( $query ) {
+
+	if(&#160;!$query-&gt;is_main_query() ||&#160;!is_feed() )
+		return;
+	
+	//set conditional
+
+	$query-&gt;set( 'posts_per_rss', 50 );
+
+}
+</pre>
+<h2><span class="mw-headline" id="Sample_WP_Query_Object">Sample WP_Query Object</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=20" title="Edit section: Sample WP Query Object">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>For reference, this is one possible example of the WP_Query object (<tt>$query</tt>) exposed by this hook. For more detail, you can also review the <a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query">WP_Query</a> codex page.
+</p>
+<pre>
+WP_Query Object
+(
+    [query_vars] =&gt; Array
+        (
+            [page] =&gt; 
+            [pagename] =&gt; blog
+            [error] =&gt; 
+            [m] =&gt; 0
+            [p] =&gt; 0
+            [post_parent] =&gt; 
+            [post_type] =&gt;
+            [subpost] =&gt; 
+            [subpost_id] =&gt; 
+            [attachment] =&gt; 
+            [attachment_id] =&gt; 0
+            [name] =&gt; 
+            [static] =&gt; 
+            [page_id] =&gt; 0
+            [second] =&gt; 
+            [minute] =&gt; 
+            [hour] =&gt; 
+            [day] =&gt; 0
+            [monthnum] =&gt; 0
+            [year] =&gt; 0
+            [w] =&gt; 0
+            [category_name] =&gt; 
+            [tag] =&gt; 
+            [cat] =&gt; 
+            [tag_id] =&gt; 
+            [author_name] =&gt; 
+            [feed] =&gt; 
+            [tb] =&gt; 
+            [paged] =&gt; 0
+            [comments_popup] =&gt; 
+            [meta_key] =&gt; 
+            [meta_value] =&gt; 
+            [preview] =&gt; 
+            [s] =&gt; 
+            [sentence] =&gt; 
+            [fields] =&gt; 
+            [category__in] =&gt; Array
+                (
+                )
+
+            [category__not_in] =&gt; Array
+                (
+                )
+
+            [category__and] =&gt; Array
+                (
+                )
+
+            [post__in] =&gt; Array
+                (
+                )
+
+            [post__not_in] =&gt; Array
+                (
+                )
+
+            [tag__in] =&gt; Array
+                (
+                )
+
+            [tag__not_in] =&gt; Array
+                (
+                )
+
+            [tag__and] =&gt; Array
+                (
+                )
+
+            [tag_slug__in] =&gt; Array
+                (
+                )
+
+            [tag_slug__and] =&gt; Array
+                (
+                )
+
+        )
+
+    [tax_query] =&gt; 
+    [meta_query] =&gt; 
+    [post_count] =&gt; 0
+    [current_post] =&gt; -1
+    [in_the_loop] =&gt; 
+    [comment_count] =&gt; 0
+    [current_comment] =&gt; -1
+    [found_posts] =&gt; 0
+    [max_num_pages] =&gt; 0
+    [max_num_comment_pages] =&gt; 0
+    [is_single] =&gt; 
+    [is_preview] =&gt; 
+    [is_page] =&gt; 
+    [is_archive] =&gt; 
+    [is_date] =&gt; 
+    [is_year] =&gt; 
+    [is_month] =&gt; 
+    [is_day] =&gt; 
+    [is_time] =&gt; 
+    [is_author] =&gt; 
+    [is_category] =&gt; 
+    [is_tag] =&gt; 
+    [is_tax] =&gt; 
+    [is_search] =&gt; 
+    [is_feed] =&gt; 
+    [is_comment_feed] =&gt; 
+    [is_trackback] =&gt; 
+    [is_home] =&gt; 1
+    [is_404] =&gt; 
+    [is_comments_popup] =&gt; 
+    [is_paged] =&gt; 
+    [is_admin] =&gt; 
+    [is_attachment] =&gt; 
+    [is_singular] =&gt; 
+    [is_robots] =&gt; 
+    [is_posts_page] =&gt; 1
+    [is_post_type_archive] =&gt; 
+    [query_vars_hash] =&gt; 41032f87127fba65fb6743b1e97d8662
+    [query_vars_changed] =&gt; 
+    [thumbnails_cached] =&gt; 
+    [query] =&gt; Array
+        (
+            [page] =&gt; 
+            [pagename] =&gt; blog
+        )
+
+    [queried_object] =&gt; stdClass Object
+        (
+            [ID] =&gt; 16
+            [post_author] =&gt; 1
+            [post_date] =&gt; 2012-01-31 17:23:57
+            [post_date_gmt] =&gt; 2012-01-31 17:23:57
+            [post_content] =&gt; 
+            [post_title] =&gt; Blog
+            [post_excerpt] =&gt; 
+            [post_status] =&gt; publish
+            [comment_status] =&gt; open
+            [ping_status] =&gt; open
+            [post_password] =&gt; 
+            [post_name] =&gt; blog
+            [to_ping] =&gt; 
+            [pinged] =&gt; 
+            [post_modified] =&gt; 2012-01-31 17:23:57
+            [post_modified_gmt] =&gt; 2012-01-31 17:23:57
+            [post_content_filtered] =&gt; 
+            [post_parent] =&gt; 0
+            [guid] =&gt; 
+</pre>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=21" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Articles">Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Query_Tags&amp;action=edit&amp;section=T-1" title="Template:Query Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Article: <a href="https://codex.wordpress.org/The_Loop" title="The Loop">The Loop</a> - A basic overview of its use of query within the WordPress loop.</li>
+<li> Article: <a href="https://codex.wordpress.org/Query_Overview" title="Query Overview">Query Overview</a> - Explanation of how to determine which queries generate WordPress.</li>
+<li> Article: <a href="https://codex.wordpress.org/Custom_Queries" title="Custom Queries"> Customizing Queries via Hook</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Displaying_Posts_Using_a_Custom_Select_Query" title="Displaying Posts Using a Custom Select Query"> View Articles MYSQL query using custom</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Making_Advanced_Taxonomy_Queries" title="Making Advanced Taxonomy Queries"> Build advanced queries on Taxonomies</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Making_Custom_Queries_using_Offset_and_Pagination" title="Making Custom Queries using Offset and Pagination"> Build custom query using Offset and pagination</a></li></ul>
+<h3><span class="mw-headline" id="Code_Documentation">Code Documentation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Query_Tags&amp;action=edit&amp;section=T-2" title="Template:Query Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query"> WP_Query</a> - Detailed Overview of class WP_Query</li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Comment_Query" title="Class Reference/WP Comment Query"> WP_Comment_Query</a> - Class for comment-related queries</li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_User_Query" title="Class Reference/WP User Query"> WP_User_Query</a> - Class for user-related queries</li>
+<li> Object: <a href="https://codex.wordpress.org/Class_Reference/wpdb" title="Class Reference/wpdb"> $wpdb</a> - Overview on the use of the $wpdb object</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/set_query_var" title="Function Reference/set query var"> set_query_var()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_query_var" title="Function Reference/get query var"> get_query_var()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/query_posts" title="Function Reference/query posts"> query_posts()</a> - Create additional custom query</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_post" title="Function Reference/get post"> get_post()</a> - Take an ID of an item and return the records in the database for that article</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_posts" title="Function Reference/get posts" class="mw-redirect"> get_posts()</a> - A specialized function that returns an array of items</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_pages" title="Function Reference/get pages"> get_pages()</a> - A specialized function that returns an array of pages</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/have_posts" title="Function Reference/have posts"> have_posts()</a> - A condition that determines whether the query returned an article</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/the_post" title="Function Reference/the post"> the_post()</a> - Used to automatically set the loop after a query</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/rewind_posts" title="Function Reference/rewind posts"> rewind_posts()</a> - Clears the current loop</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/setup_postdata" title="Function Reference/setup postdata"> setup_postdata()</a> - Sets the data for a single query result within a loop</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_reset_postdata" title="Function Reference/wp reset postdata"> wp_reset_postdata()</a> - Restores the previous query (usually after a loop within another loop)</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_reset_query" title="Function Reference/wp reset query"> wp_reset_query()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/is_main_query" title="Function Reference/is main query"> is_main_query()</a> - Ensures that the query that is being changed is only the main query</li>
+<li> Action Hook: <strong class="selflink"> pre_get_posts</strong> - Change WordPress queries before they are executed</li>
+<li> Action Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/the_post" title="Plugin API/Action Reference/the post"> the_post</a> - Modify the post object after query</li>
+<li> Filter Hook: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/found_posts" title="Plugin API/Filter Reference/found posts"> found_posts</a> - Changes the value of the object found_posts WP_Query</li></ul>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/pre_get_posts&amp;action=edit&amp;section=22" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="https://wpsites.net/wordpress-tips/only-show-specific-pages-or-posts-on-home-page/">Only Show Specific Pages or Posts On Home Page - 5 code snippets</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004053
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.024 seconds
+Real time usage: 0.030 seconds
+Preprocessor visited node count: 207/1000000
+Preprocessor generated node count: 492/1000000
+Post‐expand include size: 3557/2097152 bytes
+Template argument size: 398/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    7.738      1 - -total
+ 68.84%    5.327      1 - Template:Languages
+ 19.53%    1.511      1 - Template:Query_Tags
+ 17.45%    1.350      1 - Template:ja
+ 16.47%    1.274      1 - Template:pt-br
+ 15.26%    1.181      1 - Template:en
+-->

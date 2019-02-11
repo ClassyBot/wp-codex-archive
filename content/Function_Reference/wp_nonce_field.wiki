@@ -1,0 +1,101 @@
+{{Languages|
+{{en|Function_Reference/wp_nonce_field}}
+{{ja|関数リファレンス/wp_nonce_field}}
+}}
+
+== Description ==
+
+Retrieves or displays the [[Glossary#Nonce|nonce]] hidden form field. 
+
+The nonce field is used to validate that the contents of the form request came from the current site and not somewhere else. A nonce does not offer absolute protection, but should protect against most cases. It is very important to use nonce fields in forms. 
+
+The <tt>$action</tt> and <tt>$name</tt> arguments are optional, but if you want to have a better security, it is strongly suggested to give those two arguments. It is easier to just call the function without any arguments, because the nonce security method does not require them, but since crackers know what the default is, it will not be difficult for them to find a way around your nonce and cause damage. 
+
+The nonce field name will be whatever <tt>$name</tt> value you gave, and the field value will be the value created using the <tt>[[Function Reference/wp_create_nonce|wp_create_nonce()]]</tt> function.
+
+== Usage ==
+
+%%%<?php wp_nonce_field( $action, $name, $referer, $echo ) ?>%%%
+
+== Parameters ==
+
+{{Parameter|$action|string|Action name. Should give the context to what is taking place. Optional but ''recommended''.|optional|-1}}
+{{Parameter|$name|string|Nonce name. This is the name of the nonce hidden form field to be created. Once the form is submitted, you can access the generated nonce via <tt>$_POST[$name]</tt>. |optional|'_wpnonce'}}
+{{Parameter|$referer|boolean|Whether also the referer hidden form field should be created with the <tt>[[Function Reference/wp_referer_field|wp_referer_field()]]</tt> function.|optional|true}}
+{{Parameter|$echo|boolean|Whether to display or return the nonce hidden form field, and also the referer hidden form field if the <tt>$referer</tt> argument is set to ''true''.|optional|true}}
+
+== Return Values ==
+
+{{Return||string|The [[Glossary#Nonce|nonce]] hidden form field, optionally followed by the referer hidden form field if the <tt>$referer</tt> argument is set to ''true''.}}
+
+== Examples ==
+
+While less secure than the examples that follow, this is the simplest implementation which omits all arguments. In your form add the following:
+
+<pre>
+   <?php wp_nonce_field(); ?>
+</pre>
+
+It's better to name your action and nonce in your form.  Enter values for the first and second arguments to  print the necessary hidden field:
+
+<pre>
+<form method="post">
+   <!-- some inputs here ... -->
+   <?php wp_nonce_field( 'name_of_my_action', 'name_of_nonce_field' ); ?>
+</form>
+</pre>
+
+Then in the page where it is being submitted to, you may verify it using the <tt>[[Function Reference/wp_verify_nonce|wp_verify_nonce()]]</tt> function.  Notice that you have to manually retrieve the nonce (from the <tt>$_POST</tt> array in this example), and the name of the action is the ''2nd'' parameter instead of the first:
+<pre>
+<?php
+
+if ( 
+    ! isset( $_POST['name_of_nonce_field'] ) 
+    || ! wp_verify_nonce( $_POST['name_of_nonce_field'], 'name_of_my_action' ) 
+) {
+
+   print 'Sorry, your nonce did not verify.';
+   exit;
+
+} else {
+
+   // process form data
+}
+</pre>
+
+
+If you are submitting and processing the form inside the WP administration area, you may verify the nonce using the <tt>[[Function Reference/check_admin_referer|check_admin_referer()]]</tt> function:
+
+<pre>
+<?php
+
+// if this fails, check_admin_referer() will automatically print a "failed" page and die.
+if ( ! empty( $_POST ) && check_admin_referer( 'name_of_my_action', 'name_of_nonce_field' ) ) {
+   // process form data
+}
+</pre>
+
+== Notes ==
+
+== Change Log ==
+* Since: [[Version 2.0.4|2.0.4]]
+
+== Source File ==
+<tt>wp_nonce_field()</tt> is located in {{Trac|wp-includes/functions.php}}.
+
+== Related ==
+
+{{Nonces}}
+
+* [[WordPress Nonces]]
+
+== External Resources ==
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ Mark Jaquith - WordPress Nonces]
+* [http://www.prelovac.com/vladimir/improving-security-in-wordpress-plugins-using-nonces Vladimir Prelovac - Using Nonces in WordPress Plugins]
+* Wikipedia: [[wikipedia:Cryptographic_nonce|Cryptographic Nonce]]
+* Nicolas Sebastiani: [https://www.bynicolas.com/code/wordpress-nonce/ How Do WordPress Nonces Really Work ] - bynicolas.com
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

@@ -1,0 +1,117 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/関数リファレンス/wp_handle_upload">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Examples"><span class="tocnumber">4</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Return_values"><span class="tocnumber">5</span> <span class="toctext">Return values</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Further_Reading"><span class="tocnumber">6</span> <span class="toctext">Further Reading</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">7</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_handle_upload&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Handle PHP uploads in WordPress, sanitizing file names, checking extensions for mime type, and moving the file to the appropriate directory within the uploads directory.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_handle_upload&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;wp_handle_upload</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$file</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$overrides</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$time&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_handle_upload&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$file</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>required</i>) Reference to a single element of <tt>$_FILES</tt>. Call the function once for each uploaded file. Passed by reference, so <b>you must pass a variable, not a literal.</b>
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$overrides</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>optional</i>) An associative array to override default behaviors. When called while handling a form, <tt>'action'</tt> must be set to match the <tt>'action'</tt> parameter in the form or the upload will be rejected. When there is no form being handled, use <tt>'test_form' &#x3d;&gt; false</tt> to bypass this test, and set <tt>'action'</tt> to something other than the default (<tt>"wp_handle_upload"</tt>) to bypass security checks requiring the file in question to be a user-uploaded file.
+<dl><dd> Default: false</dd></dl></dd></dl>
+<dl><dt> <tt>$time</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) Time formatted in 'yyyy/mm'. Passed to <tt>wp_upload_dir()</tt>.
+<dl><dd> Default: NULL</dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_handle_upload&amp;action=edit&amp;section=4" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+if (&#160;! function_exists( 'wp_handle_upload' ) ) {
+    require_once( ABSPATH . 'wp-admin/includes/file.php' );
+}
+
+$uploadedfile = $_FILES['file'];
+
+$upload_overrides = array( 'test_form' =&gt; false );
+
+$movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
+
+if ( $movefile &amp;&amp;&#160;! isset( $movefile['error'] ) ) {
+    echo "File is valid, and was successfully uploaded.\n";
+    var_dump( $movefile );
+} else {
+    /**
+     * Error generated by _wp_handle_upload()
+     * @see _wp_handle_upload() in wp-admin/includes/file.php
+     */
+    echo $movefile['error'];
+}
+</pre>
+<h2><span class="mw-headline" id="Return_values">Return values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_handle_upload&amp;action=edit&amp;section=5" title="Edit section: Return values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>On success, returns an associative array of file attributes. On failure, returns <tt>$overrides['upload_error_handler'](&amp;$file, $message )</tt> or <tt>array( 'error'=&gt;$message )</tt>.
+</p><p>The return values on success:
+</p>
+<dl><dt> <tt>file</tt>&#160;</dt>
+<dd> (<i>string</i>) The local path to the uploaded file.</dd>
+<dt> <tt>url</tt>&#160;</dt>
+<dd> (<i>string</i>) The public URL for the uploaded file.</dd>
+<dt> <tt>type</tt>&#160;</dt>
+<dd> (<i>string</i>) The MIME type.</dd></dl>
+<p><tt>type</tt> and <tt>file</tt> may be used with <a rel="nofollow" class="external text" href="http://codex.wordpress.org/Function_Reference/wp_insert_attachment">wp insert attachment()</a>.
+</p>
+<h2><span class="mw-headline" id="Further_Reading">Further Reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_handle_upload&amp;action=edit&amp;section=6" title="Edit section: Further Reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/questions/4307/how-can-i-add-an-image-upload-field-directly-to-a-custom-write-panel/4413#4413">How can I add an image upload field directly to a custom write panel?</a></li>
+<li> <a rel="nofollow" class="external text" href="http://ottopress.com/2011/tutorial-using-the-wp_filesystem/">Tutorial: Using the WP_Filesystem</a></li>
+<li> <a rel="nofollow" class="external text" href="https://github.com/zanematthew/zm-upload/">Sample Helper Class on GitHub</a></li></ul>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_handle_upload&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>wp_handle_upload()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/4.7.2/src/wp-admin/includes/file.php#L423">wp-admin/includes/file.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_handle_upload&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>Upload Functions:</b> 
+<tt><a href="https://codex.wordpress.org/Function_Reference/media_handle_upload" title="Function Reference/media handle upload"> media_handle_upload()</a></tt>,
+<tt><a href="https://codex.wordpress.org/Function_Reference/media_handle_sideload" title="Function Reference/media handle sideload"> media_handle_sideload()</a></tt>,
+<tt><strong class="selflink"> wp_handle_upload()</strong></tt>,
+<tt><a href="/index.php?title=Function_Reference/wp_import_handle_upload&amp;action=edit&amp;redlink=1" class="new" title="Function Reference/wp import handle upload (page does not exist)"> wp_import_handle_upload()</a></tt>,
+<tt><a href="https://codex.wordpress.org/Function_Reference/wp_handle_sideload" title="Function Reference/wp handle sideload"> wp_handle_sideload()</a></tt>,
+<tt><a href="https://codex.wordpress.org/Function_Reference/media_sideload_image" title="Function Reference/media sideload image"> media_sideload_image()</a></tt>
+</p>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003958
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.154 seconds
+Preprocessor visited node count: 145/1000000
+Preprocessor generated node count: 584/1000000
+Post‐expand include size: 2768/2097152 bytes
+Template argument size: 1188/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   68.361      1 - -total
+ 33.43%   22.850      3 - Template:Parameter
+ 28.55%   19.517      1 - Template:Upload_Tags
+ 19.03%   13.010      1 - Template:Tag_Footer
+ 15.87%   10.851      1 - Template:Languages
+ 15.31%   10.466      1 - Template:Message
+  9.51%    6.500      1 - Template:ja
+  1.97%    1.345      1 - Template:Trac
+  1.78%    1.215      1 - Template:en
+-->

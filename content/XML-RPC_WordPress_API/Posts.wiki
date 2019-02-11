@@ -1,0 +1,395 @@
+== wp.getPost ==
+
+Retrieve a post of any registered post type.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>post_id</tt>
+* array <tt>fields</tt>: Optional. List of field or meta-field names to include in response.
+
+=== Return Values ===
+
+* struct: Note that the exact fields returned depends on the <tt>fields</tt> parameter.
+** string <tt> post_id </tt>
+** string <tt>post_title</tt><sup>1</sup>
+** datetime <tt>post_date</tt><sup>1</sup>
+** datetime <tt>post_date_gmt</tt><sup>1</sup>
+** datetime <tt>post_modified</tt><sup>1</sup>
+** datetime <tt>post_modified_gmt</tt><sup>1</sup>
+** string <tt>post_status</tt><sup>1</sup>
+** string <tt>post_type</tt><sup>1</sup>
+** string <tt>post_format</tt><sup>1</sup>
+** string <tt>post_name</tt><sup>1</sup>
+** string <tt>post_author</tt><sup>1</sup> author id
+** string <tt>post_password</tt><sup>1</sup>
+** string <tt>post_excerpt</tt><sup>1</sup>
+** string <tt>post_content</tt><sup>1</sup>
+** string <tt>post_parent</tt><sup>1</sup>
+** string <tt>post_mime_type</tt><sup>1</sup>
+** string <tt>link</tt><sup>1</sup>
+** string <tt>guid</tt><sup>1</sup>
+** int <tt>menu_order</tt><sup>1</sup>
+** string <tt>comment_status</tt><sup>1</sup>
+** string <tt>ping_status</tt><sup>1</sup>
+** bool <tt>sticky</tt><sup>1</sup>
+** struct <tt>post_thumbnail</tt><sup>1</sup>: See [[XML-RPC_WordPress_API/Media#wp.getMediaItem|wp.getMediaItem]].
+** array <tt>terms</tt>
+*** struct: See [[XML-RPC_WordPress_API/Taxonomies#wp.getTerm|wp.getTerm]]
+** array <tt>custom_fields</tt>
+*** struct
+**** string <tt>id</tt>
+**** string <tt>key</tt>
+**** string <tt>value</tt>
+** struct <tt>enclosure</tt>
+*** string <tt>url</tt>
+*** int <tt>length</tt>
+*** string <tt>type</tt>
+
+<sup>1</sup> <tt>post</tt> meta-field<br>
+
+==== Notes ====
+
+* In the older metaweblog API, the "Introduction" and the "Read More" content for a post were returned in separate fields "description" and "mt_text_more". In the WordPress API, the two values are combined in the single "post_content" field, separated by the &lt;!--more--> tag.
+
+=== Errors ===
+
+* 401
+** If user does not have permission to edit the post.
+* 404
+** If no post with that <tt>post_id</tt> exists.
+
+=== Filters ===
+
+==== xmlrpc_default_post_fields ====
+
+The default set of fields to be returned can be controlled using the <tt>xmlrpc_default_post_fields</tt> filter. The default value for this filter is:
+
+<pre>array( 'post', 'terms', 'custom_fields' )</pre>
+
+==== xmlrpc_prepare_post ====
+
+Immediately before returning the prepared post data, the value is passed through the <tt>xmlrpc_prepare_post</tt> filter. The filter has three parameters: 
+
+# The prepared post data about to be returned
+# The original post data array, see [[Function_Reference/get_post|get_post]].
+# The <tt>fields</tt> parameter value.
+
+== wp.getPosts ==
+
+Retrieve list of posts of any registered post type.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>filter</tt>: Optional.
+** string <tt>post_type</tt>
+** string <tt>post_status</tt>
+** int <tt>number</tt>
+** int <tt>offset</tt>
+** string <tt>orderby</tt>
+** string <tt>order</tt>
+* array <tt>fields</tt>: Optional. See [[#wp.getPost]].
+
+=== Return Values ===
+
+* array
+** struct: See [[#wp.getPost]].
+
+==== Notes ====
+
+* Response will only contain posts that the user has permission to edit. Therefore, there may be fewer than <tt>filter['number']</tt> posts in the response.
+
+=== Filters ===
+
+Supports same filters as [[#wp.getPost]].
+
+== wp.newPost ==
+
+Create a new post of any registered post type.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>content</tt>
+** string <tt>post_type</tt>
+** string <tt>post_status</tt>
+** string <tt>post_title</tt>
+** int <tt>post_author</tt>
+** string <tt>post_excerpt</tt>
+** string <tt>post_content</tt>
+** datetime <tt>post_date_gmt</tt> | <tt>post_date</tt>
+** string <tt>post_format</tt>
+** string <tt>post_name</tt>: Encoded URL (slug)
+** string <tt>post_password</tt>
+** string <tt>comment_status</tt>
+** string <tt>ping_status</tt>
+** int <tt>sticky</tt>
+** int <tt>post_thumbnail</tt>
+** int <tt>post_parent</tt>
+** array <tt>custom_fields</tt>
+*** struct
+**** string <tt>key</tt>
+**** string <tt>value</tt>
+** struct <tt>terms</tt>: Taxonomy names as keys, array of term IDs as values.
+** struct <tt>terms_names</tt>: Taxonomy names as keys, array of term names as values.
+** struct <tt>enclosure</tt>
+*** string <tt>url</tt>
+*** int <tt>length</tt>
+*** string <tt>type</tt>
+** any other fields supported by [[Function_Reference/wp_insert_post|wp_insert_post]]
+
+=== Return Values ===
+
+* string <tt>post_id</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap for this post type.
+** If user does not have permission to create post of the specified <tt>post_status</tt>.
+** If <tt>post_author</tt> is different than the user's ID and the user does not have the <tt>[[Roles_and_Capabilities#edit_others_posts|edit_others_posts]]</tt> cap for this post type.
+** If <tt>sticky</tt> is passed and user does not have permission to make the post sticky, regardless if <tt>sticky</tt> is set to <tt>0</tt>, <tt>1</tt>, <tt>false</tt> or <tt>true</tt>.
+** If a taxonomy in <tt>terms</tt> or <tt>terms_names</tt> is not supported by this post type.
+** If <tt>terms</tt> or <tt>terms_names</tt> is set but user does not have <tt>[[Roles_and_Capabilities#assign_terms|assign_terms]]</tt> cap.
+** If an ambiguous term name is used in <tt>terms_names</tt>.
+* 403
+** If invalid <tt>post_type</tt> is specified.
+** If an invalid term ID is specified in <tt>terms</tt>.
+* 404
+** If no author with that <tt>post_author</tt> ID exists.
+** If no attachment with that <tt>post_thumbnail</tt> ID exists.
+
+== wp.editPost ==
+
+Edit an existing post of any registered post type.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>post_id</tt>
+* struct <tt>content</tt>: See [[#wp.newPost]] for valid set of fields. Only needs to contain fields that you wish to modify; all other fields will retain their current values.
+
+=== Notes ===
+
+* You must pass the meta ID to update any existing items in the custom_fields array.
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 404
+** If no post with that <tt>post_id</tt> exists.
+
+Can also return same errors as [[#wp.newPost]].
+
+== wp.deletePost ==
+
+Delete an existing post of any registered post type. 
+
+See [[Function_Reference/wp_delete_post|wp_delete_post]] for exact behavior based on post type.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>post_id</tt>
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have permission to delete the post.
+* 404
+** If no post with that <tt>post_id</tt> exists.
+
+== wp.getPostType ==
+
+Retrieve a registered post type.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* string <tt>post_type_name</tt>
+* array <tt>fields</tt>: Optional. List of field or meta-field names to include in response.
+
+=== Return Values ===
+
+* struct: Note that the exact fields returned depends on the <tt>fields</tt> parameter.
+** string <tt>name</tt>
+** string <tt>label</tt>
+** bool <tt>hierarchical</tt>
+** bool <tt>public</tt>
+** bool <tt>show_ui</tt>
+** bool <tt>_builtin</tt>
+** bool <tt>has_archive</tt>
+** struct <tt>supports</tt>: Features supported by the theme as keys, values always true. See [[Function_Reference/post_type_supports|post_type_supports]].
+** struct <tt>labels</tt><sup>1</sup>
+** struct <tt>cap</tt><sup>2</sup>
+** bool <tt>map_meta_cap</tt><sup>2</sup>
+** int <tt>menu_position</tt><sup>3</sup>
+** string <tt>menu_icon</tt><sup>3</sup>
+** bool <tt>show_in_menu</tt><sup>3</sup>
+** array <tt>taxonomies</tt><sup>4</sup>
+
+<sup>1</sup> <tt>labels</tt> meta-field<br>
+<sup>2</sup> <tt>capabilities</tt> meta-field.<br>
+<sup>3</sup> <tt>menu</tt> meta-field.<br>
+<sup>4</sup> <tt>taxonomies</tt> meta-field.
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap for this post type.
+* 403
+** If invalid post type name is specified.
+
+=== Filters ===
+
+The default set of fields to be returned can be controlled using the <tt>xmlrpc_default_posttype_fields</tt> filter. The default value for this filter is:
+
+<pre>array( 'labels', 'capabilities', 'taxonomies' )</pre>
+
+== wp.getPostTypes ==
+
+Retrieve list of registered post types.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>filter</tt>: Optional. See [[Function_Reference/get_post_types|get_post_types]] for filter options.
+* array <tt>fields</tt>: Optional. See [[#wp.getPostType]].
+
+=== Return Values ===
+
+* struct: Post type names as keys, post types as values. See [[#wp.getPostType]].
+
+==== Notes ====
+
+* Response will only contain post types for which the user has the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap.
+
+=== Filters ===
+
+The default set of fields to be returned can be controlled using the <tt>xmlrpc_default_posttype_fields</tt> filter. The default value for this filter is:
+
+<pre>array( 'labels', 'capabilities', 'taxonomies' )</pre>
+
+== wp.getPostFormats ==
+
+Retrieve list of post formats.
+
+Added in WordPress 3.1.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* array <tt>filter</tt>: Optional.
+** bool <tt>show-supported</tt>: Retrieve both the complete list of post formats, and the specific list of formats supported by the current theme.
+
+=== Return Values ===
+
+If <tt>filter</tt> or <tt>show-supported</tt> is omitted or <tt>false</tt>:
+
+* struct: keys are the formats, values are the display name for the format.
+
+Example response data:
+<pre>
+array(
+  'standard' => 'Standard',
+  'aside'    => 'Aside',
+  'image'    => 'Image',
+  ...
+);
+</pre>
+
+If <tt>show-supported</tt> is set:
+
+* struct
+** struct <tt>all</tt>: All post formats, in key/value format as described above.
+** array (of strings) <tt>supported</tt>: List of post formats supported by the current theme.
+
+Example response data:
+<pre>
+array(
+  'all' => array(
+    'standard' => 'Standard',
+    'aside'    => 'Aside',
+    'image'    => 'Image',
+    ...
+  ),
+  'supported' => array( 'standard', 'image' )
+);
+</pre>
+
+=== Errors ===
+
+* 403
+** If the user does not have the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap.
+
+== wp.getPostStatusList ==
+
+Retrieve list of supported values for <tt>post_status</tt> field on posts.
+
+Added in WordPress 2.5.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* struct: keys are the statuses, values are the display name for the status.
+
+Example response data:
+<pre>
+array(
+  'draft'   => 'Draft',
+  'pending' => 'Pending Review',
+  'private' => 'Private',
+  'publish' => 'Published'
+);
+</pre>
+
+=== Errors ===
+
+* 403
+** If the user does not have the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap.
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Feeds]]

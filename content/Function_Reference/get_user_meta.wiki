@@ -1,0 +1,92 @@
+{{Languages|
+{{en|Function Reference/get_user_meta}}
+{{ko|함수 레퍼런스/get_user_meta}}
+{{ja|関数リファレンス/get_user_meta}}
+}}
+== Description ==
+Retrieve a single meta field or all fields of user_meta data for the given user. Uses [[Function Reference/get_metadata|get_metadata()]]. This function replaces the deprecated [[Function Reference/get_usermeta|get_usermeta()]] function.
+
+== Usage ==
+%%%<?php get_user_meta($user_id, $key, $single);  ?>%%%
+
+== Parameters ==
+{{Parameter|$user_id|integer|The ID of the user whose data should be retrieved.}}
+{{Parameter|$key|string|The '''meta_key''' in the [[Database_Description#Table:_wp_usermeta|wp_usermeta table]] for the '''meta_value''' to be returned. If left empty, will return '''all''' user_meta fields for the given user.|optional|(empty string)}}
+{{Parameter|$single|boolean|If true return value of meta data field, if false return an array. This parameter has no effect if <tt>$key</tt> is left blank.|optional|false}}
+
+== Return Values ==
+; (mixed) :  Will be an Array if $key is not specified or if $single is false.  Will be value of meta_value field if $single is true.
+
+; NOTE: If the meta value does not exist and $single is true the function will return an empty string. If $single is false an empty array is returned.
+
+== Examples ==
+This example returns and then displays the last name for user id 9.
+<pre>
+<?php 
+  $user_id = 9;
+  $key = 'last_name';
+  $single = true;
+  $user_last = get_user_meta( $user_id, $key, $single ); 
+  echo '<p>The '. $key . ' value for user id ' . $user_id . ' is: ' . $user_last . '</p>'; 
+?>
+</pre>
+
+<div style="border:1px solid blue; width:50%; padding:10px">The last_name value for user id 9 is Franklin<br />
+</div>
+
+
+
+===Getting all meta data===
+This example demonstrates leaving the <tt>$key</tt> argument blank, in order to retrieve all meta data for the given user (in this example, <tt>user_id</tt> = 9):
+<pre>
+<?php
+  $all_meta_for_user = get_user_meta( 9 );
+  print_r( $all_meta_for_user );
+?>
+</pre>
+Results:
+<pre>
+Array ( [first_name] => Array ( [0] => Tom ) [last_name] => Array ( [0] => Auger) [nickname] => Array ( [0] => tomauger ) [description] => etc.... )
+</pre>
+'''Note:''' in order to access the data in this example, you need to dereference the array that is returned for each key, like so: 
+<pre>
+$last_name = $all_meta_for_user['last_name'][0];
+</pre>
+<pre>The [0] returns only the FIRST character of the last name. Remove the [0] completely to return the FULL last name.</pre>
+To avoid this, you may want to run a simple <tt>array_map()</tt> on the results of <tt>get_user_meta()</tt> in order to take only the first index of each result (this emulating what the <tt>$single</tt> argument does when <tt>$key</tt> is provided:
+<pre>
+  $all_meta_for_user = array_map( function( $a ){ return $a[0]; }, get_user_meta( $user_id ) );
+
+  print_r( $all_meta_for_user );
+</pre>
+Results:
+<pre>
+Array ( [first_name] => Tom [last_name] => Auger [nickname] => tomauger [description] => etc.... )
+</pre>
+Additionally, if you want to return ALL meta for a specific user and filter out empty values, you can run <tt>array_filter()</tt> on the results of the <tt>array_map()</tt> above:
+<pre>
+// Get all user meta data for $user_id
+$meta = get_user_meta( $user_id );
+
+// Filter out empty meta data
+$meta = array_filter( array_map( function( $a ) {
+	return $a[0];
+}, $meta ) );
+</pre>
+
+== Notes ==
+Please note that if the meta value exists but is empty, it will return an empty string (or array) as if the meta value didn't exist. This might cause unexpected behaviours in your code when you empty the user meta, your code can try to use add_user_meta instead of update_user_meta thinking the user does not have meta created yet.
+
+=== Filters ===
+
+== Change Log ==
+Since: [[Version 3.0|3.0]]
+
+== Source File ==
+<tt>get_user_meta()</tt> is located in {{Trac|wp-includes/user.php}}.
+
+== Related ==
+{{User Meta Tags}}
+{{Tag Footer}}
+
+[[Category:Functions]]

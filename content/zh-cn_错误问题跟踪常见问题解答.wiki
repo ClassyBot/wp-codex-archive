@@ -1,0 +1,402 @@
+{{Languages|
+{{en|FAQ Troubleshooting}}
+{{ja|FAQ/トラブルシューティング}}
+{{zh-cn|错误问题跟踪常见问题解答}}
+}}
+__TOC__
+[[zh-cn:FAQ|返回到常见问题解答页面]]
+==为什么我的日志都不见了？全都是''Sorry, no posts match your criteria''（对不起，没有符合要求的日志）？==
+
+清除浏览器缓存和cookies可能会解决问题。与此同时，检查<tt>search.php</tt>和<tt>index.php</tt>模板文件中是否有错误。
+
+参见：
+* [[I Make Changes and Nothing Happens|WordPress 更改不成功怎么办？]]
+
+==怎样寻找更多的帮助？==
+
+除了这些[[zh-cn:FAQ]]文章外，还有很多渠道可以提供更多WordPress帮助。首先可以安装[http://asymptomatic.net/2005/07/20/1765/codex-searcher/ Codex and Forum Searcher Plugin]插件，方便自己在WordPress管理面板中查找WordPress文档和论坛中的内容。点击搜索结果，页面会在新窗口或表格中打开，便于用户根据页面上的说明进行操作。
+
+* [[Troubleshooting|疑难解答]]
+* [[Finding WordPress Help|如何寻找WordPress帮助]]
+* [[Using the Support Forums]]
+* [[Technical Articles|Resources and Technical Articles about WordPress]]
+* [[Troubleshooting#Installation_Problems|Installation Problems]]
+
+===遇到CSS问题时该到哪儿寻找帮助？===
+
+下面这些文章可以帮你解决大多数[[CSS]]问题：
+
+* [[Blog Design and Layout|博客设计与布局]]
+* [[Finding Your CSS Styles|查找CSS样式]]
+* [[CSS Fixing Browser Bugs|CSS之修复浏览器漏洞]]
+* [[CSS Troubleshooting|CSS 之疑难解答]]
+* [[CSS|WordPress CSS资源情报]]
+
+==为什么通过邮件发给我的密码看起来很怪异?==
+如果通过邮件发给你的密码看起来比较奇怪，请参见[http://allnarfedup.com/2004/11/10/solving-garbled-text/ Solving Garbled Text].
+
+==怎样纠正托管在Dreamhost上的WordPress 2.x版本的博客的数据统计问题？==
+
+Dreamhost中有一篇wiki文章解答了这个问题,[http://wiki.dreamhost.com/index.php/Making_stats_accessible_with_htaccess Making stats accessible with htaccess].
+
+==启用''Sending Referrers''功能时为什么会有错误信息？==
+
+存日志时如果遇到这个问题，请前往[[Administration_Panels|管理面板]]>[[Administration_Panels#General|设置]]>[[Settings_General_SubPanel|常规]]中检查'''WordPress地址（URI）'''和'''博客地址（URI）'''，两者都不应使用 'www'。例如，应将'''<nowiki>http://www.sample.com</nowiki>'''改为'''<nowiki>http://sample.com</nowiki>'''。这个问题最初可见于http://wordpress.org/support/topic/72235。
+
+参见:
+* [[Enable Sending Referrers|启用Sending Referrers功能]]
+
+==在MySQL 4.1.7上使用WordPress有问题吗？==
+
+参见：[[FAQ_Installation#Can_I_install_WordPress_on_Windows_2000.3F|可以在Windows 2000上安装WordPress吗？]]
+
+==如何清空某个数据库表？==
+参见：
+* [[Emptying a Database Table|清空数据库表格]]
+
+==怎样修正''SQL/DB Error errcode 13 Can't create/write to file''错误？==
+'''问题描述:''' 用PHP访问MySQL时，MySQL变量<tt>tmpdir</tt>被设置成一个无法被写入的目录。
+
+要解决这个问题，可从命令行中进入MySQL，输入<tt>show variables</tt>；
+
+在输出的一长列数据中会看到这样一行代码：'''tmpdir = /somedir/'''（这里是我们设置的内容）
+
+'''解决方案:''' 更改'''tmpdir'''变量，使之指向一个可写入的目录。
+
+'''步骤:'''
+<ol>
+<li>找到'''my.cnf'''文件。在*nix系统中该文件通常在'''/etc/'''下</li>
+<li>在简单的文本编辑器中打开该文件，找到'''[mysqld]'''部分。</li>
+<li>在'''[mysqld]'''部分中找到'''tmpdir'''所在行。如果该行已经被标注（即行起始部分有#符号），删除#号，将该行更改为：'''tmpdir = /writable/dir'''，其中'''/writable/dir'''是我们可以写入的某个目录名称。有时候使用'''/tmp'''，也可以使用'''/home//'''。</li>
+<li>保存这一文件。</li>
+<li>输入<tt>mysqlshutdown -u -p shutdown</tt>命令关闭MySQL Shutdown。</li>
+<li>在MySQL文件夹中输入<tt>./bin/safe_mysqld &</tt>，打开MySQL。通常MySQL文件夹位于'''/usr/local'''，在Linux系统中有时则位于'''/usr/'''中。</li>
+</ol>
+如果以上方法不能解决问题，并且你让其他人来管理的你WordPress博客，可以将以上内容反映给博客管理员，让他们解决问题。
+
+==怎样解决''Headers already sent''的警告问题？==
+
+'''问题描述:''' 在浏览器中出现一个警告信息，内容如下：
+
+<tt>Warning: Cannot modify header information - headers already sent by
+(output started at</tt>
+
+'''原因与解决方法：'''
+
+这通常由开放的'''<tt><?php</tt>'''标签前或闭合的'''<tt>?></tt>'''标签后的空格、新段落等多余内容引起，尤其是在'''wp-config.php'''文件中。在其它文件中也可能出现类似情况。因此我们需要仔细查看错误信息，信息中会列出出现该错误的文件的文件名（参见下文“解析错误信息”）。最好的方法是用最近一次备份中的文件或WordPress最新版本中的文件替换相应含有错误信息的文件，如果没有可替换文件，请执行以下操作：
+
+我们看不到任何信息并不表示PHP也看不到任何信息：
+
+# 下载错误信息中提到的文件
+# 在常见的[[Glossary#Text editor|文本编辑器]]（'''不要'''用Mircosoft Word或类似文件，而是记事本、BBEdit等）中打开文件
+# 检查文件开始部分的字符是否'''<tt><?php</tt>'''
+# 检查文件结尾部分的字符是否'''<tt>?></tt>'''
+
+要确保文件结尾部分没有问题，请：
+#将光标放在 ? 和 >之间
+#按下键盘上的DELETE键
+#*MAC用户请注意：计算机上的"DELETE"键会删除光标''右侧''的字符。
+#继续按DELETE键
+#保持至少15秒
+#输入>并
+#'''保存'''文件，不再按任何键
+#若按下其它任何键，问题会再度出现
+
+同时检查文件的编码方式，若文件以BOM UTF-8形式编码，BOM会被看成一个启动输出结果的字符。
+
+'''解析错误信息:'''
+
+若错误信息的内容为：<code>Warning: Cannot modify header information - headers already sent by (output started at /path/blog/wp-config.php:34) in /path/blog/wp-login.php on line 42</code>，那么问题出在<code>wp-config.php</code>文件的第34行（line #34），而不是在<code>wp-login.php</code>文件的第42行（line #42）。这种情况下， line #42 of <code>wp-login.php</code>也是受害者，受到line #34 of <code>wp-config.php</code>中多余空格的影响。
+
+若错误信息的内容为：<code>Warning: Cannot modify header information - headers already sent by (output started at /path/wp-admin/admin-header.php:8) in /path/wp-admin/post.php on line 569</code>，那么问题出在line #8 of admin-header.php而非#569 of <code>post.php</code>。这种情况下，line #569 of <code>post.php</code>也是受害者，受到 line #8 of <code>admin-header.php</code>中多余空格的影响。
+
+==使用Safari浏览器时为什么看不到可视化富文本编辑器？==
+
+'''问题描述:''' 在Apple开发的Safari浏览器中无法显示可视化富文本编辑器的编辑界面（又称WYSIWYG编辑器）。
+
+'''原因与解决方案:''' 
+在Safari的早期版本中，加载可视化富文本编辑器的编辑界面会立即导致浏览器崩溃。这是由Safari中的bug导致，而非WordPress问题。 WordPress开发人员修复无门，只得禁用了Safari用户的可视化富文本编辑器功能。令人欣慰的是，Safari用户可以通过下面三种方法来激活该功能。一是'''升级到Safari 3.0.4或更高版本'''，以及WordPress2.3或更高版本，二是换用[http://www.mozilla.com/firefox/ Firefox]浏览器或[http://caminobrowser.org/ Camino]浏览器，三是在[[Administration_Panels|管理面板]]>[[Administration_Panels#Writing|设置]]>[[Settings_Writing_SubPanel|撰写]]中取消“默认情况下用户可以使用可视化富文本编辑器”的选中状态（WordPress稍早版本）并安装[http://wordpress.org/extend/plugins/deans-fckeditor-for-wordpress-plugin/ Dean's FCKEditor For WordPress]。
+
+==为什么使用苹果的Safari浏览器时看不到快速标签按钮？==
+
+'''问题描述:''' 使用Safari浏览器时，编辑界面上方的快速标签按钮无法显示。
+
+'''原因与解决方法:''' 
+在Safari的早期版本中，快速标签按钮尽管能够发挥一定作用，但效果不尽如人意。这是由Safari中的bug导致，而非WordPress问题。 WordPress开发人员修复无门，只得禁用了Safari用户的快速标签按钮功能。令人欣慰的是，Safari用户可以通过下面三种方法来激活该功能。一是'''升级到Safari 2.0.4或更高版本，以及WordPress2.0.7或更高版本'''，二是换用[http://www.getfirefox.com Firefox]浏览器或[http://www.caminobrowser.org/ Camino]浏览器，三是在删除<tt>/wp-admin/admin-functions.php</tt>文件第1085行的if语句和第1092行的单词"<tt>else</tt>"（仅供WordPress早期版本）。
+
+例如，将：
+<pre>function the_quicktags() {
+	// Browser detection sucks, but until Safari supports the JS needed for this to work people just assume it's a bug in WP
+	if (!strstr($_SERVER['HTTP_USER_AGENT'], 'Safari'))
+		echo '
+		<div id="quicktags">
+			<script src="../wp-includes/js/quicktags.js" type="text/javascript"></script>
+			<script type="text/javascript">if ( typeof tinyMCE == "undefined" || tinyMCE.configs.length < 1 ) edToolbar();</script>
+		</div>
+';
+	else echo '
+<script type="text/javascript"></pre>
+
+改为：
+<pre>function the_quicktags() {
+	// Browser detection sucks, but until Safari supports the JS needed for this to work people just assume it's a bug in WP
+		echo '
+		<div id="quicktags">
+			<script src="../wp-includes/js/quicktags.js" type="text/javascript"></script>
+			<script type="text/javascript">if ( typeof tinyMCE == "undefined" || tinyMCE.configs.length < 1 ) edToolbar();</script>
+		</div>
+';
+		echo '
+<script type="text/javascript"></pre>
+
+==没有接收到WordPress通过电子邮件发来的注册密码怎么办？==
+'''问题描述:''' 用户在我们的博客上注册或更改密码时，输入用户名和电子邮件地址后，WordPress告诉用户已经将密码发送到他们的电子邮箱，但实际上用户却没有收到邮件。
+
+'''原因与解决方案:'''  WordPress使用标准的PHP邮件函数（mail function），而该函数利用邮件服务器进行工作，无需任何账号信息。如果我们的网站使用托管服务，一般不会出现接收不到邮件的问题，但如果使用自己的独立主机又没有SMTP服务器的话，就接收不到WordPress的注册密码邮件了。使用*NIX系统时，服务器上应该具备后缀或邮件服务器，我们的任务是对它们进行设置（具体步骤请Google）。如果不希望在自己的*NIX系统上设置邮件服务器，也可以使用[http://packages.debian.org/stable/mail/ssmtp ssmtp]——ssmtp提供了''"一种将邮件脱离系统并转向邮件中转站的安全、有效、便捷的方式"''。在Windows系统上，可以尝试使用[http://glob.com.au/sendmail/ Glob SendMail]等邮件服务器模拟器。
+
+更多帮助请见： http://wordpress.org/support/topic.php?id=24981
+
+要使用插件的话，可以选择 Configure SMTP。该插件能够''"为WordPress提供SMTP邮件服务，支持通过SSL/TLS（如GMail）发送邮件"''。
+
+'''Windows主机用户请注意：'''使用[http://coffee2code.com/wp-plugins/configure-smtp/ Configure SMTP]插件可以避免无法接收邮件的情况发生。
+
+另一种解决方法是编辑wp-includes中的''class-pop3.php''文件，该文件中有一个可对smtp服务器进行硬编码的变量''$MAILSERVER''。但尤其是在用户注册时，根目录下的''wp-php.php''文件实际上会根据作者的设置进行循环并得出一个值，用这个值来设置电子邮件发送人地址与默认的管理员（接收人）地址。
+
+如果我们的管理员邮件地址是有效的，上面的方法会达到很好的效果。例如，如果管理员电子邮件地址为： ''admin@"yourhost.com"''，SMTP服务器必须为smtp."网站名称.com"。如果网站名与邮件地址不匹配，邮件将无法发送。（虽然SMTP服务器不需要经过验证，但大多数虚拟主机会要求检查进入的SMTP流量是否有效，避免垃圾评论。）
+
+使用wpPHPMailer插件也可以达到同样效果，同时插件还提供了一个硬编码邮件发送人地址的选项。
+
+==怎样寻回快速标签<nowiki><!--nextpage--></nowiki>?==
+出于一些原因，<nowiki><!--nextpage--></nowiki>快速标签被从1.5.1中“删除”了。要找回这项功能，只要进行以下操作：
+
+'''在WordPress 1.5.x中'''
+
+在文本编辑器中打开''wp-admin/quicktags.js''文件，定位到以下区域（起始位置为第135行）：
+<pre>
+/*
+edButtons[edButtons.length] =
+new edButton('ed_next'
+,'page'
+,'<!--nextpage-->'
+,''
+,'p'
+,-1
+);
+*/
+</pre>
+删除 /* 和*/ 之间的代码行，取消对该代码块的注释。之后快速标签按钮就会出现在编辑界面上了。
+
+'''在WordPress 2.0.x中'''
+
+在文本编辑器中打开''wp-includes/js/quicktags.js''文件，定位到以下区域（起始位置为第135行）：
+<pre>
+//
+edButtons[edButtons.length] =
+new edButton('ed_next'
+,'page'
+,'<!--nextpage-->'
+,''
+,'p'
+,-1
+);
+//
+</pre>
+删除第一行和最后一行//，取消对该代码块的注释。
+
+接下来在文本编辑器中打开'''wp-includes/js/tinymce/plugins/wordpress/editor_plugin.js''文件，定位到以下区域（起始部分为第15行）：
+<pre>
+var buttons = '<a href="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\')" target="_self" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\');return false;"><img id="{$editor_id}_wordpress_more" src="{$pluginurl}/images/more.gif" title="'+titleMore+'" width="20" height="20" class="mceButtonNormal" onmouseover="tinyMCE.switchClass(this,\'mceButtonOver\');" onmouseout="tinyMCE.restoreClass(this);" onmousedown="tinyMCE.restoreAndSwitchClass(this,\'mceButtonDown\');" /></a>';
+// Add this to the buttons var to put the Page button into the toolbar.
+// '<a href="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\')" target="_self" onclick="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\');return false;"><img id="{$editor_id}_wordpress_page" src="{$pluginurl}/images/page.gif" title="'+titlePage+'" width="20" height="20" class="mceButtonNormal" onmouseover="tinyMCE.switchClass(this,\'mceButtonOver\');" onmouseout="tinyMCE.restoreClass(this);" onmousedown="tinyMCE.restoreAndSwitchClass(this,\'mceButtonDown\');" /></a>';
+</pre>
+
+复制第17行两个单引号之间的内容并粘贴到第15行结尾部分前，如下所示：
+
+<pre>
+var buttons = '<a href="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\')" target="_self" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\');return false;"><img id="{$editor_id}_wordpress_more" src="{$pluginurl}/images/more.gif" title="'+titleMore+'" width="20" height="20" class="mceButtonNormal" onmouseover="tinyMCE.switchClass(this,\'mceButtonOver\');" onmouseout="tinyMCE.restoreClass(this);" onmousedown="tinyMCE.restoreAndSwitchClass(this,\'mceButtonDown\');" /></a> <a href="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\')" target="_self" onclick="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\');return false;"><img id="{$editor_id}_wordpress_page" src="{$pluginurl}/images/page.gif" title="'+titlePage+'" width="20" height="20" class="mceButtonNormal" onmouseover="tinyMCE.switchClass(this,\'mceButtonOver\');" onmouseout="tinyMCE.restoreClass(this);" onmousedown="tinyMCE.restoreAndSwitchClass(this,\'mceButtonDown\');" /></a>';
+</pre>
+
+这样快速标签<nowiki><!--nextpage--></nowiki>也会出现在编辑页面上。之后再进行一项操作，也可以激活<nowiki><!--nextpage--></nowiki>的快捷键。在文本编辑器中打开 '''wp-includes/js/tinymce/plugins/wphelp/editor_plugin.js''文件，注意：该文件与上一步骤中打开的文件虽名称相同，但路径不同，因此不是同一文件。在文件中定位到以下区域（第23、24行）：
+<pre>
++ '<input type="button" accesskey="t" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\');" />'
++ '<input type="button" accesskey="u" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'Undo\',false);" />'
+</pre>
+复制第23行代码并粘贴到23行下，作为一个新行，按以下方式编辑：
+<pre>
++ '<input type="button" accesskey="t" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\');" />'
++ '<input type="button" accesskey="p" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\');" />'
++ '<input type="button" accesskey="u" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'Undo\',false);" />'
+</pre>
+
+这样就可以通过Alt+P快捷健启用<nowiki><!--nextpage--></nowiki>标签了。
+
+==为什么在日志中使用<nowiki><!--nextpage--></nowiki>快速标签却没反应？==
+
+在WordPress的Classic等[[Using Themes|主题]]中， <nowiki><!--nextpage--></nowiki>快速标签运行正常，但在WordPress的Default等另一些[[Using Themes|主题]]中，查看日志时却会看到''分页符''。这时就有必要修改当前主题的模板文件''page.php''或''index.php''，激活该功能。需要在文件中加入以下内容：
+<pre><?php wp_link_pages(); ?> ?</pre>
+
+== MySQL Error 28 ==
+
+有时会看到这样的错误信息：
+
+ Error code 28: No space left on device
+
+这是一个MySQL错误，和WordPress没有直接关系；发现类似错误时我们需要联系虚拟主机商来解决问题。有些用户反映，运行[[phpMyAdmin]]中的"repair table（修复表）"可修正该错误。
+
+[http://www.mysql.com/newsletter/2003-10/a0000000249.html Error 28, and how to avoid it]:
+
+<pre>
+If you get this error, check all filesystems in 
+which MySQL operates. If you followed recommendations 
+to split datadir, tmpdir and log files into dedicated 
+filesystems, more than one filesystem is involved. In 
+addition, be aware that MySQL often creates temporary 
+tables for some queries. Most of these are placed in 
+tmpdir; however, some may be found in the database 
+directory (e.g. ALTER TABLE). Also, ensure that 
+sufficient free disk space is available for MySQL.
+</pre>
+
+引起该问题的原因可能是：
+* /tmp（临时文件所在文件夹）容量不足，或
+* /tmp文件夹中文件数量过多（即使文件夹中仍有足够内存）
+
+WordPress论坛上的相关讨论：
+* http://wordpress.org/support/3/1738
+* http://wordpress.org/support/3/2923
+* http://wordpress.org/support/3/2760
+
+==引号为什么会被忽略或者不被忽略？==
+
+编写插件或使用[http://www.nosq.com/2004/10/runphp-wordpress-plugin/ RunPHP]等插件时，以及设计自定义模板时，实际上是在对数据库中的数据打交道。WordPress会为用户管理这些数据，使之能够立即投入使用。但偶尔也会出现一些意外情况（即使不使用WordPress，直接在数据库中进行操作时也会遇到类似情况）。
+
+例如，引号不能直接存储在MySQL数据库中。MySQL以SQL语言方式处理引号。若用户在某篇日志中使用引号，当日志被保存入数据库时，日志中每个引号都会被MySQL忽略。MySQL会预先用反斜线符号来代替这些引号，表示紧跟其后的字符应被看做输入内容的一部分，而非SQL命令的一部分。
+
+假设我们要在日志中添加以下内容：
+
+<pre>...an article about "Happiness" is at 
+<a href="http://example.com/happy" title="Happiness">Happiness</a>
+if you would like to read it...</pre>
+
+导入到数据库后，相应代码为：
+
+<pre>...an article about \"Happiness\" is at 
+<a href=\"http://example.com/happy\" title=\"Happiness\">Happiness</a>
+if you would like to read it...</pre>
+
+将数据库中的数据显示在页面上时，有时反斜线符号无法自动消失。这时我们可以在页面上使用PHP函数 [http://www.php.net/stripslashes stripslashes()]。
+
+==为什么提交评论后看到的是空白页面？==
+'''问题描述:''' 当有人提交对某篇日志的评论时，浏览器窗口突然变成空白页面，看上去好像WordPress没能够识别到这次评论。
+
+'''原因与解决方法:'''
+评论者所用主题中评论表的关键部分丢失，导致WordPress无法识别所提交评论应指向的日志。这时需要检查主题的comment.php文件，保证评论表中具备以下代码：
+<pre>
+<input type="hidden" name="comment_post_ID" value="<?php echo $id; ?>" />
+</pre>
+
+WordPress论坛上的相关讨论：
+
+* http://wordpress.org/support/topic/38683
+
+==怎样在无法访问管理界面的情况下禁用所有插件？==
+
+有时我们可能需要禁用所有插件，但却不能在管理界面中禁用这些插件。我们可以通过下面这两个方法来禁用所有插件：
+
+* 使用[[phpMyAdmin]] 
+** 在wp_options表的''option_name''列下，找到''active_plugins''行 
+** 将''option_value''的值改为：'''a:0:{}'''
+
+或
+
+* 新建一个空的插件文件夹
+** 通过FTP或虚拟主机的控制面板，进入wp-contents文件夹
+** 通过FTP或虚拟主机的控制面板，将插件文件名"plugins"重命名为"plugins.hold"
+** 通过FTP或虚拟主机的控制面板，创建一个新文件夹并命名为"plugins"
+** 登录WordPress管理界面
+** 通过FTP或虚拟主机的控制面板，删除之前创建的空白"plugins"文件夹
+** 通过FTP或虚拟主机的控制面板，将"plugins.hold"重命名为"plugins"
+
+==自动升级后，怎样清空"Briefly unavailable for scheduled maintenance（博客正进行定期维护，暂时无法访问）”信息？==
+
+WordPress在博客的的'''根'''目录（包含wp-admin文件夹的目录）中存放了一个名为<tt>.maintenance</tt>的文件，作为自动升级的一部分。如果我们的博客根目录下有.maintenance文件，我们的访问者就会看到'''博客正进行定期维护，暂时无法访问'''。片刻之后就能够正常访问了。
+
+如果不希望访问者看到类似信息，可以删除<tt>.maintenance</tt>文件并再次运行自动升级程序，唯一需要注意的是，自动升级程序有时会中途出错。
+
+WordPress [[Version 2.7]]新增了核心自动升级功能。
+
+==如何修正使用Pretty Permalinks时发生的404错误？==
+
+如果在使用[[Introduction_to_Blogging#Pretty_Permalinks|Pretty Permalink]]（如在[[Administration_Panels|管理面板]]>[[Administration_Panels#Permalinks|设置]]>[[Settings_Permalinks_SubPanel|固定链接]]中选择'''日期和文章名'''作为默认链接形式）时出现404错误，可能是因为没有安装'''mod_rewrite'''模块或模块没有被激活。解决方法是在Apache web服务器中激活'''mod_rewrite'''。在apache\conf\httpd.conf文件中找到''# LoadModule rewrite_module modules/mod_rewrite.so''一行，删除行起始部分前的#号。最后重启Apache。 '''注意：'''激活mod_rewrite需要虚拟主机商的配合。
+
+参见：
+* [[Using Permalinks|使用WordPress固定链接]]
+
+WordPress论坛上的相关讨论：
+* http://wordpress.org/support/topic/234726
+
+==为什么编辑日志时WordPress没有将管理员账号列为作者？==
+
+目前还无法确定这个问题的起因，但可以试着用下面的两种方法来解决问题：
+
+通常这样可以使管理员账号出现在作者列表中：
+#新建一个角色为管理员的管理用户（可起名为newadmin）
+#以'newadmin'为用户名登录
+#将之前的'admin'用户降级为订阅者并保存
+#再将之前的'admin'用户级别提升为管理员并保存
+#用原有的'admin'登录
+
+如果上述方法无效，可尝试以下方法：
+#新建一个角色为管理员的管理用户（可起名为newadmin）
+#用'newadmin'登录
+#删除之前的'admin'用户，将其日志作者指定为'newadmin'
+#新建一个角色为管理员的用户并命名为'admin'
+#以admin为用户名登录
+#删除用户'newadmin'，将其日志作者指定为'admin'
+
+==博客上日志的作者显示有误是什么原因？==
+
+该问题的解决方法同上一个问题：
+[[zh-cn:错误问题跟踪常见问题解答#为什么编辑日志时WordPress没有将管理员账号列为作者？|为什么编辑日志时WordPress没有将管理员账号列为作者？]]
+
+==WordPress出了新版本，但为什么我的博客没有接收到升级提醒？==
+
+WordPress发布新版本时，用户博客管理面板最上方会显示'''WordPress x.x.x is available! Please update now.'''这样的升级提醒。不是所有博客都能在同一时间接收到WordPress的升级提醒。WordPress博客每十二小时检查一次升级信息，循环周期相同，循环起始时间却不尽相同。所以如果你的博客刚好在新版本发布前几分钟检查过一次升级信息，那么就只有等到12小时后你的博客才会再次检查升级信息，那时候你就会看到WordPress的最新升级提醒了。
+
+如果希望博客立即检查升级信息，可删除wp_options数据库表中的'''update_core'''选项名称记录。注意：插件和主题都有各自的升级信息检查周期，分别由''wp_options''中的'''update_plugins'''与'''update_themes'''决定。
+
+WordPress论坛上的相关讨论：
+* http://wordpress.org/support/topic/242485
+
+==为什么最近一次自动升级后，我对WordPress的Default主题所做的自定义修改全都不见了？==
+
+核心升级会用新版本中的新文件覆盖旧版本中的文件，因此即使之前曾经修改了WordPress主题Default中的文件（如''wp-content/themes/default/style.css''），这些文件也会被新版本的同名文件覆盖。
+
+请注意，核心升级只会涉及''wp-admin/includes/update-core.php''中规定的文件。''wp-admin/includes/update-core.php''中没有列出的文件，以及新发布版本中没有的文件都会被保留下来。
+
+'''记住，无论是自动升级还是手动升级前，都要记住备份WordPress文件和数据库，这一点在[[WordPress Backups|备份]]中有说明。'''
+
+参见：
+*[[WordPress Backups|备份WordPress]]
+
+==如何修复MySQL数据库表？==
+
+每隔一段时间都应该对MySQL数据库表进行修复。根据dev.mysql.com上[http://dev.mysql.com/doc/refman/5.1/en/repair.html 关于修复数据库表]的文章，需要修复数据库表的理由很多，其中包括"tbl_name.frm is locked against change",  "Can't find file tbl_name.MYI (Errcode: nnn)", "Unexpected end of file", "Record file is crashed", or "Got error nnn from table handler"。
+
+下面是用[[phpMyAdmin]]修复MySQL数据库表的步骤：
+
+# 登录虚拟主机账号
+# 登录[[phpMyAdmin]].
+# 选中需要修复的表所在数据库。如果只有一个数据库，系统默认选择该数据库，因此用户无需再次选定。
+# 在主面板中会看见数据库表的列表。点击需要修复的表前的复选框。
+# 在窗口最下方即列表下方，有一个下拉式菜单，在其中选择"Repair Table（修复表）"
+
+'''请记住,无论何时，用户都应保留当前数据库的备份。
+
+参见：
+* [[WordPress Backups|备份WordPress]]
+
+[[zh-cn:FAQ|返回到常见问题解答页面]]
+
+[[Category:Troubleshooting]]
+[[Category:WordPress Help]]

@@ -1,0 +1,221 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Introduction"><span class="tocnumber">1</span> <span class="toctext">Introduction</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#The_Core_Class"><span class="tocnumber">1.1</span> <span class="toctext">The Core Class</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-3"><a href="#The_Widget"><span class="tocnumber">2</span> <span class="toctext">The Widget</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Widget_Configuration"><span class="tocnumber">3</span> <span class="toctext">Widget Configuration</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Introduction">Introduction</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Example_Dashboard_Widget&amp;action=edit&amp;section=1" title="Edit section: Introduction">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Working with dashboard widgets can be daunting to those unfamiliar with some of WordPress's inner workings, like the <a href="https://codex.wordpress.org/Options_API" title="Options API">Options API</a>. This article demonstrates an full-featured dashboard widget plugin (including configuration options).
+</p><p>This article assumes that you are proficient with PHP and already somewhat familiar with <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">how WordPress plugins work</a>. A familiarity with the <a href="https://codex.wordpress.org/Dashboard_Widgets_API" title="Dashboard Widgets API">Dashboard Widgets API</a> is helpful, but not required.
+</p><p>This Dashboard Widget will include 3 files: one class, and two "template" files, all in one directory called <tt>example_dashboard_widget</tt>.
+</p>
+<h3><span class="mw-headline" id="The_Core_Class">The Core Class</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Example_Dashboard_Widget&amp;action=edit&amp;section=2" title="Edit section: The Core Class">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>First, let's start by creating the core class in our <tt>example_dashboard_widget</tt> folder. Name the file *<tt>example_dashboard_widget.php</tt>* (remember that plugin's root php file should have the same name as the plugin directory).
+</p><p>Place the following the newly created php file:
+</p>
+<pre>
+&lt;?php
+/*
+Plugin Name: Example Dashboard Widget
+Plugin URI: http://codex.wordpress.com/Example_Dashboard_Widget
+Description: Demonstrates how to add a simple dashboard widget
+Version: 1.0
+Author: My Name
+Author URI: http://example.com/
+License: GPLv2 or later
+*/
+add_action('wp_dashboard_setup', array('My_Dashboard_Widget','init') );
+
+class My_Dashboard_Widget {
+
+    /**
+     * The id of this widget.
+     */
+    const wid = 'my_widget_example';
+
+    /**
+     * Hook to wp_dashboard_setup to add the widget.
+     */
+    public static function init() {
+        //Register widget settings...
+        self::update_dashboard_widget_options(
+            self::wid,                                  //The  widget id
+            array(                                      //Associative array of options &amp; default values
+                'example_number' =&gt; 42,
+            ),
+            true                                        //Add only (will not update existing options)
+        );
+
+        //Register the widget...
+        wp_add_dashboard_widget(
+            self::wid,                                  //A unique slug/ID
+            __( 'Example Dashboard Widget', 'nouveau' ),//Visible name for the widget
+            array('My_Dashboard_Widget','widget'),      //Callback for the main widget content
+            array('My_Dashboard_Widget','config')       //Optional callback for widget configuration content
+        );
+    }
+
+    /**
+     * Load the widget code
+     */
+    public static function widget() {
+        require_once( 'widget.php' );
+    }
+
+    /**
+     * Load widget config code.
+     *
+     * This is what will display when an admin clicks
+     */
+    public static function config() {
+        require_once( 'widget-config.php' );
+    }
+
+    /**
+     * Gets the options for a widget of the specified name.
+     *
+     * @param string $widget_id Optional. If provided, will only get options for the specified widget.
+     * @return array An associative array containing the widget's options and values. False if no opts.
+     */
+    public static function get_dashboard_widget_options( $widget_id='' )
+    {
+        //Fetch ALL dashboard widget options from the db...
+        $opts = get_option( 'dashboard_widget_options' );
+
+        //If no widget is specified, return everything
+        if ( empty( $widget_id ) )
+            return $opts;
+
+        //If we request a widget and it exists, return it
+        if ( isset( $opts[$widget_id] ) )
+            return $opts[$widget_id];
+
+        //Something went wrong...
+        return false;
+    }
+
+    /**
+     * Gets one specific option for the specified widget.
+     * @param $widget_id
+     * @param $option
+     * @param null $default
+     *
+     * @return string
+     */
+    public static function get_dashboard_widget_option( $widget_id, $option, $default=NULL ) {
+
+        $opts = self::get_dashboard_widget_options($widget_id);
+
+        //If widget opts dont exist, return false
+        if (&#160;! $opts )
+            return false;
+
+        //Otherwise fetch the option or use default
+        if ( isset( $opts[$option] ) &amp;&amp;&#160;! empty($opts[$option]) )
+            return $opts[$option];
+        else
+            return ( isset($default) )&#160;? $default&#160;: false;
+
+    }
+
+    /**
+     * Saves an array of options for a single dashboard widget to the database.
+     * Can also be used to define default values for a widget.
+     *
+     * @param string $widget_id The name of the widget being updated
+     * @param array $args An associative array of options being saved.
+     * @param bool $add_only If true, options will not be added if widget options already exist
+     */
+    public static function update_dashboard_widget_options( $widget_id , $args=array(), $add_only=false )
+    {
+        //Fetch ALL dashboard widget options from the db...
+        $opts = get_option( 'dashboard_widget_options' );
+
+        //Get just our widget's options, or set empty array
+        $w_opts = ( isset( $opts[$widget_id] ) )&#160;? $opts[$widget_id]&#160;: array();
+
+        if ( $add_only ) {
+            //Flesh out any missing options (existing ones overwrite new ones)
+            $opts[$widget_id] = array_merge($args,$w_opts);
+        }
+        else {
+            //Merge new options with existing ones, and add it back to the widgets array
+            $opts[$widget_id] = array_merge($w_opts,$args);
+        }
+
+        //Save the entire widgets array back to the db
+        return update_option('dashboard_widget_options', $opts);
+    }
+
+}
+</pre>
+<h2><span class="mw-headline" id="The_Widget">The Widget</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Example_Dashboard_Widget&amp;action=edit&amp;section=3" title="Edit section: The Widget">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Basic widgets (those with no configuration options) may only need one template. The following file is called *<tt>widget.php</tt>* and is automatically required by the above the core class.
+</p><p>By requiring another file as a template (instead of simply placing the following in the class), we can keep all the HTML and presentation code separate, making our core class easier to read and our template easier to edit and maintain.
+</p><p>We also have access to all our class methods via self::method_name();
+</p>
+<pre>
+&lt;?php
+/**
+ * This file could be used to catch submitted form data. When using a non-configuration
+ * view to save form data, remember to use some kind of identifying field in your form.
+ */
+?&gt;
+&lt;p&gt;This is an example dashboard widget!&lt;/p&gt;
+&lt;p&gt;This is the front-facing part of the widget, and can be found and edited from &lt;tt&gt;&lt;?php echo __FILE__&#160;?&gt;&lt;/tt&gt;&lt;/p&gt;
+&lt;p&gt;Widgets can be configured as well. Currently, this is set to &lt;b&gt;&lt;?php echo self::get_dashboard_widget_option(self::wid, 'example_number');&#160;?&gt;&lt;/b&gt;&#160;! To change the number, hover over the widget title and click on the "Configure" link.&lt;/p&gt;
+</pre>
+<p>Also note that we make use the <tt>self::wid</tt> constant (which we defined in our core class) instead of typing the name of the widget. This makes a number of things much simpler, especially when used in the configuration template (see below).
+</p>
+<h2><span class="mw-headline" id="Widget_Configuration">Widget Configuration</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Example_Dashboard_Widget&amp;action=edit&amp;section=4" title="Edit section: Widget Configuration">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Developers can also give admins "configuration" options for their Dashboard widgets. Our core class already added support and will attempt to load a separate configuration file for us. That file should be called *<tt>widget-config.php</tt>* and should contain the following...
+</p>
+<pre>
+&lt;?php
+/**
+ * This file could be used to catch submitted form data. When using a non-configuration
+ * view to save form data, remember to use some kind of identifying field in your form.
+ */
+    $number = ( isset( $_POST['number'] ) )&#160;? stripslashes( $_POST['number'] )&#160;: '';
+    self::update_dashboard_widget_options(
+            self::wid,                                  //The  widget id
+            array(                                      //Associative array of options &amp; default values
+                'example_number' =&gt; $number,
+            )
+    );
+
+?&gt;
+&lt;p&gt;This is an example dashboard widget!&lt;/p&gt;
+&lt;p&gt;This is the configuration part of the widget, and can be found and edited from &lt;tt&gt;&lt;?php echo __FILE__&#160;?&gt;&lt;/tt&gt;&lt;/p&gt;
+&lt;input type="text" name="number" /&gt;
+</pre>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Example_Dashboard_Widget&amp;action=edit&amp;section=5" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Article: <a href="https://codex.wordpress.org/Dashboard_Widgets_API" title="Dashboard Widgets API">Dashboard Widgets API</a></li>
+<li> Lesson: <strong class="selflink">Example Dashboard Widget</strong></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003749
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.010 seconds
+Preprocessor visited node count: 45/1000000
+Preprocessor generated node count: 84/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

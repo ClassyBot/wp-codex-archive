@@ -1,0 +1,93 @@
+== Description ==
+This function adds a new group to the [[Glossary#Toolbar|Toolbar]]. Groups allow you to group Toolbar items together into distinct sections of a toolbar menu. 
+
+The Toolbar replaces the [[Glossary#Admin_Bar|Admin Bar]] since WordPress [[Version 3.3]].
+
+Toolbar items are also called "nodes". Nodes can be parents for other nodes, which creates dropdown menus. When adding a group you're actually adding a group node. Group nodes are not visible in the Toolbar, but nodes added to it are.
+
+'''note''': This function is a method of the [[Class_Reference/WP_Admin_Bar|WP_Admin_Bar]] class and <tt>$wp_admin_bar</tt> global object, which may not exist except during the [[Plugin_API/Action_Reference/admin_bar_menu|'admin_bar_menu']] or [[Plugin_API/Action_Reference/wp_before_admin_bar_render|'wp_before_admin_bar_render']] hooks.
+
+== Usage ==
+%%%<?php $wp_admin_bar->add_group( $args ); ?>%%%
+
+== Parameters ==
+{{Parameter|$args|array|An array of arguments.}}
+
+=== Arguments ===
+{{Parameter|id|string|The ID of the group (node).|required|false}}
+{{Parameter|parent|string|The ID of the parent node.|optional|false}}
+{{Parameter|meta|array|An array of meta data for the group (node).|optional|array()}}
+
+:* 'class' - The class attribute for the unordered list containing the child nodes.
+
+== Examples ==
+===Adding a group to a parent node===
+This example adds a parent node, child nodes and a group to the toolbar.
+
+<pre>
+add_action( 'admin_bar_menu', 'add_nodes_and_groups_to_toolbar', 999 );
+
+function add_nodes_and_groups_to_toolbar( $wp_admin_bar ) {
+
+	// add a parent item
+	$args = array(
+		'id'    => 'parent_node',
+		'title' => 'parent node',
+	);
+	$wp_admin_bar->add_node( $args );
+
+	// add a child item to our parent item
+	$args = array(
+		'id'     => 'child_node',
+		'title'  => 'child node',
+		'parent' => 'parent_node',
+	);
+	$wp_admin_bar->add_node( $args );
+
+	// add a group node with a class "first-toolbar-group"
+	$args = array(
+		'id'     => 'first_group',
+		'parent' => 'parent_node',
+		'meta'   => array( 'class' => 'first-toolbar-group' ),
+	);
+	$wp_admin_bar->add_group( $args );
+
+	// add an item to our group item
+	$args = array(
+		'id'     => 'first_grouped_node',
+		'title'  => 'first group node',
+		'parent' => 'first_group',
+	);
+	$wp_admin_bar->add_node( $args );
+
+	// add another child item to first group
+	$args = array(
+		'id'     => 'another_group_child_node2',
+		'title'  => 'another group child node2',
+		'parent' => 'first_grouped_node',
+	);
+	$wp_admin_bar->add_node( $args );
+
+
+}</pre>
+
+The output from this example in the toolbar will be: 
+
+<pre>
+ * parent node
+ ** child node
+ ** another child node
+ ** first group node
+</pre>
+
+== Change Log ==
+
+== Source File ==
+<tt>add_group()</tt> is located in {{Trac|wp-includes/class-wp-admin-bar.php}}.
+
+== Related ==
+{{Toolbar Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

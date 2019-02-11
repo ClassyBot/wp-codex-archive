@@ -1,0 +1,51 @@
+{{Languages|
+{{en|Function Reference/wp_encode_emoji}}
+}}
+
+== Description ==
+This function will convert any 4 byte emoji in a string to their equivalent HTML entity and return it. It uses the PHP function 'mb_convert_encoding' to do the real converting. The main purpose of this function is for installs with a database which uses the 3 byte 'utf8' encoding to still be able to store emoji characters. Since WordPress 4.2 most databases will be converted to 4 byte collations with 'utf8mb4'.
+
+== Usage ==
+%%% <?php echo wp_encode_emoji( $content ); ?> %%%
+
+== Parameters ==
+{{Parameter|$content|string|The string of text that is to be converted. There is no default.|mandatory}}
+
+== Return Values ==
+{{Return||string|Encoded content. If the content includes 4 byte emoji, it will convert it to the equivalent HTML entity.}}
+
+== Example ==
+Return the converted string
+ <?php $content = wp_encode_emoji( $content ); ?>
+
+Providing backwards compatibility for plugin developers with extra code:
+<pre>
+ <?php
+ function my_own_maybe_encode_emoji( $string ) {
+	global $wpdb;
+	$db_charset = $wpdb->charset;
+	if ( 'utf8mb4' != $db_charset ) {
+		if ( function_exists('wp_encode_emoji') && function_exists( 'mb_convert_encoding' ) ) {
+			$string = wp_encode_emoji( $string );
+		}
+	}
+	return $string;
+ }
+
+ $string = my_own_maybe_encode_emoji( $string );
+ ?>
+</pre>
+
+== Change Log ==
+
+Since: 4.2
+
+== Source File ==
+<!-- Need links to current source code files -->
+<tt>wp encode emoji()</tt> is located in {{Trac|wp-includes/formatting.php}}.
+
+== Related ==
+
+{{Stub}}
+[[Category:New_page_created]]
+[[Category:Functions]]

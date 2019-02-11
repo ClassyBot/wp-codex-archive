@@ -1,0 +1,65 @@
+{{Languages|
+{{en|Function_Reference/remove_submenu_page}}
+{{ja|関数リファレンス/remove_submenu_page}}
+}}
+== Description ==
+Remove an admin submenu.
+
+Depending on when this function is called, it may not prevent users from accessing the screen for the removed submenu directly (see [https://core.trac.wordpress.org/ticket/18850 ticket #18850]). Removing a menu does not replace the need to filter a user's permissions as appropriate. 
+
+== Usage ==
+%%%<?php remove_submenu_page( $menu_slug, $submenu_slug ); ?>%%%
+
+== Parameters ==
+{{Parameter|$menu_slug|string|The slug for the parent menu}}
+{{Parameter|$submenu_slug|string|The slug of the submenu}}
+
+== Return Values ==
+; (array&#124;boolean) : The removed submenu on success, <tt>false</tt> if not found.
+
+== Examples ==
+<!-- Need creative examples. Feel free to link to external examples. -->
+Removes the Widgets submenu page.
+
+<pre>
+function wpcodex_adjust_the_wp_menu() {
+	$page = remove_submenu_page( 'themes.php', 'widgets.php' );
+	// $page[0] is the menu title
+	// $page[1] is the minimum level or capability required
+	// $page[2] is the URL to the item's file
+}
+add_action( 'admin_menu', 'wpcodex_adjust_the_wp_menu', 999 );
+</pre>
+
+In the above example, the value of <tt>$page</tt> would have been:
+<pre>
+array(3) { [0]=> string(7) "Widgets" [1]=> string(18) "edit_theme_options" [2]=> string(11) "widgets.php" }
+</pre>
+
+To remove a settings page for plugins that use a slug like /wp-admin/options-general.php?page=certain-plugin-settings use this code:
+<pre>
+add_action( 'admin_menu', 'nstrm_remove_admin_submenus', 999 );
+function nstrm_remove_admin_submenus() {
+	remove_submenu_page( 'options-general.php', 'certain-plugin-settings' );
+}
+</pre>
+
+[https://gist.github.com/michael-cannon/6701832 Remove custom post type submenu pages]. The secret is in converting the second argument `&` to `&amp;amp;`.
+
+== Notes ==
+* Uses global: (<tt>array</tt>) <tt>$submenu</tt>
+* In order to remove the <tt>theme-editor.php</tt> submenu of <tt>themes.php</tt> (and others) in more recent versions of WordPress, you need to bind to the <tt>admin_menu</tt> hook with a very high priority (about <tt>110</tt>, depending on the submenus to remove). Don't use <tt>admin_init</tt> as previously stated here, hence it will break <tt>wp-admin/admin-ajax.php</tt>.
+
+== Change Log ==
+Since: 3.1.0
+
+== Source File ==
+<tt>remove_submenu_page()</tt> is located in {{Trac|/wp-admin/includes/plugin.php}}.
+
+== Related ==
+
+{{Admin Menu Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

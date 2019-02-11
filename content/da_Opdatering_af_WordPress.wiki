@@ -1,0 +1,231 @@
+== <div style="color:red">IGANGVÆRENDE ARBEJDE</div> ==
+<div style="color:red">Her oversættes codex vedr. opdatering af wordpress.
+
+Den tekst der skal oversættes findes i original på [[Upgrading_WordPress]] samt nedenfor.</div>
+----
+Den nyeste version af [http://wordpress.org/development/2006/07/wordpress-204/ WordPress ({{CurrentVersion}})], er nu frigivet. Hvis du står overfor at skulle opdatere fra 2.0.3 til 2.0.4, skal du følge vejledningen: [[#Opdater_fra_2.0.3_til_2.0.4|Opdater fra 2.0.3 til 2.0.4]]. Hvis du skal opdatere fra en tidligere version, fx '''1.5.2 til 2.0.4''' eller '''2.0 eller 2.0.1 til 2.0.4''', kan du enten følge den [[#Detaljeret vejledning|detaljerede vejledning]] eller ''den'' vejledning vi har kaldet [[#Opdater WordPress på fem trin|Opdater WordPress på fem trin]].
+
+__TOC__
+
+==Opdater WordPress på fem trin==
+
+"Læs den [[#Detaljeret vejledning|Detaljerede vejledning]], hvis du har brug for en grundigere vejledning."
+
+Det kan godt være lidt kryptisk at opdatere WordPress. Men denne vejledning viser, hvordan det hele blir' en leg. Vejledningen giver dig også nogle retningslinier til, hvordan du beskytter dig mod de værste uheld. Du skulle jo nødig miste dine data.
+
+Kernen i WordPress er nem og hurtig at opdatere. Det som gør, at denne vejledning er på fem trin og ikke tre, er at vi skal bevare de ændringer og justeringer, som du har lavet. Vejledning hedder "Opdater WordPress på fem trin". Men det betyder desværre ikke, at opdateringen kan klares på fem minutter. Det kan nemlig tage mere end 5 minutter at lave en sikkerhedkopi af dine data.
+
+Vi antager, at din blogs URI ligner denne <nowiki>http://eksempel.dk/wordpress/</nowiki>.
+
+De fem trin til en sund opdatering er:
+
+===Trin 1: Sikkerhedskopier databasen plus alle arkiver (også .htaccess)===
+Her er målet at gemme dine data og indstillinger
+====Trin 1a: Gem data====
+Brug [[phpMyAdmin]] eller et andet værktøj til at [[Backing Up Your Database | lave en sikkerhedskopi]] af WordPress-databasen.
+
+====Trin 1b: Gem indstillinger====
+Her skal du lave en [[WordPress_Backups#Backing_Up_Your_WordPress_Site|sikkerhedskopi af alle de arkiver]], som du enten har ændret eller tilføjet, siden du foretog standard installeringen.
+Brug en [[FTP_Clients | FTP klient]] til at hente alle relevante arkiver fra serveren. Du skal hente alle de arkiver (også .htaccess hvis den er ændret), som ligger i den mappe, hvor du i sin tid installerede WordPress. Lav som minimum en sikkerhedskopi af:
+*<tt>[[Glossary#.htaccess|.htaccess]]</tt>
+*de arkiver, som dit aktiverede tema benytter (findes i <tt>/wp-content/</tt>)
+*mappen med billeder og andet materiale, som indgår i dine blogindlæg (<tt>/wp-images/</tt>)
+*arkiver fra kernen, som er blevet ændret ("hacket")
+*<tt>wp-config.php</tt>, som bl.a. indeholder brugernavn og kodeord til databasen.
+
+===Trin 2: Deaktiver udvidelser===
+Deaktiver alle udvidelser på din weblog via [[Managing_Plugins|Plugin Management Page]] ( <nowiki>http://eksempel.dk/wordpress/wp-admin/plugins.php</nowiki> ). Nogle udvidelser virker måske ikke med WordPress {{CurrentVersion}}. Derfor er det nødvendigt, at du deaktiverer alle udvidelser, inden du opdaterer. På den måde sikres, at du ikke kommer til at stå med en helt frisk og nymalket version af WordPress, som ikke virker.
+
+===Trin 3: Overskriv arkiver===
+[http://wordpress.org/download Hent den nyeste version af WordPress] og placer den i WordPress-mappen ved at overskrive alle eksisterende arkiver. Der sker ikke noget med dine billeder og temaer. De bliver ikke rørt. Hvis noget går galt og det hele går i ged, så er det, at du skal have fat i den sikkerhedskopien fra [[#Trin 1: Sikkerhedskopier databasen plus alle arkiver (også .htaccess)|trin 1]]. Den er din sidste redning.
+
+[[#Trin 7: Slet gamle WordPress-arkiver|Ved at slette alle gamle arkiver]] og herefter placere arkiverne fra den nyeste version af WordPress på serveren, er sikker på, at alt er opdateret.
+
+===Trin 4: Kør opdateringen===
+Besøg opdateringssiden på din weblog ( <nowiki>http://eksempel.dk/wordpress/wp-admin/upgrade.php</nowiki> ) og følg vejledningen.
+
+===Trin 5: Genaktiver dine udvidelser een efter een===
+Nu er det tid til at genaktivere udvidelserne een efter een via [[Managing_Plugins|Plugin Management Page]] ( <nowiki>http://eksempel.dk/wordpress/wp-admin/plugins.php</nowiki> ). Kontroller at alt fungerer som forventet, hver gang du aktiverer en udvidelse. På [[User:Matt/2.0_Plugin_Compatibility| denne adresse kan du finde en liste over udvidelser, som gerne skulle fungere med WordPress 2.0]]. Hvis nu det skulle ske, at nogle udvidelser ikke fungerer, skal de deaktiveres. Og er du en flink blogger, så kontakter du programmøren og viderebringer de dårlige nyheder. Hvem ved, måske bliver udvidelsen opdateret.
+
+Det var det. Opdateringen er fuldført.
+
+Hjælp, der gik et eller andet galt! Tag det roligt. Du har jo lavet en sikkerhedskopi af databasen og alle arkiver på serveren - ik' os' ? Selvfølgelig har du det. Og det er dem, du skal have fat i nu. Find dem frem og følg den '''[[#Detaljeret vejledning|Detaljerede vejledning]]'''.
+
+
+<hr />
+
+==Detaljeret vejledning==
+
+===Inden du begynder===
+# Lav en sikkerhedskopi af din database.
+# Lav en sikkerhedskopi af alle WordPress-arkiver, også [[Glossary#.htaccess<|<tt>.htaccess</tt>]] hvis du har sådan en.
+# Kotroller at sikkerhedskopierne rent faktisk kan bruges.
+# Deaktiver ALLE udvidelser.
+
+'''Vigtigt: Opdater kun WordPress, hvis du har udført disse fire punkter.'''
+
+===Oversigt over opdateringsprocessen===
+# [[#Trin 1: Sikkerhedskopier databasen|Sikkerhedskopier databasen]]. Læs [[Backing Up Your Database]] hvis du vil have en detaljeret vejledning.
+# [[#Step 1: Backup your database|Lav en sikkerhedskopiering af din database]]. Læs artiklen[[Backing Up Your Database]] for en mere detaljeret gennemgang.
+# [[#Step 2: Backup ALL your WordPress files|Sikkerhedspokier alle dine WordPress-filer]].  Glem ikke din[[Glossary#.htaccess<|<tt>.htaccess</tt>]] fil.  
+# [[#Step 3: Verify the backups|Tjek, at de sikkerhedskopier]], du tog, er der og virker. Dette er vigtigt.
+# [[#Step 4: Deactivate ALL your Plugins|Deaktiver alle dine plugins]].
+# [[#Step 5: Ensure first four steps are completed|Sikr dig, at alle de foregående trin er gennemførte]].  Forsøg IKKE på at opgradere, før du har gennemført de første 4 trin.
+# [[#Step 6: Download and extract the WordPress package|Download og udpak WordPress-filen]] fra http://wordpress.org/download/. 
+# [[#Step 7: Delete the old WordPress files|Slet de gamle WordPress-filer]] på din side, men '''SLET IKKE''' 
+#*<code>wp-config.php</code> filen;
+#*<code>wp-content</code> folderen;  særlig undtagelse:  folderen <code>wp-content/cache</code> skal slettes.
+#*<code>wp-images</code> folderen;
+#*<code>wp-includes/languages/</code> folderen - hvis du bruger en sprogpakke, så slet den ikke;
+#*<code>.htaccess</code> filen - hvis du har tilføjet særlige regler til din <code>.htaccess</code>, så slet den ikke;
+#*<code>robots.txt</code> filen  - hvis din blog er placeret i sitets rod (dvs. din blog '''er''' sitet) og du har lavet en sådan fil, slet da ikke denne.
+# [[#Step 8: Upload the new files|Upload de nye filer]] fra din computers harddisk til den rette WordPress-folder på din side.
+# [[#Step 9: Run the WordPress upgrade program|Kør WordPress-opgraderingen]] og følg instruktionerne på skærmen.
+# [[#Step 10: Update Permalinks and .htccess|Opdater permalinks og .htaccess-filen]]. Opdater din permalinkstruktur og smelt de specielle regler ind i[[Glossary#.htaccess<|<tt>.htaccess</tt>]] filen, hvis dette er nødvendigt.
+# [[#Step 11: Install updated Plugins and Themes|Installer opdaterede plugins og themes]].  Tjek venligst [[User:Matt/2.0_Plugin_Compatibility|listen over plugins, der virker i version 2.0]] og undersøg, om dit temas koder har en kompatibel version.
+# [[#Step 12: Reactivate Plugins|Genaktivér dine plugins]].
+# [[#Step 13: Review what has changed in WordPress|Se ændringerne i WordPress]].
+
+Det er en oversigt over opdateringsprocessen. Læs videre og læs de detajlerede opdateringsinstruktioner.
+
+Husk, at hvis du støder på problemer, er det enn god idé at genlæse instruktionerne nedenfor og forsikre dig, at du har fulgt den rette procedure. Konsulter også [[Installing_WordPress#Common_Installation_Problems|oplysningerne om problemknusning i forbindelse med installationen]].
+
+===Detaljerede opdateringsinstruktioner for 1.5.x til 2.0.4 og 2.0 til 2.0.4===
+Det følgende er instruktioner, der forklarer ovenstående oversigt mere detaljeret. Læs alle instruktionerne før du starter.
+
+====Trin 1: Lav en sikkerhedskopi af din database====
+Perform a backup of your database.  All of your WordPress data, such as Users, Posts, Pages, Links, and Categories, are stored in your [[Glossary#MySQL|MySQL]] [[Database Description|database]].  Please read [[Backing Up Your Database]] for a detailed explanation of this process. 
+
+It is extremely important to back up your database before beginning the upgrade.  If, for some reason, you find it necessary to revert back to the 'old' version of WordPress, you may have to restore your database from these backups.
+
+====Trin 2: Lav sikkerhedskopi af alle dine WordPress-filer====
+Back up ALL of your files in your WordPress directory and your [[Glossary#.htaccess<|<tt>.htaccess</tt>]] file.  Typically, this process involves using an [[FTP Clients|FTP program]] to download ALL your WordPress files from your host to your local computer.
+Please read [[WordPress_Backups#Backing_Up_Your_WordPress_Site|Backing Up Your WordPress Site]] for further explanation.
+
+If you have made changes to any core WordPress files, or if you've got customized Plugins or Themes, you will want to have a good backup of those files.  It is extremely important to back up your files before beginning the upgrade.  If for some reason you find it necessary to revert back to the 'old' version of WordPress you will need to upload these files.
+
+====Trin 3: Tjek dine sikkerhedskopier====
+Verify that the backups you created are there and usable.  '''This is the most important step in the upgrade process!'''  
+The verification process involves making sure you can see the backup files on your local computer (or wherever you've stored them) and that you can navigate into any sub-folders.  If the files are in a zip file, make sure you can open the zip file.
+
+====Trin 4: Deaktiver alle dine plugins====
+In your [[Administration Panels|Administration panel]], under the Plugins choice, deactivate any Plugins.  Because of the changes to WordPress, some Plugins may conflict with the upgrade process.
+
+====Trin 5: Sikr dig, at de første 4 trin er gennemførte====
+If you have not completed the first four procedures, STOP, and do them!  Do not attempt the upgrade unless you have completed the first four steps.  
+
+The best resource for problems with your upgrade is the [http://wordpress.org/support/ WordPress Support Forums], and if you have problems, the volunteers at the [http://wordpress.org/support/ WordPress Support Forums] will likely ask if you have completed the first four steps.
+
+====Trin 6: Download og udpak WordPress-softwaren====
+Download and unzip the WordPress package from http://wordpress.org/download/.
+* If you will be uploading WordPress to a remote web server, download the WordPress package to your computer with your favorite web browser and unzip the package.
+* If you have [[Glossary#Shell|shell]] access to your web server, and are comfortable using console-based tools, you may wish to download WordPress directly to your [[Glossary#Web server|web server]]. You can do so using <tt>wget</tt> , <tt>lynx</tt> or another console-based web browser, which are valuable if you want to avoid [[Glossary#FTP|FTPing]]. Place the package in a directory parallel to your current wordpress directory (like "uploads," for example). Then, unzip it using: <tt>gunzip -c wordpress-{{CurrentVersion}}.tar.gz | tar -xf -</tt> or by using: <tt>tar -xzvf latest.tar.gz </tt> 
+
+The WordPress package will be extracted into a folder called <tt>wordpress</tt>.
+
+====Trin 7: Slet gamle WordPress-arkiver====
+'''Why Delete?''' Generally, it is a good idea to delete whatever is possible because the uploading (or upgrading through cPanel) process may not correctly overwrite an existing file and that may cause problems later.
+
+'''DO NOT DELETE these folders and files:''' 
+*<code>wp-config.php</code> file;
+*<code>wp-content</code> folder;
+*<code>wp-images</code> folder;
+*<code>wp-includes/languages/</code> folder--if you are using a language file, do not delete this folder;.
+*<code>.htaccess</code> file--if you have added custom rules to your <code>.htaccess</code>, do not delete it;
+*Custom Content and/or Plugins--if you have any images or other custom content or Plugins inside the <code>wp-content</code> folder, do NOT delete them.
+
+'''Delete these Files and Folders:'''
+*<code>wp-* (except for those above), readme.html, wp.php, xmlrpc.php, and license.txt; </code> files; Typically files in your root or wordpress folder.  Again, don't delete the <code>wp-config.php</code> file.
+*<code>wp-admin</code> folder;
+*<code>wp-includes</code> folder; If using a language file remember don't delete the <code>wp-includes/languages/</code> folder
+*<code>wp-content/cache</code> folder; You only see this folder if you are upgrading FROM WordPress 2.0.
+
+'''How to Delete?''' There are several ways to delete the files from your WordPress site.  You can use your FTP Client, or if you have access to Telenet or SSH you can use that.  Some host providers also provide the ability to delete files and folders.
+
+;Using FTP to delete files and folders :The same [[FTP_Clients|FTP client]] you use for [[Uploading_WordPress_to_a_remote_host|uploading]] can be used to delete files and folders.  If your [[FTP_Clients|FTP client]] does not appear to permit you to delete non-empty folders, check the available options for your [[FTP_Clients|FTP client]]. You'll usually find an option that permits deleting non-empty folders. Deleting non-empty folders is a quick and thorough method cleaning out an old installation of WordPress.  It is recommended that once the deleting is done, you switch back to the original setting for safety reasons.
+
+;Using Telnet or SSH to delete file :If you have a command-line login (telnet or ssh), you can enter the following commands to make backup copies of the files you need to keep and to delete ONLY the wordpress files in your directory (plus .htaccess):
+:* <code>mkdir backup</code>
+:* <code>cp wp-config.php .htaccess backup</code>
+:* <code>cp -R wp-content backup</code>
+:* <code>rm wp*.php .htaccess license.txt readme.html xmlrpc.php</code>
+:* <code>rm -rf wp-admin wp-includes</code>
+:* <code>cp backup/wp-config.php .</code>
+:* After you have finished with the upgrade, you can restore any customizations to your templates or plugins from your backup directory. For example, <code>cp backup/index.php.</code>
+: Alternatively, using SSH, you could copy <code>wp-config.php, .htaccess</code>, and any content files you've added or altered into the ''new'' wordpress directory. Then, rename the old one (to archive it), and move the new one into its place.
+
+====Trin 8: Upload de nye filer====
+With the new upgrade on your local computer, and using [[Glossary#FTP|FTP]], [[Uploading_WordPress_to_a_remote_host|upload]] the new files to your site server just as you did when you first installed WordPress.  See [[Using FileZilla|Using FileZilla]] and [[Uploading_WordPress_to_a_remote_host|Uploading WordPress to a remote host]] for  detailed guidelines in using an FTP Client to upload.
+
+'''NOTE: If you did not delete the <code>wp-content</code> folder, you will need to overwrite some files during the upload.''' 
+
+The <code>wp-content</code> folder holds your WordPress Themes and Plugins.  These should remain.  Upload everything else first, then upload only those WordPress files that new or changed to your new <code>wp-content</code> folder. Overwrite any old versions of default plugins with the new ones.
+
+The WordPress default theme has changed so you will want to upload the <code>wp-content/themes/default</code> folder.  If you have custom changes to the default theme, those changes will need to be reviewed and installed after the upgrade.
+
+====Trin 9: Kør WordPress' opgraderingsproces====
+Run the WordPress upgrade script by accessing <tt>wp-admin/upgrade.php</tt> in your favorite web browser and follow the instructions presented on your screen.
+* If WordPress is installed in the root directory, point your browser to: <tt><nowiki>http://example.com/wp-admin/upgrade.php</nowiki></tt>
+* If WordPress is installed in its own subdirectory called <tt>blog</tt>, for example, point your browser to: <tt><nowiki>http://example.com/blog/wp-admin/upgrade.php</nowiki></tt>
+
+====Trin 10: Opdater dine permalinks og .htaccess-filen====
+In your [[Permalinks_Options_SubPanel|Options->Permalinks]] panel update your Permalink Structure and, if necessary, place the rules in your [[Glossary#.htaccess<|<tt>.htaccess</tt>]] file.  Also see [[Using_Permalinks|Using Permalinks]] for details regarding Permalinks and the [[Glossary#.htaccess<|<tt>.htaccess</tt>]] file.
+
+====Trin 11: Installer opdaterede plugins og themes====
+Please review the [[User:Matt/2.0_Plugin_Compatibility|list of Plugins that work in Version 2.0]].  You will want to upload and install any new versions of your Plugins and Themes.  Check with the author of those Plugins and Themes for the updated versions.
+
+====Trin 12: Genaktiver plugins====
+Use your Administration Panel, Plugins, to activate your Plugins.  
+
+Please note that if you are using the new WordPress Database Backup Plugin you may need to change the permissions on your <code>wp-content</code> folder to make it writeable by your webserver (either mode 666 or even 777).  See [[Changing_File_Permissions|Changing File Permissions]] for more details.
+
+====Trin 13: Se ændringerne i WordPress====
+Pt. er der ikke nogen officiel liste i kodekset, der beskriver alle de nye funktioner, men se disse links:
+
+*[http://wordpress.org/development/2005/12/wp2/ WordPress Development Blog: WordPress 2]
+*[http://asymptomatic.net/2005/11/29/2135/whats-new-in-wordpress-20 Owen Winkler's What's New in WordPress 2.0]
+*[[Roles and Capabilities|Codex Article, Roles and Capabilities]]
+*[[User:PotterSys/Media_Managment|Codex Article, Media Management]]
+
+===Opdater fra 2.0.3 til {{Template:CurrentVersion}} ===
+
+Dette er en sikkerhedsopdatering. Du kan finde mere information i tråden med den officielle annoncering
+[http://wordpress.org/development/2006/07/wordpress-204/ på WordPress.orgs udviklingsblog].
+
+Som med alle WordPress-opdateringer skal indholdet i din <code>/wp-content/</code> folder forblive intakt og uændret.
+
+# Slet din <code>/wp-admin/</code> folder.
+# Slet din <code>/wp-includes/</code> folder. Note: '''Du skal tage en sikkerhedskopi af <code>/wp-includes/languages/</code> folderen, hvis den eksisterer.'''
+# WordPress {{Template:CurrentVersion}} indeholder et opdateret standardtheme. Hvis du vil have dette, slet da koden i din <code>/wp-content/themes/default</code> folder. '''Husk at lave en sikkerhedskopi af dine eventuelle ændringer først!'''
+# Delete all the wordpress files in the root directory where the root <code>index.php</code> file is found. '''DO NOT DELETE <code>wp-config.php</code> (nor any files you may have added yourself: <code>robots.txt</code>, <code>.htaccess</code>, <code>favicon.ico</code>).'''
+# Download and extract the new version.
+# Upload it to the appropriate folders such as <code>/wp-admin/</code>, <code>/wp-includes/</code>, and if you deleted your Default theme, <code>/wp-content/themes/default/</code>.
+# Upload all the files in the root directory.
+# If existed, restore <code>/wp-includes/languages/</code> directory
+# Login as admin into your site - you will not be prompted to click on the link to upgrade your database as there were no changes to the database scheme between 2.0.3 and 2.0.4.
+
+That's it.
+
+Volunteers are assisting with problems on the [http://wordpress.org/support/ WordPress Support Forums] and there is useful information  in the [http://wordpress.org/support/topic/64309 2.0.2 upgrade thread].
+
+==Opdateringsvejledninger på andre sprog==
+* [http://wordpress-ar.sourceforge.net/archives/2006/02/upgrade-15-to-20/ الترقية من الإصدارة 1.5 إلى 2.0 باللغة العربية]
+* [http://86400.es/2005/12/27/actualizacion-de-wordpress-de-15x-a-20/ Actualización de WordPress en español]
+* [http://www.wordpress-it.it/wiki/Main/Upgrade-20 Aggiornamento WordPress da 1.5.x a 2.0 in italiano]
+* [http://www.andreabeggi.net/2005/07/07/aggiornare-wordpress/ Aggiornare WordPress in italiano]
+* [http://keeg.ca/?p=375 Passage de WordPress 1.5.* à 2.0 en Français]
+* [http://www.manuelbieh.de/www/blog/2005/12/27/detaillierte-upgrade-anleitung-fur-15x-zu-20 Upgrade Anleitung 1.5.x zu 2.0 in Deutsch]
+* [[Upgrading_WordPress | Upgrading WordPress in english]]
+* [http://www.gtp2p.com/wiki/wordpress:%E5%8D%87%E7%BA%A7_wordpress 简体中文]
+
+==Problemknusning==
+;Scrambled Layout or Errors :If your blog looks scrambled now or features line errors, an old plugin that doesn't work with the new code may be the culprit. In your WordPress [[Administration_Panels|Administration Panel]], deactivate all plugins that do not come with WordPress by default. Re-activate them one by one.
+;Made Custom Changes/Hacks? :If you have made changes to other WordPress files ("hacked" WordPress), you are supposed to keep track of your changes. You will have to transfer your edits into the new code. [[WordPress Versions]] lists the files that have changed in each release.
+;Resist Using Old Code :Upgrading gives you the newest and best code. Using your old code, no matter how  much you have customised it, almost certainly will cause problems. The temptation just to use your old modified code will be great, but the chances of errors are much greater.
+;Can I Go Back to Old Versions :You can, but it is usually not recommended to rollback (revert) your current version to an older version. That is because newer versions often include security updates and a rollback may put your site at risk. Second, the change between the database structure between versions may cause complications in maintaining your site content, posts, comments, and plugins that are dependent upon the information stored in the database. If you are still intent on this, proceed at your own risk. '''Please note, that without a backup of your entire site and your database, made prior to your upgrade attempt, a successful rollback is near impossible.''' Delete all WordPress files except for <tt>wp-config</tt>. [[Uploading_WordPress_to_a_remote_host|Upload]] the files from your backup to your server and [[Restoring_Your_Database_From_Backup|restore your database backup]]. Remember, you must have good backups for the rollback to work.  For older WordPress versions, a rollback might not work.
+;Get More Help :If you get any errors following an upgrade, check [[Installing_WordPress#Common_Installation_Problems|Troubleshooting: Common Installation Problems]], [[Troubleshooting]], and the [http://codex.wordpress.org/Category:Installation Codex Installation Category of Articles].  If you can't find an answer, post a clear question on the [http://www.wordpress.org/support WordPress Suppport Forums]. You will be asked if you have used any old code. You'll be told to change it then, so you may as well change it now :)
+
+==Gammel opdateringsinformation==
+Hvis du overvejer at opgradere til WordPress 2.0.1, men kører version 1.2, følg da opgraderingsinstruktionerne beskrevet i dokumentationen om at [[Upgrade_1.2_to_1.5|opgradere fra WordPress 1.2 til 1.5]].  Når du har opgraderet til version 1.5.x, følg da instruktionerne som listet ovenfor for at opgradere fra 1.5 til 2.0.1.
+
+[[Category:Danish Codex|Kategori: Installation]]

@@ -1,0 +1,51 @@
+{{Languages|
+{{en|Function_Reference/get_posts_by_author_sql}}
+{{ja|関数リファレンス/get_posts_by_author_sql}}
+}}
+
+== Description ==
+
+Retrieve the post SQL based on capability, author, and type.
+
+This function provides a standardized way to appropriately select on the post_status of a post type. The function will return a piece of SQL code that can be added to a WHERE clause; this SQL is constructed to allow all published posts, and all private posts to which the user has access.
+
+%%%<?php get_posts_by_author_sql( $post_type, $full, $post_author, $public_only); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$post_type|string|Post type.|required}}
+{{Parameter|$full|boolean|Optional.  Returns a full WHERE statement instead of just an 'andalso' term.|optional|true}}
+{{Parameter|$post_author|integer|Query posts having a single author ID.|optional|null}}
+{{Parameter|$public_only|bool|Only return public posts. Skips capability checks for the current user.|optional|false}}
+
+== Return Values ==
+
+{{Return||string|SQL WHERE code that can be added to a query.}}
+
+== Examples ==
+
+<pre><?php
+$where = get_posts_by_author_sql( 'post' );
+echo $where;
+
+// user logged in: WHERE post_type = 'post' AND (post_status = 'publish' OR post_status = 'private')
+// user not logged in: WHERE post_type = 'post' AND (post_status = 'publish')
+
+// get post ID with title "Hello world!" query
+global $wpdb;
+$query = "SELECT ID FROM $wpdb->posts $where AND post_title = %s";
+$post_id = $wpdb->get_var( $wpdb->prepare( $query, 'Hello world!' ) );
+?></pre>
+
+
+== Change Log ==
+
+Since: [[Version 3.0|3.0]]
+
+== Source File ==
+
+get_posts_by_author_sql() is located in {{Trac|wp-includes/post.php}}
+
+[[Category:Functions]]
+
+[[Category:New_page_created]]

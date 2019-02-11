@@ -1,0 +1,163 @@
+{{Languages|
+{{en|Function Reference/wp insert user}}
+{{pt-br|Referência de Função/wp insert user}}
+}}
+== Descrição ==
+Insere um usuário no banco de dados. Para "atualizar os dados de um usuário" você deve usar a função [[Function Reference/wp_update_user|<tt>wp_update_user</tt>]].
+
+== Uso ==
+%%%<?php wp_insert_user( $userdata ); ?>%%%
+
+== Parâmetros ==
+{{Parameter|$userdata|mixed|An array of user data, stdClass or [[Class_Reference/WP_User|WP_User]] object.}}
+
+== Return Values ==
+; <tt>(mixed)</tt> :
+
+* If successful, returns the newly-created user's user_id
+* If query fails returns a [[Class_Reference/WP_Error|WP_Error]] object
+* If user_login is longer than 60 characters, returns a [[Class_Reference/WP_Error|WP_Error]] object.
+* If user_nicename is longer than 50 characters, returns a [[Class_Reference/WP_Error|WP_Error]] object.
+
+== Examples ==
+<!-- Need creative examples. Feel free to link to external examples. -->
+Below is an example showing how to insert a new user with the website profile field filled.
+<pre>
+<?php
+
+$website = "http://example.com";
+$userdata = array(
+    'user_login'  =>  'login_name',
+    'user_url'    =>  $website,
+    'user_pass'   =>  NULL  // When creating an user, `user_pass` is expected.
+);
+
+$user_id = wp_insert_user( $userdata ) ;
+
+//On success
+if ( ! is_wp_error( $user_id ) ) {
+    echo "User created : ". $user_id;
+}
+
+?>
+</pre>
+
+== Notes ==
+* Uses: [[Class Reference/wpdb|<tt>$wpdb</tt>]] WordPress database layer.
+* Uses: [[Function_Reference/apply_filters|<tt>apply_filters()</tt>]] Calls filters for most of the <tt>$userdata</tt> fields with the prefix 'pre_user'. See [[#Description|description above]].
+* Uses: [[Function_Reference/do_action|<tt>do_action()</tt>]] Calls 'profile_update' hook when updating giving the user's ID
+* Uses: [[Function_Reference/do_action|<tt>do_action()</tt>]] Calls 'user_register' hook when creating a new user giving the user's ID
+
+{| border="0" cellspacing="5" summary="User data array fields."
+|+ The <tt>$userdata</tt> array can contain the following fields
+|-
+! style="font-weight:bold" | Field Name
+! Description
+! [[Plugin_API/Filter_Reference#Database_Writes_4|Associated Filter]]
+|-valign="top"
+| style="font-weight:bold" | ID
+| An integer that will be used for updating an existing user.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | user_pass
+| A string that contains the plain text password for the user.
+| <tt>pre_user_pass</tt>
+|-valign="top"
+| style="font-weight:bold" | user_login
+| A string that contains the user's username for logging in.
+| <tt>pre_user_login</tt>
+|-valign="top"
+| style="font-weight:bold" | user_nicename
+| A string that contains a URL-friendly name for the user. The default is the user's username.
+| <tt>pre_user_nicename</tt>
+|-valign="top"
+| style="font-weight:bold" | user_url
+| A string containing the user's URL for the user's web site.
+| <tt>pre_user_url</tt>
+|-valign="top"
+| style="font-weight:bold" | user_email
+| A string containing the user's email address.
+| <tt>pre_user_email</tt>
+|-valign="top"
+| style="font-weight:bold" | display_name
+| A string that will be shown on the site. Defaults to user's username. It is likely that you will want to change this, for both appearance and security through obscurity (that is if you dont use and delete the default admin user).
+| <tt>pre_user_display_name</tt>
+|-valign="top"
+| style="font-weight:bold" | nickname
+| The user's nickname, defaults to the user's username.
+| <tt>pre_user_nickname</tt>
+|-valign="top"
+| style="font-weight:bold" | first_name
+| The user's first name.
+| <tt>pre_user_first_name</tt>
+|-valign="top"
+| style="font-weight:bold" | last_name
+| The user's last name.
+| <tt>pre_user_last_name</tt>
+|-valign="top"
+| style="font-weight:bold" | description
+| A string containing content about the user.
+| <tt>pre_user_description</tt>
+|-valign="top"
+| style="font-weight:bold" | rich_editing
+| A string for whether to enable the rich editor or not. False if not empty.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | user_registered
+| The date the user registered. Format is Y-m-d H:i:s.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | role
+| A string used to set the user's role.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | jabber
+| User's Jabber account.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | aim
+| User's AOL IM account.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | yim
+| User's Yahoo IM account.
+| (none)
+|}
+
+
+If there is no ID, a new user will be created.
+If ''' you pass an ID ''', the user with that ID will be updated, and these meta fields are updated if set in '''$userdata''' otherwise they are set to null:
+<pre>
+first_name,
+last_name, 
+nickname,
+description,
+rich_editing,
+comment_shortcuts,
+admin_color,
+use_ssl,
+show_admin_bar_front
+</pre>
+When performing an update operation using [[Function Reference/wp_insert_user|<tt>wp_insert_user</tt>]], user_pass should be the hashed password and not the plain text password.
+
+== Change Log ==
+* [[Version_3.5|3.5.0]]: Now accepts stdClass or [[Class Reference/WP_User|WP_User]] object
+* Since: 2.0.0
+
+== Source File ==
+<!-- Need links to current source code files -->
+As of 3.1 <tt>wp_insert_user()</tt> is located in {{Trac|wp-includes/user.php}}.
+
+== Related ==
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+[[Function Reference/wp_update_user|wp_update_user]], [[Function Reference/wp_create_user|wp_create_user]]<br />{{User Blog Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

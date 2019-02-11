@@ -1,0 +1,127 @@
+==Intro==
+TinyMCE is the name of the visual editor that comes with WordPress, which can be used to edit post and page content. It comes with a variety of buttons for standard HTML tags like Strong, Emphasis, Blockquote and Lists. In addition to these defaults, TinyMCE has an API that can be used to define custom styles that can be inserted into post content from the Visual editor. 
+
+The process involves activating a built-in but hidden "button" in TinyMCE called '''styleselect''', then defining each style that you want to show in the Styleselect pulldown menu. This article assumes that you are already familiar with the basics of [[Writing a Plugin]] and the [[Plugin API]] of hooks and filters. 
+
+Note that the process for adding custom styles is separate from [[TinyMCE_Custom_Buttons | creating custom TinyMCE buttons]] and that this process will not make the Visual editor display post content with your custom styles, for that you must use [[Function_Reference/add_editor_style|<tt>add_editor_style()</tt>]].
+
+Also note that the instructions below apply only to the Visual editor. To add buttons to the Text editor as well you must use the [[Quicktags API]].
+
+Whenever possible, style related code should be in the theme in which the styles are implemented. The most natural location is the [[http://codex.wordpress.org/Theme_Development#Functions_File functions.php]] file, though of course the filters could also be added in a plugin if desired.
+
+== Enabling styleselect ==
+
+Before any registered formats/styles will show, we need to activate the styleselect pulldown menu in the Visual editor. We do this by filtering the array of buttons loaded by TinyMCE. We use the '''mce_buttons_2''' filter because that is the second row and it looks good there. You could instead use '''mce_buttons_3''' which would add it to an empty third row.
+
+<pre>
+// Callback function to insert 'styleselect' into the $buttons array
+function my_mce_buttons_2( $buttons ) {
+	array_unshift( $buttons, 'styleselect' );
+	return $buttons;
+}
+// Register our callback to the appropriate filter
+add_filter( 'mce_buttons_2', 'my_mce_buttons_2' );
+</pre>
+
+== Registering Custom Styles ==
+
+Once '''styleselect''' is in place we can register our actual styles in two different ways. Both involve using the '''tiny_mce_before_init''' filter, which receives the full configuration parameters of TinyMCE and into which we'll inject our custom styles.  
+
+=== Using style_formats ===
+
+The more robust solution is to use the '''style_formats''' array within the TinyMCE configuration array. It allows you to register each format along with several configuration settings that define how the format will behave, for example whether it is a block or inline style, and whether it should change the outer block element or not. 
+
+<pre>
+// Callback function to filter the MCE settings
+function my_mce_before_init_insert_formats( $init_array ) {  
+	// Define the style_formats array
+	$style_formats = array(  
+		// Each array child is a format with it's own settings
+		array(  
+			'title' => '.translation',  
+			'block' => 'blockquote',  
+			'classes' => 'translation',
+			'wrapper' => true,
+			
+		),  
+		array(  
+			'title' => '⇠.rtl',  
+			'block' => 'blockquote',  
+			'classes' => 'rtl',
+			'wrapper' => true,
+		),
+		array(  
+			'title' => '.ltr⇢',  
+			'block' => 'blockquote',  
+			'classes' => 'ltr',
+			'wrapper' => true,
+		),
+	);  
+	// Insert the array, JSON ENCODED, into 'style_formats'
+	$init_array['style_formats'] = json_encode( $style_formats );  
+	
+	return $init_array;  
+  
+} 
+// Attach callback to 'tiny_mce_before_init' 
+add_filter( 'tiny_mce_before_init', 'my_mce_before_init_insert_formats' );  
+</pre>
+
+==== Style Format Arguments ====
+More information about the format options is available on the [http://www.tinymce.com/wiki.php/Configuration:formats TinyMCE formats documentation].
+
+* <tt>inline</tt> – Name of the inline element to produce for example “span”. The current text selection will be wrapped in this inline element.
+* <tt>block</tt> – Name of the block element to produce for example “h1″. Existing block elements within the selection gets replaced with the new block element.
+* <tt>selector</tt> – CSS 3 selector pattern to find elements within the selection by. This can be used to apply classes to specific elements or complex things like odd rows in a table. Note that if you combine both <tt>selector</tt> and <tt>block</tt> then you can get more nuanced behavior where the button changes the class of the ''selected'' tag by default, but adds the ''block'' tag around the cursor if the ''selected'' tag isn't found. 
+* <tt>classes</tt> – Space separated list of classes to apply to the selected elements or the new inline/block element.
+* <tt>styles</tt> – Name/value object with CSS style items to apply such as color etc.
+* <tt>attributes</tt> – Name/value object with attributes to apply to the selected elements or the new inline/block element.
+* <tt>exact</tt> – Disables the merge similar styles feature when used. This is needed for some CSS inheritance issues such as text-decoration for underline/strikethrough.
+* <tt>wrapper</tt> – State that tells that the current format is a container format for block elements. For example a div wrapper or blockquote.
+
+'''Note''': The visual editor's behavior when using custom styles, especially depending on the settings outlined above, can be surprising and seemingly random. Please test carefully how the buttons work with your configuration and ensure your users understand what to expect.
+
+=== Using theme_advanced_styles ===
+
+The simplest possible way to add formats is to insert a string containing your styles in a special format to the '''theme_advanced_styles''' section of the TinyMCE configuration array. The format is '''$label=$cssclassname;''' so in the following example we'd be adding .translation, .contributors and .notes to '''styleselect''':
+
+ Translation Class=translation;Contributors=contributors;Extra Notes=notes
+
+Unlike the '''style_formats''' solution, this one does not allow you to set configuration options, so it should only be used for inline styles (the default).
+
+Filter usage is very similar to above:
+
+<pre>
+function my_mce_before_init( $init_array ) {
+	$init_array['theme_advanced_styles'] =
+            '.translation=translation;.contributors=contributors;.notes=notes;';
+
+	return $init_array;
+}
+add_filter( 'tiny_mce_before_init', 'my_mce_before_init' );
+</pre>
+
+== Making Visual Editor display styles ==
+
+The code above will only enable the styleselect dropdown menu and add your styles inside it. By default the Visual editor won't know how to ''display'' your styles as a preview. Luckily you can provide a custom CSS stylesheet for the editor that includes your styles. 
+
+'''If you are adding custom styles to TinyMCE, always ensure they are accounted for in the editor CSS!''' See [[Function_Reference/add_editor_style|<tt>add_editor_style()</tt>]] for instructions on registering an editor CSS file. 
+
+== Further Reading ==
+
+Help for writing TinyMCE plugins can be found on TinyMCE's documentation site:
+* [http://www.tinymce.com/wiki.php/Configuration:formats TinyMCE documentation for the "formats" dropdown (custom styles)]
+* [http://www.tinymce.com/wiki.php/TinyMCE3x:Buttons/controls TinyMCE documentation for buttons]
+* [http://www.tinymce.com/wiki.php/API3:tinymce.api.3.x TinyMCE General API Documentation]
+* [http://www.tinymce.com/wiki.php/TinyMCE TinyMCE Intro]
+
+===Additional help:===
+* [http://wp.tutsplus.com/tutorials/theme-development/adding-custom-styles-in-wordpress-tinymce-editor/ Nettuts tutorial about custom styles in WP TinyMCE]
+* [http://www.wpexplorer.com/wordpress-tinymce-tweaks/ WordPress 3.9+ TinyMCE 4 Tweaks: Adding Styles, Buttons, Fonts, Drop-downs & Pop-Ups]
+
+== Related ==
+{{TinyMCE API}}
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Plugins]]

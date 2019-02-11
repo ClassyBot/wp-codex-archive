@@ -1,0 +1,140 @@
+[[Category:New page created]] 
+
+== Description ==
+<code>WP_Styles</code> is a class defined in {{Trac|wp-includes/class.wp-styles.php}} that helps developers interact with a theme. It ensures registered stylesheets are output in the proper order, with dependent stylesheets coming after their dependencies. While more than one instance can be created, typically the global <var>$wp_styles</var> is used to enqueue stylesheets, which are then output by <code>[[Function Reference/wp_print_styles|wp_print_styles]]</code> during the <tt>[[Plugin API/Action Reference/wp_head|wp_head]]</tt> action. <code>WP_Styles</code> extends <code>[[Class Reference/WP_Dependencies|WP_Dependencies]]</code>.
+
+<code>WP_Styles</code> handles both external and embedded stylesheets (though the latter must be associated with one of the former), outputting a &lt;link&gt; or &lt;style&gt; element as appropriate.
+
+=== Text direction ===
+For any stylesheet, an additional stylesheet can be loaded for right-to-left text (triggered by setting <var>$wp_styles->text_direction</var> to 'rtl'). The URL for this stylesheet is built by inserting '-rtl' into the URL of the left-to-right stylesheet. Normally, '-rtl' is inserted before the '.css' extension. If 'suffix' is set in the stylesheet's extra data (using <code>[[Class Reference/WP_Dependencies/add_data|WP_Dependencies::add_data()]]</code> or <code>[[Class Reference/_WP_Dependency/add_data|_WP_Dependency::add_data()]]</code>), '-rtl' will be inserted before the suffix and '.css' extension (<code>"${suffix}.css"</code>).
+
+=== Concatenation vs Printing ===
+
+When it comes time to output enqueued stylesheets, <code>WP_Styles</code> can print them, or accumulate them in instance variables (<var>$print_html</var> for external and <var>$print_code</var> for embedded). This behaviour is controlled by the boolean instance variable <var>$do_concat</var>. If true, output is concatenated to the appropriate instance variable; if false, it's printed.
+
+Any [http://msdn.microsoft.com/en-us/library/ms537512.aspx unconditional], non-[http://www.w3.org/Style/Examples/007/alternatives.en.html alternate] stylesheet in a default directory (as determined by <code>WP_Styles::in_default_dir()</code>) isn't accumulated when <var>$do_concat</var> is true.
+
+=== Media ===
+The media for a stylesheet is passed via the <var>$args</var> argument to <code>[[Class Reference/WP_Dependencies|WP_Dependencies]]::add()</code>.
+
+== Methods and Properties ==
+
+=== Properties ===
+; $base_url : The base URL for the site, it gets prepended to the URL for an enqueued sheet in most cases (see <var>$content_url</var> for an exception). Set to the site URL (as determined by <code>[[Function Reference/site_url|site_url()]]</code> or <code>[[Function Reference/wp_guess_url|wp_guess_url()]]</code>) by default.
+; $content_url : The URL for the wp-content directory. Set to <code>[[Determining Plugin and Content Directories#Constants|WP_CONTENT_URL]]</code> by default. If a stylesheet URL begins with the content URL, the base URL isn't prepended.
+; $default_version : Default value used when a version isn't specified in a call to [[Function Reference/wp_enqueue_style|wp_enqueue_style()]] or [[Function Reference/wp_register_style|wp_register_style()]].
+; $text_direction = 'ltr' : If 'rtl', an addtional stylesheet will be loaded, allowing custom styling targeting right-to-left.
+; $do_concat = false : If true, concatenate output to <var>$print_html</var> and <var>$print_code</var> member variables rather than printing it.
+; $print_html = "" : holds accumulated HTML (&lt;link&gt; elements and conditional comments).
+; $print_code = "" : holds accumulated embedded style rules.
+; $concat = "" : list of item handles that were accumulated, separated by commas.
+; $concat_version = "" : list of item handles & versions that were accumulated.
+; $default_dirs : Path or array of paths. Used by <code>WP_Styles::in_default_dir()</code>. Compared directly to <var>$src</var> property of a stylesheet.
+
+=== Methods ===
+; do_item( $handle ) : process a stylesheet in the queue.
+; add_inline_style( $handle, $code ) : add style rules (<var>$code</var>) to the given stylesheet to be output as embedded style (i.e. in a &lt;style&gt; element).
+; print_inline_style( $handle, $echo = true ) : print (or return, if <var>$do_concat</var> is true) the embedded style rules for the given stylesheet.
+; all_deps( $handles, $recursion = false, $group = false ) : Builds up array of stylesheets to output with dependencies coming before dependents.
+; in_default_dir( $src ) : tell whether the given path is in one of the default directories (<var>$default_dirs</var>).
+; do_footer_items() : output style sheets that were added to late to be placed in the &lt;head&gt;.
+; reset() : clear instance variables related to accumulation.
+
+== Hooks ==
+=== Actions ===
+* [[Plugin API/Action Reference/wp_default_styles|wp_default_styles]] - Invoked when a <var>WP_Styles</var> is created. The instance is passed to action hooks.
+=== Filters ===
+* [[Plugin API/Filter Reference/print_styles_array|print_styles_array]] - Filters list of stylesheets to be output. Called from <code>WP_Styles::all_deps()</code>.
+* [[Plugin API/Filter Reference/style_loader_src|style_loader_src]] - Filter a stylesheet URL in preparation for output. Happens after <var>$base_url</var> has been prepended (if warranted).
+* [[Plugin API/Filter Reference/style_loader_tag|style_loader_tag]] - Filter the &lt;link&gt; element for a stylesheet.
+
+== Examples ==
+
+=== Dependent Stylesheet ===
+%%%<?php 
+   global $wp_styles;
+   $wp_styles->add('example', '/themes/example/example.css');
+   $wp_styles->add('example_ie7-', '/themes/example/ie7-.css', array('example'));
+   $wp_styles->enqueue(array('example', 'example_ie7-'));
+?>%%%
+
+=== Adding a Right-to-Left Stylesheet ===
+To specify a stylesheet to add, set 'rtl' to the URL: %%%<?php 
+   global $wp_styles;
+   $wp_styles->add('example', '/themes/example/example.css');
+   $wp_styles->add_data('rtl', '/themes/example/rtl.css');
+   $wp_styles->enqueue(array('example'));
+?>%%%
+To have WordPress create the URL for the rtl stylesheet, set 'rtl' to TRUE and (optionally) set a suffix for the stylesheet in the extra data: %%%<?php 
+   global $wp_styles;
+   $wp_styles->add('example', '/themes/example/example-new.css');
+   $wp_styles->add_data('rtl', TRUE);
+   # URL for rtl stylesheet will be '/themes/example/example-rtl-new.css'
+   $wp_styles->add_data('suffix', '-new');
+   $wp_styles->enqueue(array('example'));
+?>%%%
+
+=== Embedded Style ===
+An embedded stylesheet can be added to an external one, but [http://www.cssnewbie.com/inline-in-document-and-linked-css/ sparingly]: %%%<?php
+   global $wp_styles;
+   $wp_styles->add('example', '/themes/example/example.css');
+   $wp_styles->add_inline_style('example', '* {margin: 0}');
+   $wp_styles->enqueue(array('example'));
+?>%%%
+
+=== Conditional Styles ===
+Conditional comments can be added around the &lt;link&gt; to a stylesheet by setting 'conditional' in a stylesheet's extra data:  %%%<?php
+   global $wp_styles;
+   $wp_styles->add('example_ie7-', '/themes/example/ie7-.css');
+   $wp_styles->add_data('example_ie7-', 'conditional', 'lte IE 7');
+   $wp_styles->enqueue(array('example_ie7-'));
+?>%%%
+
+=== Other Attributes ===
+Other attributes include the stylesheet title, and wether it's an alternate stylesheet: %%%<?php
+   global $wp_styles;
+   $wp_styles->add('example-alt', '/themes/example/example-alt.css');
+   $wp_styles->add_data('example-alt', 'title', 'Example Alternate Stylesheet');
+   $wp_styles->add_data('example-alt', 'alt', TRUE);
+   $wp_styles->enqueue(array('example-alt'));
+?>%%%
+
+=== Accumulation ===
+Instead of printing style sheet elements, they can be gathered for other purposes: %%%<?php
+   /* Create  */
+   $my_styles = new WP_Styles;
+   $my_styles->do_concat = TRUE;
+
+   /* Add styles */
+   $my_styles->add('example', '/themes/example/example.css');
+   $my_styles->add('example_ie7-', '/themes/example/ie7-.css', array('example'));
+   $my_styles->add_data('example_ie7-', 'conditional', 'lte IE 7');
+   #...
+   $wp_styles->enqueue(array('example', 'example_ie7-', ...));
+
+   /* Output styles */
+   $my_styles->do_items();
+
+   /* */
+   # 'example,example_ie7-,...'
+   $my_styles->concat;
+   # accumulated elements
+   $my_styles->print_html;
+   #...
+   /* Clear  */
+   $my_styles->reset();
+?>%%%
+
+== Change Log ==
+
+; [[Version 2.6|2.6]] : Initial version: <var>$base_url</var>, <var>$default_version</var>, <var>$text_direction</var>, <code>do_item()</code>,  <code>all_deps()</code>,  conditional comments, right-to-left stylesheets, filter & action hooks.
+; [[Version 2.8|2.8]] : Added <var>$content_url</var>, <var>$concat</var>, <var>$concat_version</var>, <var>$do_concat</var>, <var>$print_html</var>, <var>$default_dirs</var>, <code>in_default_dir()</code>, 'alt' and 'title' attributes.
+; [[Version 3.0|3.0]] : Added 'suffix' extra data for rtl stylesheets.
+; [[Version 3.3|3.3]] : Addded support for embedded style sheets, <var>$print_code</var>, <code>add_inline_style()</code>, <code>print_inline_style()</code>, <code>do_footer_items()</code>, <code>reset()</code>.
+
+== Source File ==
+<tt>WP_Styles</tt> is located in {{Trac|wp-includes/class.wp-styles.php}}.
+
+{{Class Footer}}
+
+[[Category:Classes]]

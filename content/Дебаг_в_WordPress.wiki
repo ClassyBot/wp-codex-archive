@@ -1,0 +1,114 @@
+{{Languages|
+{{en|Debugging in WordPress}}
+{{ru|Дебаг в WordPress}}
+{{es|Depurar en WordPress}}
+{{fr|Débogage dans WordPress}}
+{{hr|Ispitivanje kvarova u WordPressu}}
+{{it|Debug in WordPress}}
+{{ja|WordPressでのデバッグ}}
+{{pt-br|Depuração no WordPress}}
+}}
+
+Debugging PHP code is part of any project, but WordPress comes with specific debug systems designed to simplify the process as well as standardize code across the core, plugins and themes. This page describes the various debugging tools in WordPress and how to be more productive in your coding as well as increasing the overall quality and interoperativity of your code. 
+
+{{Note|While it is not mandatory to account for <tt>WP_DEBUG</tt> in plugins and themes it is '''highly recommended''' that plugin and theme developers use <tt>WP_DEBUG</tt> mode while working on code they plan to release publicly. If your plugin or theme is not compatible then the errors, notices and warnings it throws will make it impossible for other developers to use your plugin/theme while they have <tt>WP_DEBUG</tt> enabled and your theme will not be eligible for promotion via the official [[Theme_Review#PHP.2C_JS.2C_CSS.2C_HTML|WordPress]] tools.}}
+
+== WP_DEBUG ==
+
+<tt>[[WP_DEBUG]]</tt> это PHP константа (фиксированная переменная) которая позволяет активировать "дебаг" режим в WordPress. По умолчанию данная константа имеет значени false, для переключение в режим разработки необходимо изменить значение на true в файле [[Editing_wp-config.php|wp-config.php]].
+
+ define( 'WP_DEBUG', true );
+ define( 'WP_DEBUG', false );
+
+Note: The <tt>true</tt> and <tt>false</tt> values in the example are not surrounded by apostrophes (') because they are boolean (true/false) values. If you set constants to <tt>'false'</tt>, they will be interpreted as true because the quotes make it a string rather than a boolean.
+
+It is not recommended to use <tt>WP_DEBUG</tt> or the other debug tools on live sites; they are meant for local testing and staging installs. 
+
+===PHP Errors, Warnings, and Notices===
+Enabling <tt>WP_DEBUG</tt> will cause all PHP errors, notices and warnings to be displayed. This is likely to modify the default behavior of PHP which only displays fatal errors and/or shows a white screen of death when errors are reached.
+
+Showing all PHP notices and warnings often results in error messages for things that don't seem broken, but do not follow proper data validation conventions inside PHP. These warnings are easy to fix once the relevant code has been identified, and the resulting code is almost always more bug-resistant and easier to maintain.
+
+===Deprecated Functions and Arguments===
+Enabling <tt>WP_DEBUG</tt> will also cause notices about deprecated functions and arguments within WordPress that are being used on your site. These are functions or function arguments that have not been removed from the core code yet but are slated for deletion in the near future. Deprecation notices often indicate the new function that should be used instead.
+
+== WP_DEBUG_LOG==
+
+<tt>WP_DEBUG_LOG</tt> is a companion to <tt>WP_DEBUG</tt> that causes all errors to also be saved to a <tt>debug.log</tt> log file inside the <tt>/wp-content/</tt> directory. This is useful if you want to review all notices later or need to view notices generated off-screen (e.g. during an [[AJAX_in_Plugins|AJAX]] request or [[Function_Reference/wp_schedule_event|wp-cron]] run).
+
+Note that this allows you to write to <tt>/wp-content/debug.log</tt> using PHP's built in <tt>error_log()</tt> function, which can be useful for instance when debugging AJAX events.
+
+ define( 'WP_DEBUG_LOG', true );
+
+Note: for <tt>WP_DEBUG_LOG</tt> to do anything, <tt>WP_DEBUG</tt> must be enabled (true).  Remember you can turn off <tt>WP_DEBUG_DISPLAY</tt> independently.
+
+==WP_DEBUG_DISPLAY==
+
+<tt>WP_DEBUG_DISPLAY</tt> is another companion to WP_DEBUG that controls whether debug messages are shown inside the HTML of pages or not. The default is 'true' which shows errors and warnings as they are generated. Setting this to false will hide all errors. This should be used in conjunction with <tt>WP_DEBUG_LOG</tt> so that errors can be reviewed later. 
+
+ define( 'WP_DEBUG_DISPLAY', false );
+
+Note: for <tt>WP_DEBUG_DISPLAY</tt> to do anything, <tt>WP_DEBUG</tt> must be enabled (true).  Remember you can control <tt>WP_DEBUG_LOG</tt> independently.
+
+== SCRIPT_DEBUG==
+
+<tt>SCRIPT_DEBUG</tt> is a related constant that will force WordPress to use the "dev" versions of some core CSS and JavaScript files rather than the minified versions that are normally loaded. This is useful when you are testing modifications to any built-in .js or .css files. Some scripts (notably the core jquery package) do not honor <tt>SCRIPT_DEBUG</tt>. Default is false.
+
+ define( 'SCRIPT_DEBUG', true );
+
+== SAVEQUERIES==
+
+The <tt>SAVEQUERIES</tt> definition saves the database queries to an array and that array can be displayed to help analyze those queries. The constant defined as true causes each query to be saved, how long that query took to execute, and what function called it.
+
+ define( 'SAVEQUERIES', true );
+
+The array is stored in the global <tt>$wpdb->queries</tt>.
+
+NOTE: This will have a performance impact on your site, so make sure to turn this off when you aren't debugging.
+
+== Example wp-config.php for Debugging ==
+The following code, inserted in your [[Editing_wp-config.php|wp-config.php]] file, will log all errors, notices, and warnings to a file called debug.log in the wp-content directory. It will also hide the errors so they do not interrupt page generation. 
+
+ <nowiki> // Enable WP_DEBUG mode
+define( 'WP_DEBUG', true );
+
+// Enable Debug logging to the /wp-content/debug.log file
+define( 'WP_DEBUG_LOG', true );
+
+// Disable display of errors and warnings 
+define( 'WP_DEBUG_DISPLAY', false );
+@ini_set( 'display_errors', 0 );
+
+// Use dev versions of core JS and CSS files (only needed if you are modifying these core files)
+define( 'SCRIPT_DEBUG', true );</nowiki>
+
+NOTE: You must insert this '''BEFORE''' <tt>/* That's all, stop editing! Happy blogging. */</tt> in the [[Editing_wp-config.php|wp-config.php]] file
+
+== Debugging Plugins ==
+
+There are many [https://wordpress.org/plugins/search.php?q=debug debugging plugins] for WordPress that show more information about the internals, either for a specific component or in general. Here are some examples:
+
+* [https://wordpress.org/plugins/query-monitor/ Query Monitor]
+* [https://wordpress.org/plugins/debug-bar/ Debug Bar]
+* [https://wordpress.org/plugins/log-deprecated-notices/ Log Deprecated Notices]
+
+
+== doing_it_wrong()  ==
+
+When you're making a mistake with your code in WordPress, you may see a message like 
+
+ Please see Debugging in WordPress for more information. (This message was added in version 3.3.0.) 
+
+Messages like above are automatically trigged by WordPress' doing_it_wrong() function and recommends you to read this page. 
+
+The causes of the message to appear are numerous and the previous error message should mention some more detail why the error was caused.  
+
+One common reason is that you're not calling/loading (java)scripts properly. When calling scripts, [https://developer.wordpress.org/reference/functions/wp_register_script/#notes use an action hook to load them] at the proper time. See [https://stackoverflow.com/a/31649768/1040605 this example] to learn how to call an action hook with your scripts.
+
+
+== External Resources ==
+* [http://generatewp.com/wp-config/ WordPress 'wp-config.php' file Generator]
+* [https://wordpress.org/plugins/demomentsomtres-debug/ DeMomentSomTres Debug Plugin] when you activate this plugin, WP_DEBUG is automaticaly set to true and set to false as plugin is deactivated
+* [https://github.com/stracker-phil/wp-no-white-screen/ 'No White Screen' plugin: Display the error instead of a white screen]
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

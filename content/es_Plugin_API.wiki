@@ -1,0 +1,231 @@
+{{Languages|
+{{en|Plugin API}}
+{{es|Plugin API}}
+{{ja|プラグイン API}}
+{{zh-cn|Plugin API}}
+}}
+
+==Introducción==
+
+Esta página documenta la Interfaz de Programación de la Aplicación ('''API''', por sus siglas en ingles) y como usar los ganchos ('''hooks''') que ofrece.
+
+Este articulo asume que ya has leído [[Writing a Plugin]], artículo que provee una vista general de como desarrollar un Plugin. Este artículo es específicamente acerca del API que usa "hooks", también conocidos como "filtros" (filters) y "acciones" (actions) que WordPress usa para poner en marcha tu Plugin. Estos hooks pueden utilizarse también en temas tal y como se [[Desarrollo_de_Temas#Archivos_de_Función_de_Temas|describe aquí]].
+
+'''Nota''': Esta información es aplicable a WordPress versiones 1.2 y superiores. Antes de la versión 1.2, las modificaciones se denominaban ''hacks'' e implicaban la modificación del código fuente de WordPress en si.
+
+== Ganchos, Acciones y Filtros ==
+
+Los Ganchos son provistos por WordPress para permitirle a tu Plugin incorporarse al resto de WordPress sin mayor inconveniente. Existen dos tipos:
+
+# [[#Acciones|Acciones]]: Acciones son los ganchos que el núcleo de WordPress ejecuta en puntos específicos durante la ejecución o cuando ocurren eventos específicos. Tu Plugin puede especificar que uno o mas de sus funciones de PHP sean ejecutadas en estos puntos a través del API de Acciones.
+# [[#Filtros|Filtros]]: Son los ganchos que WordPress utiliza para modificar texto de varios tipos antes de agregarlo a la base de datos o enviarlo a la pantalla del navegador. Tu filtro puede especificar que una o mas de sus funciones de PHP sea ejecutada para modificar tipos específicos de de texto en estos puntos usando el API de Filtros
+
+En ocasiones puedes lograr el mismo resultado con una acción o con un filtro. Por ejemplo, si quieres que tu Plugin modifique el texto de una entrada, puedes agregar una acción a <code>publish_post</code> (para que el post sea modificado al ser guardado en la base de datos), o bien puedes agregar un filtro a <code>the_content</code> (para que la entrada sea modificada al ser enviada a la pantalla del navegador).
+
+== Acciones==
+
+'''Acciones''' son causadas por eventos específicos que ocurren en WordPress, como publicar una entrada, cambiar de Tema, o mostrar una pagina en el panel de administración. Tu Plugin puede responder al evento al ejecutar una función de PHP; función que puede hacer una o varias de las siguientes acciones:
+
+* Modificar datos en la base de datos.
+* Enviar un mensaje de correo
+* Modificar lo que es mostrado en la pantalla del navegador (ya sea el administrador o algún otro usuario)
+
+Los pasos básicos para lograr esto son:
+
+# En el archivo de tu Plugin crear la función PHP que sera ejecutada cuando el evento esperado ocurra.
+# Enganchar la acción a WordPress al llamar <code>add_action</code>
+# Integrar tu Plugin a WordPress por completo al activar tu Plugin en la pagina de administración.
+
+=== Crear una función de Acción ===
+
+El primer paso en la creación de una función en tu Plugin es hacer la función PHP con la funcionalidad deseada en un archivo, mismo que sera guardado en el directorio <code>wp-content/plugins</code> del servidor. Por ejemplo, si quieres que tus conocidos reciban un mensaje de corre cada vez que publiques una entrada en tu blog, puedes definir la siguiente función:
+
+<pre>
+function email_amigos($post_ID)  {
+    $amigos = 'bob@ejemplo.org,susie@ejemplo.org';
+    mail($amigos, "Blog de Luz actualizado", 
+      'He publicado algo en mi blog: http://blog.ejemplo.com');
+    return $post_ID;
+}
+</pre>
+
+Para la mayoría de las acciones tu función debe aceptar un único parámetro (usualmente el identificador de la entrada o del comentario, dependiendo de la acción). Algunas acciones pueden aceptar mas de un parámetro, verifica la documentación de la acción (de estar disponible) o el código fuente de WordPress para mas información. Además del único parámetro también puedes acceder las variables globales de WordPress, llamar funciones disponibles en WordPress o funciones disponibles en tu Plugin
+
+'''Nota''': Mantén en mente que otros Plugins o el núcleo de WordPress pueden ya estar usando el nombre de la función que tienes en mente. Lee [[Writing a Plugin#Avoiding Function Name Collisions|Avoiding Function Name Collisions]] para mas información.
+
+===Enganchándose a WordPress===
+
+Después de haber definido tu función, el siguiente paso es "engancharse" (registrar tu función con WordPress). Para hacer esto, llama a <code>add_action()</code> en el espacio de ejecución global de tu Plugin:
+
+<pre>
+ add_action ( 'nombre_del_gancho', 'tu_accion', [prioridad], [argumentos] );
+</pre>
+
+Donde los parámetros son: 
+* <code>nombre_del_gancho</code> es el nombre de la acción provista por WordPress, que le informa a que evento deseas asociar tu función.
+* <code>tu_accion</code> es el nombre de la función que quieres sea ejecutada al ocurrir el evento especificado por <code>hook_name</code>. Puede ser una función integrada en PHP, una función presente en el núcleo de WordPress, o una función definida por ti en el archivo de tu Plugin (como <code>email_amigos</code> en el ejemplo de arriba).
+* <code>prioridad</code> es un argumento opcional (dígito) que puede ser usado para especificar el orden en que serán ejecutadas las funciones asociadas con la acción (valor predeterminado: 10). Números mas bajos corresponden a una ejecución mas temprana, y funciones con la misma prioridad son ejecutadas en el orden en el que fueron añadidos a la acción.
+* <code>accepted_args</code> es un argumento opcional (dígito) que define cuantos argumentos la función puede aceptar (valor predeterminado: 1). Es útil dado que algunos ganchos pueden transmitir mas de un argumento a tu función. Este parámetro esta disponible a partir de WordPress 1.5.1
+
+Continuando el ejemplo de arriba, se agregaría la siguiente linea al archivo de tu Plugin:
+
+<pre>
+add_action('publish_post', 'email_amigos');
+</pre>
+
+Así mismo, puedes [[#Removing Actions and Filters|Quitar Acciones]] de ganchos de acción. 
+
+=== Instalar y activar ===
+
+El ultimo paso para que tu acción funcione es instalar el archivo y activar el plugin. La función PHP escrita y la llamada <code>add_action</code> deben estar en un archivo PHP juntas, y el archivo PHP a su vez debe estar instalado en el directorio <code>wp-content/plugins</code>. Una vez instalado, es necesario ir a la pagina de administración de WordPress y activar el Plugin. Lee el articulo [[Managing Plugins]] para mas detalles.
+
+===Ganchos actuales para las Acciones===
+
+Lee [[Plugin API/Action Reference]] para una lista actualizada de acciones en la versión actual WordPress y ligas a las listas de versiónes anteriores
+
+==Filtros==
+
+'''Filtros''' son funciones a través de las cuales WordPress transmite datos en ciertos puntos de la ejecución, justo antes de tomar alguna acción con esos datos (como agregarlo a la base de datos o enviarlo a la pantalla del navegador). Los filtros se encuentran entre la base de datos y el navegador cuando WordPress esta generando paginas, y entre el navegador y la base de datos cuando WordPress esta agregando entradas y comentarios a la base de datos; la mayoría de los datos entrantes y salientes en WordPress pasan a través de por lo menos un filtro. WordPress usa algunos filtros por diseño, y tu Plugin puede agregar su propio filtrado.
+
+Los pasos básicos para añadir tus propios filtros a WordPress son:
+#Crear la función PHP que hará el filtrado de los datos.
+# Engancharse al filtro en WordPress al llamara <code>add_filter</code>
+# Integrar tu Plugin a WordPress por completo al activar tu Plugin en la pagina de administración.
+
+===Crear la Función de Filtro===
+
+Una función de filtro toma los datos entrantes sin modificar y regresa datos modificados (o en algunos casos, un valor nulo para indicar que los datos deben ser eliminados o simplemente no ser tomados en cuenta). Si los datos no son modificados por tu filtro entonces deben ser regresados en su forma original para que otros Plugins puedan realizar sus propias modificaciones de ser necesario.
+
+El primer paso en la creación de un filtro es establecer la función PHP que hará el filtrado y guardarla en el archivo de tu Plugin, mismo que sera instalado en el directorio <code>wp-content/plugins</code>. Por ejemplo, si quieres asegurarte que las entradas en tu blog y los comentarios no contengan palabras soeces, puedes definir una variable global con una lista de palabras prohibidas con la siguiente función:
+
+
+<pre>
+function filter_soez($contenido) {
+    global $palabras_soeces;
+    foreach($palabras_soeces as $soez) {
+        $content=str_ireplace($soez,'{censored}',$contenido);
+    }
+    return $content;
+}
+</pre>
+
+'''Nota''': Mantén en mete que otros Plugins o el núcleo de WordPress pueden ya estar usando el nombre de la función que tienes en mente. Lee [[Writing a Plugin#Avoiding Function Name Collisions|Avoiding Function Name Collisions]] para mas información.
+
+===Engancha tu Filtro===
+
+Después de haber definido tu función, el siguiente paso es engancharla, o registrarla con WordPress. Para hacerlo, hay que llamar a <code>add_filter</code> en el espacio de ejecución global de tu Plugin:
+
+<pre>
+add_filter('nombre_del_gancho', 'tu_filtro', [prioridad], [argumentos]);
+</pre>
+
+Donde los parámetros son: 
+* <code>nombre_del_gancho</code> es el nombre de la acción provista por WordPress, que define cuando tu filtro debe ser aplicado.
+* <code>tu_filtro</code> es el nombre de la función que quieres sea usada para realizar el filtrado. Puede ser una función integrada en PHP, una función presente en el núcleo de WordPress, o una función definida por ti en el archivo de tu Plugin.
+* <code>prioridad</code> es un argumento opcional (dígito) que puede ser usado para especificar el orden en que serán ejecutadas las funciones asociadas el filtro en particular (valor predeterminado: 10). Números mas bajos corresponden a una ejecución mas temprana, y funciones con la misma prioridad son ejecutadas en el orden en el que fueron añadidos al filtro.
+* <code>accepted_args</code> es un argumento opcional (dígito) que define cuantos argumentos la función puede aceptar (valor predeterminado: 1). Es útil dado que algunos ganchos pueden transmitir mas de un argumento a tu función. 
+
+Continuando el ejemplo de arriba añadiríamos: 
+
+<pre>
+add_filter('comment_text','filter_soez');
+</pre>
+
+También puedes eliminar ganchos de filtros usando la función de WordPress <code>remove_filter()</code>. Lee [[#Removing Actions and Filters|Removing Actions and Filters]].
+
+===Instalar y Activar===
+
+El ultimo paso para que tu filtro funcione es instalar el archivo y activar el Plugin. La función PHP escrita y la llamada <code>add_filter</code> deben estar en un archivo PHP juntas, y el archivo PHP a su vez debe estar instalado en el directorio <code>wp-content/plugins</code>.  Una vez instalado, es necesario ir a la pagina de administración de WordPress y activar el Plugin. Lee el articulo [[Managing Plugins]] para mas detalles.
+
+===Ganchos Actuales para Filtros===
+
+Lee [[Plugin API/Action Reference]] para una lista actualizada de ganchos para filtros en la versión actual WordPress y ligas a las listas de versión anteriores.
+
+===Ejemplo===
+
+Este es un ejemplo, [http://comox.textdrive.com/pipermail/wp-hackers/2008-February/018013.html descrito por Ozh en la lista de correo wp-hackers] para crear un Plugin que modifique (o sobre-escriba) la función predeterminada <code>bloginfo()</code>. Obviamente implica modificar comportamiento del núcleo de WordPress:
+
+<pre>
+add_filter('bloginfo', 'mybloginfo', 1, 2);
+add_filter('bloginfo_url', 'mybloginfo', 1, 2);
+
+function mybloginfo($result='', $show='') {
+        switch ($show) {
+        case 'wpurl':
+                $result = SITE_URL;
+                break;
+        case 'template_directory':
+                $result = TEMPL_DIR;
+                break;
+        default: 
+        }
+        return $result;
+}
+</pre>
+
+==Quitando Acciones y Filtros==
+
+En algunos casos puedes encontrar que deseas que tu Plugin deshabilite una acción o filtro incluido en WordPress, o agregado por algún otro Plugin. Puedes realizar esto al llamar <code>remove_filter('filter_hook','filter_function')</code> o <code>remove_action('action_hook','action_function')</code>
+
+Por ejemplo, <code>remove_action('publish_post','generic_ping');</code> evitaría que tu blog envie pings cada vez que una nueva entrada de blog sea publicada.
+
+Recuerda que si un gancho fue registrado usando una prioridad que no sea la predeterminada de 10, también necesitaras especificar la prioridad en la llamada a <code>remove_action()</code>. También recuerda que no debes tratar de quitar cosas a menos que sepas que es lo que hace y por que lo hace. Por favor verifica la documentación de WordPress o del Plugin, o el código fuente en WordPress y en el mismo Plugin.
+
+==Acciones y Filtros Aplicados Normalmente==
+
+La manera mas eficiente de encontrar las acciones y los filtros habilitados en WordPress en una instalación es realizar una búsqueda por <code>add_action</code> y <code>add_filter</code> en el código fuente de WordPress.
+
+===WordPress 2.1===
+
+En WordPress 2.1 la mayoría de las acciones y filtros realizados se encuentran en el archivo <code>wp-includes/default-filters.php</code>, junto con algunos más en los siguientes archivos:
+
+* <code>wp-admin/admin-ajax.php</code>
+* <code>wp-admin/admin-functions.php</code>
+* <code>wp-admin/custom-header.php</code>
+* <code>wp-admin/edit.php</code>
+* <code>wp-admin/index.php</code>
+* <code>wp-admin/options-permalink.php</code>
+* <code>wp-admin/upload-functions.php</code>
+* <code>wp-admin/upload.php</code>
+* <code>wp-includes/bookmark.php</code>
+* <code>wp-includes/general-template.php</code>
+* <code>wp-includes/kses.php</code>
+* <code>wp-includes/plugin.php</code>
+* <code>wp-includes/rewrite.php</code>
+* <code>wp-includes/template-loader.php</code>
+* <code>wp-includes/theme.php</code>
+
+===WordPress 1.5===
+
+La mayoría de las acciones y los filtros predeterminados se encuentran en el archivo <code>wp-includes/default-filters.php</code>.
+
+==Funciones que Puedes Modificar==
+
+Además de los ganchos descritos arriba, otra manera para un plugin cambiar el comportamiento de WordPress es modificando las funciones del núcleo de WordPress. Existe un grupo de funciones que existen con el propósito de ser modificadas por Plugins. WordPress carga estas funciones solamente si continúan sin definir después de haber registrado todos los Plugins.
+
+Estas funciones son definidas en el archivo <code>wp-includes/pluggable.php</code>. Aquí hay una lista actualizada (hasta WordPress 2.1); documentación para ellas puede ser encontrada en [[Function Reference]]:
+* <code>set_current_user</code>
+* <code>wp_set_current_user</code>
+* <code>wp_get_current_user</code>
+* <code>get_currentuserinfo</code>
+* <code>get_userdata</code>
+* <code>update_user_cache</code>
+* <code>get_userdatabylogin</code>
+* <code>wp_mail</code>
+* <code>wp_login</code>
+* <code>is_user_logged_in</code>
+* <code>auth_redirect</code>
+* <code>check_admin_referer</code>
+* <code>wp_redirect</code>
+* <code>wp_get_cookie_login</code>
+* <code>wp_setcookie</code>
+* <code>wp_clearcookie</code>
+* <code>wp_notify_postauthor</code>
+* <code>wp_notify_moderator</code>
+* <code>wp_new_user_notification</code>
+* <code>wp_verify_nonce</code>
+* <code>wp_create_nonce</code>
+* <code>wp_salt</code>
+* <code>wp_hash</code>
+
+[[Category:Spanish Codex]]

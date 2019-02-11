@@ -1,0 +1,50 @@
+== Description ==
+
+The <tt>comments_template</tt> filter hook filters the path to the theme template file used for the comments template. It is part of the <tt>[[Function Reference/comments_template|comments_template()]]</tt> function.
+
+The <tt>comments_template</tt> filter can be used to load a custom template form a plugin which replaces the theme's default comment template.
+
+== Parameters ==
+
+{{Parameter|$theme_template|string|The path to the theme template file.|required}}
+
+== Examples ==
+
+A plugin can register as a content filter with the code:
+
+<pre><?php add_filter( "comments_template", "my_plugin_comment_template" ); ?></pre>
+
+Where <tt>my_plugin_comment_template</tt> is the function WordPress should call when the <tt>comment_template()</tt> function is called on the theme. Note that the filter function the plugin defines must return the a full path to a template file or the resulting page will be blank.
+
+This is an example of loading a different comments template for a custom post type:
+<pre>
+<?php
+function my_plugin_comment_template( $comment_template ) {
+     global $post;
+     if ( !( is_singular() && ( have_comments() || 'open' == $post->comment_status ) ) ) {
+        return;
+     }
+     if($post->post_type == 'business'){ // assuming there is a post type called business
+        return dirname(__FILE__) . '/reviews.php';
+     }
+}
+
+add_filter( "comments_template", "my_plugin_comment_template" );
+?>
+</pre>
+
+The example code will load the template file <tt>reviews.php</tt> located in your plugins folder for CPT called <tt>business</tt> else uses default template.
+
+== Change Log ==
+
+Since: [[Version 1.5.1|1.5.1]]
+
+== Source File ==
+
+<tt>comments_template</tt> is located in {{Trac|wp-includes/comment-template.php}}
+
+== Related ==
+
+{{Tag Footer}}
+
+[[Category:Functions]]

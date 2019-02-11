@@ -1,0 +1,228 @@
+{{Languages|
+{{en|Widgets API}}
+{{es|API de Widget}}
+{{ja|WordPress ウィジェット API}}
+{{zh-cn|挂件接口}}
+}}
+
+{{copyedit}}
+
+==API de Widgets==
+Esta página contiene documentación técnica del API (Interfaz de Programación de Aplicaciones) para widgets de WordPress.  El público objetivo de esta información incluye a diseñadores de temas para WordPress, creadores de plugin y cualquiera que desde escribir un widget. Este documento asume unos conocimientos básicos de PHP. 
+
+Un widget es una [http://www.php.net/manual/en/language.functions.php función PHP] que imprime información en forma de cadenas a la salida estándar (STDOUT) cuando se le invoca. Para convertir una función PHP en un widget de WordPress, ésta ha de ser registrada como tal. Esto se hace utilizando un [http://www.php.net/manual/en/language.pseudo-types.php PHP callback] (un ''pseudo-tipo'' en la documentación de PHP) que se registra gracias a una función API de WordPress.
+
+El API de WordPress está ubicado en {{Trac|wp-includes/widgets.php}}.
+
+== Referencia de Funciones ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Funciones de Barra lateral (Sidebar)'''
+|-
+|
+* <tt>[[Function Reference/is_active_sidebar|is_active_sidebar]]</tt>
+* <tt>[[Function Reference/register_sidebars|register_sidebars]]</tt>
+* <tt>[[Function Reference/register_sidebar|register_sidebar]]</tt>
+* <tt>[[Function Reference/unregister_sidebar|unregister_sidebar]]</tt>
+* <tt>[[Function Reference/is_dynamic_sidebar|is_dynamic_sidebar]]</tt>
+* <tt>[[Function Reference/dynamic_sidebar|dynamic_sidebar]]</tt>
+* <tt>[[Function Reference/register_sidebar_widget|register_sidebar_widget]]</tt>
+* <tt>[[Function Reference/unregister_sidebar_widget|unregister_sidebar_widget]]</tt>
+* <tt>[[Function Reference/wp_register_sidebar_widget|wp_register_sidebar_widget]]</tt>
+* <tt>[[Function Reference/wp_unregister_sidebar_widget|wp_unregister_sidebar_widget]]</tt>
+* <tt>[[Function Reference/wp_get_sidebars_widgets|wp_get_sidebars_widgets]]</tt>
+* <tt>[[Function Reference/wp_set_sidebars_widgets|wp_set_sidebars_widgets]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Funciones de Widget'''
+|-
+|
+* <tt>[[Function Reference/is_active_widget|is_active_widget]]</tt>
+* <tt>[[Function Reference/the_widget|the_widget]]</tt>
+* <tt>[[Function Reference/register_widget|register_widget]]</tt>
+* <tt>[[Function Reference/unregister_widget|unregister_widget]]</tt>
+* <tt>[[Function Reference/register_widget_control|register_widget_control]]</tt>
+* <tt>[[Function Reference/unregister_widget_control|unregister_widget_control]]</tt>
+* <tt>[[Function Reference/wp_register_widget_control|wp_register_widget_control]]</tt>
+* <tt>[[Function Reference/wp_unregister_widget_control|wp_unregister_widget_control]]</tt>
+* <tt>[[Function Reference/wp_convert_widget_settings|wp_convert_widget_settings]]</tt>
+* <tt>[[Function Reference/wp_get_widget_defaults|wp_get_widget_defaults]]</tt>
+* <tt>[[Function Reference/wp_widget_description|wp_widget_description]]</tt>
+|}
+
+|}
+
+== Definir Barras laterales ==
+
+Las funciones listadas más adelante se utilizan para añadir barras laterales funcionales al tema.
+
+=== Registrar Varias Barras Laterales (Sidebars) ===
+
+ register_sidebars( $count, $args );
+
+Registra una o más barras laterales para utilizar en el tema actual. Muchos temas disponen de una única barra lateral. Por esta razón, el parámetro ''count'' es opcional y el valor por defecto es 1.
+
+El parámetro ''$args'' se pasará a [[es:Referencia_de_Funciones/register_sidebar|register_sidebar()]] y sigue su formato, con la excepción del nombre, que es tratado con sprintf() para insertar o añadir un número único a cada barra lateral si ''count'' es mayor que uno.
+
+Por ejemplo, la siguiente línea creará barras laterales con los nombres "Foobar 1" y "Foobar 2":
+
+ register_sidebars(2, array('name'=>'Foobar %d'));
+
+=== Regitrar una única Barra Lateral ===
+
+ register_sidebar( $args );
+
+El parámetro opcional ''$args'' es un array asociativo que será pasado como primer argumento en toda respuesta de widget activos. (Si se pasa una cadena en vez de un array, será pasada a través de parse_str() para generar un array asociativo).  El uso básico de estos argumentos es pasar etiquetas HTML específicas de un tema para envolver al widget y a su título. Aquí están los valores por defecto:
+
+<pre>
+ 'before_widget' => '<li id="%1$s" class="widget %2$s">',
+ 'after_widget' => "</li>n",
+ 'before_title' => '<h2 class="widgettitle">',
+ 'after_title' => "</h2>n"
+</pre>
+
+Hay momentos en los que usted puede querer llamar a esta función en vez de registrar las barras laterales. Un ejemplo podría ser cuando usted desea dar nombres únicos a sus sidebars, tales como "Barra Lateral Derecha" y "Barra Lateral Izquierda", o cuando deberían ser marcadas de forma diferente. Los nombres aparecen en el interface de administración y se utilizan como índice para mantener la disposición de las barras. Tenga en cuenta que la disposición de las barras laterales se pueden reutilizar y sobre-escribir cuando se elige otro tema que utiliza los mismos nombres de barras laterales.
+
+Los valores por defecto before/after están pensados para temas que generan barras laterales marcadas como una lista con títulos "h2". Esta es la convención recomendada para los temas. Los temas construidos utilizando esta estructura pueden registrar barras laterales sin problemas gracias a las etiquetas before/after. Si un tema no puede ser marcado de esta forma, estas etiquetas deben especificarse al registrar la barra. Está recomendado copiar la id y los atributos literales de claase de forma que una llamada a un sprintf interno pueda funcionar y que los estilos CSS se puedan aplicar a widgets individuales.
+
+=== Mostrar la Barra Lateral en el Tema ===
+
+ dynamic_sidebar( $sidebar );
+
+Esta función llama a cada una de las respuestas de widget activos por orden, e imprime el marcado para las barras laterales. Si usted dispone de más de una barra lateral, debería dar a esta función el nombre o el número de la barra lateral que desea mostrar. Esta función devuelve true si termina correctamente, o false si encuentra un fallo.
+
+El valor de retorno podría utilizarse para determinar si se va a mostrar una barra lateral estática. Esto aseguraría que su tema se mostrará correctamente cuando el plugin de widget no esté activo. Debajo se muestra el uso recomendado de esta función, junto con un test para prevenir errores fatales:
+
+<pre>
+    <ul id="sidebar">
+        <?php if ( !function_exists('dynamic_sidebar') || !dynamic_sidebar() ) : ?>
+            <li>{static sidebar item 1}</li>
+            <li>{static sidebar item 2}</li>
+        <?php endif; ?>
+    </ul>
+</pre>
+
+Si sus barras laterales fueron registrados con un número, deberían ser recuperadas con un número. Si tenían nombres cuando usted las registró, debería utilizar sus nombres.
+
+== Desarrollando Widgets ==
+
+=== Desarrollando Widgets en 2.8+ ===
+
+El desarrollo de Widget es más sencillo desde la versión 2.8. Para crear uno, solo necesita extender la clase estándar widget y algunas de sus funciones.
+
+La clase base contiene información sobre la función que debe ser extendida para obtener un widget funcional.
+
+==== Uso por Defecto ====
+<pre>
+class My_Widget extends WP_Widget {
+	function My_Widget() {
+		// procesos efectivos, reales del widget
+	}
+
+	function form($instance) {
+		// saca el formulario de opciones en admin
+	}
+
+	function update($new_instance, $old_instance) {
+		// procesa las opciones del widget que se guardarán
+	}
+
+	function widget($args, $instance) {
+		// saca el contenido del widget
+	}
+
+}
+register_widget('My_Widget');
+</pre>
+
+==== Ejemplo ====
+
+Este ejemplo crea un Widget llamado ''FooWidget'' que tiene un formulario de configuraciones para cambiar el título.
+
+<pre>
+/**
+ * FooWidget Class
+ */
+class FooWidget extends WP_Widget {
+    /** constructor */
+    function FooWidget() {
+        parent::WP_Widget(false, $name = 'FooWidget');	
+    }
+
+    /** @see WP_Widget::widget */
+    function widget($args, $instance) {		
+        extract( $args );
+        $title = apply_filters('widget_title', $instance['title']);
+        ?>
+              <?php echo $before_widget; ?>
+                  <?php if ( $title )
+                        echo $before_title . $title . $after_title; ?>
+                  Hello, World!
+              <?php echo $after_widget; ?>
+        <?php
+    }
+
+    /** @see WP_Widget::update */
+    function update($new_instance, $old_instance) {				
+	$instance = $old_instance;
+	$instance['title'] = strip_tags($new_instance['title']);
+        return $instance;
+    }
+
+    /** @see WP_Widget::form */
+    function form($instance) {				
+        $title = esc_attr($instance['title']);
+        ?>
+            <p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label></p>
+        <?php 
+    }
+
+} // clase FooWidget
+</pre>
+
+Este widget puede registrarse en el gancho ''widgets_init'':
+
+<pre>
+// registrar el widget FooWidget
+add_action('widgets_init', create_function('', 'return register_widget("FooWidget");'));
+</pre>
+
+Esto es todo. Usted habrá obtenido automáticamente un widget múltiple. No hay que darle más vueltas.
+
+Hay más información disponible en  [[Version 2.8#New_Widgets_API|información sobre la versión 2.8]].
+
+===¿Qué más puedo hacer con Widgets?===
+
+Gracias por preguntar. Aquí tiene unas cuantas ideas:
+
+* Escribir un tema que incluya un widget especial que lo diferencie de los demás.
+* Registrar un widget que reemplace a uno original y transformarlo de alguna manera.
+* Recuerde que un "widget" realmente no es más que un nombre para un código configurable. Puede ser invisible o posicionarse de forma absoluta; horizontalmente o verticalmente.
+* Utilice los atributos de clase y el id de uno o todos los widgets en los scripts para animar su barra lateral.
+* Intente utilizar jQuery (incluida con WordPress) para hacer sus widgets arrastrables o replegables....
+* REcuerde, el contro API de widget está disponible para su provecho. Usted siempre puede optar por diseñar su propia página de administración.
+* De soporte a sus usuarios y obtenga feedback de forma que pueda mejorar su widget. Pong un link a su email o su web en el pie de página de su widget.
+* Para que su widget sea considerado para su uso en WordPress.com, por favor, envie un link (no adjuntos, por favor) a widgets@wordpress.com.
+
+=== Widgets - Multiple Instances ===
+Widgets can be coded for multiple instances or a single instance.
+
+===Resources===
+* [http://justintadlock.com/archives/2009/05/26/the-complete-guide-to-creating-widgets-in-wordpress-28 The complete guide to creating widgets in WordPress 2.8]
+* [http://brainfart.com.ua/post/lesson-wordpress-multi-widgets/ Multiple Widget Lesson]
+* [http://jessealtman.com/2009/06/08/tutorial-wordpress-28-widget-api/ Tutorial for creating a widget using WordPress 2.8]
+* [http://wpengineer.com/wordpress-built-a-widget/ Build A WordPress 2.8 Widget With The New Widget API]
+
+[[Category:Widgets|*]]
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]

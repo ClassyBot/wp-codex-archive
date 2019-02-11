@@ -1,0 +1,73 @@
+{{Languages|
+{{en|Function Reference/get query var}}
+{{it|Riferimento funzioni/get query var}}
+{{ja|関数リファレンス/get query var}}
+}}
+
+== Description ==
+Retrieve [[WordPress_Query_Vars|public query variable]] in the [[Class_Reference/WP_Query|<tt>WP_Query</tt>]] class of the global $wp_query object.
+
+== Usage ==
+%%%<?php get_query_var( $var, $default ) ?>%%%
+
+== Parameters ==
+{{Parameter|$var|string|The variable key to retrieve.}}
+
+{{Parameter|$default|mixed|Value to return if the query variable is not set.|optional|empty string}}
+
+== Return Values ==
+; (mixed) :
+returns $default if var is not set
+
+== Examples ==
+<!-- Need creative examples. Feel free to link to external examples. -->
+=== Getting Current Pagination Number ===
+<pre>
+
+<?php  $paged = get_query_var( 'paged', 1 );  ?>
+
+<h1>Currently Browsing Page <?php echo (int) $paged; ?></h1>
+
+</pre>
+
+For getting the current pagination number on a [[Creating_a_Static_Front_Page|static front page]] (Page template) you have to use the 'page' query variable:
+ 
+<pre>
+<?php  $page = get_query_var( 'page', 1 );  ?>
+<h1>Currently Browsing Page <?php echo (int) $page; ?> On a static front page</h1>
+</pre>
+
+Note: The query variable 'page' holds the pagenumber for a single paginated Post or Page that includes the <code>&lt;!--nextpage--&gt;</code> Quicktag in the post content.
+
+== Notes ==
+<tt>get_query_var()</tt> only retrieves '''public query variables''' that are recognized by <tt>WP_Query</tt>. This means that if you create your own custom URLs with their own query variables, <tt>get_query_var()</tt> '''will not retrieve them''' without some further work (''see below'').
+
+=== Custom Query Vars ===
+In order to be able to add and work with your own custom query vars that you append to URLs (eg: "http://mysite.com/some_page/?my_var=foo" - for example using [[Function_Reference/add_query_arg|add_query_arg()]]) you need to add them to the '''public query variables''' available to <tt>WP_Query</tt>. These are built up when <tt>WP_Query</tt> instantiates, but fortunately are passed through a filter [[Plugin_API/Filter_Reference/query_vars|'query_vars']] before they are actually used to populate the <tt>$query_vars</tt> property of <tt>WP_Query</tt>.
+
+So, to expose your new, custom query variable to <tt>WP_Query</tt> hook into the [[Plugin_API/Filter_Reference/query_vars|'query_vars']] filter, add your query variable to the <tt>$vars</tt> array that is passed by the filter, and remember to return the array as the output of your filter function. See below:
+
+<pre>
+function add_query_vars_filter( $vars ) {
+  $vars[] = "my_var";
+  return $vars;
+}
+add_filter( 'query_vars', 'add_query_vars_filter' );
+</pre>
+
+* See <tt>WP_Query::get()</tt>
+* Uses global: (<tt>object</tt>) [[Class_Reference/WP_Query|<tt>$wp_query</tt>]]
+
+== Change Log ==
+Since: 1.5.0
+
+== Source File ==
+<tt>get_query_var()</tt> is located in {{Trac|wp-includes/query.php}}.
+
+== Related ==
+See also [https://codex.wordpress.org/Function_Reference/set_query_var set_query_var] for the opposite action.
+{{Query Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

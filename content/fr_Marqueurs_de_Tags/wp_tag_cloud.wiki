@@ -1,0 +1,114 @@
+{{Languages|
+{{en|Function Reference/wp_tag_cloud}}
+{{fr|Marqueurs de Tags/wp_tag_cloud}}
+{{it|Riferimento funzioni/wp_tag_cloud}}
+{{ja|テンプレートタグ/wp_tag_cloud}}
+}}
+
+__NOTOC__ {{French Header}}
+== Description ==
+Ce marqueur de modèle est apparu avec WordPress Version 2.3. [[fr:Marqueur_de_Tags/wp_tag_cloud|wp_tag_cloud]] affiche une list de tags dans ce qu'on appelle un 'nuage de tags' ('tag cloud'), dans lequel la taille de chaque tag est déterminée par le nombre d'occurence de ce tag dans les articles.
+
+== Utilisation ==
+<pre><?php wp_tag_cloud(''); ?></pre>
+
+== Exemples ==
+
+===Utilisation par défaut===
+ $defaults = array('smallest' => 8, 'largest' => 22,
+   'unit' => 'pt', 'number' => 45, 'format' => 'flat', 
+   'orderby' => 'name', 'order' => 'ASC','exclude' => '', 'include' => '');
+
+Par défaut, the usage shows:
+* ''smallest'' - Utilise une police 8 points pour afficher les tags les moins courants
+* ''largest'' -  Utilise une police 22 points pour afficher les tags les plus courants
+* ''unit'' - Indique 'pt' (point) comme l'unité utilisée pour les valeurs de 'smallest' et 'largest'
+* ''number'' - Affiche au maximum 45 tags
+* ''format'' - Affiche les tags comme une liste simple (séparés par des espaces)
+* ''orderby'' - Trie les tags par nom
+* ''order'' - Trie les tags par ordre alphabétique croissant (ASCENDING)
+* ''exclude'' - Aucun tag exclus
+* ''include'' - Inclus tous les tags
+
+===Affichage du nuage sous le titre 'Popular Tags'===
+<pre>
+<?php if ( function_exists('wp_tag_cloud') ) : ?>
+<li>
+<h2>Popular Tags</h2>
+<ul>
+<?php wp_tag_cloud('smallest=8&largest=22'); ?>
+</ul>
+</li>
+<?php endif; ?>
+</pre>
+
+===Nuage limité en taille et trié par nombre d'occurences plutôt que par nom===
+ <?php wp_tag_cloud('smallest=8&largest=22&number=30&orderby=count'); ?>
+
+== Paramètres ==
+; smallest : (''integer'') Taille en unité de la police à utiliser pour afficher les tags les moins courants.
+; largest : (''integer'') Taille en unité de la police à utiliser pour afficher les tags les plus courants.
+; unit : (''string'') Unité de mesure de la police utilisée pour les paramètres '''smallest''' et '''largest'''.  Utiliser '''pt''' pour le point.
+; number : (''integer'') Le nombre de tags à afficher effectivement dans le nuage. (Utiliser '0' pour tous les afficher.)
+; format : (''string'') Format d'affichage du nuage.
+:* <tt>'flat'</tt> (Défaut) les tags sont séparés par des espaces
+:* <tt>'list'</tt>  les tags sont dans une liste non-ordonnées (UL) contenant class='wp-tag-cloud'
+:* <tt>'array'</tt>  les tags sont dans un tableau
+; orderby : (''string'') Clé de tri des tags. Les valeurs valides values sont :
+:* <tt>'name'</tt> (Default)
+:* <tt>'count'</tt>
+; order : (''string'') Ordre de tri. Les valeurs valides sont :
+:* <tt>'ASC'</tt> (Default) : croissant
+:* <tt>'DESC'</tt> : décrissant
+; exclude : (''string'') Liste de tags à exclure, séparés par des virgules (term_id). Par exemple, 'exclude=5,27' signifie que les tags qui ont les term_id 5 ou 27 ne seront PAS affichés. Par défaut, aucun tags n'est exclus.
+; include : (''string'') Liste de tags à inclure, séparés par des virgules (term_id). Par exemple, 'include=5,27' signifie que les tags qui ont les term_id 5 ou 27 seront les seuls à être affichés. Par défaut, tous les tags sont inclus.
+
+== Création d'une archive de Tags ==
+La nouvelle fonctionnalité de Tag de la version 2.3 est particulièrement intéressante si on considère qu'on peut utiliser le marqueur wp_tag_cloud pour afficher une archive de Tags.  Ce que cela signifie, c'est que lorsqu'un visiteur va cliquer sur un élément du nuage, il verra s'afficher une page contenant le nuage et tous les articles marqués de ce Tag.
+
+Pour arriver à ce résultat, un nouveau modèle doit être ajouté à votre thème.  This is a good resource for everything pertaining to [[Templates|templates]].  Les étapes de base sont
+
+*1. Créer un fichier avec le contenu ci-dessous.
+*2. Uploader ce fichier dans le répertoire de votre thème.
+*3. Créer une nouvelle page qui utilise ce modèle.
+
+Pour détailler un peu la dernière étape.
+
+WordPress peut être configuré pour utiliser différents modèles de page. Vers le bas du panneau d'administration Ecrire->Page (ou sur la sidebar, cela dépend de la version de WordPress que vous utilisez) se trouve un menu déroulant appelé "Modèle de Page". Depuis celui-ci, vous pouvez sélectionner quel modèle vous souhaitez utiliser pour afficher la Page en cours.
+
+<pre>
+<?php /*
+Template Name: Tag Archive
+*/ ?>
+<div id="content">
+<h2>Tag Archive</h2>
+<?php get_header(); ?>
+<?php wp_tag_cloud(''); ?>
+	<div class="navigation">
+<div class="alignleft"><?php next_posts_link('&laquo; Older Entries') ?></div>
+<div class="alignright"><?php previous_posts_link('Newer Entries &raquo;') ?></div>
+	</div>
+<?php if (have_posts()) : ?>
+		<?php while (have_posts()) : the_post(); ?>
+		<h2 class="posttitle"><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title(); ?>"><?php the_title(); ?></a></h2>
+	<div class="entry">
+	<?php the_content('Read the rest of this entry &raquo;'); ?>
+	</div>
+
+	<?php endwhile; ?>
+	<?php endif; ?>
+</div>
+<?php get_footer(); ?>
+</pre>
+
+Veuillez noter qu'aucun style n'a été inclus dans ce modèle. Une bonne manière de déterminer la structure utilisée par votre thème est de regarder le contenu du fichier single.php.
+
+== Related ==
+
+{{Tag Tags}}
+
+{{Tag Footer}}
+
+{{Stub}}
+
+[[Category:Marqueurs de Modele]]

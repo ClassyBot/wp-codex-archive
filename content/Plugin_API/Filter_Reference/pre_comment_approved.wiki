@@ -1,0 +1,68 @@
+== Description ==
+A filter hook called by the wp_allow_comment function prior to inserting a comment into the database. The filter is applied to the proposed comment's approval status, allowing a plugin to override. 
+
+== Usage ==
+%%%<?php function filter_handler( $approved , $commentdata ){ ...... }
+
+add_filter( 'pre_comment_approved' , 'filter_handler' , '99', 2 ); ?>%%%
+
+== Parameters ==
+{{Parameter|$approved|mixed|Preliminary comment approval status: 0, 1, 'trash', or 'spam'.}}
+{{Parameter|$commentdata|array|Comment data array (see below)}}
+
+The $commentdata array contains the same indices as the array returned by [[Function_Reference/get_comments|<tt>get_comments()</tt>]], including:
+    'comment_post_ID'      - The post to which the comment will apply
+    'comment_author'       - (may be empty)
+    'comment_author_email' - (may be empty)
+    'comment_author_url'   - (may be empty)
+    'comment_author_IP'    - IP address
+    'comment_agent'        - e.g., "Mozilla/5.0..."
+    'comment_content'      - The text of the proposed comment
+    'comment_type'         - 'pingback', 'trackback', or empty for regular comments
+    'user_ID'              - (empty if not logged in)
+
+
+== Return Values ==
+{{Return|0|int|comment is marked for moderation as "Pending"}}
+{{Return|1|int|comment is marked for immediate publication as "Approved"}}
+{{Return|'spam'|string|comment is marked as "Spam"}}
+{{Return|'trash'|string|comment is to be put in the Trash}}
+
+In all cases the comment is added to the database, even spam. Comments marked as spam will never be visible on the front end. Spam comments are kept for possible analysis by plugins.
+
+== Examples ==
+%%%<?php
+function filter_handler( $approved , $commentdata )
+{
+  // inspect $commentdata to determine approval, disapproval, or spam status
+  return $approved;
+}
+
+add_filter( 'pre_comment_approved' , 'filter_handler' , '99', 2 );
+?>%%%
+
+== Notes ==
+[[Function_Reference/wp_allow_comment|<tt>wp_allow_comment()</tt>]] handles the preliminary approval checking, and that approval status is passed through this filter before it returns.
+
+
+== Change Log ==
+(wp_allow_comment) Since: 2.0.0
+
+Prior to WP 3.1, the filter was not passed $comment_data and instead was expected to use global variables such as $comment_ID to access information about the comment. (see: http://core.trac.wordpress.org/ticket/14802 )
+
+== Source File ==
+<tt>wp_allow_comment</tt> is located in {{Trac|wp-includes/comment.php}}.
+
+== Related ==
+[[Plugin_API/Filter_Reference/comment_save_pre|comment_save_pre]],
+[[Plugin_API/Filter_Reference/pre_comment_approved|pre_comment_approved]],
+[[Plugin_API/Filter_Reference/pre_comment_content|pre_comment_content]],
+[[Plugin_API/Filter_Reference/preprocess_comment|preprocess_comment]],
+[[Function_Reference/wp_allow_comment|wp_allow_comment()]]
+
+== See Also ==
+[[Plugin_API/Filter_Reference]]
+
+
+[[Category:Filters]]
+[[Category:New_page_created]]

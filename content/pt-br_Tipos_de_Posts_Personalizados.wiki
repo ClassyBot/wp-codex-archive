@@ -1,0 +1,95 @@
+{{Languages|
+{{en|Custom Post Types}}
+{{pt-br|Tipos de Posts Customizados}}
+}}
+
+O WordPress pode armazenar e exibir muitos tipos diferentes de conteúdo. Internamente, todos estes conteúdos são armazenados no mesmo local, na tabela <tt>[[Database_Description#Table:_wp_posts|wp_posts]]</tt>. Onde os conteúdos são diferenciados por uma coluna chamada <tt>[[Glossary#Post_Type|post_type]]</tt>.
+
+Na nova versão, [[Version 3.0|WordPress 3.0]], foi adicionado suporte a criação de novos tipos de posts customizados, os quais você pode usar  de diferentes maneiras.
+
+== Tipos Padrões ==
+
+Existem cinco tipos principais que o WordPress usa por padrão, são eles:
+
+=== Post ===
+
+Um "post" (no banco de dados "post") é o principal tipo usado no WordPress. Posts normalmente são exibidos em um blog ordenados cronologicamente (posts mais recentes primeiro). E também são usados na publicação dos feeds.
+
+=== Páginas ===
+
+Uma "página" (no banco de dados "page") é como um post, porém não faz parte da mesma estrutura cronológica dos posts. Elas têm sua próprias URLs podendo ser acessadas diretamente da URL do site principal. Podem usar [[pt-br:Criando_Páginas#Page_Templates|Modelos de Páginas]] especiais para serem exibidas. As páginas também podem ser organizadas dentro de uma estrutura hierárquica, onde Páginas pais podem ter Páginas filhas, onde estas Páginas filhas por sua vez também podem ter Páginas filhas, e assim sucessivamente.
+
+=== Anexo ===
+
+Um "anexo" (no banco de dados "attachment") é um post especial que contém informações sobre arquivos enviados através do sistema de upload de mídia. No tipo "anexo" contém toda a descrição, nome e outras informações e metadados sobre o tamanho das imagens e miniaturas geradas a partir das imagens, a localização dos arquivos, e até mesmo a informações obtidas a partir dos dados EXIF embutidos nas imagens.
+
+=== Revisões ===
+
+A "revisão" (no banco de dados "revision"), é usada para armazenar um rascunho de todos os posts e páginas (pages) existentes. É basicamente igual ao post/página (page), porém tem como post_parent o post/página principal.
+
+=== Menus de Navegação ===
+
+O tipo "nav_menu" (no banco de dados "nav_menu_item") contém informações sobre um único item no sistema de Menu de Navegação. Estes são os primeiros exemplos de entradas na tabela wp_posts a serem utilizados para outra coisa que não exibir um conteúdo (post/página) do blog.
+
+== Tipos Customizados ==
+
+Para adicionar um tipo customizado no WordPress 3.0, é preciso usar a função [[Function_Reference/register_post_type|register_post_type]]. Esta função permite que você defina o tipo de post e como ele se comporta dentro do WordPress.
+
+Aqui está um exemplo básico de adição de um tipo de post customizado:
+
+ add_action( 'init', 'create_post_type' );
+ function create_post_type() {
+   register_post_type( 'super',
+     array(
+       'labels' => array(
+         'name' => __( 'Supers' ),
+         'singular_name' => __( 'Super' )
+       ),
+       'public' => true,
+     )
+   );
+ }
+
+O código acima cria um tipo de post com o nome "super". A função possui dois argumentos principais, o primeiro é o "labels", que define o nome do novo tipo customizado, o plural e o singular. O segundo é "public", que é uma flag para mostrar o tipo de post na seção de administração do site, e para fazê-lo aparecer no site principal, se é adicionado nas queries ou não.
+
+Há muitos parâmetros que você pode adicionar à função [[Function_Reference/register_post_type|register_post_type]] para, por exemplo, configurar hierarquia, alterar a URL do tipo customizado e para mostrar ou ocultar as caixas de meta na tela de edição do post. Esses parâmetros são opcionais, e você pode usálos para configurar o tipo de post customizado em um nível mais detalhado.
+
+=== Funções de Referência ===
+{{Post Type Tags}}
+
+=== Admin UI ===
+
+Quando um post é criado com este parâmetro com valor "true", torna-se um ítem no menu de administração (igual aos "posts" e "páginas" padrões do WordPress), possibilitando a criação de posts com este novo tipo customizado, com uma tela de edição de post igual ao post padrão do WordrPress.
+
+=== URLs ===
+
+Um tipo de post customizado também tem sua própria URL. No exemplo acima, os posts deste novo tipo "super" podem ser exibidos na URL: http://example.com/super/post-name. Se a estrutura de reescrita de permalinks estiver ativada você verá esta URL na tela de edição do post.
+
+=== Modelo de Post Customizado ===
+
+O sistema de temas também suporta modelos de tipos de post customizados, assim como nas páginas (pages), quando você cria um tipo de post customizado, você pode utilizar um arquivo <tt>single.php</tt> específico para cada tipo, basta criar um arquivo <tt>type.php</tt> dentro da pasta do seu tema. Para o exemplo acima você criaria um arquivo <tt>super.php</tt> que seria utilizado quando a URL http://example.com/super/ fosse chamada no site principal.
+
+=== Consultas/Queries por post_type ===
+
+Para fazer consultas específicas e trazer apenas posts do tipo customizado que você deseja, você pode utilizar o parâmetro "post_type" em um objeto WP_Query sempre que precisar.
+
+Exemplo:
+ $loop = new WP_Query( array( 'post_type' => 'super', 'posts_per_page' => 10 ) );
+ while ( $loop->have_posts() ) : $loop->the_post();
+   the_title();
+   echo '&lt;div class="entry-content"&gt;';
+   the_content();
+   echo '&lt;/div&gt;';
+ endwhile;
+
+O código acima percorre os 10 últimos posts do tipo "super".
+
+== Mais Informações (em inglês) ==
+
+* [http://justintadlock.com/archives/2010/02/02/showing-custom-post-types-on-your-home-blog-page Showing custom post types on your home/blog page]
+* [http://justintadlock.com/archives/2010/04/29/custom-post-types-in-wordpress Custom post types in WordPress]
+* [http://kovshenin.com/archives/custom-post-types-in-wordpress-3-0/ Custom Post Types in WordPress 3.0]
+* [http://kovshenin.com/archives/extending-custom-post-types-in-wordpress-3-0/ Extending Custom Post Types in WordPress 3.0]
+
+{{Codex-pt}}
+{{DEFAULTSORT:T}}

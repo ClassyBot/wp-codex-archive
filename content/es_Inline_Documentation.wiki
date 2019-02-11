@@ -1,0 +1,305 @@
+Esta pagina es el inicio del esfuerzo para añadir documentación integrada al código fuente del núcleo de WordPress para ayudar en el desarrollo futuro, cambios, mejoras, y asistir a otros en su aprendizaje de PHP y WordPress.
+
+Uso de esta pagina y paginas dependientes esta indicado para desarrollar metodologías y formatos comunes, así como para asegurarse de no duplicar esfuerzos. En el mejor de los casos, documentación integrada debe aparecer lo mas cercano posible a esto: [http://pear.php.net/manual/en/standards.sample.php PEAR sample].
+
+==Que Debe Ser Documentado==
+
+Documentar globales proporciona información para phpDocumentor y otros leyendo el código fuente acerca del uso como el global es usado. No es requerido y en muchas ocasiones no es necesario, ya que los desarrolladores principales puede que no acepten los parches.
+
+Funciones y métodos de clases por lo regular son difíciles de explicar sin contexto. Documentación puede ofrecer contexto, pero documentación integrada no debe ser usada para proveer ejemplos extremos, exceptuando para cortas lineas de código acerca de las cuales no hay información inmediata disponible en el codex.
+
+La mayoría de las clases usadas en WordPress son Singletons (la funcionalidad entera es contenida en una única clase), pero seguido requieren inicialización manual de sus propiedades. Regularmente la pregunta de como usar un método en una clase no es clara.
+
+Adiciones mas recientes  y algunas bibliotecas externas usan clases múltiples para formarse a si mismas por funcionalidad. Esto crea una curva de aprendizaje mas pronunciada dado que la clase base (la que es usada por el desarrollador para proveer la funcionalidad desde el resto de las clases) no resulta clara. Añadir documentación acerca de donde cae la clase en la jerarquía proporciona mayor claridad.
+
+Las propiedades de clases deben ser documentadas para tener una documentación completa. Las etiquetas PHPdoc para estas propiedades pueden ser encontrados en el sitio principal y un ejemplo puede ser encontrado abajo.
+
+==Etiquetas PHPdoc==
+
+Estas etiquetas funcionan con algunos editores para mostrar mas información acerca de un segmento de código. Es útil para desarrolladores usando estos editores entender cual es el propósito de este código y como puede ser reusado con eficiencia.
+
+La convención de permitir bloques en PHPdoc es para tener información @since disponible (aunque no este disponible en ese tiempo), e información @package que debe ser "WordPress" a menos que sea una biblioteca externa.
+
+<pre>
+/**
+ * ... Descripción(es) aquí
+ *
+ * @package WordPress
+ * @since 2.1 or {{@internal Unknown}}}
+ *
+  * ... Se requiere mas información.
+ */
+</pre>
+
+Bloques de comentario PHPdoc no deben ser usados dentro de funciones y métodos, excepto para documentar información "TODO". Cualquier otro comentario dentro de funciones y métodos no debe usar estilos de PHPdoc.
+
+<pre>
+/**
+ * @todo ... Descripción
+ */
+</pre>
+
+La segunda forma puede ser usada de ser necesario:
+<pre>/** @todo ... Descripción */</pre>
+
+
+==Documentando Includes y Requires==
+
+Esto es útil para explicar que relación el archivo a incluir tiene respecto al archivo actual, porque es necesario y que puede ser encontrado en el. No es necesario para archivos del núcleo de WordPress, pero puede servirte en tus propios Plugins si separas el codigo en archivos logicos.
+
+<pre>
+/** 
+ * Este archivo contiene la información
+ * personalizada para todos los usuarios
+ */
+require ABSPATH.'/wp-config.php';
+</pre>
+
+== Documentación de Archivo==
+
+Utilizar bloques de comentarios PHPdoc puede servir para proporcionar una vista general de lo que el archivo contiene. Obtener el máximo beneficio posible puede evitar que alguien se pierda en el código y desperdicie su tiempo
+
+Algunas etiquetas de PHPdoc pueden ser aplicadas globalmente  para cualquier otro bloque PHPdoc para sitios PHPDocumentor.
+
+<pre>
+/**
+ * ... Descripción de lo que este archivo contiene
+ *
+ * @package WordPress
+ */
+</pre>
+
+==Bloques Globales de Comentarios PHPdoc==
+
+En muchas ocasiones es útil documentar globales comúnmente usadas por la función @uses.
+
+Es mejor tener primero la descripción ya que por lo regular es lo que algún otro desarrollador necesita. El resto de la información puede ser importante (como @since) pero la etiqueta @global solamente es útil para sitios PHPDocumentor.
+
+<pre>
+/**
+ * ... Descripción
+ * @since
+ * @global    type    $varname
+ */
+</pre>
+
+==Función PHPdoc==
+
+La convención usada por funciones tipo PHPdoc en WordPress incluye una descripción corta y una descripción larga (de ser aplicable).
+
+La descripción corta no debe recalcar el nombre de la función, sino mirar mas allá y aclarar lo que la función realiza y resumirla. El nombre de la función puede decir una cosa pero puede realizar algo completamente diferente.
+
+La descripción corta es requerida para que la documentación de la función se considere completa. Una nota puede ser usada bajo ciertas circunstancias que le permita a otros saber que esta descripción no existe:
+
+<pre>
+/**
+ * Descripción Corta
+</pre>
+
+Descripciones largas deben ser integradas en la mayoría de las funciones para despejar dudas acerca de la descripción corta. En la mayoría de los casos, el resumen debe funcionar como un recordatorio de lo que el desarrolador aprendió de la descripción larga.
+
+Existen casos en que la funciona es tan pequeña que el resumen puede ser usado para describir por completo el propósito de la función. Esto se deja al criterio del autor de la documentación, pero como regla siempre hay que tratar de incluir descripciones largas en el bloque de PHPdoc.
+
+<pre>
+/**
+ * Descripción Corta
+ * 
+ * Descripción Larga
+ *
+ */
+</pre>
+
+Es aceptable si la función no tiene parámetros o documentación adicional que ambas descripciones son inexistentes. Esto solamente debe ser usado cuando se escribe documentación para funciones múltiples y estas dejando una nota para aclarar que se deja el hueco de manera intencional y que sera completado después.
+
+<pre>
+/**
+ * {{@internal Descripción Corta faltante}}}
+ *
+ * {{@internal Descripción Larga faltante}}}
+ *
+ */
+</pre>
+
+En otras ocasiones, debe ser supuesto que si alguien dejo un hueco en la documentación fue por acción intencional, o por que consideraron que la descripción era necesaria para que otros entendieran la función o inclusive por que la documentación existe en alguno otro lugar. Como ejemplo esta la etiqueta @uses para variables globales, cuando la variable ya ha sido documentada
+
+<pre> * @uses function_name() {{@internal Descripcion faltante}}}</pre>
+<pre> * @uses function_name() {{@internal Descripcion faltante}}}</pre>
+
+Después de las descripciones corta y larga, mas informacion es importante para el desarrollador y el sitio PHPdocumentor.
+
+<pre>
+/**
+ * Descripción Corta
+ * 
+ * Descripción Larga
+ *
+ * @package WordPress
+ * @since version
+ *
+ * @param    type    $varname    Description
+ * @return   type                Description
+ */
+</pre>
+
+La convención para la etiqueta @since es solamente usar el numero de version (como 2.1, 2.3 o 2.3.1) y nada mas. La información en @package proporciona la aplicación a la que la función pertenece.
+
+Para mantener la consistencia, si existen parámetros para la función, estos también deben ser documentados. Si la palabra clave <code>return</code> es usada dentro de la función entonces la etiqueta @return debe ser usada para documentarlo. Si no existe debe ser dejado como esta.
+
+Si la función es obsoleta o ya no tiene uso alguno, la etiqueta @deprecated deber usada, seguida de la version y la descripción de que usar en lugar de la función obsoleta. También hay que incluir la etiqueta @uses con el nombre de la función.
+
+<pre>
+/**
+ * ... Descripciones
+ *
+ * @deprecated 2.1  Usar funcion() en su lugar.
+ * @uses funcion()
+ *
+ * ... parámetros y descripciones de retorno
+ */
+</pre>
+
+==Etiquetas Clase PHPddoc==
+
+La informacion acerca de etiquetas clase PHPdoc por usarte en WordPress se deja fuera de manera intencional. De notarse es que la definicion de la clase, las propiedades (variables) de la clase y los métodos (funciones) de la clase deben ser documentados para considerarse completos.
+
+El [http://pear.php.net/manual/en/standards.sample.php ejemplo PEAR] debe ser usado como referencia.
+
+==Discusiones pasadas en la lista WP-Hackers==
+
+La lista de correo WP-Hackers tiene un numero de discusiones acerca de como agregar documentación integrada. En casos recientes esta pagina no fue referenciada o usada durante la discusión. Al documentar archivos de WordPress, discusiones en WP-Hacker y otros lugares pueden ser evitadas a largo plazo
+
+*[http://comox.textdrive.com/pipermail/wp-hackers/2006-February/004921.html Inline Documentation] (February 2006)
+*[http://comox.textdrive.com/pipermail/wp-hackers/2006-February/004989.html PATCH Documentation] (February 2006)
+*[http://comox.textdrive.com/pipermail/wp-hackers/2007-October/015584.html Proposal for a function commenting convention ] (October 2007)
+*[http://comox.textdrive.com/pipermail/wp-hackers/2008-May/020214.html Inline Documentation Effort Was a Failure] (May 2008)
+
+==Otras Fuentes==
+* [http://phpxref.com/xref/wordpress/nav.html.gz?index.html.gz English Version]
+*[http://www.phpdoc.org/ phpDocumentor] - Herramienta de Auto-documentación para PHP (phpdoc.org)
+*[http://manual.phpdoc.org/HTMLSmartyConverter/HandS/phpDocumentor/tutorial_phpDocumentor.howto.pkg.html phpDocumentor Tutorial] - Como usar phpDocumentor (phpdoc.org)
+*[http://www.zend.com/store/products/zend-studio/ Zend Studio] - PHP Development Environment (producto comercial)
+* At aptana.tv there is [http://www.aptana.tv/movies/aptana_scriptdoc_overview/ScriptDocOverview.html Una demostración en vídeo del poder de la documentación integrada]. Algunas etiquetas son realmente útiles, como demostradas aquí..
+
+==Contribuyentes al Esfuerzo==
+
+# Jacob Santos
+# Robin Adrianse
+# Robert Deaton
+# Peter Walker
+# Martin Sturm
+# Sabin Iacob
+
+==Archivos con Documentación Integrada==
+
+Para una lista actualizada en WordPress, favor de mirar en [[WordPress Files]].
+
+===Bibliotecas Externas===
+
+Bibliotecas proporcionadas por otras agencias deben tener documentación en cada archivo pero no forman parte del esfuerzo de documentación de WordPress. Los archivos que siguen tienen su propia documentación hasta la version 2.5 de WordPress y se encuentran en el directorio wp-includes.
+
+* atomlib.php
+* class-IXR.php
+* class-phpass.php
+* class-phpmailer.php
+* class-pop3.php
+* class-smtp.php
+* class-snoopy.php
+* gettext.php
+* streams.php
+* rss.php
+* rss-functions.php (obsoleto)
+
+===Archivos en el Directorio Raíz de WordPress===
+
+Estos archivos se encuentran en la raíz de WordPress y se consideran completos.
+
+# [http://trac.wordpress.org/ticket/7037 #7037] - index.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-atom.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-blog-header.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-comments-post.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-commentsrss2.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-cron.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-feed.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-links-opml.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-load.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-mail.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-pass.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-rdf.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-register.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-rss2.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-rss.php
+# [http://trac.wordpress.org/ticket/5211 #5211] - wp-settings.php
+# [http://trac.wordpress.org/ticket/7037 #7037] - wp-trackback.php
+
+Estos archivos se encuentran incompletos o se encuentran pendientes de inclusión al tronco principal de desarrollo. Algunos tienen funciones o clases por documentarse.
+
+* [http://trac.wordpress.org/ticket/7037 #7037] - wp-app.php
+* [http://trac.wordpress.org/ticket/7037 #7037] - wp-config-sample.php
+* [http://trac.wordpress.org/ticket/7037 #7037] - wp-login.php
+* [http://trac.wordpress.org/ticket/7037 #7037] - xmlrpc.php
+
+===Archivos en el Directorio wp-includes===
+
+Estos archivos tienen documentación completa en el estilo de PHPdoc. Listados se encuentran el escritor de la documentación junto con su ticket en WordPress Trac.
+
+# [http://trac.wordpress.org/ticket/4393 #4393] - author-template.php
+# [http://trac.wordpress.org/ticket/5523 #5523] - bookmark.php
+# [http://trac.wordpress.org/ticket/5521 #5521] - bookmark-template.php
+# [http://trac.wordpress.org/ticket/5511 #5511] - cache.php
+# [http://trac.wordpress.org/ticket/5526 #5526] - canonical.php
+# [http://trac.wordpress.org/ticket/5528 #5528], [http://trac.wordpress.org/ticket/2648 #2648] - comment-template.php
+# [http://trac.wordpress.org/ticket/5510 #5510] - compat.php
+# [http://trac.wordpress.org/ticket/5527 #5527] - default-filters.php
+# [http://trac.wordpress.org/ticket/5527 #5527] - feed-rss2-comments.php
+# [http://trac.wordpress.org/ticket/5527 #5527] - feed-rss2.php
+# [http://trac.wordpress.org/ticket/5527 #5527] - feed-rdf.php
+# [http://trac.wordpress.org/ticket/5527 #5527] - feed-atom-comments.php
+# [http://trac.wordpress.org/ticket/5527 #5527] - feed-rss.php
+# [http://trac.wordpress.org/ticket/5527 #5527] - feed-atom.php
+# [http://trac.wordpress.org/ticket/5641 #5641] - kses.php
+# [http://trac.wordpress.org/ticket/5590 #5590] - l10n.php
+# [http://trac.wordpress.org/ticket/5621 #5621] - locale.php
+# [http://trac.wordpress.org/ticket/5509 #5509], [http://trac.wordpress.org/ticket/2477 #2477] - pluggable.php
+# [http://trac.wordpress.org/ticket/3852 #3852], [http://trac.wordpress.org/ticket/5225 #5225] - plugin.php
+# [http://trac.wordpress.org/ticket/4383 #4383] - registration.php
+# [http://trac.wordpress.org/ticket/5572 #5572] - registration-functions.php
+# [http://trac.wordpress.org/ticket/4742 #4742] - taxonomy.php
+# [http://trac.wordpress.org/ticket/5513 #5513] - template-loader.php
+# [http://trac.wordpress.org/ticket/5233 #5233] - update.php
+# [http://trac.wordpress.org/ticket/5572 #5572] - vars.php
+# [http://trac.wordpress.org/ticket/5572 #5572] - version.php
+# [http://trac.wordpress.org/ticket/2474 #2474] - wpdb.php
+
+Cada archivo debe ser marcado como un trabajo en progreso. Si deseas adoptar un archivo o funcion para documentación, favor de hacerlo y agregarlo a esta lista. Estos archivos ya se han comenzado y necesitan ser completados.
+
+# [http://trac.wordpress.org/ticket/5632 #5632] - capabilities.php
+# [http://trac.wordpress.org/ticket/5633 #5633] - category.php
+# [http://trac.wordpress.org/ticket/5634 #5634] - category-template.php
+# [http://trac.wordpress.org/ticket/5635 #5635] - classes.php
+# [http://trac.wordpress.org/ticket/5637 #5637] - cron.php
+# [http://trac.wordpress.org/ticket/5578 #5578], [http://trac.wordpress.org/ticket/2648 #2648] - comment.php
+# [http://trac.wordpress.org/ticket/5636 #5636] - feed.php
+# [http://trac.wordpress.org/ticket/5638 #5638] - formatting.php
+# [http://trac.wordpress.org/ticket/5639 #5639] - functions.php
+# [http://trac.wordpress.org/ticket/5640 #5640] - general-template.php
+# [http://trac.wordpress.org/ticket/5642 #5642] - link-template.php
+# [http://trac.wordpress.org/ticket/3982 #3982], [http://trac.wordpress.org/ticket/2473 #2473] - post.php
+# [http://trac.wordpress.org/ticket/0000 #0000] - post-template.php
+# [http://trac.wordpress.org/ticket/0000 #0000] - query.php
+# [http://trac.wordpress.org/ticket/0000 #0000] - script-loader.php
+# [http://trac.wordpress.org/ticket/0000 #0000] - theme.php
+# [http://trac.wordpress.org/ticket/5512 #5512] - user.php
+# [http://trac.wordpress.org/ticket/0000 #0000] - widgets.php
+
+===Archivos en el directorio wp-admin===
+
+Los archivos existentes en los directorios wp-admin y wp-admin/includes aun deben ser documentados por completo. Los archivos en wp-admin necesitan documentación integrada de las funciones que contienen.
+
+Los archivos en wp-admin/includes necesitan documentación integrada y todas sus funciones y clases tambien.
+
+Este ticket es obsoleto ya que admin-functions.php ya no esta en uso en WordPress 2.5+, pero aun es util para funciones que fueron migradas al directorio wp-admin/includes.
+
+* [http://trac.wordpress.org/ticket/3970 #3970] - /wp-admin/admin-functions.php - Started by Sabin Iacob
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

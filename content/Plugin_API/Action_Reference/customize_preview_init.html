@@ -1,0 +1,139 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Examples"><span class="tocnumber">2</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Example_Javascript_Handler"><span class="tocnumber">3</span> <span class="toctext">Example Javascript Handler</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_preview_init&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This action hook allows you to enqueue assets (such as javascript files) directly in the Theme Customizer <i>only</i>. To output saved settings onto your live site, you still need to output generated CSS using the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_head" title="Plugin API/Action Reference/wp head">wp_head</a> hook.
+</p><p>Generally, this hook is used almost exclusively to enqueue a <tt>theme-customizer.js</tt> file for controlling live previews in WordPress's Theme Customizer.
+</p><p>For more information, see the codex article on the <a href="https://codex.wordpress.org/Theme_Customization_API" title="Theme Customization API">Theme_Customization_API</a>
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_preview_init&amp;action=edit&amp;section=2" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Usage might look like this...
+</p>
+<pre>
+
+/**
+ * This outputs the javascript needed to automate the live settings preview.
+ * Also keep in mind that this function isn't necessary unless your settings 
+ * are using 'transport'=&gt;'postMessage' instead of the default 'transport'
+ * =&gt; 'refresh'
+ * 
+ * Used by hook: 'customize_preview_init'
+ */
+public static function mytheme_customizer_live_preview()
+{
+	wp_enqueue_script( 
+		  'mytheme-themecustomizer',			//Give the script an ID
+		  get_template_directory_uri().'/assets/js/theme-customizer.js',//Point to file
+		  array( 'jquery','customize-preview' ),	//Define dependencies
+		  '',						//Define a version (optional) 
+		  true						//Put script in footer?
+	);
+}
+add_action( 'customize_preview_init', 'mytheme_customizer_live_preview' );
+
+</pre>
+<h2><span class="mw-headline" id="Example_Javascript_Handler">Example Javascript Handler</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_preview_init&amp;action=edit&amp;section=3" title="Edit section: Example Javascript Handler">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following is one example of what a Javascript live preview file might look like for a custom implementation of the Theme Customizer...
+</p><p><br />
+The contents of your <tt>theme-customizer.js</tt> file might look like this:
+</p>
+<pre>
+
+/**
+ * This file adds some LIVE to the Theme Customizer live preview. To leverage
+ * this, set your custom settings to 'postMessage' and then add your handling
+ * here. Your javascript should grab settings from customizer controls, and 
+ * then make any necessary changes to the page using jQuery.
+ */
+( function( $ ) {
+
+	// Update the site title in real time...
+	wp.customize( 'blogname', function( value ) {
+		value.bind( function( newval ) {
+			$( '#site-title a' ).html( newval );
+		} );
+	} );
+	
+	//Update the site description in real time...
+	wp.customize( 'blogdescription', function( value ) {
+		value.bind( function( newval ) {
+			$( '.site-description' ).html( newval );
+		} );
+	} );
+
+	//Update site title color in real time...
+	wp.customize( 'header_textcolor', function( value ) {
+		value.bind( function( newval ) {
+			$('#site-title a').css('color', newval );
+		} );
+	} );
+
+	//Update site background color...
+	wp.customize( 'background_color', function( value ) {
+		value.bind( function( newval ) {
+			$('body').css('background-color', newval );
+		} );
+	} );
+	
+	//Update site title color in real time...
+	wp.customize( 'mytheme_options[link_textcolor]', function( value ) {
+		value.bind( function( newval ) {
+			$('a').css('color', newval );
+		} );
+	} );
+	
+} )( jQuery );
+
+</pre>
+<p>As you can see from the example above,  a single basic handler looks like this...
+</p>
+<pre>
+
+wp.customize( 'YOUR_SETTING_ID', function( value ) {
+	value.bind( function( newval ) {
+		//Do stuff (newval variable contains your "new" setting data)
+	} );
+} );
+
+</pre>
+<p><br />
+<b>Note:</b> Keep in mind that the above will <i>only</i> work, if you have set all referenced SETTINGS to <tt>'transport'=&gt;'postMessage'</tt>. By default, WordPress uses <tt>'transport'=&gt;'refresh'</tt> for all settings (including the ones that are built in). You can override those defaults using the <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_register" title="Plugin API/Action Reference/customize register">customize_register</a></tt> action hook.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_preview_init&amp;action=edit&amp;section=4" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Info: <a href="https://codex.wordpress.org/Theme_Customization_API" title="Theme Customization API">Theme Customization API</a></li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager" title="Class Reference/WP Customize Manager">WP_Customize_Manager() class</a></li>
+<li> Method: <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_setting" title="Class Reference/WP Customize Manager/add setting">WP_Customize_Manager-&gt;add_setting()</a></li>
+<li> Method: <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_section" title="Class Reference/WP Customize Manager/add section">WP_Customize_Manager-&gt;add_section()</a></li>
+<li> Method: <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_control" title="Class Reference/WP Customize Manager/add control">WP_Customize_Manager-&gt;add_control()</a></li>
+<li> Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_register" title="Plugin API/Action Reference/customize register">customize_register</a></li>
+<li> Hook: <strong class="selflink">customize_preview_init</strong></li>
+<li> Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_controls_print_styles" title="Plugin API/Action Reference/customize controls print styles">customize_controls_print_styles</a></li>
+<li> Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_controls_print_scripts" title="Plugin API/Action Reference/customize controls print scripts">customize_controls_print_scripts</a></li>
+<li> Hook: <a href="/index.php?title=Plugin_API/Action_Reference/customize_controls_init&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/customize controls init (page does not exist)">customize_controls_init</a></li>
+<li> Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_controls_enqueue_scripts" title="Plugin API/Action Reference/customize controls enqueue scripts">customize_controls_enqueue_scripts</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004051
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.010 seconds
+Preprocessor visited node count: 41/1000000
+Preprocessor generated node count: 80/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

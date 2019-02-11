@@ -1,0 +1,100 @@
+{{Languages|
+{{en|Widgetizing Themes}}
+{{fr|Widgetiser les Themes}}
+{{ja|Widgetizing Themes}}
+{{pt-br|Widgets em Temas}}
+{{zh-cn|令主题支持小工具}} 
+{{mk|Виџетизирање}}
+}}
+
+===What is Widgetizing?===
+Widgetizing is a pseudo word that describes the process of implementing [http://codex.wordpress.org/Glossary#Widget Widgets] and Widget Areas into your Theme.
+
+===How to Register a Widget Area===
+The following should be added to your Theme's functions.php file:
+<pre id="how-to-register-a-widget-area">
+<?php
+/**
+ * Register our sidebars and widgetized areas.
+ *
+ */
+function arphabet_widgets_init() {
+
+	register_sidebar( array(
+		'name'          => 'Home right sidebar',
+		'id'            => 'home_right_1',
+		'before_widget' => '<div>',
+		'after_widget'  => '</div>',
+		'before_title'  => '<h2 class="rounded">',
+		'after_title'   => '</h2>',
+	) );
+
+}
+add_action( 'widgets_init', 'arphabet_widgets_init' );
+?>
+</pre>
+
+=== How to display new Widget Areas ===
+
+You can display your new widget area by:
+# Adding the code directly to a theme file like the sidebar.php file; or
+# Using a custom function with hook in your functions.php file.
+
+Here's some example code that is a common way to add your new widget area to a parent or child theme:
+
+<pre>
+<?php if ( is_active_sidebar( 'home_right_1' ) ) : ?>
+	<div id="primary-sidebar" class="primary-sidebar widget-area" role="complementary">
+		<?php dynamic_sidebar( 'home_right_1' ); ?>
+	</div><!-- #primary-sidebar -->
+<?php endif; ?>
+</pre>
+
+The above code can be added to your sidebar.php file. It checks to see if the widget area is populated (i.e. is active) and then displays the contents of the widget if active.
+
+This is the function which outputs the widget:
+<pre>
+<?php dynamic_sidebar( 'home_right_1' ); ?>
+</pre>
+
+The code above will display the widget registered with an ID value of 'home_right_1'. When displaying a widget on your site, remember to replace 'home_right_1' with the ID value you specified when you registered your widget.
+
+For more information, please refer to the [http://codex.wordpress.org/Widgets_API Widgets API] to learn how to, programmatically, [http://codex.wordpress.org/Widgets_API#Displaying_Widgets display Widgets and Widget Areas].
+
+If you're not a programmer, you should refer to the [http://codex.wordpress.org/WordPress_Widgets WordPress Widgets] page.
+
+=== Create New Widget Area Using Custom Function ===
+
+You can use WordPress or theme specific hooks to display new widget areas in your theme directly from your parent or child themes functions file.
+<pre>
+function wpsites_before_post_widget( $content ) {
+	if ( is_singular( array( 'post', 'page' ) ) && is_active_sidebar( 'before-post' ) && is_main_query() ) {
+		dynamic_sidebar('before-post');
+	}
+	return $content;
+}
+add_filter( 'the_content', 'wpsites_before_post_widget' );
+</pre>
+
+The above code displays a new widget area before all single posts and pages in any theme using the_content [http://codex.wordpress.org/Plugin_API/Filter_Reference/the_content] filter however it is suggested you use theme specific hooks if your theme includes them.
+
+Note: You will also need to register a new widget area using the same ID as what you use in the dynamic sidebar which in this example is before-post.
+
+<pre>
+register_sidebar( array(
+	'id'          => 'before-post',
+	'name'        => 'Before Posts Widget',
+	'description' => __( 'Your Widget Description.', 'text_domain' ),
+) );
+</pre>
+
+== Resources ==
+* [http://generatewp.com/sidebar/ WordPress Sidebar Generator]
+
+== Related ==
+
+{{Sidebar Tags}}
+
+{{Widget Tags}}
+
+[[Category:UI Link]]

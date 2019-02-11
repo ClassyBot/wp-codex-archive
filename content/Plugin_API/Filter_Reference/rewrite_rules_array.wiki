@@ -1,0 +1,148 @@
+==Description==
+This filter hook can be used to any rule in the rewrite rules array.
+
+Since rewrite rules are saved to the database, ''you must flush/update your rules from your admin under Settings > Permalinks before your changes will take effect.'' You can also use the [[Rewrite_API/flush_rules|flush_rules()]] function to do this programmatically.
+
+== Parameters ==
+{{Parameter|$rules|array|Existing rewrite rules to be filtered.|required}}
+
+Make sure you return the <tt>$rules</tt> array or very bad things will happen.
+
+==Example==
+
+===Removing Feed URLs===
+This example demonstrates how you would remove feed URLs for a custom post type called 'foo'...
+
+<pre>
+add_filter('rewrite_rules_array', 'kill_feed_rewrites');
+function kill_feed_rewrites($rules){
+
+    foreach ($rules as $rule => $rewrite) {
+
+        if ( preg_match('/^foo.*(feed)/',$rule) ) {
+            unset($rules[$rule]);
+        }
+
+    }
+
+    return $rules;
+}
+</pre>
+
+===Sample Rewrite Rule Array===
+This shows one example of what a var_dump() of a rewrite array might look like. Notice that this array even includes rules automatically generated for a custom post type called 'foo'.
+
+<pre>
+array (size=103)
+  'foo/?$' => string 'index.php?post_type=foo' (length=23)
+  'foo/page/([0-9]{1,})/?$' => string 'index.php?post_type=foo&paged=$matches[1]' (length=41)
+  'wp-types-group/[^/]+/attachment/([^/]+)/?$' => string 'index.php?attachment=$matches[1]' (length=32)
+  'wp-types-group/[^/]+/attachment/([^/]+)/trackback/?$' => string 'index.php?attachment=$matches[1]&tb=1' (length=37)
+  'wp-types-group/[^/]+/attachment/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  'wp-types-group/[^/]+/attachment/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  'wp-types-group/[^/]+/attachment/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?attachment=$matches[1]&cpage=$matches[2]' (length=50)
+  'wp-types-group/([^/]+)/trackback/?$' => string 'index.php?wp-types-group=$matches[1]&tb=1' (length=41)
+  'wp-types-group/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?wp-types-group=$matches[1]&feed=$matches[2]' (length=53)
+  'wp-types-group/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?wp-types-group=$matches[1]&feed=$matches[2]' (length=53)
+  'wp-types-group/([^/]+)/page/?([0-9]{1,})/?$' => string 'index.php?wp-types-group=$matches[1]&paged=$matches[2]' (length=54)
+  'wp-types-group/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?wp-types-group=$matches[1]&cpage=$matches[2]' (length=54)
+  'wp-types-group/([^/]+)(/[0-9]+)?/?$' => string 'index.php?wp-types-group=$matches[1]&page=$matches[2]' (length=53)
+  'wp-types-group/[^/]+/([^/]+)/?$' => string 'index.php?attachment=$matches[1]' (length=32)
+  'wp-types-group/[^/]+/([^/]+)/trackback/?$' => string 'index.php?attachment=$matches[1]&tb=1' (length=37)
+  'wp-types-group/[^/]+/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  'wp-types-group/[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  'wp-types-group/[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?attachment=$matches[1]&cpage=$matches[2]' (length=50)
+  'foo/[^/]+/attachment/([^/]+)/?$' => string 'index.php?attachment=$matches[1]' (length=32)
+  'foo/[^/]+/attachment/([^/]+)/trackback/?$' => string 'index.php?attachment=$matches[1]&tb=1' (length=37)
+  'foo/[^/]+/attachment/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  'foo/[^/]+/attachment/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  'foo/[^/]+/attachment/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?attachment=$matches[1]&cpage=$matches[2]' (length=50)
+  'foo/([^/]+)/trackback/?$' => string 'index.php?foo=$matches[1]&tb=1' (length=30)
+  'foo/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?foo=$matches[1]&feed=$matches[2]' (length=42)
+  'foo/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?foo=$matches[1]&feed=$matches[2]' (length=42)
+  'foo/([^/]+)/page/?([0-9]{1,})/?$' => string 'index.php?foo=$matches[1]&paged=$matches[2]' (length=43)
+  'foo/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?foo=$matches[1]&cpage=$matches[2]' (length=43)
+  'foo/([^/]+)(/[0-9]+)?/?$' => string 'index.php?foo=$matches[1]&page=$matches[2]' (length=42)
+  'foo/[^/]+/([^/]+)/?$' => string 'index.php?attachment=$matches[1]' (length=32)
+  'foo/[^/]+/([^/]+)/trackback/?$' => string 'index.php?attachment=$matches[1]&tb=1' (length=37)
+  'foo/[^/]+/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  'foo/[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  'foo/[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?attachment=$matches[1]&cpage=$matches[2]' (length=50)
+  'category/(.+?)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?category_name=$matches[1]&feed=$matches[2]' (length=52)
+  'category/(.+?)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?category_name=$matches[1]&feed=$matches[2]' (length=52)
+  'category/(.+?)/page/?([0-9]{1,})/?$' => string 'index.php?category_name=$matches[1]&paged=$matches[2]' (length=53)
+  'category/(.+?)/?$' => string 'index.php?category_name=$matches[1]' (length=35)
+  'tag/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?tag=$matches[1]&feed=$matches[2]' (length=42)
+  'tag/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?tag=$matches[1]&feed=$matches[2]' (length=42)
+  'tag/([^/]+)/page/?([0-9]{1,})/?$' => string 'index.php?tag=$matches[1]&paged=$matches[2]' (length=43)
+  'tag/([^/]+)/?$' => string 'index.php?tag=$matches[1]' (length=25)
+  'type/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?post_format=$matches[1]&feed=$matches[2]' (length=50)
+  'type/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?post_format=$matches[1]&feed=$matches[2]' (length=50)
+  'type/([^/]+)/page/?([0-9]{1,})/?$' => string 'index.php?post_format=$matches[1]&paged=$matches[2]' (length=51)
+  'type/([^/]+)/?$' => string 'index.php?post_format=$matches[1]' (length=33)
+  'robots\.txt$' => string 'index.php?robots=1' (length=18)
+  '.*wp-(atom|rdf|rss|rss2|feed|commentsrss2)\.php$' => string 'index.php?feed=old' (length=18)
+  '.*wp-app\.php(/.*)?$' => string 'index.php?error=403' (length=19)
+  '.*wp-register.php$' => string 'index.php?register=true' (length=23)
+  'feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?&feed=$matches[1]' (length=27)
+  '(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?&feed=$matches[1]' (length=27)
+  'page/?([0-9]{1,})/?$' => string 'index.php?&paged=$matches[1]' (length=28)
+  'comments/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?&feed=$matches[1]&withcomments=1' (length=42)
+  'comments/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?&feed=$matches[1]&withcomments=1' (length=42)
+  'comments/page/?([0-9]{1,})/?$' => string 'index.php?&paged=$matches[1]' (length=28)
+  'search/(.+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?s=$matches[1]&feed=$matches[2]' (length=40)
+  'search/(.+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?s=$matches[1]&feed=$matches[2]' (length=40)
+  'search/(.+)/page/?([0-9]{1,})/?$' => string 'index.php?s=$matches[1]&paged=$matches[2]' (length=41)
+  'search/(.+)/?$' => string 'index.php?s=$matches[1]' (length=23)
+  'author/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?author_name=$matches[1]&feed=$matches[2]' (length=50)
+  'author/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?author_name=$matches[1]&feed=$matches[2]' (length=50)
+  'author/([^/]+)/page/?([0-9]{1,})/?$' => string 'index.php?author_name=$matches[1]&paged=$matches[2]' (length=51)
+  'author/([^/]+)/?$' => string 'index.php?author_name=$matches[1]' (length=33)
+  '([0-9]{4})/([0-9]{1,2})/([0-9]{1,2})/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?year=$matches[1]&monthnum=$matches[2]&day=$matches[3]&feed=$matches[4]' (length=80)
+  '([0-9]{4})/([0-9]{1,2})/([0-9]{1,2})/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?year=$matches[1]&monthnum=$matches[2]&day=$matches[3]&feed=$matches[4]' (length=80)
+  '([0-9]{4})/([0-9]{1,2})/([0-9]{1,2})/page/?([0-9]{1,})/?$' => string 'index.php?year=$matches[1]&monthnum=$matches[2]&day=$matches[3]&paged=$matches[4]' (length=81)
+  '([0-9]{4})/([0-9]{1,2})/([0-9]{1,2})/?$' => string 'index.php?year=$matches[1]&monthnum=$matches[2]&day=$matches[3]' (length=63)
+  '([0-9]{4})/([0-9]{1,2})/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?year=$matches[1]&monthnum=$matches[2]&feed=$matches[3]' (length=64)
+  '([0-9]{4})/([0-9]{1,2})/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?year=$matches[1]&monthnum=$matches[2]&feed=$matches[3]' (length=64)
+  '([0-9]{4})/([0-9]{1,2})/page/?([0-9]{1,})/?$' => string 'index.php?year=$matches[1]&monthnum=$matches[2]&paged=$matches[3]' (length=65)
+  '([0-9]{4})/([0-9]{1,2})/?$' => string 'index.php?year=$matches[1]&monthnum=$matches[2]' (length=47)
+  '([0-9]{4})/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?year=$matches[1]&feed=$matches[2]' (length=43)
+  '([0-9]{4})/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?year=$matches[1]&feed=$matches[2]' (length=43)
+  '([0-9]{4})/page/?([0-9]{1,})/?$' => string 'index.php?year=$matches[1]&paged=$matches[2]' (length=44)
+  '([0-9]{4})/?$' => string 'index.php?year=$matches[1]' (length=26)
+  '.?.+?/attachment/([^/]+)/?$' => string 'index.php?attachment=$matches[1]' (length=32)
+  '.?.+?/attachment/([^/]+)/trackback/?$' => string 'index.php?attachment=$matches[1]&tb=1' (length=37)
+  '.?.+?/attachment/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  '.?.+?/attachment/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  '.?.+?/attachment/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?attachment=$matches[1]&cpage=$matches[2]' (length=50)
+  '(.?.+?)/trackback/?$' => string 'index.php?pagename=$matches[1]&tb=1' (length=35)
+  '(.?.+?)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?pagename=$matches[1]&feed=$matches[2]' (length=47)
+  '(.?.+?)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?pagename=$matches[1]&feed=$matches[2]' (length=47)
+  '(.?.+?)/page/?([0-9]{1,})/?$' => string 'index.php?pagename=$matches[1]&paged=$matches[2]' (length=48)
+  '(.?.+?)/comment-page-([0-9]{1,})/?$' => string 'index.php?pagename=$matches[1]&cpage=$matches[2]' (length=48)
+  '(.?.+?)(/[0-9]+)?/?$' => string 'index.php?pagename=$matches[1]&page=$matches[2]' (length=47)
+  '[^/]+/attachment/([^/]+)/?$' => string 'index.php?attachment=$matches[1]' (length=32)
+  '[^/]+/attachment/([^/]+)/trackback/?$' => string 'index.php?attachment=$matches[1]&tb=1' (length=37)
+  '[^/]+/attachment/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  '[^/]+/attachment/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  '[^/]+/attachment/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?attachment=$matches[1]&cpage=$matches[2]' (length=50)
+  '([^/]+)/trackback/?$' => string 'index.php?name=$matches[1]&tb=1' (length=31)
+  '([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?name=$matches[1]&feed=$matches[2]' (length=43)
+  '([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?name=$matches[1]&feed=$matches[2]' (length=43)
+  '([^/]+)/page/?([0-9]{1,})/?$' => string 'index.php?name=$matches[1]&paged=$matches[2]' (length=44)
+  '([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?name=$matches[1]&cpage=$matches[2]' (length=44)
+  '([^/]+)(/[0-9]+)?/?$' => string 'index.php?name=$matches[1]&page=$matches[2]' (length=43)
+  '[^/]+/([^/]+)/?$' => string 'index.php?attachment=$matches[1]' (length=32)
+  '[^/]+/([^/]+)/trackback/?$' => string 'index.php?attachment=$matches[1]&tb=1' (length=37)
+  '[^/]+/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  '[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => string 'index.php?attachment=$matches[1]&feed=$matches[2]' (length=49)
+  '[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$' => string 'index.php?attachment=$matches[1]&cpage=$matches[2]' (length=50)
+</pre>
+
+== Source File ==
+<tt>rewrite_rules_array</tt> is located in {{Trac|wp-includes/rewrite.php}}.
+
+== Related ==
+{{Rewrite API}}
+
+[[Category:Filters]]

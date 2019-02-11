@@ -1,0 +1,48 @@
+The wp_insert_post action fires once a post has been saved. You have the ability to set it to only fire on new posts or on all save actions using the parameters. Please see [[Plugin_API/Action_Reference/save_post]] for more information. Keep in mind that this action is called both for actions in the admin as well as anytime the wp_insert_post() function is invoked. 
+
+This action can be replicated by creating a conditional in a [[Plugin API/Action Reference/save_post|save_post]] action that excludes certain post statuses. 
+
+==Parameters==
+*$post_ID - (int) Post ID.
+*$post - (WP_Post) Post object.
+*$update - (bool) Whether this is an existing post being updated or not.
+
+== Examples ==
+Below is a basic example that will send an email every time a post or page is created or updated on your website.
+
+<pre>
+function my_project_updated_send_email( $post_id, $post, $update ) {
+
+	// If this is a revision, don't send the email.
+	if ( wp_is_post_revision( $post_id ) )
+		return;
+
+	$post_url = get_permalink( $post_id );
+	$subject = 'A post has been updated';
+
+	$message = "A post has been updated on your website:\n\n";
+	$message .= $post->post_title . ": " . $post_url;
+
+	// Send email to admin.
+	wp_mail( 'admin@example.com', $subject, $message );
+}
+add_action( 'wp_insert_post', 'my_project_updated_send_email', 10, 3 );
+</pre>
+
+== Source File ==
+Triggered by [[Function Reference/wp_insert_post|wp_insert_post]] and [[Function Reference/wp_publish_post|wp_publish_post]] in {{Trac|wp-includes/post.php}}
+
+== Related ==
+
+=== Actions ===
+* Saving
+** [[Plugin API/Action Reference/edit_post|edit_post]]
+** [[Plugin API/Action Reference/save_post|save_post]]
+** [[Plugin API/Action Reference/wp_insert_post|wp_insert_post]]
+
+=== Filters ===
+* [[Plugin API/Filter Reference/redirect_post_location|redirect_post_location]] - redirects a user to a certain location after post creation
+
+{{Stub}}
+
+[[Category:Actions]]

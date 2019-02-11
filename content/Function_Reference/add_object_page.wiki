@@ -1,0 +1,52 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/add_object_page/}}
+
+{{Languages|
+{{en|Function_Reference/add object page}}
+{{ja|関数リファレンス/add object page}}
+}}
+
+== Description ==
+Add a top level menu page at the 'object' level. This new menu will appear in the group including the default WordPress Posts, Media, Links, Pages and Comments.
+
+Specifically, creates a new top level menu section in the admin menu sidebar and registers a hook to callback your function for outputting the page content when the linked menu page is requested. Returns the $hookname.
+
+This essentially does the exact same thing as [[Function Reference/add_menu_page | add_menu_page()]], but checks (and increments) the $_wp_last_object_menu global variable to add the menu item to the last position in the menu items. So, if $_wp_last_object_menu has already been incremented to 25, this call to add_object_page() will send 26 in the $position argument to the add_menu_page() function.
+
+== Usage ==
+
+%%%<?php
+add_object_page( $page_title, $menu_title, $capability, $menu_slug, $function, $icon_url );
+?>%%%
+
+== Parameters ==
+
+{{Parameter|$page_title|string|The text to be displayed in the title tags of the page when the menu is selected.}}
+
+{{Parameter|$menu_title|string|The on-screen name text for the menu.}}
+
+{{Parameter|$capability|string|The [[Roles and Capabilities|capability]] required for this menu to be displayed to the user.  [[User Levels|User levels]] are deprecated and should not be used here!}}
+
+{{Parameter|$menu_slug|string|The slug name to refer to this menu by (should be unique for this menu). Prior to [[Version 3.0]] this was called the file (or handle) parameter.  If the function parameter is omitted, the menu_slug should be the PHP file that handles the display of the menu page content.}}
+
+;$function: The function that displays the page content for the menu page. Technically, the ''function'' parameter is optional, but if it is not supplied, then WordPress will basically assume that including the PHP file will generate the administration screen, without calling a function. Most plugin authors choose to put the page-generating code in a function within their main plugin file.:In the event that the ''function'' parameter is specified, it is possible to use any string for the ''file'' parameter. This allows usage of pages such as ''?page=my_super_plugin_page'' instead of ''?page=my-super-plugin/admin-options.php''.
+:The function must be referenced in one of two ways:
+:# if the function is a member of a class within the plugin it should be referenced as <tt>array( $this, 'function_name' )</tt>,
+:# in all other cases, using the function name itself is sufficient.
+
+{{Parameter|$icon_url|string|The url to the icon to be used for this menu.  This parameter is optional. Icons should be fairly small, around 20 x 20 pixels (?). You can use the '''WP_CONTENT_URL''' constant to help point to an image contained in your plugin folder. |optional|}}
+
+==Return Values==
+; <tt>string</tt> : $hookname used internally to track menu page callbacks for outputting the page inside the global <tt>$menu</tt> array
+
+== Notes ==
+This function takes a 'capability' (see [[Roles and Capabilities]]) which will be used to determine whether or not a page is included in the menu. The function which is hooked in to handle the output of the page must check that the user has the required 'capability' as well.
+
+== Source File ==
+
+<tt>add_object_page()</tt> is located in {{Trac|wp-admin/includes/plugin.php}}.
+
+== Related ==
+
+{{Admin Menu Tags}}
+
+[[Category:Functions]]

@@ -1,0 +1,198 @@
+{{Languages|
+{{en|Class_Reference/WP_List_Table}}
+{{ja|関数リファレンス/WP_List_Table}}
+{{it|Class_Reference/WP_List_Table}}
+}}
+
+{{Private_Class_Alt}}
+
+==Role of WP_List_Table==
+This class is used to generate the List Tables that populate WordPress' various admin screens. It has an advantage over previous implementations in that it can be dynamically altered with AJAX and may be hooked in future WordPress releases.
+
+===Developer Usage & Private Status===
+On March 27, 2012, [http://profiles.wordpress.org/nacin Andrew Nacin] [http://wpengineer.com/2426/wp_list_table-a-step-by-step-guide/#comment-9617 warned developers] that this class was created for [http://codex.wordpress.org/Category:Private_Classes private core use only] as it may be subject to change in any future WordPress release.
+
+Nevertheless, [http://kovshenin.com/2012/wp_list_table-tutorial/#comment-10362 the WP_List_Table class has become widely used by plugins and WordPress developers] as it provides a reliable, consistent, and semantic way to create custom list tables in WordPress. To date, no major changes have occurred in this class or are scheduled to occur, so testing your plugin with beta/RC phases of WordPress development should be more than enough to avoid any major issues.
+
+If you are at all uncomfortable with this risk, a common (and safe) workaround is to '''make a copy the WP_List_Table class ( {{Trac|/wp-admin/includes/class-wp-list-table.php}} ) to use and distribute in your plugins''', instead of using the original core class. This way, if the core class should ever change, your plugins will continue to work as-is.
+
+Developers should use this class at their own risk.
+
+==Usage==
+This class is meant to be used as a kind of framework, since any data queries need to be loaded, sorted, and filtered manually. Nevertheless, it is potentially a very powerful tool for developers as it creates WordPress-standard list tables, which makes it very easy to implement advanced features like pagination, actions, bulk actions, and filtering.
+
+To use the WP_List_Table, you first create a new class that extends the original. Your new class must be instantiated, and the <tt>prepare_items()</tt> and <tt>display()</tt> methods called explicitly on the instance. See the method descriptions below for more details.
+
+===In the WordPress Core===
+The WordPress core loads and returns its classes dynamically by using the [[Function_Reference/_get_list_table|_get_list_table()]] function, which automatically loads the appropriate extended class and instantiates it. ''This is a private function, however, and should not be used by developers.''
+
+===Developer Usage===
+ 
+Since this class is marked as private, developers should use this only at their own risk as this class is subject to change in future WordPress releases. Any developers using this class are '''strongly''' encouraged to test their plugins with all WordPress beta/RC releases to maintain compatibility. 
+
+Since developers cannot use the <tt>_get_list_table()</tt> function directly, the class needs to be extended and instantiated manually, like so...
+ 
+<pre>class Example_List_Table extends WP_List_Table {}
+$example_lt = new Example_List_Table();
+</pre>
+
+The above example won't be able to output anything meaningful, however, as several methods MUST be specified (as well as your data) in order for WP_List_Table to render a useful table.
+
+==Methods and Properties==
+
+
+===Properties===
+The following properties are built into the base WP_List_Table class. Note that the magic methods __get and __set of WP_List_Table will prevent setting other class instance variables in a subclass of WP_List_Table, please use the recommended variables:
+;	<tt>$items</tt>
+:		This is used to store the raw data you want to display. Generally you will set this property directly in the prepare_items() method.
+;	<tt>$_args</tt>
+:		Stores various information about the current table (as an array). This generally isn't manipulated directly.
+;	<tt>$_pagination_args</tt>
+:		Stores information needed for handling table pagination (as an array). This generally isn't manipulated directly, but rather used with get_pagination_arg( string ) or set_pagination_args(array).
+;	<tt>$screen</tt>
+:		This can be used to store the current screen, when it's necessary to keep it consistent with the entire instance.
+;	<tt>$_actions</tt>
+:		Stores cached bulk actions. This generally isn't manipulated directly.
+;	<tt>$_pagination</tt>
+:		Stores cached pagination output. This generally isn't manipulated directly.
+
+===Extended Properties===	
+These properties are not built-in, but are expected by several class methods. You must define them manually in your extended class.
+;	<tt>$_column_headers</tt>
+:		In core, this property is assigned automatically. Developers '''must''' manually define it in their prepare_items() ''or'' __construct() methods. 
+:This property requires a 4-value array : 
+:* The first value is an array containing column slugs and titles (see the <tt>get_columns()</tt> method). 
+:* The second value is an array containing the values of fields to be hidden. 
+:* The third value is an array of columns that should allow sorting (see the <tt>get_sortable_columns()</tt> method).
+:* The fourth value is a string defining which column is deemed to be the primary one, displaying the row's actions (edit, view, etc). The value should match that of one of your column slugs in the first value.
+
+===Methods===
+
+
+;	<tt>[[Class_Reference/WP_List_Table/__construct|__construct( $args=array() )]]</tt>
+:		Constructor. This sets default arguments and filters. Developers should override this, calling the parent constructor to provide values for singular and plural labels, as well as whether the class supports AJAX.
+;	<tt>ajax_user_can()</tt>
+:		Can be overridden to provide some permissions functionality to your table.
+;	<tt>[[Class_Reference/WP_List_Table/prepare_items|prepare_items()]]</tt>
+:		Developers should use this class to query and filter data, handle sorting, and pagination, and any other data-manipulation required prior to rendering. This method should be called explicitly after instantiating your class, and before rendering.
+;	<tt>[[Class_Reference/WP_List_Table/set_pagination_args|set_pagination_args( $args )]]</tt>
+:		This method should be called internally (usually from <tt>prepare_items()</tt>) to set basic pagination arguments. Available arguments include:
+:* '''total_items''' - the total number of items to be displayed. Usually as simple as <tt>count($data)</tt>
+:* '''per_page''' - the number of items to show per page
+:* '''total_pages''' - the total number of pages. Can be left blank or calculated manually, like so: <tt>ceil($total_items/$per_page)</tt>
+;	<tt>get_pagination_arg( $key )</tt>
+:		Gets a single pagination argument by its key.
+;	<tt>has_items()</tt>
+:		Returns a boolean indicating whether the <tt>items</tt> property is empty.
+;	<tt>no_items()</tt>
+:		Returns the message to be displayed when there are no <tt>items</tt>.
+;	<tt>search_box( $text, $input_id )</tt>
+:		This renders a search box. To use this, you will still need to manually wrap your list table (including search box) in a form.
+;	<tt>get_views()</tt>
+:		Returns an associative array listing all the views that can be used with this table.
+;	<tt>views()</tt>
+:		Renders out the <tt>&lt;ul></tt> element that contains the view names.
+;	<tt>get_bulk_actions()</tt>
+:		Override this method to return an associative array ( action_slug => action_title ) containing all the bulk actions available for the table.
+;	<tt>bulk_actions()</tt>
+:		When called, this renders out the bulk-actions drop-down. To use this, you will still need to manually wrap your list table (including search box) in a form. 
+;	<tt>current_action()</tt>
+:		This returns the current action selected in the bulk actions dropdown.
+;	<tt>row_actions( $actions, $always_visible = false )</tt>
+:		Call this method (usually from one of your column methods) to insert a row actions div. The $actions parameter should be an associative array, where the key is the name of the action and the value is a link.
+;	<tt>months_dropdown( $post_type )</tt>
+:		Call this to render a date dropdown, for filtering <tt>items</tt> by month.
+;	<tt>view_switcher( $current_mode )</tt>
+:		Call this to render post-type view switcher buttons (List View and Excerpt View)
+;	<tt>comments_bubble( $post_id, $pending_comments )</tt>
+:		Call this to render comment-count bubble.
+;	<tt>get_pagenum()</tt>
+:		Returns the currently selected page number.
+;	<tt>get_items_per_page( $option, $default = 20 )</tt>
+:		Fetches the number of <tt>items</tt> to be displayed on the page, as set by users.
+;	<tt>pagination( $which )</tt>
+:		Creates the pagination HTML and assigns it to the _pagination property. Generally, you don't need to call this directly as it's handled for you on <tt>display()</tt>.
+;	<tt>get_columns()</tt>
+:		This method should be overridden to return an associative array of columns. The associative array should follow the format <tt>'slug' => array( 'Title', true )</tt>. Typically, you will use this in the <tt>prepare_items()</tt> method to build part of the <tt>_column_headers</tt> property.
+;	<tt>get_sortable_columns()</tt>
+:		This method should be overridden to return an associative array of columns that you want to make sortable. The associative array should follow the format <tt>'column_slug'=>array('sortby',true)</tt>, where the second property states whether the field is presorted. This is frequently used to provide part of the <tt>_column_headers</tt> property.
+;	<tt>get_column_info()</tt>
+:		This is used by WordPress to build and fetch the <tt>_column_headers</tt> property. Generally, this should not be used by developers. Instead, assign the <tt>_column_headers</tt> property directly from your <tt>prepare_items()</tt> method. 
+;	<tt>get_column_count()</tt>
+:		This simply returns the number of visible columns.
+;	<tt>print_column_headers( $with_id = true )</tt>
+:		This method renders out the column headers. Generally, you don't need to call this directly as it's handled for you in the <tt>display()</tt> method.
+;	<tt>[[Class_Reference/WP_List_Table/display|display()]]</tt>
+:		Call this method to render the completed list table to the page.
+;	<tt>get_table_classes()</tt>
+:		Returns a list of css classes to be attached to the table element. Override to customize table classes.
+;	<tt>display_tablenav( $which )</tt>
+:		This generates the table navigation ''above'' or ''below'' the table. Generally, you don't need to call this explicitly as it is handled in the <tt>display()</tt> method.
+;	<tt>extra_tablenav( $which )</tt>
+:		This can be overridden to display additional controls between the rendered bulk actions and pagination controls.
+;	<tt>display_rows_or_placeholder()</tt>
+:		This generates the tbody part of the table. Generally, you don't need to call this explicitly as it is handled in the <tt>display()</tt> method.
+;	<tt>display_rows()</tt>
+:		This loops through the <tt>items</tt> property and renders them to the page as table rows. Generally, you don't need to call this explicitly as it is handled automatically on <tt>display()</tt>.
+;	<tt>single_row( $item )</tt>
+:		This echos a single item (from the <tt>items</tt> property) to the page.  Generally, you don't need to call this explicitly as it is handled automatically on <tt>display()</tt>.
+;	<tt>single_row_columns( $item )</tt>
+:		This renders out all the columns for a single item row. It is important to understand that this method assumes the existence of some custom column methods (eg <tt>column_mycolumn()</tt>) and/or a '''<tt>column_default()</tt>''' method. Neither of these are provided by the base class and should be defined in your extended class. Generally, you don't need to call this explicitly as it is handled automatically on <tt>display()</tt>.
+;	<tt>ajax_response()</tt>
+:		Handles incoming Ajax requests.
+;	<tt>_js_vars()</tt>
+:		Outputs key Javascript variables that were dynamically created by the class.
+
+===Extended Methods===
+These methods are not included in the base class but can, and should, be defined in your extended class!
+;	<tt>[[Class_Reference/WP_List_Table/column_default|column_default( $item, $column_name )]]</tt>
+:		This is method that is used to render a column when no other specific method exists for that column. When <tt>WP_List_Tables</tt> attempts to render your columns (within <tt>single_row_columns()</tt>), it first checks for a column-specific method. If none exists, it defaults to ''this'' method instead. This method accepts two arguments, a single '''<tt>$item</tt>''' array and the '''<tt>$column_name</tt>''' (as a slug).
+
+:'''NOTICE''': As of [[Version 3.5.1|WordPress 3.5.1]], in core <tt>$item</tt> is passed an Object, not an array.
+
+;	<tt>[[Class_Reference/WP_List_Table/column_custom|column_$custom( $item )]]</tt>
+:		Custom columns must be provided by the developer and can be used to handle each type column individually. For example: if a method named ''<tt>column_movie_title()</tt>'' were provided, it would be used to render any column that had the slug "<tt>movie_title</tt>". This function accepts one argument - a single '''<tt>$item</tt>''' array.
+
+:'''NOTICE''': As of [[Version 3.5.1|WordPress 3.5.1]], in core <tt>$item</tt> is passed an Object, not an array.
+
+==Examples==
+For a detailed, functional example, download the [http://wordpress.org/extend/plugins/custom-list-table-example Custom List Table Example] plugin.
+
+===Using within Meta Boxes===
+'''Attention''' when using the <tt>WP_List_Table</tt> class within a '''Meta Box''':
+
+If you don't set <tt>$this->_column_headers</tt> in your own class within <tt>prepare_items()</tt> (like shown in the code block below), then the complete <tt><thead></tt> and <tt><tfoot></tt> will disappear!
+<pre>
+$this->_column_headers = array( 
+	 $this->get_columns(),		// columns
+	 array(),			// hidden
+	 $this->get_sortable_columns(),	// sortable
+);
+</pre>
+
+====Why This Happens====
+
+If you don't set <tt>$this->_column_headers;</tt> manually in the extending class, then the sortable columns are set up by the ''parent'' class and the <tt>$this->get_columns();</tt> function.
+
+Unfortunately, when this happens your column headers array is empty - even if you set it up with <tt>get_columns();</tt> from your child class. 
+
+====The Fix====
+
+Use the <tt>$GLOBALS['wp_filter']["manage_{$GLOBALS['screen']->id}_screen_columns"];</tt> filter to get them back!
+
+''Sidenote:'' The <tt>get_column_headers()</tt> function that applies this filter is located in <tt>/core_root/wp-admin/includes/template.php</tt>
+
+''''There is one major drawback:'''' If you do this, no other meta box may contain an extension for the <tt>WP_List_Table</tt> class, as this would break the columns of the additional meta boxes since only one filter exists to setup the screen columns ''per screen''.
+
+==Version==
+WP_List_Table was implemented in [[Version 3.1|WordPress 3.1]].
+
+==Source File==
+<tt>WP_List_Table()</tt> is located in {{Trac|/wp-admin/includes/class-wp-list-table.php}}.
+
+==Related==
+* [http://wordpress.org/extend/plugins/custom-list-table-example Custom List Table Example Plugin] - A practical example of WP_List_Table in plugin form
+
+{{Class Footer}}
+
+[[Category:Classes]]

@@ -1,0 +1,76 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/get_post_meta/}}
+
+{{Languages|
+{{en| Function Reference/get post meta}}
+{{ja|関数リファレンス/get post meta}}
+{{fr|Fonction get post meta}}
+}}
+
+==Description==
+
+This function returns the values of the custom fields with the specified key from the specified post. It is a wrapper for <tt>[[Function_Reference/get_metadata | get_metadata]]('post')</tt>. To return all of the custom fields, see [[Function Reference/get_post_custom|get_post_custom()]]. See also [[Function Reference/update post meta|update_post_meta()]], [[Function Reference/delete post meta|delete_post_meta()]] and [[Function Reference/add post meta|add_post_meta()]]. 
+
+==Usage==
+
+%%%<?php $meta_values = get_post_meta( $post_id, $key, $single ); ?>%%%
+==Parameters==
+
+{{Parameter|$post_id|integer|The ID of the post from which you want the data. Use <code>get_the_ID()</code> or the global <code>$post</code> object's ID property (eg <code>$post->ID</code>) while in <tt>The Loop</tt> to get the post's ID, or use your sub-loop's post object ID property (eg <code>$my_post_object->ID</code>). (Note: When using a Page to display your posts (set in Settings -> Reading), <code>get_the_ID()</code> and <code>$post->ID</code> will grab the latest Post's ID. To get the containing Page's ID, you will need to use <code>get_queried_object_id()</code>.)  }}
+{{Parameter|$key|string|A string containing the name of the meta value you want.|optional}}
+{{Parameter|$single|boolean|If set to true then the function will return a single result, as a '''string'''. If false, or not set, then the function returns an '''array''' of the custom fields.  This may not be intuitive in the context of serialized arrays. If you fetch a serialized array with this method you want $single to be true to actually get an unserialized array back.  If you pass in false, or leave it out, you will have an array of one, and the value at index 0 will be the serialized string.|optional|false}}
+
+==Return Value==
+* If only <tt>$id</tt> is set it will return all meta values in an associative array.
+* If <tt>$single</tt> is set to <tt>false</tt>, or left blank, the function returns an array containing all values of the specified key.
+* If <tt>$single</tt> is set to <tt>true</tt>, the function returns the first value of the specified key (not in an array)
+If there is nothing to return the function will return an empty <tt>array</tt> unless <tt>$single</tt> has been set to <tt>true</tt>, in which case an empty string is returned.
+
+==Examples==
+
+===Default Usage===
+
+Get the meta for all keys:
+ <?php $meta = get_post_meta( get_the_ID() ); ?>
+Get the meta for a single key:
+ <?php $key_1_values = get_post_meta( 76, 'key_1' ); ?>
+
+===show the first value of the specified key inside a loop===
+
+<pre><?php 
+$key_1_value = get_post_meta( get_the_ID(), 'key_1', true );
+// check if the custom field has a value
+if( ! empty( $key_1_value ) ) {
+  echo $key_1_value;
+} 
+?></pre>
+
+For a more detailed example, go to the [[Function Reference/post meta Function Examples|post_meta Functions Examples]] page.
+
+===Retrieve a Custom Field Thumbnail Url===
+While you are in the [http://codex.wordpress.org/The_Loop WordPress Loop], you can use this code to retrieve a custom field. In this example, the thumbnail image url is in a custom field named "thumb". 
+ <?php if ( get_post_meta( get_the_ID(), 'thumb', true ) ) : ?>
+     <a href="<?php the_permalink() ?>" rel="bookmark">
+         <img class="thumb" src="<?php echo get_post_meta( get_the_ID(), 'thumb', true ); ?>" alt="<?php the_title(); ?>" />
+     </a>
+ <?php endif; ?>
+
+== Notes ==
+
+* Please note that if a db collation is case insensitive (has with suffix <tt>_ci</tt>) then <tt>update_post_meta</tt> and <tt>delete_post_meta</tt> and <tt>[[Function_Reference/get_posts | get_posts()]]</tt> will update/delete/query the meta records with keys that are upper or lower case.  However <tt>get_post_meta</tt> will apparently be case sensitive due to WordPress caching. See https://core.trac.wordpress.org/ticket/18210 for more info.   Be careful not to mix upper and lowercase.
+* Uses: <tt>[[Function_Reference/get_metadata | get_metadata()]]</tt> to retrieve the metadata.
+
+== Change Log ==
+
+* Since: 1.5.0
+
+== Source Code ==
+
+<code>get_post_meta()</code> is located in {{Trac|wp-includes/post.php}}
+
+==Related==
+
+{{Post Meta Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

@@ -1,0 +1,135 @@
+{{Languages|
+{{en|Function Reference/get_the_tags}}
+{{ja|テンプレートタグ/get_the_tags}}
+{{ko|Function Reference/get_the_tags}}
+}}
+
+== Description ==
+
+Returns an array of objects, one object for each tag assigned to the post.  If this function is used in [[The Loop]], then no ID need be passed. 
+== Usage ==
+
+This function does not display anything; you should access the objects and then echo or otherwise use the desired member variables.
+
+The following example displays the tag name of each tag assigned to the post (this is like using [[Template_Tags/the_tags|<tt>the_tags()</tt>]], but without linking each tag to the tag view, and using spaces instead of commas):
+
+<pre><?php
+$posttags = get_the_tags();
+if ($posttags) {
+  foreach($posttags as $tag) {
+    echo $tag->name . ' '; 
+  }
+}
+?></pre>
+
+== Parameters ==
+
+{{Parameter|$id|int|Post id.|optional}}
+
+== Examples ==
+
+===Show tag Images===
+
+This outputs tag images named after the <tt>term_id</tt> with the <tt>alt</tt> attribute set to <tt>name</tt>. You can also use any of the other member variables instead.
+
+<pre><?php
+$posttags = get_the_tags();
+if ($posttags) {
+  foreach($posttags as $tag) {
+    echo '<img src="http://example.com/images/' . $tag->term_id . '.jpg" 
+alt="' . $tag->name . '" />'; 
+  }
+}
+?></pre>
+
+===Show the First tag Name Only===
+
+<pre><?php
+$posttags = get_the_tags();
+$count=0;
+if ($posttags) {
+  foreach($posttags as $tag) {
+    $count++;
+    if (1 == $count) {
+      echo $tag->name;
+    }
+  }
+}
+?></pre>
+
+===Execute code based on different tag values===
+
+This code will display HTML code depending on if this post has a certain tag or tag(s).  Just add as many <b>else if</b> statements as you require.
+
+<pre>
+<?php 
+if ($all_the_tags);
+$all_the_tags = get_the_tags();
+foreach($all_the_tags as $this_tag) {
+	if ($this_tag->name == "sometag" ) {
+?>
+
+<p>SOME HTML CODE <img src="someimage.jpg"></p>
+
+<?php 	} else if ($this_tag->name == "someothertag" ) { ?>
+
+<p>SOME OTHER HTML CODE <img src="someotherimage.jpg"></p>
+
+<?php 	} else {	
+		// it's neither, do nothing
+?>
+		<!-- not tagged as one or the other -->
+<?
+	}
+}
+}
+?>
+</pre>
+
+===Function to show tags in a dropdown===
+
+This function outputs tags in a dropdown.
+
+<pre>
+function drop_tags()
+{
+    echo "<select onChange=\"document.location.href=this.options[this.selectedIndex].value;\">";
+    echo "<option>Tags</option>\n";
+    foreach (get_the_tags() as $tag)
+    {
+        echo "<option value=\"";
+        echo get_tag_link($tag->term_id);
+        echo "\">".$tag->name."</option>\n";
+    }
+    echo "</select>";
+}
+</pre>
+
+== Return Values ==
+; <tt>(array|false|[https://developer.wordpress.org/reference/classes/wp_error/ WP_Error])</tt> : An array of Tag objects on success, false if there are no tags or the post does not exist, WP_Error on failure.
+
+==Member Variables==
+
+;term_id :the tag id
+;name :the tag name
+;slug :a slug generated from the tag name
+;term_group :the group of the tag, if any
+;taxonomy :should always be 'post_tag' for this case
+;description :the tag description
+;count :number of uses of this tag, total
+
+== Change Log ==
+
+Since: 2.3.0
+
+== Source File ==
+
+<tt>get_the_tags()</tt> is located in {{Trac|wp-includes/category-template.php}}.
+
+== Related ==
+
+{{Tag Tags}}, [[Function_Reference/get_the_terms|get_the_terms()]], [[Function_Reference/wp_get_object_terms|wp_get_object_terms()]]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

@@ -1,0 +1,255 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Examples"><span class="tocnumber">3</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Customizer_with_basic_controls_sample"><span class="tocnumber">3.1</span> <span class="toctext">Customizer with basic controls sample</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_register&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The '<tt>customize_register</tt>' action hook is used to customize and manipulate the Theme Customization admin screen introduced in WordPress <a href="https://codex.wordpress.org/Version_3.4" title="Version 3.4">Version 3.4</a>. This hook is a component of the <a href="https://codex.wordpress.org/Theme_Customization_API" title="Theme Customization API">Theme Customization API</a>.
+</p>
+<pre>
+function mytheme_customize_register( $wp_customize )
+{
+   //All our sections, settings, and controls will be added here
+}
+add_action( 'customize_register', 'mytheme_customize_register' );
+</pre>
+<p>For detailed information on using this hook, see the full codex entry on the  <a href="https://codex.wordpress.org/Theme_Customization_API" title="Theme Customization API">Theme Customization API</a>
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_register&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This hook gives you access to the <tt>$wp_customize</tt> object, which is an instance of the <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager" title="Class Reference/WP Customize Manager">WP_Customize_Manager</a> class. It is this class object that controls the Theme Customizer screen.
+</p><p>Generally, there are only 4 methods of the $wp_customize object that you will need to interact with inside the <tt>customize_register</tt> hook.
+</p>
+<dl><dt><a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_setting" title="Class Reference/WP Customize Manager/add setting">WP_Customize_Manager-&gt;add_setting()</a></dt>
+<dd> This adds a new setting to the database.</dd>
+<dt><a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_section" title="Class Reference/WP Customize Manager/add section">WP_Customize_Manager-&gt;add_section()</a></dt>
+<dd> This adds a new <i>section</i> (i.e. category/group) to the Theme Customizer page.</dd>
+<dt><a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_control" title="Class Reference/WP Customize Manager/add control">WP_Customize_Manager-&gt;add_control()</a></dt>
+<dd> This creates an HTML control that admins can use to change settings. This is also where you choose a section for the control to appear in.</dd>
+<dt><a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/get_setting" title="Class Reference/WP Customize Manager/get setting">WP_Customize_Manager-&gt;get_setting()</a></dt>
+<dd> This can be used to fetch any existing setting, in the event you need to modify something (like one of WordPress's default settings).</dd></dl>
+<p><br />
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_register&amp;action=edit&amp;section=3" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Customizer_with_basic_controls_sample">Customizer with basic controls sample</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_register&amp;action=edit&amp;section=4" title="Edit section: Customizer with basic controls sample">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<pre>
+function themename_customize_register($wp_customize){
+    
+    $wp_customize-&gt;add_section('themename_color_scheme', array(
+        'title'    =&gt; __('Color Scheme', 'themename'),
+        'description' =&gt; '',
+        'priority' =&gt; 120,
+    ));
+ 
+    //  =============================
+    //  = Text Input                =
+    //  =============================
+    $wp_customize-&gt;add_setting('themename_theme_options[text_test]', array(
+        'default'        =&gt; 'value_xyz',
+        'capability'     =&gt; 'edit_theme_options',
+        'type'           =&gt; 'option',
+ 
+    ));
+ 
+    $wp_customize-&gt;add_control('themename_text_test', array(
+        'label'      =&gt; __('Text Test', 'themename'),
+        'section'    =&gt; 'themename_color_scheme',
+        'settings'   =&gt; 'themename_theme_options[text_test]',
+    ));
+ 
+    //  =============================
+    //  = Radio Input               =
+    //  =============================
+    $wp_customize-&gt;add_setting('themename_theme_options[color_scheme]', array(
+        'default'        =&gt; 'value2',
+        'capability'     =&gt; 'edit_theme_options',
+        'type'           =&gt; 'option',
+    ));
+ 
+    $wp_customize-&gt;add_control('themename_color_scheme', array(
+        'label'      =&gt; __('Color Scheme', 'themename'),
+        'section'    =&gt; 'themename_color_scheme',
+        'settings'   =&gt; 'themename_theme_options[color_scheme]',
+        'type'       =&gt; 'radio',
+        'choices'    =&gt; array(
+            'value1' =&gt; 'Choice 1',
+            'value2' =&gt; 'Choice 2',
+            'value3' =&gt; 'Choice 3',
+        ),
+    ));
+ 
+    //  =============================
+    //  = Checkbox                  =
+    //  =============================
+    $wp_customize-&gt;add_setting('themename_theme_options[checkbox_test]', array(
+        'capability' =&gt; 'edit_theme_options',
+        'type'       =&gt; 'option',
+    ));
+ 
+    $wp_customize-&gt;add_control('display_header_text', array(
+        'settings' =&gt; 'themename_theme_options[checkbox_test]',
+        'label'    =&gt; __('Display Header Text'),
+        'section'  =&gt; 'themename_color_scheme',
+        'type'     =&gt; 'checkbox',
+    ));
+ 
+ 
+    //  =============================
+    //  = Select Box                =
+    //  =============================
+     $wp_customize-&gt;add_setting('themename_theme_options[header_select]', array(
+        'default'        =&gt; 'value2',
+        'capability'     =&gt; 'edit_theme_options',
+        'type'           =&gt; 'option',
+ 
+    ));
+    $wp_customize-&gt;add_control( 'example_select_box', array(
+        'settings' =&gt; 'themename_theme_options[header_select]',
+        'label'   =&gt; 'Select Something:',
+        'section' =&gt; 'themename_color_scheme',
+        'type'    =&gt; 'select',
+        'choices'    =&gt; array(
+            'value1' =&gt; 'Choice 1',
+            'value2' =&gt; 'Choice 2',
+            'value3' =&gt; 'Choice 3',
+        ),
+    ));
+ 
+ 
+    //  =============================
+    //  = Image Upload              =
+    //  =============================
+    $wp_customize-&gt;add_setting('themename_theme_options[image_upload_test]', array(
+        'default'           =&gt; 'image.jpg',
+        'capability'        =&gt; 'edit_theme_options',
+        'type'           =&gt; 'option',
+ 
+    ));
+ 
+    $wp_customize-&gt;add_control( new WP_Customize_Image_Control($wp_customize, 'image_upload_test', array(
+        'label'    =&gt; __('Image Upload Test', 'themename'),
+        'section'  =&gt; 'themename_color_scheme',
+        'settings' =&gt; 'themename_theme_options[image_upload_test]',
+    )));
+ 
+    //  =============================
+    //  = File Upload               =
+    //  =============================
+    $wp_customize-&gt;add_setting('themename_theme_options[upload_test]', array(
+        'default'           =&gt; 'arse',
+        'capability'        =&gt; 'edit_theme_options',
+        'type'           =&gt; 'option',
+ 
+    ));
+ 
+    $wp_customize-&gt;add_control( new WP_Customize_Upload_Control($wp_customize, 'upload_test', array(
+        'label'    =&gt; __('Upload Test', 'themename'),
+        'section'  =&gt; 'themename_color_scheme',
+        'settings' =&gt; 'themename_theme_options[upload_test]',
+    )));
+ 
+ 
+    //  =============================
+    //  = Color Picker              =
+    //  =============================
+    $wp_customize-&gt;add_setting('themename_theme_options[link_color]', array(
+        'default'           =&gt; '#000',
+        'sanitize_callback' =&gt; 'sanitize_hex_color',
+        'capability'        =&gt; 'edit_theme_options',
+        'type'           =&gt; 'option',
+ 
+    ));
+ 
+    $wp_customize-&gt;add_control( new WP_Customize_Color_Control($wp_customize, 'link_color', array(
+        'label'    =&gt; __('Link Color', 'themename'),
+        'section'  =&gt; 'themename_color_scheme',
+        'settings' =&gt; 'themename_theme_options[link_color]',
+    )));
+ 
+ 
+    //  =============================
+    //  = Page Dropdown             =
+    //  =============================
+    $wp_customize-&gt;add_setting('themename_theme_options[page_test]', array(
+        'capability'     =&gt; 'edit_theme_options',
+        'type'           =&gt; 'option',
+ 
+    ));
+ 
+    $wp_customize-&gt;add_control('themename_page_test', array(
+        'label'      =&gt; __('Page Test', 'themename'),
+        'section'    =&gt; 'themename_color_scheme',
+        'type'    =&gt; 'dropdown-pages',
+        'settings'   =&gt; 'themename_theme_options[page_test]',
+    ));
+
+    // =====================
+    //  = Category Dropdown =
+    //  =====================
+    $categories = get_categories();
+	$cats = array();
+	$i = 0;
+	foreach($categories as $category){
+		if($i==0){
+			$default = $category-&gt;slug;
+			$i++;
+		}
+		$cats[$category-&gt;slug] = $category-&gt;name;
+	}
+ 
+	$wp_customize-&gt;add_setting('_s_f_slide_cat', array(
+		'default'        =&gt; $default
+	));
+	$wp_customize-&gt;add_control( 'cat_select_box', array(
+		'settings' =&gt; '_s_f_slide_cat',
+		'label'   =&gt; 'Select Category:',
+		'section'  =&gt; '_s_f_home_slider',
+		'type'    =&gt; 'select',
+		'choices' =&gt; $cats,
+	));
+}
+ 
+add_action('customize_register', 'themename_customize_register');
+</pre>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/customize_register&amp;action=edit&amp;section=5" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Info: <a href="https://codex.wordpress.org/Theme_Customization_API" title="Theme Customization API">Theme Customization API</a></li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager" title="Class Reference/WP Customize Manager">WP_Customize_Manager() class</a></li>
+<li> Method: <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_setting" title="Class Reference/WP Customize Manager/add setting">WP_Customize_Manager-&gt;add_setting()</a></li>
+<li> Method: <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_section" title="Class Reference/WP Customize Manager/add section">WP_Customize_Manager-&gt;add_section()</a></li>
+<li> Method: <a href="https://codex.wordpress.org/Class_Reference/WP_Customize_Manager/add_control" title="Class Reference/WP Customize Manager/add control">WP_Customize_Manager-&gt;add_control()</a></li>
+<li> Hook: <strong class="selflink">customize_register</strong></li>
+<li> Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_preview_init" title="Plugin API/Action Reference/customize preview init">customize_preview_init</a></li>
+<li> Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_controls_print_styles" title="Plugin API/Action Reference/customize controls print styles">customize_controls_print_styles</a></li>
+<li> Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_controls_print_scripts" title="Plugin API/Action Reference/customize controls print scripts">customize_controls_print_scripts</a></li>
+<li> Hook: <a href="/index.php?title=Plugin_API/Action_Reference/customize_controls_init&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/customize controls init (page does not exist)">customize_controls_init</a></li>
+<li> Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/customize_controls_enqueue_scripts" title="Plugin API/Action Reference/customize controls enqueue scripts">customize_controls_enqueue_scripts</a></li></ul>
+<div style="background-color:#DFDFDF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Class_Reference" title="Class Reference">Class Reference</a> and index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004051
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.016 seconds
+Preprocessor visited node count: 53/1000000
+Preprocessor generated node count: 148/1000000
+Post‐expand include size: 556/2097152 bytes
+Template argument size: 130/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.150      1 - -total
+100.00%    3.150      1 - Template:Class_Footer
+ 41.56%    1.309      1 - Template:Message
+-->

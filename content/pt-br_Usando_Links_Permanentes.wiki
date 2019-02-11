@@ -1,0 +1,342 @@
+{{Languages|
+{{en|Using Permalinks}}
+{{fr|Utilisation des permaliens}}
+{{ja|パーマリンクの使い方}}
+{{ko|Using Permalinks}}
+{{lo|Using_Permalinks}}
+{{mya|Using_Permalinks}}
+{{nl| Permalinks gebruiken}}
+{{pt-br|Usando Links permanentes}}
+{{th|Using Permalinks}}
+{{zh-cn|使用固定链接}}
+{{zh-tw|使用固定連結}}
+}}
+{{Comunidade WP-Brasil}}
+{{Ajuda}}
+'''Links permanentes''' são as URLs de cada postagem, categoria e outras listagens do blog. O link permanente é usado quando alguém quer apontar para o seu site, ou quando alguém quer enviar por e-mail o endereço de algum artigo seu. O URL de cada postagem deve ser fixa, ou seja permanente e nunca mudar.
+
+== Tipos de links permanentes ==
+Existem três tipos básicos de links permanentes no WordPress:
+
+* [[#Padrão "Feio"|Padrão "Feio"]]
+* [[#Links Permanentes Legíveis|Links Permanentes Legíveis]]
+* [[#Quase Legível|Quase Legível]]
+
+Veja sobre cada um desses tipos de configuração:
+
+=== Padrão "Feio" ===
+O padrão de links do WordPress é algo como:
+
+<pre>http://examplo.com/?p=N</pre>
+
+onde <var>N</var> é o número <tt>ID da postagem</tt>. Funciona em todos os ambientes de servidor, mas ele não é tão agradável como algumas das outras opções.
+
+=== Links Permanentes Legíveis ===
+Usando <tt>mod_rewrite</tt> ou lighttpd tenha links legíveis em seu site. Há muitos formatos disponíveis:
+
+<pre>http://examplo.com/categoria/nome-da-postagem/
+or  http://examplo.com/2011/janeiro/14/nome-da-postagem</pre>
+
+Algumas pessoas eliminam alguns ou todos os elementos de data (dia, mês, ano) para ter um formato mais curto.
+
+Exigências para o servidor:
+
+*	Servidor Apache com módulo ''mod_rewrite'' instalado.
+*	WordPress Em diretório próprio
+**	Opção [http://httpd.apache.org/docs/1.3/mod/core.html#options FollowSymLinks] ativada
+**	[http://httpd.apache.org/docs/current/mod/core.html#allowoverride <tt>FileInfo</tt> directives] ativado (ex:. <code>AllowOverride FileInfo</code> ou <code>AllowOverride All</code>) 
+**	Um arquivo <tt>.htaccess</tt> (se inexistente, o WordPress poderá criar um ser tiver permissão)	
+**		Se quer permitir o WordPress de escrever no arquivo <tt>.htaccess</tt> ele deve ter permissão de escrita.
+
+* Para lighttpd, veja [[Using_Permalinks#External_Resources|External Resources]] (em inglês)
+
+* Usuários de Mac usando o WordPress localmente, devem editar o arquivo <tt>httpd.conf</tt>  mudando a linha AllowOverride para ler <em>AllowOverride All</em> no <em>Directory "/Library/WebServer/Documents"</em>.  Para Mac OS X 10.5.x e superior, este arquivo está em  <tt>/private/etc/apache2/users/[seu-nomedeusuario].conf</tt>, ou em  <tt>/etc/httpd/httpd.conf</tt>.
+
+Quando criar ou atualizar uma estrutura de links permanentes "bonito", o Wordpress vai gerar regras de re-escrita e tentar inseri-los no arquivo <tt>.htaccess</tt>. Se não puder, ele vai dizer algo como <tt>Atualize seu arquivo .htaccess agora.</tt> e mostrar as regras para que você copie e cole no arquivo (colocá-los no final do arquivo).
+
+No WordPress 2.0+, você provavelmente precisará fazer isso apenas uma vez, porque o WordPress faz a re-escrita internamente . Se você transferir o seu diretório do WordPress (''endereço do blog ''), será preciso repetir este passo.
+
+WordPress age normalmente com arquivos <tt>.htaccess</tt> existentes e não irá excluir qualquer regras de Re-escrita existentes ou de outras diretivas. Se você tiver outras regras <tt>mod_rewrite</tt>, adicione antes das que o WordPress criar.
+
+=== Quase Legível ===
+<tt>PATHINFO</tt> é quase parecido com <tt>mod_rewrite</tt> com uma exceção:  <tt>/index.php</tt> fica inserido antes do endereço:
+
+<pre>http://examplo.com/index.php/2011/01/14/nome-da-postagem/</pre>
+
+Links <tt>mod_rewrite</tt> são quase o mesmo que "links legíveis" e são igualmente flexíveis. Qualquer coisa que <tt> mod_rewrite </tt> pode fazer, <tt> PathInfo </tt> pode fazer, com a ajuda de <tt>index.php</tt>.
+
+Existe um [http://www.askapache.com/htaccess/rewriterule-viewer-plugin.html plugin] útil que exibe o tipo de link permanente que está sendo usado e informações detalhadas sobre as regras internas de reescrita usadas pelo WordPress.
+
+== Estrutura de Links permanentes==
+No painel Configurações em Opções → [[pt-br:Sub-Painel Links Permanentes|Links Permanentes]], você pode escolher uma das estruturas ou criar a sua própria "estrutura personalizada", utilizando as tags estrutura.
+
+<strong> Atenção: </strong>
+ Nunca coloque o URL do site no slot permalinks. Você deve usar uma das marcas de estrutura, ou uma combinação de tags apenas.
+
+Para ativar Links permanentes com PathInfo, inicie sua estrutura de Links permanentes com <tt> index.php /</tt>.
+
+[[File:link permanentes.png|Campos para estruturas de links]]
+
+=== Tags de estrutura ===
+
+'''Atenção:'''
+ Nunca coloque o URL do site no slot links permanentes. Você deve usar uma das marcas de estrutura, ou uma combinação de tags apenas!
+
+Você pode usar essas tags para personalizar o Links permanentes legíveis ou quase legíveis.
+
+Algumas sugestões:
+
+* Termine a estrutura com <tt>%post_id%</tt> ou <tt>%postname%</tt> (Ex.: <tt>/%year%/%monthnum%/%day%/%postname%/</tt> em inglês mesmo!) assim cada link aponta para uma postagem individual.
+* Por questões de performance, '''não é uma boa idéia começar com o nome de categoria, tag, autor, ou nome da postagem'''. A razão é que estes são campos de texto então se usar como o início do seu Link permanente, '''pode levar mais tempo para o WordPress distinguir''' entre URL de postagens e URLs de páginas (que usam "slug da página" como URL), para compensar, WordPress armazena informações extras no banco de dados. '''Sites grandes com muitas postagens e páginas podem ter dificuldades com isso'''. Então, é aconselhável ter ao menos 2 segmentos de caminho na estrutura das postagens como <tt>/%post_id%/%post_name%/</tt> que oferece melhor performance. Outros podem dizer que não é bom, já que deixa o URL menos legível. Veja [http://ottopress.com/2010/category-in-permalinks-considered-harmful/ Otto's technical writeup] (em inglês) e [http://comox.textdrive.com/pipermail/wp-testers/2009-January/011097.html wp-testers discussion] (em inglês).
+
+'''Tags de estrutura'''
+Deve ser '''usado em inglês''', '''não traduza''' <tt>%month%</tt> para %mes%.
+
+;'''%year%''' : Ano da postagem, em quatro dígitos <tt>2011</tt>
+;'''%monthnum%''' : Mês do ano <tt>05</tt>
+;'''%day%''' : Dia do mês por exemplo <tt>28</tt>
+;'''%hour%''' : Hora do dia, por exemplo <tt>15</tt>
+;'''%minute%''' : Minuto da hora, por exemplo <tt>43</tt>
+;'''%second%''' : Segundo, por exemplo  <tt>33</tt>
+;'''%postname%''' : Versão de nome simples do título da postagem, conhecido também por <i>post slug</i>. Assim &#8220;Olha uma postagem em ação!&#8221; fica <tt>olha-uma-postagem-em-acao</tt> na URI.  
+;'''%post_id%''' : O número ID da postagem, por exemplo <tt>423</tt>
+;'''%category%''' : Versão saneada da categoria ou <i>category slug</i>. 
+;'''%tag%''' : Versão de nome simples da tag ou <i>tag [[pt-br:Glossário#Slug|slug]]</i>.(Não usar %tag% no início da estrutura por questões de performance).
+;'''%author%''' : Versão de nome simples do nome autor. (Não usar %author% no início da estrutura por questões de performance).
+
+;base da categoria e da base Tag
+A ''base da categoria'' e ''base tag'' são prefixos usados em URLs para a categoria e tag de arquivos, que se parecem com isto:
+
+  examplo.net/wp/<var>category_base</var>/<var>category_name</var>
+  examplo.net/wp/<var>tag_base</var>/<var>tag_name</var>
+
+Os valores padrão para essas categorias são <tt>category</tt> e <tt>tag</tt>. Você pode alterá-los, mas você não se pode removê-los das URLs completamente.
+
+Link permanentes personalizados funcionam na maioria dos sistemas sem quaisquer problemas, mas ainda existem algumas condições onde os problemas ocorrem.
+
+[[image:base.png|Campos para base de categoria]]
+
+'''<tt>%category%</tt>/<tt>%tag%</tt> em postagem com múltiplas categorias/tags'''
+
+Quando se define múltiplas categorias para uma postagem, apenas uma é mostrada no link permanente e será a categoria que tiver o menor número ID. A postagem ainda é acessada por qualquer outra categoria que estiver, normalmente.
+
+A mesma coisa se aplica ao uso do <tt>%tag%</tt> na sua estrutura de link permanente.
+
+== Links Legíveis sem <tt>mod_rewrite</tt> ==
+
+<div style="padding:10px;background:#FEF0C1">Links Legíveis exigem <tt>[[pt-br:Glossário#mod_rewrite|mod_rewrite]]</tt>, e IIS (comum em servidores Windows) '''não oferecem suporte a <tt>mod_rewrite</tt>'''. Se estiver usando Apache 2.0.54, no Windows, <tt>mod_rewrite</tt> pode funcionar, se ativado no <tt>apache\conf\httpd.conf</tt>. 
+</div>
+
+Se você estiver usando IIS 7 e tem direitos de administrador no servidor, você pode usar Microsoft o [http://learn.iis.net/page.aspx/460/using-url-rewrite-module/ URL Rewrite Module]. Apesar de não ser totalmente compatível com <tt>mod_rewrite </tt>, ele dá suporte a links legíveis do WordPress. Uma vez instalado, abra o arquivo <tt>web.config</tt> na pasta do WordPress e adicione a seguinte regra para o elemento <tt>system.webServer</tt>:
+
+<pre>
+<rewrite>
+    <rules>
+        <rule name="Main Rule" stopProcessing="true">
+            <match url=".*" />
+            <conditions logicalGrouping="MatchAll">
+                <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+            </conditions>
+            <action type="Rewrite" url="index.php/{R:0}" />
+        </rule>
+    </rules>
+</rewrite>
+</pre>
+
+Há um [http://learn.iis.net/page.aspx/466/enabling-pretty-permalinks-in-wordpress/ guia de instalação complete] no IIS site. O módulo disponível são sistemas  [http://www.iis.net/downloads/1692/ItemPermaLink.ashx x64] e [http://www.iis.net/downloads/1691/ItemPermaLink.ashx x86].
+
+Se esta não é uma opção, tente usar PATHINFO; coloque <tt>index.php/</tt> no início da sua estrtura de links permanentes, Configurações -> [[pt-br:Sub-Painel Links Permanentes|Links Permanentes]]:
+
+  /index.php/%year%/%monthnum%/%day%/%postname%/
+
+Esta opção pode não funcionar sempre, principalmente nos casos de WordPress no IIS 6. Para fazer isso funcionar no IIS, adicione essas duas linhas em um arquivo <tt>php.ini</tt> e armazenar esse arquivo em seu webroot:
+
+  cgi.fix_pathinfo = 1
+  cgi.force_redirect = 0
+
+Outra solução existe usando o IIS redirecionamentos 404 personalizados. Ela requer que o seu servidor permita avocê adicionar um redirecionamento 404 personalizado, mas não exige a instalação de qualquer software <tt>mod_rewrite</tt> de terceiros e também não exige que a estrutura de link permanente começe com <tt>/index.php/</tt>.
+
+== O arquivo <tt>.htaccess</tt> ? ==
+O arquivo <tt>index.php</tt> e <tt>.htaccess</tt> devem estar juntos no diretório indicado pelo ''endereço do Blog (URI)'' que está na sua página de administração Configurações -> [[pt-br:Sub-Painel_Geral|Geral]]. Desde que o nome do arquivo começa com um ponto, o arquivo pode não ser visível através de um cliente FTP, a menos que você mude as preferências da ferramenta FTP para mostrar todos os arquivos, incluindo os arquivos ocultos.
+
+Alguns servidores (por exemplo, Godaddy) pode não mostrar ou permitir que você edite arquivos <tt>.htaccess</tt> se você instalar o WordPress através da ''Godaddy Hosting Connection''.
+
+=== Criando e Editando (<tt>.htaccess</tt>) ===
+Se você não tiver um arquivo <tt>.htaccess</tt>, crie um. Se você tiver acesso ao shell ou ssh para o servidor, uma simples comando <code>touch .htaccess</code> irá criar o arquivo. Se você estiver usando o FTP para transferir arquivos, crie um arquivo no computador local, por exemplo, um arquivo de texto vazio e nomeie <tt>1.htaccess</tt>, envie o arquivo para a pasta raiz do seu WordPress e o renomeie para <tt>.htaccess</tt>.
+
+Você ainda pode editar o arquivo <tt>.htaccess</tt> através do cliente FTP, shell, pelo cPanel do seu servidor e ou o administrador de arquivos do seu servidor.
+
+A seguinte regra de re-escrita, pode ser usada no seu arquivo <tt>.htaccess</tt>:
+
+<pre id="htaccess_sample"># BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress</pre>
+
+Se seu arquivo <tt>.htaccess</tt> contiver erros, será preciso excluir o arquivo através do cliente FTP ou pelo serviço do seu servidor.
+
+===Atualizando <tt>.htaccess</tt>===
+Se o WordPress não pode atualizar automaticamente seu arquivo <tt>.htaccess</tt>, ele vai dizer algo como <tt> Se seu arquivo .htaccess fosse gravável, poderíamos fazer isso automaticamente, mas não é ... </tt>.
+
+Se você quiser deixar o WordPress fazer isso, você precisará mudar as permissões do seu arquivo. As permissões necessárias dependerá da configuração do seu servidor. Tente adicionar permissões para o proprietário, então o grupo, então todo, testando depois de cada mudança, uma vez que o WordPress precise editar o arquivo com sucesso, não adicione qualquer outra permissões de gravação.
+
+Depois de aplicar as regras de re-escrita, você deve alterar as permissões para algo mais seguro como 660 ou 644 para impedir que outras pessoas no servidor possam ter acesso a ele.
+
+Na internet, você tem muitos sites ensinando como alterar a permissão de arquivos, como no Youtube: [http://www.youtube.com/watch?v=D42VpLCjHUg&feature=related Dando permissão de arquivos via cPanel], ou [http://www.hostnet.com.br/como-criar-meu-site/wordpress/wordpress-modificando-permissoes-pastas-arquivos/ Modificando permissões]
+
+=== Corrigindo Problemas de Geração de <tt>.htaccess</tt> ===
+Se a sua instalação do WordPress não gera uma arquivo <tt>.htaccess</tt> ou não grava as novas regras em seu arquivo existente, então existem algumas razões que podem estar causando isso. Trabalhe passo a passo e continue para a próxima etapa somente se a etapa anterior não funcionar:
+
+#'''Mude as permissões do arquivo''' - Mude a permissão do arquivo <tt>.htaccess</tt> para 666 temporariamente, só até o WordPress conseguir escrever no arquivo. Depois mude a permissão novamente para 660.
+#'''Bloqueio do Servidor''' -  Seu Servidor pode ter bloqueado a variável <tt>SERVER_SOFTWARE</tt> e isso faz com que a geração de arquivo <tt>.htaccess</tt> pelo WordPress não funcione. Se você tiver certeza que seu servidor está rodando o Apache, você pode forçar o WordPress acreditar que o servidor está  executando o Apache mudando o arquivo  <tt>wp-includes/vars.php</tt>. Siga os passos abaixo para implementar essas mudanças:
+*Abra o arquivo <tt>wp-includes/vars.php</tt> usando o editor do WordPress mesmo ou o do servidor. 
+*Procure por <pre>$is_apache = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? 1 : 0;</pre> and replace it with <pre>// $is_apache = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? 1 : 0;</pre>
+*Adicione uma linha nova após <pre>// $is_apache = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? 1 : 0;</pre> e digite <pre>$is_apache = 1;</pre>
+
+'''Usários de XAMPP (Windows)''' 
+
+Algumas versões do [http://www.apachefriends.org/en/xampp.html XAMPP] não habilitam o <tt>mod_rewrite</tt> por padrão(tmesmo que ''seja'' compiledo em Apache). Para habilitar — e assim o WordPress conseguir criar o <tt>.htaccess</tt>  — abra oa rquivo <tt>apache/conf/httpd.conf</tt> e remova os comentários da linha <tt>LoadModule rewrite_module modules/mod_rewrite.so</tt> (ou seja, delete o sinal cerquilha/libra no começo da linha.
+
+== Links Permanentes, <tt>.htaccess</tt> e MS Frontpage ==
+Uma nota sobre o Microsoft Frontpage: muitos servidores (compartilhados e dedicados), mantido e construído por várias empresas de hospedagem vêm com <tt>mod_frontpage</tt> compilado com o Apache e em muitos casos com o ''Frontpage Server Extensions'' instalado em cada servidor virtual. Isso é mais comum do que muitos/a maioria das distribuições binárias mais usadas no processo de construção do servidor, na maioria das empresas de hospedagem atuais incluindo ambos <tt>mod_fronpage</tt> e extensões de servidor. Mesmo se você não estiver usando o Frontpage, por causa da maneira que as extensões  interagem com Apache (e o arquivo  <tt>httpd.conf</tt>), você provavelmente vai ter algo parecido com um erro 500 ou a página em branco ao tentarver a instalação do WP (embora o painel de administração pode funcionar correctamente) simplesmente porque extensões <tt>extensions/mod_frontpage</tt> existem no seu servidor.
+
+Wordpress irá funcionar corretamente com as extensões Frontpage
+instaladas, no entanto, os links permanentes não vão funcionar e '''qualquer''' mudança nos  Links Permanentes através da interface do Wordpress  
+causará a quebra do FrontPage Server Extensions devido à adição da regra 
+<tt>mod_rewrite</tt> no arquivo <tt>.htaccess</tt>. ''Há, porém, agora uma correção para essa situação.''
+
+=== Consertos Rápidos, Frontpage ou Links Permanentes ===
+'''Frontpage Extensions''' Se você não se importa com Links Permanentes e só quero fazer as extensões MS Frontpage funcionarem de novo, basta editar o arquivo <tt>.htaccess</tt> e remover a seção criada pelo WordPress com as regras de re-escrita.
+
+'''Para usar Links Permanentes :''' Se você não se importa com o Frontpage (mas a sua empresa de hospedagem tem as extensões instaladas)
+
+Você precisará remover (ou pedir a sua empresa de hospedagem para fazê-lo), o MS FrontPage Server Extensions, ou simplesmente editar o arquivo <tt>.htaccess</tt> removendo todas as linhas do Frontpage, deixando apenas o código <tt>mod_rewrite</tt> criado pelo WordPress .
+
+=== Usando FrontPage e Links Permanentes Juntos  ===
+'''Finalmente, uma solução'''
+
+Tem havido uma série de tópicos sobre esta questão nos fóruns de suporte e até agora, nenhuma solução para o problema.
+
+Normalmente, em um servidor Unix com o Microsoft FrontPage Server Extensions instalado, o WordPress funciona muito bem e você será capaz de editar e publicar páginas (com o  [http://www.microsoft.com/frontpage/ Microsoft FrontPage]) -'''desde que'''- você faça uma alteração para os Links Permanentes (por exemplo, para o tipo baseado em data: 2005/04/etc). Costuma-se sugerir que este tipo de URI é o método recomendado pela W3C (ver http://www.w3.org/Provider/Style/URI).
+
+Agora, o problema é que o FrontPage usa o arquivo <tt>.htaccess</tt> (onde o WordPress precisa também incluir regras de acesso) para a sua configuração de ''publicação'' e ''web criação''. Logo que o código WordPress <tt>mod_rewrite</tt> é adicionado ao arquivo, duas coisas acontecem - os Links Permanentes não funcionam e as extensões de servidor do FrontPage ficam corrompidas.
+
+A solução desde impasse é realmente simples:
+
+Se você estiver usando, ou se deseja usar o FrontPage (ou se o seu pacote de hospedagem está pré-configurado dessa forma), juntamente com o WordPress, você precisa tomar as seguintes medidas no seu servidor ou pedir a sua empresa de hospedagem para fazê-las para você.
+
+O Microsoft FrontPage cria o seguinte diretórios:
+<pre>_vti_bin</pre>
+
+Dentro deste diretórios ele também cria< pre>_vti_adm</pre> e <pre>_vti_aut</pre>
+
+Além de sua pasta raiz do site (ou o WordPress) em todos os diretórios que você vai encontrar arquivos <tt>.htaccess</tt> adicionais.
+
+Em todas esses três e no diretório raiz, no topo de todas os arquivos <tt>.htaccess</tt>, você simplesmente precisa adicionar uma linha:
+
+ <pre>
+ Options +FollowSymlinks
+ </pre>
+
+Pode ou não ser já ter uma linha em cada arquivo com:
+ <pre>Options None</pre>
+
+Edite e salve cada arquivo <tt>.htaccess</tt> e está feito! Agora tudo funciona perfeitamente, incluindo o FrontPage e os Links Permanentes de sua escolha.
+
+== Links Permanentes Longos==
+Ao utilizar Links Permanentes longons em mesanges de email, em comentários e em chats, alguns Links Permanentes são "cortados" ou apenas a primeira seção é realmente reconhecido como um link e o final visto como texto. Aqui está um exemplo.
+
+<div style="margin: 5px; padding:5px">
+<tt style="font-weight:bold; color:#036; text-decoration:underline; font-size:0.9em">http://exemplo.com/2005/10/4/artigo-sobre-todas-as-festas-do-ano-em-laguna</tt></div>
+
+Pode ficar assim:
+<div style="margin:5px; padding 5px"><tt><span style="font-weight:bold; color:#036; text-decoration:underline; font-size:0.9em">http://exemplo.com/2005/10/4/artigo</span>-sobre-todas-as-festas-do-ano-em-laguna</tt>
+</div>
+
+Se clicar em um link cortado, o usuário recebe uma página de Erro 404 (não encontrado). Se você tem uma tendência a usar títulos de postagens muito compridos, siga estes passos para evitar este problema.
+
+1. Certifique-se de que está usando mesmo Links Permanentes.
+
+2. Edite seu arquivo <tt>.htaccess</tt> adicionando o seguinte:
+ <pre>
+ RewriteRule ^post/([0-9]+)?/?([0-9]+)?/?$ /index.php?p=$1&page=$2 [QSA]
+ </pre>
+
+3. Teste. Encontre o número ID de uma psotagem e adicione a seu link:
+ <pre>
+ http://exemplo.com/post/( D da postagem)
+ </pre>
+
+É importante notar também que a maioria dos softwares de e-mail não corta URLs que estiverem dentro de sinal de maior e menos (<code><</code> e <code>></code>), então quando colar URLs em e-mails, você deve escrevê-los assim:
+
+<div style="text-align: 5px; padding:5px"><tt> Leia minha postagem no blog <<span style="text-decoration:underline; color:blue">http://exemplo.com/artigo-sobre-todas-as-festas-do-ano-em-laguna> </span> </tt></div>
+
+Além disso, alguns clientes de email oferecem uma opção "pre-format" quando escrever e-mails de texto simples. Usando a opção "pre-format" quando colar links forçará o cliente de e-mail não inserir quebras de linha dentro dos links.
+
+=== Corrigindo Outros Problemas ===
+
+Se seu arquivo <tt>.htaccess</tt> está sendo gerado corretamente, mas os Links Permanentes não funcionam pode ser uma falha do sistema WordPress. Se os problemas persistirem, publique uma mensagem no [http://br.forums.wordpress.org/forum/sobre-o-funcionamento-e-resolucao-de-problemas Fórum Sobre Problemas e Funcionamento] descrevendo o que acontece.
+
+;'''<tt>AllowOverride</tt> Não ativado''': O servidor não tem a diretriz <tt>AllowOverride</tt> habilitada. Se a diretiva <tt>AllowOverride</tt> está configurada para <tt>None</tt> no seu arquivo Apache <tt> httpd.config </tt>, então o arquivo <tt>.htaccess</tt> será ignorado. Neste caso, o servidor não vai sequer tentar ler arquivos <tt>.htaccess </tt> do sistema. Quando essa diretiva é definido como <tt>all</tt>, então qualquer diretiva que tem o <tt>.htaccess</tt> é permitido. Exemplo de diretriz <tt>AllowOverride</tt> habilitado em <tt>httpd.config</tt>:
+
+<pre>
+ <Directory />
+    Options FollowSymLinks
+    AllowOverride All
+ </Directory>
+</pre>
+
+No arquivo <tt>DocumentRoot</tt>:
+
+<pre>
+ <Directory /var/www/html>
+    # ... other directives...
+    AllowOverride All
+ </Directory>
+</pre>
+
+:Você também pode ter que alterar as configurações AllowOverride para o site. Este é certamente o caso quando se usa o Mac OS X Server, mas pode ser o mesmo com outros sistemas. Normalmente você pode encontrar os arquivos de configuração em <tt>/etc/httpd/sites/</tt>.
+
+:Se você não deseja definir AllowOverride para todos (como referido acima), então sua lista deve incluir a lista FileInfo . É necessário reiniciar o servidor Apache para qualquer alterações no arquivo <tt>httpd.config</tt> ter efeito. Para obter mais informações sobre quais substituições são permitidas , leia sobre [http://httpd.apache.org/docs-2.0/mod/core.html#allowoverride Apache Core Features].
+
+;Navegação de Páginas não Funciona: Às vezes, a navegação para a segunda (e subseqüente) páginas pode não funcionar como esperado. Sua página pode gerar um link para uma página com uma dessas URIs:
+<pre> http://www.exemplo.com/page/2/
+ http://www.exemplo.nome/category/categoryname/page/2/
+ http://www.exemplo/year/month/day/page/2/
+ http://www.exemplo/year/month/page/2/
+</pre>
+
+:O resultado de clicar em um desses links é que a página é carregada com todos os elementos (cabeçalho, barra lateral, rodapé), mas em vez de uma página de postagem, há uma mensagem de erro: "Desculpe, nenhum resultado nesse critério."
+
+:Isto é devido a uma falha no arquivo <tt>.htaccess</tt> gerado. Para corrigir isso, exclua o conteúdo de seu arquivo <tt>.htaccess</tt> e recrie o arquivo de novo através do Painel do WordPress.
+
+:Ou crie um novo arquivo <tt>.htaccess</tt>, enviando um arquivo de texto vazio para o servidor.
+
+:Se não resolver, procure ajuda no [http://br.forums.wordpress.org/forum/sobre-o-funcionamento-e-resolucao-de-problemas Fórum Sobre Problemas e Funcionamento] descrevendo o que acontece.
+
+;'''Links Permanentes funcionam mas páginas não''' :Algumas versões de PHP 4.4.x e 5.x tem um bug que causa a falha no <tt>mod_rewrite</tt>se usado com Apache 2.x. Mais detalhes em http://bugs.php.net/bug.php?id=35096 and http://bugs.php.net/bug.php?id=35059 (em inglês).
+
+== Dicas e Truques ==
+=== Evitando Interpretações de Link como Arquivo ===
+Observe que mesmo que nunca se faça mais de uma postagem por dia mas mesmo assim se queira usar o formato de link <tt>%year%%monthnum%%day%</tt>, todos os links gerados serão interpretados como arquivo das postagens do dia. Use <tt>%year%%monthnum%%day%%hour%</tt> para assinalar uma única postagem.
+
+=== Verificar Estrutura de Links Permanente===
+Uma maneira de verificar se o blog tem uma estrutura de Links Permanentes é inserir o código em um arquivo qualquer de seu tema atual:
+
+<pre>if ( get_option('permalink_structure') != '' ) { echo 'Links Permanentes ativos!' }</pre>
+
+== Mais Ajuda ==
+*[http://br.forums.wordpress.org/forum/sobre-o-funcionamento-e-resolucao-de-problemas Fórum de Suporte WordPress Brasil]
+* [http://br.forums.wordpress.org/tags/links-permanentes Tópicos sobre links permanentes no Fórum de Suporte]
+
+== Links Externos ==
+*[http://www.tudoparawordpress.com.br/dicas-wordpress/criando-arquivo-htaccess-no-windows/ .htaccess no Windows]  -  Como criar um arquivo .htaccess no Windows para instalação local
+
+{{AjudaPainel}}
+{{DEFAULTSORT:U}}

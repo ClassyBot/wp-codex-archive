@@ -1,0 +1,61 @@
+<p>Wildcard subdomains are useful to allow end users of a domain-based WordPress <a href="https://codex.wordpress.org/Glossary#Multisite" title="Glossary">multisite</a> network to create new sites on demand. In this type of network each new site has its own subdomain, and the wildcard configuration means that those subdomains do not have to be configured individually. For information on how to create a multisite network, see: <a href="https://codex.wordpress.org/Create_A_Network" title="Create A Network">Create A Network</a>
+</p><p>This page contains some examples of how to configure wildcard subdomains in different circumstances. If you cannot determine how to set up wildcard subdomains on your particular web server, <em>contact your webhost</em> for directions.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Apache"><span class="tocnumber">1</span> <span class="toctext">Apache</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#CPanel"><span class="tocnumber">2</span> <span class="toctext">CPanel</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Plesk"><span class="tocnumber">3</span> <span class="toctext">Plesk</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#DirectAdmin_panel"><span class="tocnumber">4</span> <span class="toctext">DirectAdmin panel</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Amazon_Web_Services"><span class="tocnumber">5</span> <span class="toctext">Amazon Web Services</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Apache">Apache</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Configuring_Wildcard_Subdomains&amp;action=edit&amp;section=1" title="Edit section: Apache">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In the httpd.conf file, or in the include file containing the VirtualHost section for your web account, add a line like this (if it is not already present):
+</p>
+<pre>ServerAlias *.example.com
+</pre>
+<p>Also create a wildcard DNS record like:
+</p>
+<pre>*.example.com A 192.0.43.10
+</pre>
+<p><br />
+</p>
+<h2><span class="mw-headline" id="CPanel">CPanel</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Configuring_Wildcard_Subdomains&amp;action=edit&amp;section=2" title="Edit section: CPanel">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Make a sub-domain named "*" (wildcard) at your CPanel (*.example.com). Make sure to point this at the same folder location where your wp-config.php file is located.
+</p>
+<h2><span class="mw-headline" id="Plesk">Plesk</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Configuring_Wildcard_Subdomains&amp;action=edit&amp;section=3" title="Edit section: Plesk">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>There are several steps that differ when setting up the server for wildcard subdomains on a server using Plesk Panel compared to a server using cPanel (or no control panel).  This article <a href="https://codex.wordpress.org/Configuring_Wildcard_Subdomains_for_multi_site_under_Plesk_Control_Panel" title="Configuring Wildcard Subdomains for multi site under Plesk Control Panel">Configuring Wildcard Subdomains for multi site under Plesk Control Panel</a> details all the steps involved.  
+</p>
+<h2><span class="mw-headline" id="DirectAdmin_panel">DirectAdmin panel</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Configuring_Wildcard_Subdomains&amp;action=edit&amp;section=4" title="Edit section: DirectAdmin panel">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+Click "User Panel" -&gt; DNS Management -&gt; add the following three entries using the three columns: <pre>* A xxx.xx.xx.xxx</pre> (Replace "xxx.xx.xx.xxx" with your website IP.) 
+Click "Admin Panel" (If you have no "admin panel" ask your host to do this.) -&gt; Custom Httpd -&gt; yourdomain.com -&gt; In the text input area, just paste and "save" precisely the following: <pre>ServerAlias *.|DOMAIN|</pre> (If you ever need to un-do a custom Httpd: return here, delete text from input area, save.)
+<ul><li> DirectAdmin.com: <a rel="nofollow" class="external text" href="http://help.directadmin.com/item.php?id=127">Apache Wildcard Documentation</a>... DirectAdmin.com forum: <a rel="nofollow" class="external text" href="http://www.directadmin.com/forum/showthread.php?p=195033">Wordpress wildcard subdomains</a>.</li></ul>
+<h2><span class="mw-headline" id="Amazon_Web_Services">Amazon Web Services</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Configuring_Wildcard_Subdomains&amp;action=edit&amp;section=5" title="Edit section: Amazon Web Services">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>AWS instances are not assigned a permanent IP address by default.  This means that a "server's" IP address may change when it is rebooted. To resolve this issue, assign an Elastic IP Address to your server instance and use that IP address when configuring the A record with your registrar.
+</p><p>AWS Elastic Load Balancers cannot be assigned an elastic IP, therefore you must use a CName to give them a friendly URL.  You cannot have a CName to a root URL. Therefore you must point the domain root (example.com) at a specific server instance with an Elastic IP address and create a wildcard CName (*.example.com) and point that at your Elastic Load Balancer. In your .htaccess, then just redirect all domain root traffic (example.com) to a specific sub-domain (www.example.com).  
+</p><p><b>Notes:</b>
+</p>
+<ul><li> Some registrars do not currently support wildcard CNames.</li>
+<li> Amazon's Route53 Domain Name Service eliminates the CName issue, but at an additional cost.</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003741
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.010 seconds
+Preprocessor visited node count: 37/1000000
+Preprocessor generated node count: 64/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

@@ -1,0 +1,118 @@
+== Description ==
+
+Removes a [[Roles_and_Capabilities#Capabilities|capability]] from a [[Roles_and_Capabilities#Roles|role]] or specific user. Changing the capabilities of a role or user is persistent, meaning the removed capability will stay in effect until explicitly granted.
+
+'''Note:''' This is not a global function, but a method of the <tt>WP_Roles</tt>, <tt>WP_Role</tt> and <tt>[[Class_Reference/WP_User | WP_User]]</tt> classes. It must be called using an instance of one of these classes, as shown in the examples.
+
+'''Note:''' This setting is saved to the database (in table <tt>wp_options</tt>, field <tt>'wp_user_roles'</tt>), so you should run this only once, on theme/plugin activation and/or deactivation.
+
+== Usage ==
+
+%%%<?php 
+  global $wp_roles; // global class wp-includes/capabilities.php
+  $wp_roles->remove_cap( $role, $cap ); 
+?> %%%
+or
+%%%<?php
+  $role = get_role( 'author' );
+  $role->remove_cap( $cap );
+?> %%%
+
+== Parameters ==
+
+{{Parameter|$role|string|role name|Required}}
+{{Parameter|$cap|string|capability name|Required}}
+
+== Example ==
+
+<pre>
+/**
+ * Don't let editors read private posts.
+ *
+ * You should call the function when your plugin is activated.
+ *
+ * @uses WP_Role::remove_cap()
+ */
+function remove_editor_read_private_posts() {
+
+	// get_role returns an instance of WP_Role.
+	$role = get_role( 'editor' );
+	$role->remove_cap( 'read_private_posts' );
+}
+
+/**
+ * Don't let editors read private posts.
+ *
+ * An alternative using WP_Roles instead of WP_Role.
+ *
+ * You should call the function when your plugin is activated.
+ *
+ * @uses $wp_roles
+ * @uses WP_Roles::remove_cap()
+ */
+function remove_editor_read_private_posts(){
+
+	// $wp_roles is an instance of WP_Roles.
+	global $wp_roles;
+	$wp_roles->remove_cap( 'editor', 'read_private_posts' );
+}
+</pre>
+
+<pre>
+// Remove a capability from a specific user.
+$user_id = // The ID of the user to remove the capability from.
+$user = new WP_User( $user_id );
+$user->remove_cap( 'read_private_posts' );
+</pre>
+
+=== Remove multiple capabilities ===
+
+<pre>
+/**
+ * Remove capabilities from editors.
+ *
+ * Call the function when your plugin/theme is activated.
+ */
+function wpcodex_set_capabilities() {
+
+    // Get the role object.
+    $editor = get_role( 'editor' );
+
+	// A list of capabilities to remove from editors.
+    $caps = array(
+        'moderate_comments',
+        'manage_categories',
+        'manage_links',
+        'edit_others_posts',
+        'edit_others_pages',
+        'delete_posts',
+    );
+
+    foreach ( $caps as $cap ) {
+    
+        // Remove the capability.
+        $editor->remove_cap( $cap );
+    }
+}
+add_action( 'init', 'wpcodex_set_capabilities' );
+</pre>
+
+== Notes ==
+
+* <tt>remove_cap()</tt> is not a global function, it is a method available from the classes <tt>WP_Roles</tt>, <tt>WP_Role</tt> and <tt>[[Class_Reference/WP_User | WP_User]]</tt>, so it must be called from an instance of one of these classes as shown in the above examples.
+
+== Changelog ==
+
+* Since: [[Version 2.0|2.0.0]]
+
+==Source File==
+
+<tt>remove_cap()</tt> is located in {{Trac|wp-includes/capabilities.php}}.
+
+== Related ==
+
+{{Role and Capability Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

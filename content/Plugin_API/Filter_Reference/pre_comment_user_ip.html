@@ -1,0 +1,68 @@
+<p>Standard behaviour of wordpress is to record the IP address of somebody commenting by the server variable:
+</p>
+<pre>
+$commentdata['comment_author_IP'] = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR'] );
+</pre>
+<p>With the means of a filter we can change this behavior that it works also behind a reverse proxy server.
+</p>
+<pre>Most reverse Proxy set a additional header
+See <a rel="nofollow" class="external free" href="http://en.wikipedia.org/wiki/X-Forwarded-For">http://en.wikipedia.org/wiki/X-Forwarded-For</a>
+</pre>
+<p>The general format of the header is:
+</p>
+<pre>   X-Forwarded-For: client1, proxy1, proxy2
+</pre>
+<p>where the value is a comma+space separated list of IP addresses, the left-most being the farthest downstream client, and each successive proxy that passed the request adding the IP address where it received the request from. In this example, the request passed proxy1, proxy2 and proxy3 (proxy3 appears as remote address of the request).
+</p><p>Since it is easy to forge an X-Forwarded-For header the given information should be used with care. The last IP address is always the IP address that connects to the last proxy, which means it is the most reliable source of information. X-Forwarded-For data can be used in a forward or reverse proxy scenario.
+</p>
+<pre>* @uses apply_filters() Calls 'pre_comment_user_ip' hook on comment author's IP
+</pre>
+<pre>
+//    applied to the comment author's IP address prior to saving the comment in the database. 
+add_filter( 'pre_comment_user_ip', 'auto_reverse_proxy_pre_comment_user_ip');
+
+function auto_reverse_proxy_pre_comment_user_ip()
+{    
+	$REMOTE_ADDR = $_SERVER['REMOTE_ADDR'];
+	if (!empty($_SERVER['X_FORWARDED_FOR'])) {
+		$X_FORWARDED_FOR = explode(',', $_SERVER['X_FORWARDED_FOR']);
+		if (!empty($X_FORWARDED_FOR)) {
+			$REMOTE_ADDR = trim($X_FORWARDED_FOR[0]);
+		}
+	}
+	/*
+	* Some php environments will use the $_SERVER['HTTP_X_FORWARDED_FOR'] 
+	* variable to capture visitor address information.
+	*/
+	elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+		$HTTP_X_FORWARDED_FOR= explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+		if (!empty($HTTP_X_FORWARDED_FOR)) {
+			$REMOTE_ADDR = trim($HTTP_X_FORWARDED_FOR[0]);
+		}
+	}
+	return preg_replace('/[^0-9a-f:\., ]/si', '', $REMOTE_ADDR);
+}
+</pre>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Filter_Reference/pre_comment_user_ip&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004104
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.008 seconds
+Preprocessor visited node count: 29/1000000
+Preprocessor generated node count: 150/1000000
+Post‐expand include size: 986/2097152 bytes
+Template argument size: 259/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.961      1 - -total
+100.00%    3.961      1 - Template:copyedit
+ 36.41%    1.442      1 - Template:Message
+-->

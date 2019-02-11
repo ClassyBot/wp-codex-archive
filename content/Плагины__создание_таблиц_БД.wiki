@@ -1,0 +1,176 @@
+{{Languages|
+{{en|Creating Tables with Plugins}}
+{{ja|Creating Tables with Plugins}}
+{{ru|Плагины: создание таблиц БД}}
+}}
+
+{{ru:Stub}}
+__TOC__
+
+Если вы [[Написание_плагина|создаете плагины]] для WordPress, то наверняка вы сталкивались с необходимостью сохранить некоторые данные в базе данных WordPress. Существуют два типа данных, доступных для сохранения:
+* '''Установочная информация''' -- опции пользователя. Они вводятся пользователем когда он (она) задает установки плагина во время первого пользования, и впоследствии больше не увеличиваются в размерах; например, в плагине, связанного с тегами, опции пользователя в отношении формата собрания тегов в боковой колонке. <br /> Установочная информация обычно сохраняется с использованием [[Writing_a_Plugin#Saving_Plugin_Data_to_the_Database|WordPress ''options'' mechanism]].
+* '''Данные''' -- информация которая добавляется пользователем по мере использования вашего плагина, обычно являющаяся расширенной информацией связанной с записями, категориями, загрузками и другими компонентами WordPress(например: плагины статистики, различные виды страниц, ссылки, и другие статистические данные связанные с каждой записью на вашем сайте).
+Данные могут хранится в отдельной созданной MySQL таблице.  Перед созданием совершенно новой таблицы, рассмотрите возможность сохранения данных Вашего плагина в [[Writing_a_Plugin#Saving_Plugin_Data_to_the_Database|WordPress' Post Meta]] (ранее Поля, созданные пользователем).  Post Meta - это предпочитаемый метод, пользуйтесь им когда это возможно или практично.
+
+This article describes how to have your plugin automatically create a MySQL table to store its data.  Note that as an alternative to following the steps here, you could have the plugin user run an install script when they install your plugin. Another approach would be to have the user execute an SQL query on their own, using something like [[phpMyAdmin]]. But neither of those options is very satisfactory, since a user could easily forget to run the install script or screw up the query (and they might not have phpMyAdmin available). 
+
+Мы рекомендуем следовать следующим шагам для автоматического создание вашим плагином таблицы в безе данных:
+
+# Напишите PHP функцию , которая создаст таблицы.
+# Убедитесь в том, что WordPress вызывает эту функцию , при установке плагина.
+# Создайте функцию обновления , если новая версия вашего плагина использует другую структуру таблиц БД.
+
+== Создание таблиц в базе данных ==
+
+Первым шагом в автоматическом создании таблицы в базе данных вашим плагином, является создание функции PHP (в вашем плагине) , которая добавит таблицу или таблицы в базу данных WordPress (в этой статье будем будем использовать <tt>jal_install</tt> для обозначения этой функции).
+
+=== Префикс таблиц в базе данных ===
+
+В файле <tt>wp-config.php</tt>, владелец сайта на WordPress может определить префикс таблиц в базе данных. По умолчанию, префикс имеет вид "wp_", но Вам следует проверить актуальное значение и использовать его для определения имени Вашей таблицы. Это значение, вы узнаете из переменной <tt>$wpdb->prefix</tt>. (Если вы программируете для версий, ранних чем Wordpress 2.0, вы должны использовать глобальную переменную <tt>$table_prefix</tt>, которая является устаревшей для версий поздних 2.1). 
+
+К примеру, вы хотите создать таблицу с именем <tt>(prefix)liveshoutbox</tt>, тогда первые несколько строк вашей функции, которая создает таблицу, должны быть такими:
+
+<pre>
+function jal_install () {
+   global $wpdb;
+
+   $table_name = $wpdb->prefix . "liveshoutbox";
+</pre>
+
+=== Таблица уже существует? ===
+
+Убеждаемся в том, что созданная нами таблица успешно добавлена в базу данных. Выполняя проверку по <tt>if</tt> и SQL-запросу <tt>SHOW TABLES</tt>, просматриваем таблицы и ищем, в результате выдачи запроса, имя нашей таблицы:
+
+<pre>
+    if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+</pre>
+
+=== Создание или Обновление таблицы ===
+
+Следующий шаг - фактическое создание таблицы. Вместо того, чтобы напрямую делать SQL запрос, мы будем использовать функцию <tt>dbDelta</tt> из файла <tt>wp-admin/includes/upgrade.php</tt> (необходимо загрузить этот файл, так как он не подгружается по умолчанию). Функция <tt>dbDelta</tt> проверяет существующую структуру таблиц в БД, сравнивает ее с необходимой плагину структурой и, если это необходимо, вносит изменения в таблицы, (для примеров использования функции <tt>dbDelta</tt> смотри файл <tt>wp-admin/upgrade-schema.php</tt>). 
+Необходимо заметить, что функция <tt>dbDelta</tt> "придирчива" к формату входных данных. Например:
+* В выражении SQL необходимо писать каждое поле в отдельной строке.
+* Необходимы два пробела между словами PRIMARY KEY и определением primary key.
+* Необходимо использовать ключевое слово KEY , а не его синоним INDEX . Так же, необходимо обозначить как минимум один KEY.
+
+Ниже представлен пример правильного формата SQL выражения, которое создает или обновляет таблицу. Все что вам надо сделать, это изменить структуру таблицы на необходимую вам (значение переменной <tt>$sql</tt>):
+
+<pre>
+$sql = "CREATE TABLE " . $table_name . " (
+	  id mediumint(9) NOT NULL AUTO_INCREMENT,
+	  time bigint(11) DEFAULT '0' NOT NULL,
+	  name tinytext NOT NULL,
+	  text text NOT NULL,
+	  url VARCHAR(55) NOT NULL,
+	  UNIQUE KEY id (id)
+	);";
+
+require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+dbDelta($sql);
+</pre>
+
+=== Добавление Исходных Данных===
+
+Теперь Вам может потребоваться добавить данные в только что созданную таблицу. Сделать это можно так:
+<pre>
+  $welcome_name = "Mr. Wordpress";
+  $welcome_text = "Поздравляю, установка прошла успешно!";
+
+  $rows_affected = $wpdb->insert( $table_name, array( 'time' => current_time('mysql'), 'name' => $welcome_name, 'text' => $welcome_text ) );
+</pre>
+
+'''ВНИМАНИЕ:''' Даже если Вы сами определили переменные <tt>$welcome_name</tt> и <tt>$welcome_text</tt> в этой функции и знаете что они не содержат специальных SQL символов, хорошим тоном будет всегда обрабатывать переменную функцией <tt>$wpdb->escape</tt> перед передачей её в базу данных для предотвращения проблем безопасности и случайных ошибок. Вы можете использовать функцию <tt>$wpdb->prepare</tt> function syntax, или в данном случае, мы используем <tt>$wpdb->insert</tt>. <strong>Подробнее об использовании WPDB, смотрите [[Function_Reference/wpdb_Class]].</strong>
+
+=== Версия ===
+
+Другой замечательной идеей будет добавление опции записи версии структуры Вашей таблицы данных, так же Вы можете использовать эту информацию позже, если понадобится обновить таблицу:
+
+<pre>
+add_option("jal_db_version", "1.0");
+</pre>
+
+=== Функция в целом ===
+
+Эта функция завершена. Давайте посмотрим как она выглядит в целом. Обратите внимание, что номер версии теперь хранится в глобальной переменной.
+
+<pre>
+
+global $jal_db_version;
+$jal_db_version = "1.0";
+
+function jal_install () {
+   global $wpdb;
+   global $jal_db_version;
+
+   $table_name = $wpdb->prefix . "liveshoutbox";
+   if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
+      
+      $sql = "CREATE TABLE " . $table_name . " (
+	  id mediumint(9) NOT NULL AUTO_INCREMENT,
+	  time bigint(11) DEFAULT '0' NOT NULL,
+	  name tinytext NOT NULL,
+	  text text NOT NULL,
+	  url VARCHAR(55) NOT NULL,
+	  UNIQUE KEY id (id)
+	);";
+
+      require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+      dbDelta($sql);
+
+      $rows_affected = $wpdb->insert( $table_name, array( 'time' => current_time('mysql'), 'name' => $welcome_name, 'text' => $welcome_text ) );
+ 
+      add_option("jal_db_version", $jal_db_version);
+
+   }
+}
+</pre>
+
+== Вызов функции ==
+
+Теперь когда мы инициализировали определение функции, мы хотим убедиться, что WordPress вызывает функцию когда плагин активируется администратором WordPress. Чтобы сделать это мы воспользуемся хуком действия <tt>activate_</tt>. Если файл вашего плагина <tt>wp-content/plugins/plugindir/pluginfile.php</tt>, добавьте следующую строку в тело вашего плагина:
+
+<pre>
+register_activation_hook(__FILE__,'jal_install');
+</pre>
+Смотрите подробнее в [[Function_Reference/register_activation_hook]].
+
+==Добавление Функции Обновления==
+
+За время жизни вашего плагина, вы можете обнаружить, что вам нужно изменить структуру базы данных плагина в обновленной версии. Чтобы сделать это, вам понадобится создать код обновления в вашем плагине, который будет определять что была установлена новая версия и обновлять структуру базы данных. Простейший способ сделать это - добавить код в функцию <tt>jal_install</tt> которую мы только что создали.
+
+Обратите внимание, что вы должны убедится в том, что функция вызывается. Так же оповестите пользователей вашего плагина, что они должны деактивировать плагин перед установкой новой версии и затем повторно его активировать после.
+
+Давайте предположим что функция обновляющая базу данных с версии 1.0 до 1.1 расширяет поле URL до 100 символов вместо 55). Вам понадобится добавить следующие строки в конец вашей функции <tt>jal_install</tt> для проверки версии и обновления если это необходимо:
+
+<pre>
+
+   $installed_ver = get_option( "jal_db_version" );
+
+   if( $installed_ver != $jal_db_version ) {
+
+      $sql = "CREATE TABLE " . $table_name . " (
+	  id mediumint(9) NOT NULL AUTO_INCREMENT,
+	  time bigint(11) DEFAULT '0' NOT NULL,
+	  name tinytext NOT NULL,
+	  text text NOT NULL,
+	  url VARCHAR(100) NOT NULL,
+	  UNIQUE KEY id (id)
+	);";
+
+      require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+      dbDelta($sql);
+
+      update_option( "jal_db_version", $jal_db_version );
+  }
+</pre>
+
+Вам также необходимо изменить глобальную переменную <tt>$jal_db_version</tt> в начале файла, и, естественно, код инициализации созданный выше для использования новой структуры таблицы.
+
+== Ресурсы ==
+
+Для получения дополнительной информации по разработке плагинов посетите [[Plugin Resources|исчерпывающий список ресурсов]]. Вы также можете найти полезным данный пост из [[Mailing Lists#Hackers|Списка рассылки wp-hackers]] : [http://lists.automattic.com/pipermail/wp-hackers/2005-May/000940.html WordPress Hackers Mailing List: Answer to Plugin Requires Additional Tables]
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Plugins]]
+[[Category:Russian Codex]]

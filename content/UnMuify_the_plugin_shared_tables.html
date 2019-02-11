@@ -1,0 +1,34 @@
+<p>In WPMU the runtime muifys the wpdb-&gt;prefix, changing it from the default wp_ prefix to wp_x_ where x = 1...n; as this is usually needed to convert plugins that know about a single blog to one that can deal with many.
+</p><p>This normally works fine, but causes issues where a plugin actually wants a global table, not a per blog one.
+</p><p>If you need a plugin to use a global table, then you could either modify the plugin's code to use $wpdb-&gt;base_prefix (which is the base table prefix, probably wp_) or you can possibly add lines similar to these at the start and end of the plugin files rather than editing all the code inline:
+</p>
+<pre>
+&lt;?php
+$wpdb-&gt;my_global_table = $wpdb-&gt;base_prefix . 'my_global_table';
+$wpdb-&gt;my_other_global_table = $wpdb-&gt;base_prefix . 'my_other_global_table';
+
+// then you can use those variables throughout your plugin like so
+
+$my_query = $wpdb-&gt;prepare( "SELECT field1 FROM {$wpdb-&gt;my_global_table} WHERE my_id =&#160;%d", $my_id );
+?&gt;
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004139
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.000 seconds
+Real time usage: 0.002 seconds
+Preprocessor visited node count: 4/1000000
+Preprocessor generated node count: 24/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

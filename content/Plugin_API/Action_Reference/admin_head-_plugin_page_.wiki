@@ -1,0 +1,59 @@
+== Description ==
+
+The <code>admin_head-''(plugin_page)''</code> hook is triggered within the <tt><head></head></tt> section of a specific plugin-generated page.
+
+This hook provides no parameters. You use this hook by having your function echo output to the browser, or by having it perform background tasks. Your functions shouldn't return, and shouldn't take any parameters.
+
+== Parameters ==
+None.
+
+== Usage ==
+
+<pre>
+<?php
+add_action('admin_head-HOOK_SUFFIX', 'myplugin_adminhead');
+function myplugin_adminhead() {
+    // Output <head> content here, e.g.:
+}
+</pre>
+
+Where HOOK_SUFFIX is the plugin's hook suffix as returned by [[add_submenu_page]] or one of its siblings [[add_options_page]] or [[add_management_page]].
+
+== Examples ==
+
+=== Tools pages ===
+
+To add <code><nowiki><head></head></nowiki></code> content to a management page, the suffix for this hook should be in the following form:
+
+<pre>
+add_action('admin_head-tools_page_myplugin/myplugin', 'myplugin_adminhead');
+function myplugin_adminhead() {
+    // Output <head> content here, e.g.:
+    echo '<style type="text/css">'
+         .'/* ... */'
+         .'</style>';
+}
+</pre>
+
+=== Options pages ===
+
+This hook is an action which means that it primarily acts as an event trigger, instead of a content filter. This is a semantic difference, but it will help you to remember what this hook does if you use it like this:
+<pre>
+add_action( 'admin_menu', 'myplugin_setup_options' );
+
+function myplugin_setup_options(){
+  $plugin_page=add_options_page( 'My Plugin', 'myplugin', 8, basename(__FILE__), 'myplugin_main' );
+  add_action( 'admin_head-'. $plugin_page, 'myplugin_admin_header' );
+}
+
+function myplugin_admin_header(){
+  echo '<p>Only executes when the myplugin options page is displayed.</p>';
+}
+</pre>
+
+== Related ==
+
+* Action hook: <code>[[Plugin API/Action Reference/admin_head|admin_head]]</code>
+* Adding stylesheets or scripts: <code>[[Function_Reference/wp_enqueue_style|wp_enqueue_style]]</code> and <code>[[Function_Reference/wp_enqueue_script|wp_enqueue_script]]</code>
+
+[[Category:Actions]]

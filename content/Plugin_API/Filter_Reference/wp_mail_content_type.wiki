@@ -1,0 +1,62 @@
+== Description == 
+The default content type for email sent through the <tt>[[Function Reference/wp_mail|wp_mail]]</tt> function is 'text/plain' which does not allow using HTML. However, you can use the <tt>wp_mail_content_type</tt> filter to change the default content type of the email.
+
+In general, content type is going to be 'text/plain' as the default, or 'text/html' for HTML email; but other MIME types are possible.
+
+== Parameters ==
+{{Parameter|$content_type|string|The email content type|required|text/plain}}
+
+== Examples ==
+This example will change the default content (mime) type for the <tt>wp_mail()</tt> function to 'text/html':
+<pre>add_filter( 'wp_mail_content_type', 'set_content_type' );
+function set_content_type( $content_type ) {
+	return 'text/html';
+}</pre>
+
+It is not necessary to call another method if you can use anonymous functions (PHP 5.3.0+): 
+<pre>add_filter( 'wp_mail_content_type', function( $content_type ) {
+	return 'text/html';
+});</pre>
+
+You could use different MIME types for different purposes by building some conditional logic into your filter:
+<pre>add_filter( 'wp_mail_content_type', 'my_mail_content_type' );
+function my_mail_content_type( $content_type ) {
+
+    if ( $some_condition ) {
+        return 'multipart/mixed';
+    } else {
+        return 'text/plain';
+    }
+}</pre>
+
+If you change the content type to `text/html` for all system emails this will cause problems with your password reset emails. Consider also filtering `retrieve_password_message` if you want to force all system emails to use HTML:
+<pre>// adding support for html emails
+add_filter( 'wp_mail_content_type','mycustom_set_content_type' );
+function mycustom_set_content_type() {
+        return "text/html";
+}
+
+// also filter the password reset email for compatibility with the HTML format
+add_filter( 'retrieve_password_message', 'mycustom_retrieve_password_message', 10, 1 );
+function mycustom_retrieve_password_message( $message ) {
+        $message = str_replace('<','',$message);
+        $message = str_replace('>','',$message);
+        $message = str_replace("\n",'<br>',$message);
+        return $message;
+}</pre>
+
+== Notes ==
+While there are other MIME types available, plain text and HTML are the most common.
+
+If you are looking for a way to embed images in emails sent from via <tt>wp_mail()</tt>, such as a logo included in a signature, you need to send an HTML formatted email.  You will need the <tt>wp_mail_content_type</tt> filter to set that up.
+
+Setting the default to "text/html" can cause problems with default WordPress emails such as password reset.  Line breaks will not appear and Gmail will strip out the reset link.  See https://core.trac.wordpress.org/ticket/21095 for more info.
+
+== Change Log ==
+Since: [[Version 2.3]]
+
+== Source File ==
+<code>wp_mail_content_type</code> is located in {{Trac|wp-includes/pluggable.php}}
+
+== Related ==
+{{Email Tags}}

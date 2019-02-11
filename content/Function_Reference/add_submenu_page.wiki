@@ -1,0 +1,130 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/add_submenu_page/}}
+
+== Description ==
+
+Add a sub menu page.
+
+'''NOTE: If you're running into the "You do not have sufficient permissions to access this page." message in a <tt>wp_die()</tt> screen, then you've hooked too early. The hook you should use is <tt>admin_menu</tt>.'''
+
+This function takes a capability which will be used to determine whether or not a page is included in the menu.
+
+The function which is hooked in to handle the output of the page must check that the user has the required capability as well.
+
+This function should normally be hooked in with one of the the <tt>admin_menu</tt> actions depending on the menu where the sub menu is to appear:
+:{|
+|[[Plugin_API/Action_Reference/admin_menu|admin_menu]]
+|The normal, or site, administration menu
+|-
+|[[Plugin_API/Action_Reference/user_admin_menu|user_admin_menu]]
+|The user administration menu
+|-
+|[[Plugin_API/Action_Reference/network_admin_menu|network_admin_menu]]
+|The [[Glossary#Network|network]] administration menu
+|}
+
+== Usage ==
+
+%%%<?php add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function ); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$parent_slug|string|The slug name for the parent menu (or the file name of a standard WordPress admin page). Set to <tt>'options.php'</tt> if you want to create a page that doesn't appear in any menu (see example below). |required| }}
+:Examples:
+:#For ''Dashboard'': <tt>add_submenu_page( 'index.php', ... );</tt> Also see <tt>[[Function_Reference/add_dashboard_page|add_dashboard_page()]]</tt>
+:#For ''Posts'': <tt>add_submenu_page( 'edit.php', ... );</tt> Also see Also see <tt>[[Function_Reference/add_posts_page|add_posts_page()]]</tt>
+:#For ''Media'': <tt>add_submenu_page( 'upload.php', ... );</tt> Also see <tt>[[Function_Reference/add_media_page|add_media_page()]]</tt>
+:#For ''Links'': <tt>add_submenu_page( 'link-manager.php', ... );</tt> Also see <tt>[[Function_Reference/add_links_page|add_links_page()]]</tt>
+:#For ''Pages'': <tt>add_submenu_page( 'edit.php?post_type=page', ... );</tt> Also see <tt>[[Function_Reference/add_pages_page|add_pages_page()]]</tt>
+:#For ''Comments'': <tt>add_submenu_page( 'edit-comments.php', ... );</tt> Also see <tt>[[Function_Reference/add_comments_page|add_comments_page()]]</tt>
+:#For ''Custom Post Types'': <tt>add_submenu_page( 'edit.php?post_type=your_post_type', ... );</tt>
+:#For ''Appearance'': <tt>add_submenu_page( 'themes.php', ... );</tt> Also see <tt>[[Function_Reference/add_theme_page|add_theme_page()]]</tt>
+:#For ''Plugins'': <tt>add_submenu_page( 'plugins.php', ... );</tt> Also see <tt>[[Function_Reference/add_plugins_page|add_plugins_page()]]</tt>
+:#For ''Users'': <tt>add_submenu_page( 'users.php', ... );</tt> Also see <tt>[[Function_Reference/add_users_page|add_users_page()]]</tt>
+:#For ''Tools'': <tt>add_submenu_page( 'tools.php', ... );</tt> Also see <tt>[[Function_Reference/add_management_page|add_management_page()]]</tt>
+:#For ''Settings'': <tt>add_submenu_page( 'options-general.php', ... );</tt> Also see <tt>[[Function_Reference/add_options_page|add_options_page()]]</tt>
+:#For ''Settings'' in the Network Admin pages: <tt>add_submenu_page( 'settings.php', ... );</tt>
+
+{{Parameter|$page_title|string|The text to be displayed in the title tags of the page when the menu is selected|required|}}
+{{Parameter|$menu_title|string|The text to be used for the menu|required|}}
+{{Parameter|$capability|string|The [[Roles and Capabilities|capability]] required for this menu to be displayed to the user.|required|}}
+{{Parameter|$menu_slug|string|The slug name to refer to this menu by (should be unique for this menu). If you want to NOT duplicate the parent menu item, you need to set the name of the <tt>$menu_slug</tt> exactly the same as the parent slug.|required|}}
+{{Parameter|$function|callback|The function to be called to output the content for this page.|optional|}}
+:The function must be referenced in one of two ways:
+:# if the function is a member of a class within the plugin it should be referenced as <tt>array( $this, 'function_name' )</tt> if the class is instantiated as an object or <tt> array( __CLASS__, 'function_name' )</tt> if its called statically
+:# in all other cases, using the function name itself is sufficient
+
+== Return values ==
+; <tt>string</tt>: The resulting page's hook_suffix, or <tt>false</tt> if the user does not have the capability required...
+
+== Notes ==
+
+* For <tt>$menu_slug</tt> please don't use <tt>__FILE__</tt> it makes for an ugly URL, and is a minor security nuisance.
+
+* Within the rendering function <tt>$function</tt> you may want to access parameters you used in <code>add_submenu_page()</code>, such as the <tt>$page_title</tt>. Typically, these will work:
+** <tt>$parent_slug</tt>: <code>get_admin_page_parent()</code>
+** <tt>$page_title</tt>: <code>get_admin_page_title()</code>, or simply <code>global $title</code>
+** <tt>$menu_slug</tt>: <code>global $plugin_page</code>.
+
+==Example==
+<pre>
+add_action('admin_menu', 'register_my_custom_submenu_page');
+
+function register_my_custom_submenu_page() {
+	add_submenu_page( 'tools.php', 'My Custom Submenu Page', 'My Custom Submenu Page', 'manage_options', 'my-custom-submenu-page', 'my_custom_submenu_page_callback' );
+}
+
+function my_custom_submenu_page_callback() {
+	
+	echo '<div class="wrap"><div id="icon-tools" class="icon32"></div>';
+		echo '<h2>My Custom Submenu Page</h2>';
+	echo '</div>';
+
+}
+</pre>
+
+To hide your submenu link from a top level menu item to which it belongs you would instead do, 
+<pre>
+add_action('admin_menu', 'register_my_custom_submenu_page');
+
+function register_my_custom_submenu_page() {
+   
+add_submenu_page( 
+          'options.php' 
+        , 'My Custom Submenu Page' 
+        , 'My Custom Submenu Page'
+        , 'manage_options'
+        , 'my-custom-submenu-page'
+        , 'my_custom_submenu_page_callback'
+    );
+
+}
+</pre>
+
+===Inside menu created with add_menu_page()===
+
+If you are attempting to add a submenu page to a menu page created via <code>add_menu_page()</code> the first submenu page will be a duplicate of the parent <code>add_menu_page()</code>.
+
+If you want a submenu page in this scenario, you should first create a duplicate of your add_menu_page() and then add your add_submenu_page():
+<pre>
+add_menu_page('My Custom Page', 'My Custom Page', 'manage_options', 'my-top-level-slug');
+
+add_submenu_page( 'my-top-level-slug', 'My Custom Page', 'My Custom Page', 'manage_options', 'my-top-level-slug');
+
+add_submenu_page( 'my-top-level-slug', 'My Custom Submenu Page', 'My Custom Submenu Page', 'manage_options', 'my-secondary-slug');
+</pre>
+
+== Change Log ==
+
+* Since: [[Version 1.5 | 1.5.0]]
+
+== Source File ==
+
+<tt>add_submenu_page()</tt> is located in {{Trac|wp-admin/includes/plugin.php}}.
+
+== Related ==
+
+{{Admin Menu Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

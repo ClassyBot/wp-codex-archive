@@ -1,0 +1,109 @@
+{{Languages|
+{{en|Function Reference/wp get attachment link}}
+{{it|Riferimento funzioni/wp get attachment link}}
+{{ja|テンプレートタグ/wp_get_attachment_link}}
+}}
+== Description ==
+
+Returns an HTML hyperlink to an attachment file or page, containing either
+
+#	An image at some specified size, for image attachments; or
+#	A media icon (as specified) representing the attachment; or
+#	The attachment's title (as text) or
+#	Your own text
+
+If no such attachment exists, the function returns the string <tt>Missing Attachment</tt>.
+
+== Usage ==
+
+%%%<?php wp_get_attachment_link( $id, $size, $permalink, $icon, $text, $attr ); ?>%%%
+
+== Default Usage ==
+
+ <?php echo wp_get_attachment_link( 13 ); ?>
+
+To get attachment IDs dynamically in a template, you would probably use something like <tt>[[Function_Reference/get_children|get_children()]]</tt>.
+
+== Parameters ==
+{{Parameter|$id|integer|ID of the desired attachment.|Optional|The current post ID, when used in [[The Loop]] (Must be a loop showing only attachments).}}
+{{Parameter|$size|string/array|Image size. Either a string keyword (thumbnail, medium, large or full) or a 2-item array representing width and height in pixels, e.g. array(32,32). As of [[Version 2.5]], this parameter does not affect the size of media icons, which are always shown at their original size.|Optional|'medium'}}
+{{Parameter|$permalink|boolean|Link directly to the attachment file/image (<tt>Default</tt>), or to the attachment page. |Optional|'False'}}
+{{Parameter|$icon|boolean|Use a media icon to represent the attachment.|Optional|'False'}}
+{{Parameter|$text|string/boolean|Displays a text link to the attachment.|Optional|'false'}}
+{{Parameter|$attr|string/array|A list of image attributes to pass onto wp_get_attachment_image().|Optional|'empty'}}
+
+==Examples==
+function returns like:
+
+<pre>
+<a href='http://example.com/wp-content/uploads/2017/11/image-xyz.jpg'><img width="150" height="150" src="http://example.com/wp-content/uploads/2017/11/image-xyz-150x150.jpg" class="attachment-thumbnail size-thumbnail" alt="" srcset="http://example.com/wp-content/uploads/2017/11/image-xyz-150x150.jpg 150w, http://example.com/wp-content/uploads/2017/11/image-xyz-50x50.jpg 50w" sizes="(max-width: 150px) 100vw, 150px" /></a>
+</pre>
+
+=== Show Medium Size Attachment. ===
+
+The default image sizes of WordPress are "thumbnail", "medium", "large" and "full" (the image you uploaded). These image sizes can be configured in the WordPress Administration [[Settings Media SubPanel|Media panel]] under Settings > Media.
+
+ <pre><?php 
+    $id = 9; // ID of an attachment 
+    echo wp_get_attachment_link( $id, 'medium' ); 
+?></pre>
+
+=== Link Attachment to Post ===
+This example will link the attachment to an attachment Page.
+
+ <pre><?php 
+    $id = 9; // ID of an attachment
+    echo wp_get_attachment_link( $id, 'thumbnail', true ); 
+?></pre>
+
+=== Link Text to Attachment ===
+
+This example returns an HTML hyperlink with "My link text" linking to an attachment file.
+
+ <pre><?php 
+    $id = 9; // ID of an attachment
+    echo wp_get_attachment_link( $id, '' , false, false, 'My link text' ); 
+?></pre>
+
+=== Link Post Title to Attachment ===
+
+This example returns an HTML hyperlink with the post title linking to an attachment file. 
+
+ <pre><?php 
+    $id = 9; // ID of an attachment
+    echo wp_get_attachment_link( $id, '' ); 
+ ?></pre>
+
+=== Change Icon Directory ===
+
+WordPress can use media icons to represent [[Using_Image_and_File_Attachments|attachment files]] on your blog and in the Admin interface, if those icons are available. For images it returns the thumbnail. For other media types It looks for image files named by media type (e.g. audio.jpg) in the directory: ''wp-includes/images/crystal/''. 
+
+This example shows how you can change this directory to a folder called "images" in your theme: ''wp-content/themes/yourtheme/images''. Create the folder and put the "media type images" in there. To tell WordPress the directory has changed put this in the current theme's [[Theme_Development#Functions_File|functions.php]] file:
+
+<pre>add_filter( 'icon_dir', 'my_theme_icon_directory' );
+add_filter( 'icon_dir_uri', 'my_theme_icon_uri' );
+
+function my_theme_icon_directory( $icon_dir ) {
+	return get_stylesheet_directory() . '/images';
+}
+
+function my_theme_icon_uri( $icon_dir ) {
+	return get_stylesheet_directory_uri() . '/images'; 
+}
+</pre>
+
+== Notes ==
+
+Use [[Function_Reference/wp_get_attachment_image|wp_get_attachment_image()]] if you want the image only (not a hyperlink).
+
+== Change Log ==
+Since: 2.5.0
+
+== Source File ==
+
+<tt>wp_get_attachment_link()</tt> is located in {{Trac|wp-includes/post-template.php}}.
+
+== Related ==
+{{Attachment Tags}}
+
+[[Category:Template Tags]]

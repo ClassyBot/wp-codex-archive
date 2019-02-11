@@ -1,0 +1,99 @@
+{{Languages|
+{{en|Giving WordPress Its Own Directory}}
+{{fr|Donner_à_WordPress_son_Propre_Dossier}}
+{{ja|Giving WordPress Its Own Directory}}
+{{ru|Размещаем WordPress в отдельном каталоге}}
+{{pt-br|WordPress em Diretório Próprio}}
+}}
+
+__TOC__
+Muitas pessoas querem usar WordPress para alimentar a raiz de seu site <nowiki>(ex. http://exemplo.com)</nowiki>, mas elas não querem que todos os arquivos do WordPress fiquem alocado em seu diretório raiz. WordPress permite instalá-lo em um subdiretório, mas ter seu site servindo a partir da raiz.
+
+A partir da versão 3.5, os usuários Multisite podem utilizar todas as funcionalidades listadas a seguir. Se você estar rodando uma versão inferior a WordPress 3.5, por favor atualize antes de instalar um WordPress Multisite em seu subdiretório.
+
+Nota para o desenvolvedores de plugins e temas: isto não irá separar seu código do WordPress, ou seja, temas e plugins continuam na pasta wp-content.
+
+==Antes de começar==
+* Tenha cautela ao realizar estes processos, o site poderá ficar inacessível.
+* Siga as instruções na ordem descrita, ou seja, modifique as informações '''ANTES''' de mover os arquivos do WordPress.
+* Após salvar as alterações de endereço de acesso é normal ser levado a página 404.
+* Se não conseguir acessar seu site, será ncessário acessar o painel do serviço de hospedagem e então o aplicativo phpMyAdmin para [[pt-br:FAQ_Tópicos_Avançados#Como_recupero_o_acesso_ao_site_depois_de_mudar_URL_do_site.3F|reverter os dados de acesso]].
+
+
+A vantagem disso é que a pasta principal fica mais organizada e scripts existentes em outras pastas funcionarão normalmente, por exemplo, se possui um sistema de wiki em uma pasta ''wiki'' ele será acessível normalmente.
+{{Imagens|[[File:wp-files.png]]|WordPress diretamente no diretório raiz ou movido para uma pasta ''wordpress''}}
+
+==Movendo uma Raiz da instalação para um diretório próprio==
+O processo para mover o WordPress para um diretório próprio é o seguinte:
+
+# Criar um novo local para os arquivos do core do WordPress serem armazenados (nós iremos utilizar em nosso exemplo a pasta <tt>/wordpress</tt>). (No linux, use "mkdir wordpress" no diretório www. Você provavelmente vai querer usar "chow apache:apache" no seu diretório criado.
+# Vá para a opção configuração no painel de administração  [[Administration_Panels#Settings|General]].
+# Na campo "'Endereço do WordPress (URL):"' altere o endereço para o novo local dos seus arquivos. Exemplo: <tt><nowiki>http://exemplo.com/wordpress</nowiki></tt>
+# Na campo de "'Endereço do site (URL)):'" mude para URL do diretório raiz do seu site. Exemplo: <tt><nowiki>http://exemplo.com</nowiki></tt>
+# Clique em salvar alterações. (Não se preocupe com a mensagem de erro e não tente ver o blog neste momento, provavelmente você irá visualizar uma tela com uma mensagem sobre os arquivos não encontrados)
+# Mova os arquivos do core do WordPress para o novo local o qual você definiu em "Endereço do WordPress (URL)"
+#Copie(NÃO MOVA!) os arquivos <tt>index.php</tt> e <tt>.htaccess</tt> do diretório do seu WordPress para o diretório raiz do seu site o qual definiu no campo "Endereço do site (URL))". O <tt>.htaccess</tt> é um arquivo invisível, assim você deve definir em seu cliente FTP [[Changing_File_Permissions # Unhide_the_hidden_files | Mostrar arquivos ocultos]]. Se você não está usando [[Using_Permalinks#Using_.22Pretty.22_permalinks|pretty permalinks]], talvez você não possua o arquivo <tt>.htaccess</tt>. <i><b>Caso estiver rodando o WordPress em um Windows Server(IIS)</b> e usando Links Permanentes</i>, você deve ter um arquivo <tt> web.config</tt> em vez de um <tt>.htaccess</tt> no diretório do seu WordPress. Para <tt>index.php</tt> as instruções permanecem as mesmas, lembrando "não mova" apenas copie o index.php para o diretório raiz. No caso do arquivo <tt>web.config</tt> somente neste caso devemos mover(não copiar) o arquivo diferente do .htaccess que temos que copiar.
+# Abra o arquivo <tt>index.php</tt> no seu diretório raiz [[Glossary#Text editor|text editor]]
+# Altere a seguinte linha que diz: <br/>
+<tt>require( dirname( __FILE__ ) . '/wp-blog-header.php' );</tt>
+<br />para a seguinte o novo endereço da diretório do core dos arquivos do WordPress:<br />
+<tt>require( dirname( __FILE__ ) . '/wordpress/wp-blog-header.php' );</tt>
+# Faça o login no novo local. Deve ser agora <tt><nowiki> http://www.exemplo.com/wordpress/wp-admin/</nowiki></tt>
+# Se você tiver configurado [[Using Permalinks|Links Permentes]], vá para [[Administration_Panels#Permalinks|Permalinks panel]] e atualize a sua estrutura de links permantes. O WordPress vai atualizar automaticamente atualizar seu arquivo<tt>.htaccess</tt>, ele irá exibir as novas regras de reescritas para você, qual você deve copiar manualmente para o seu <tt>.htaccess</tt> (no mesmo diretório que o arquivo principal <tt>index.php</tt>.)'
+
+
+== Usando um subdiretório pré-existente para instalação ==
+
+Se você já tiver uma WordPress instalado em sua própria pasta (por exemplo, <tt><nowiki>http://exemplo.com/wordpress</nowiki></tt>), então, siga as seguintes etapas:
+
+# Vá para o painel de administração [[Administration_Panels#Settings|Geral]]
+# No campo de "'Endereço do site(URL):'" altere para o endereço raiz, Exemplo: <tt><nowiki>http://exemplo.com</nowiki></tt> 
+# Clique em "'Salvar Alterações'". (Não se preocupe com a mensagem de erro e não tente ver seu blog neste ponto! Você provavelmente verá uma mensagem sobre arquivo não encontrado.)
+# Copie (NÃO MOVA!) os arquivos do WordPress <tt>index.php</tt> e <tt>.htaccess</tt> do diretório do WordPress ( <tt>/wordpress</tt>, em nosso exemplo) para o diretório raiz do seu site&mdash; normalmente algo como <tt>www</tt> ou <tt>public_html</tt>. Se o arquivo <tt>.htaccess</tt> não estiver visível, você pode definir seu cliente FTP para [[Changing_File_Permissions#Unhide_the_hidden_files|exibir arquivos ocultos]]. Caso você não estiver usando [[Using_Permalinks#Using_.22Pretty.22_permalinks|Links Permanentes Legíveis]], provavelmente não terá o arquivo <tt>.htaccess</tt>. <i><b>Se Você estiver rodando o WordPress em um servidor Windows (IIS)</b> e utilizando links permanentes, você deverá ter um arquivo <tt>web.config</tt> em vez de um arquivo <tt>.htaccess</tt> em seu diretório WordPress.</i>
+# Edite o arquivo <tt>index.php</tt> que você copiou para a raiz
+## Abra o arquivo <tt>index.php</tt> no seu diretório raiz em um [[Glossary#Text editor|editor de texto]]
+## Mude a linha que diz: <br/><tt>require(dirname(__FILE__). '/wp-blog-header.php');</tt> incluindo o nome do diretório onde estão os arquivos core do seu WordPress: <br/><tt>require(dirname(__FILE__).'/wordpress/wp-blog-header.php');</tt>
+## Salve o arquivo.
+# Logue no seu site (se você não estiver logado). A URL que deve ser usada é <tt><nowiki>http://example.com/wordpress/wp-admin/</nowiki></tt> (incluindo o nome do diretório)
+# Se você estiver usando [[Using Permalinks|Links Permanentes]], vá para [[Administration_Panels # Permalinks |Links Permanentes]] e salve sua estrutura de links permanentes. O WordPress tentará atualizar automaticamente o seu arquivo <tt>.htaccess</tt> com as novas regras de reescrita de URL. Se não for possível, ele fornecerá as regras que você deverá copiar manualmente para o seu arquivo <tt>.htaccess</tt> (no diretório do arquivo <tt>index.php</tt> principal).
+
+O ideal é fazer essas alterações em momentos de baixa atividade, por exemplo, no meio da noite. Pois nos primeiros passos o site não estará funcionando corretamente.
+
+Se você já tiver conteúdo no seu site, veja [[Moving_WordPress#When_Your_Domain_Name_or_URLs_Change|when your domain name or URLs change]] para saber lidar com referências à antigas URLs que permanecerão no banco de dados.
+
+== Apontar a home do seu site para um subdiretório==
+
+Em alguns casos, você pode ter um site WordPress que passa por mudanças severas todos os anos, por exemplo,site de uma conferência. Se você quiser instalar uma versão para cada ano em um subdiretório, como /2010, /2011 e /2012, mas tem um domínio raiz que (seusite.com) que redireciona automaticamente para um subdiretório particular (normalmente o mais recente) , siga os seguintes passos:
+
+# Instale o WordPress em um subdiretório, como <code>/2015</code>, <code>/blog</code> ou <code>/wp</code>.
+# Na sua pasta raiz (não o subdiretório), baixe e abra seu arquivo .htaccess.
+# Adicione as seguintes linhas e seu arquivo .htaccess:
+
+<pre>
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^(www.)?YourDomain.com$
+RewriteRule ^(/)?$ blog [L]
+</pre> 
+
+# No código acima, altere o valor "YourDomain.com" para a raiz do seu domínio.
+# Continuando no código acima, altere o valor "blog" para o subdiretório.
+# Salvar e faça o upload do arquivo .htaccess para seu diretório raiz.
+
+Agora, quando os usuários vão para a raiz do seu domínio(yoursite.com), ele irá redirecionar automaticamente para o subdiretório especificado. Quando você quiser redirecionar para um novo subdiretório, exemplo, para conferência do próximo ano é só atualizar o código de redirecionamento do .htaccess.
+
+Nota: Este código vem do post no site 5's: [http://www.site5.com/blog/apache/htaccess/redirect-to-blog/20090427/ How to Redirect Your Domain to a Subfolder Using .htaccess].
+
+== Mover pastas específicas do WordPress==
+
+Os links a seguir explicam como alterar diretórios específicos dentro do WordPress:
+
+*[[Editing_wp-config.php#Moving_wp-content_folder|Movendo a pasta wp-content ]]
+*[[Editing_wp-config.php#Moving_plugin_folder|Movendo a pasta de Plugins]]
+*[[Editing_wp-config.php#Moving_themes_folder|Movendo a pasta de  Temas]]
+*[[Editing_wp-config.php#Moving_uploads_folder|Movendo a pasta de Uploads]]
+
+
+[[Category:Instalação]]
+[[Category:WordPress Help]]
+[[Category:Inicinando com WordPress]]
+[[Category:UI Link]]

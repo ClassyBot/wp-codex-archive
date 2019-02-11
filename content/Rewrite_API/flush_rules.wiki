@@ -1,0 +1,35 @@
+{{Languages|
+{{en|Rewrite API/flush_rules}}
+{{ja|Rewrite API/flush_rules}}
+}}
+
+==Description==
+This method can be used to refresh WordPress' rewrite rule cache. Generally, this should be used after programmatically adding one or more custom rewrite rules.
+
+Because this function can be extremely costly in terms of performance, it should be used as sparingly as possible - such as during [[Function_Reference/register_activation_hook|activation]] or deactivation of plugins or themes. Every attempt should be made to avoid using it in hooks that execute on each page load, such as [[Plugin_API/Action_Reference/init|init]].
+
+==Usage==
+ $wp_rewrite->flush_rules( $hard );
+
+==Arguments==
+{{Parameter|$hard|boolean|Whether to update .htaccess (hard flush) or just update rewrite_rules option (soft flush).|optional|true}}
+
+==What it does==
+WordPress keeps a cache of all custom rewrite rules. Sometimes plugins or themes make modifications to those rules, however WordPress will not actually recognize the changes until the cache is regenerated.
+
+This is not a procedural function, but a non-static method of the WP_Rewrite class. To call <tt>flush_rules()</tt>, you must first ensure you are using WordPress' <tt>$wp_rewrite</tt> global, and call it as a method (see "Usage" above for an example).
+
+'''Note:''' This same method is called whenever permalink settings are changed or saved in the WordPress admin, so rewrite rules can be manually refreshed by visiting the Settings > Permalinks screen in WordPress's admin.
+
+'''WARNING:''' If this function is called without a parameter or with a parameter of <tt>true</tt>, your <tt>.htaccess</tt> will be overwritten and any custom rules will be lost!
+
+==Example==
+<pre>
+//Ensure the $wp_rewrite global is loaded
+global $wp_rewrite;
+//Call flush_rules() as a method of the $wp_rewrite object
+$wp_rewrite->flush_rules( false );
+</pre>
+
+==Related==
+{{Rewrite API}}

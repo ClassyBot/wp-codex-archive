@@ -1,0 +1,185 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="/index.php?title=ru:%D0%9E%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5_Javascript/wp.media&amp;action=edit&amp;redlink=1" class="new" title="ru:Описание Javascript/wp.media (page does not exist)">Русский</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Javascript_Reference/wp.media&amp;action=edit">expanding it</a></b>.</div>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Example"><span class="tocnumber">2</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Location"><span class="tocnumber">3</span> <span class="toctext">Location</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#External_Resources"><span class="tocnumber">4</span> <span class="toctext">External Resources</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Related"><span class="tocnumber">5</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.media&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>wp.media</code> is used to handle and control the admin media modal. For instance, custom image selector/uploader controls and meta boxes.  It is located in the <a href="https://codex.wordpress.org/Javascript_Reference/wp" title="Javascript Reference/wp">wp</a> scope/namespace.
+</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.media&amp;action=edit&amp;section=2" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>One key use of this class is to create a custom image upload/select link. Let's assume you are creating a custom admin <a href="https://codex.wordpress.org/Function_Reference/add_meta_box" title="Function Reference/add meta box">meta box</a> with an image upload link, similar to the <a href="https://codex.wordpress.org/Post_Thumbnails#Setting_a_Post_Thumbnail" title="Post Thumbnails">Set Featured Image</a> link for WordPress posts.
+</p><p>To be able to use the JavaScript-API, you first have to init all the needed JavaScript-Libraries and Styles:
+</p>
+<code data-lang="php"><pre>
+wp_enqueue_media();
+</pre></code>
+<p>Your meta box <b>PHP</b> might look like this...
+</p>
+<code data-lang="php"><pre>
+&lt;?php
+global $post;
+
+// Get WordPress' media upload URL
+$upload_link = esc_url( get_upload_iframe_src( 'image', $post-&gt;ID ) );
+
+// See if there's a media id already saved as post meta
+$your_img_id = get_post_meta( $post-&gt;ID, '_your_img_id', true );
+
+// Get the image src
+$your_img_src = wp_get_attachment_image_src( $your_img_id, 'full' );
+
+// For convenience, see if the array is valid
+$you_have_img = is_array( $your_img_src );
+?&gt;
+
+&lt;!-- Your image container, which can be manipulated with js --&gt;
+&lt;div class="custom-img-container"&gt;
+    &lt;?php if ( $you_have_img )&#160;:&#160;?&gt;
+        &lt;img src="&lt;?php echo $your_img_src[0]&#160;?&gt;" alt="" style="max-width:100%;" /&gt;
+    &lt;?php endif;&#160;?&gt;
+&lt;/div&gt;
+
+&lt;!-- Your add &amp; remove image links --&gt;
+&lt;p class="hide-if-no-js"&gt;
+    &lt;a class="upload-custom-img &lt;?php if ( $you_have_img  ) { echo 'hidden'; }&#160;?&gt;" 
+       href="&lt;?php echo $upload_link&#160;?&gt;"&gt;
+        &lt;?php _e('Set custom image')&#160;?&gt;
+    &lt;/a&gt;
+    &lt;a class="delete-custom-img &lt;?php if (&#160;! $you_have_img  ) { echo 'hidden'; }&#160;?&gt;" 
+      href="#"&gt;
+        &lt;?php _e('Remove this image')&#160;?&gt;
+    &lt;/a&gt;
+&lt;/p&gt;
+
+&lt;!-- A hidden input to set and post the chosen image id --&gt;
+&lt;input class="custom-img-id" name="custom-img-id" type="hidden" value="&lt;?php echo esc_attr( $your_img_id );&#160;?&gt;" /&gt;
+</pre></code>
+<p>To properly control the above HTML, you would use the following <b>Javascript</b>...
+</p>
+<code data-lang="javascript"><pre>
+jQuery(function($){
+
+  // Set all variables to be used in scope
+  var frame,
+      metaBox = $('#meta-box-id.postbox'), // Your meta box id here
+      addImgLink = metaBox.find('.upload-custom-img'),
+      delImgLink = metaBox.find( '.delete-custom-img'),
+      imgContainer = metaBox.find( '.custom-img-container'),
+      imgIdInput = metaBox.find( '.custom-img-id' );
+  
+  // ADD IMAGE LINK
+  addImgLink.on( 'click', function( event ){
+    
+    event.preventDefault();
+    
+    // If the media frame already exists, reopen it.
+    if ( frame ) {
+      frame.open();
+      return;
+    }
+    
+    // Create a new media frame
+    frame = wp.media({
+      title: 'Select or Upload Media Of Your Chosen Persuasion',
+      button: {
+        text: 'Use this media'
+      },
+      multiple: false  // Set to true to allow multiple files to be selected
+    });
+
+    
+    // When an image is selected in the media frame...
+    frame.on( 'select', function() {
+      
+      // Get media attachment details from the frame state
+      var attachment = frame.state().get('selection').first().toJSON();
+
+      // Send the attachment URL to our custom image input field.
+      imgContainer.append( '&lt;img src="'+attachment.url+'" alt="" style="max-width:100%;"/&gt;' );
+
+      // Send the attachment id to our hidden input
+      imgIdInput.val( attachment.id );
+
+      // Hide the add image link
+      addImgLink.addClass( 'hidden' );
+
+      // Unhide the remove image link
+      delImgLink.removeClass( 'hidden' );
+    });
+
+    // Finally, open the modal on click
+    frame.open();
+  });
+  
+  
+  // DELETE IMAGE LINK
+  delImgLink.on( 'click', function( event ){
+
+    event.preventDefault();
+
+    // Clear out the preview image
+    imgContainer.html( '' );
+
+    // Un-hide the add image link
+    addImgLink.removeClass( 'hidden' );
+
+    // Hide the delete image link
+    delImgLink.addClass( 'hidden' );
+
+    // Delete the image id from the hidden input
+    imgIdInput.val( '' );
+
+  });
+
+});
+</pre></code>
+<p>For more information on adding custom meta boxes to WordPress, see <a href="https://codex.wordpress.org/Function_Reference/add_meta_box" title="Function Reference/add meta box">add_meta_box()</a> or the <a rel="nofollow" class="external text" href="https://github.com/Veraxus/nv-example-meta-box">Example Meta Box Plugin on Github</a>
+</p>
+<h2><span class="mw-headline" id="Location">Location</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.media&amp;action=edit&amp;section=3" title="Edit section: Location">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This is defined by <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src//wp-includes/js/media-models.js#L0">/wp-includes/js/media-models.js</a></code>
+</p>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.media&amp;action=edit&amp;section=4" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="https://github.com/ericandrewlewis/wp-media-javascript-guide">WP Media JavaScript Guide</a> - a plugin to show how to use components in wp.media</li>
+<li> <a rel="nofollow" class="external text" href="https://github.com/Veraxus/nv-example-meta-box">Example Meta Box Plugin</a> - A simple plugin that shows how to create a custom admin meta box.</li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.media&amp;action=edit&amp;section=5" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Javascript_Reference" title="Javascript Reference">Javascript Reference</a> - WordPress Javascript API reference</li>
+<li> <a href="https://codex.wordpress.org/Administration_Menus" title="Administration Menus">Administration Menus</a> - Information on creating and customizing administration menus &amp; pages</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004038
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.021 seconds
+Preprocessor visited node count: 103/1000000
+Preprocessor generated node count: 393/1000000
+Post‐expand include size: 1549/2097152 bytes
+Template argument size: 471/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   10.145      1 - -total
+ 46.80%    4.748      1 - Template:Languages
+ 24.54%    2.490      1 - Template:Stub
+ 23.66%    2.400      1 - Template:Trac
+ 16.92%    1.716      1 - Template:en
+ 13.96%    1.416      1 - Template:Message
+ 11.12%    1.128      1 - Template:ru
+  9.63%    0.977      1 - Template:CurrentVersion
+-->

@@ -1,0 +1,122 @@
+{{Languages|
+{{en|Login Trouble}}
+{{ja|Login Trouble}}
+{{pt-br|Problemas no Login}}
+{{sk|Problémy s prihlasovaním}}
+}}
+If you are having trouble logging in to your WordPress [[Administration Panels]], here are some possible solutions.
+
+== Enable Cookies ==
+
+In order to make sure that cookies are enabled for your browser, you need to:
+
+# Clear your browser cookies.
+# Clear your browser cache.
+
+To see how to clear cookies and caches on various browsers, visit [http://mail.google.com/support/bin/answer.py?hl=en&answer=32050&from=8840&rd=1 Clearing Cache and Cookies].
+
+== WordPress MultiSite Network ==
+
+* Check your wp-config.php file.
+* Verify the DOMAIN_CURRENT_SITE value.
+
+== Disable Plugins ==
+
+Some [[Plugins|WordPress Plugins]] may interfere with the login process. Disable all of your WordPress Plugins, either through the admin panel or by removing them from the <tt>/wp-content/plugins/</tt> folder, so they will not be recognized by the program.
+
+Alternatively, you can rename the plugins folder to something else temporarily to something like 
+<tt>/wp-content/pluginsXX/</tt> and they will not be recognized. Rename the folder back to <tt>/wp-content/plugins/</tt> once the base WordPress installation has been recovered.
+
+== Deactivate Theme ==
+
+* Rename the active theme folder (in wp-content/themes) by using [[FTP Clients|FTP]].   Once renamed, WordPress will revert to using the {{DefaultTheme}}.  When finally logged in, change to a different theme.<br>
+* To find out what caused problem in the theme, upload and run this code when the theme is active:
+
+ <?php ini_set('display_errors','1'); ini_set('display_startup_errors','1'); error_reporting (E_ALL);include('index.php'); ?>
+
+== New Login File ==
+
+Sometimes the <tt>wp-login.php</tt> file may have been corrupted or uploaded incorrectly.
+
+* Delete <tt>wp-login.php</tt> off of your server and upload a new copy from a fresh WordPress download. Remember, overwriting file via [[FTP Clients|FTP]] can lead to incomplete transfers.
+* Edit <tt>wp-login.php</tt> as follows:
+** Go to the <tt>case retrievepassword</tt> section, found under this comment: 
+ // redefining user_login ensures we return the right case in the email
+::Replace:
+ $user_login = $user_data["user_login"];
+::With:
+ $user_login = $user_data->user_login;
+
+== Edit Users Table ==
+
+[[WordPress_Backups#Accessing_phpMyAdmin|Access your site's phpMyAdmin]] and edit the database carefully.
+
+* Open the WordPress database.
+* Click on the users table in the left menu (default is <tt>wp_users</tt>, or <tt>''yourprefix''_users </tt> if you defined a different table prefix.)
+* Click '''BROWSE'''.
+* Click on the '''EDIT''' button next to the admin user.
+* Delete whatever is in the password field.
+* Enter your desired password.
+* From the '''Function''' drop-down list, choose MD5.
+* Save the info in the database.
+* Log in to WordPress using "admin" and the password you used.
+* In the case of newer versions of WordPress, the password is double hashed, but as long as you md5 the password, it will complete the hash (it upgrades your password for you).
+
+== Password Problems ==
+
+For information on problems logging in due to a wrong or lost password, see [[Resetting Your Password]]. Remember: the Username and Password fields are <b>case sensitive</b>.
+
+== Site URL Redirecting ==
+
+In certain cases your WordPress address URI may have been reset.  
+
+* Check the '''siteurl''' value in the ''wp-options'' table of your WordPress database.  A guide to doing this is available [http://codex.wordpress.org/Changing_The_Site_URL here].
+* Is it set as <tt><nowiki>http:/</nowiki></tt>?
+* If it is, change '''siteurl''' to the correct value.
+* Open <tt>wp-login.php</tt> in a text-editor and comment or delete the following lines:
+
+<pre>// If someone has moved WordPress let's try to detect it
+// if ( dirname('<nowiki>http://</nowiki>' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) != get_settings('siteurl') )
+// update_option('siteurl', dirname('<nowiki>http://</nowiki>' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) );</pre>
+
+Changed your WordPress address URI and cannot login nor access the database (but still can access the login page) ?
+
+''wp-login.php'' can be used to reset the address:
+<pre>
+//FIXME: do comment/remove these hack lines. (once the database is updated)
+update_option('siteurl', 'http://your.domain.name/the/path' );
+update_option('home', 'http://your.domain.name/the/path' );
+</pre>
+
+== Subdomains or Subdirectories ==
+
+In your <tt>wp-config.php</tt> try changing from:
+<pre><nowiki>define( 'SUBDOMAIN_INSTALL', true);</nowiki></pre>
+To:
+<pre><nowiki>define( 'SUBDOMAIN_INSTALL', false);</nowiki></pre>
+
+== Headers Already Sent ==
+
+If you get an error about '''headers already sent''', see [[FAQ_Troubleshooting#How_do_I_solve_the_Headers_already_sent_warning_problem.3F|Solving the Headers Already Being Sent Problem]] in the [[FAQ]].
+
+== Check Your URL Options ==
+
+In some situations, your blog can be seen from inside your domain, but not outside. Following the instruction above about changing the ''wp-options'' [[Glossary|MySQL]] table might still result in login failure. 
+
+In this event, double-check your ''wp-options'' table '''siteurl''' (WordPress address URL) and '''home''' (Blog Address URL) values to make sure they reference the '''same''' base externally available address; i.e., http://blog.yourdomain.com. The standard install may set them to your local (internal) host name, such as http://servername
+
+Another issue may be if you are redirecting using .htaccess from a non-www url prefix to a www while you have the ''wp-options'' table '''siteurl''' (WordPress address URL) and '''home''' (Blog Address URL) set with non-www prefix.  Consequently this would create an endless loop which you need to avoid.  One way is to disable the .htaccess redirection temporarily by placing # before the line or eliminating the entries entirely and trying to Login again.  Advanced users may want to adjust the ''wp-options'' table '''siteurl''' (WordPress address URL) and '''home''' (Blog Address URL) through the database.  Notice that this issue can also occur if you are redirecting from www to non-www but have your ''wp-options'' table '''siteurl''' (WordPress address URL) and '''home''' (Blog Address URL) set with a www url prefix.
+
+== Check your Firewall ==
+
+Some firewalls (e.g., eTrust Personal Firewall) block you from logging in to WordPress. Disable your firewall and try to log in again.
+
+== If All Else Fails ==
+
+If these steps fail, please indicate that you have tried all these possible solutions when posting at the [http://wordpress.org/support WordPress Support Forum]. Be sure to give [[Finding_Server_Info|details of your server setup]], if you know it, including mySQL and PHP versions, as well as your operating system (OS), browser, and the WordPress version that is causing these problems.
+
+{{Copyedit}}
+
+[[Category:Troubleshooting]]
+[[Category:WordPress Help]]
+[[Category:Installation]]

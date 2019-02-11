@@ -1,0 +1,72 @@
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/pre_option_(option_name)&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Used to temporarily alter a WordPress option before you display a specific view. WordPress options (e.g. the blog configuration) are usually set in the back-end by the user or programmatically by a plugin. The options are stored in the database. If you want to alter the value of an option during the rendering of a page without changing it permanently in the database you can use 
+</p>
+<pre>
+pre_option_(option name)
+</pre>
+<p>where (option name) has to be replaced by the name of the option you want to alter.
+</p><p>For instance:
+</p>
+<pre>
+pre_option_posts_per_page
+pre_option_posts_per_rss
+pre_option_template
+pre_option_stylesheet
+pre_option_blog_charset
+pre_option_home
+...
+</pre>
+<p>For a  list of all available options call 
+</p>
+<pre>
+wp_load_alloptions()
+</pre>
+<p>`wp_load_alloptions()` returns the list of available options as an array that you could store in a variable or display for debugging purposes.
+</p><p>To use this filter, you will need to add filters for specific options names, such as "pre_option_foo" to filter the option "foo".
+</p>
+<h2><span class="mw-headline" id="Example_Usage">Example Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/pre_option_(option_name)&amp;action=edit&amp;section=2" title="Edit section: Example Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>For instance, if you want to alter the amount of displayed posts per page for a specific category (here the 'foo' category) you can add the filter 'pre_option_posts_per_page' 
+</p><p>To make use of this filter, you will need to place a function similar to the one below in your theme's functions.php file.
+</p><p>Firstly, add the following line of code to your theme's functions.php file to show WordPress that you want to hook in to this filter -
+</p>
+<pre>
+add_filter('pre_option_posts_per_page', 'limit_posts_per_page');
+</pre>
+<p>The first parameter is the filter name, the second paramter is the name of the function that you are going to create to alter the option (so you can name this as you like, so long as it matches the name in this next piece of code.)
+</p><p><br />
+</p>
+<pre>
+function limit_posts_per_page( $posts_per_page ) {
+	# for whatever reason is_category('foo') isn't working here. Instead you can use:
+	global $wp_query;
+	if ( $wp_query-&gt;query_vars['category_name']=='foo')
+	{
+	        return 20;
+        }
+
+        return $posts_per_page;
+}
+</pre>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Filter_Reference/pre_option_(option_name)&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004104
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.008 seconds
+Preprocessor visited node count: 61/1000000
+Preprocessor generated node count: 218/1000000
+Post‐expand include size: 1006/2097152 bytes
+Template argument size: 264/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.593      1 - -total
+100.00%    2.593      1 - Template:Copyedit
+ 55.26%    1.433      1 - Template:Message
+-->

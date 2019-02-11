@@ -1,0 +1,108 @@
+{{Languages|
+{{en|Function Reference/get_search_form}}
+{{it|Riferimento funzioni/get_search_form}}
+{{mk|Функција:get_search_form}}
+}}
+== Descrizione ==
+
+Mostra il form di ricerca utilizzando il file <tt>searchform.php</tt> del tema in uso.
+
+== Utilizzo ==
+
+%%%<?php get_search_form(); ?>%%%
+
+== Parametri ==
+
+{{it:Parameter|$echo|boolean|''true'' per stampare il form; ''false'' per restituire il form come stringa.|opzionale|true}}
+
+== Valori restituiti ==
+{{it:Return||string|Il codice HTML del form, se il parametro $echo è impostato a false.}}
+
+== Esempi ==
+
+Se nel proprio tema non è presente <tt>searchform.php</tt>, WordPress utilizzerà il proprio form di ricerca interno:
+<pre>
+<form role="search" method="get" id="searchform" action="<?php echo home_url( '/' ); ?>">
+    <div><label class="screen-reader-text" for="s">Cerca:</label>
+        <input type="text" value="" name="s" id="s" />
+        <input type="submit" id="searchsubmit" value="Cerca" />
+    </div>
+</form>
+</pre>
+
+Il form qui sopra è utilizzato nei siti web HTML4. Se il proprio tema supporta HTML5, che avviene quando si utilizza <tt>add_theme_support('html5', array('search-form'))</tt>, verrà stampato il seguente form HTML. Questo comportamento si verifica a partire da WordPress 3.6.
+<pre>
+<form role="search" method="get" class="search-form" action="<?php echo home_url( '/' ); ?>">
+  <label>
+    <span class="screen-reader-text">Cerca:</span>
+    <input type="search" class="search-field" placeholder="Cerca &hellip;" value="" name="s" title="Cerca:" />
+  </label>
+  <input type="submit" class="search-submit" value="Cerca" />
+</form>
+</pre>
+
+Tra i cambiamenti vi è anche la presenza di class="search-form". Inoltre, l'input è type="search" e non type="text". Oltre a ciò c'è un segnaposto (placeholder) che stampa del testo quando appropriato: in tal modo non è necessario utilizzare javascript per mostrare tale segnaposto. Non sono più presenti elementi con un id: in questo modo è possibile avere più form di ricerca in un documento valido.
+
+Se è presente <tt>searchform.php</tt> nel proprio tema, verrà utilizzato questo. Si tenga a mente che il form di ricerca deve fare una richiesta GET all'home page del sito. Il campo di testo deve avere nome <tt>s</tt> e si deve sempre includere una <tt>label</tt> come negli esempi riportati sopra.
+
+Esempio di un <tt>searchform.php</tt> personalizzato:
+
+<pre>
+<form action="/" method="get">
+    <fieldset>
+        <label for="search">Cerca in <?php echo home_url( '/' ); ?></label>
+        <input type="text" name="s" id="search" value="<?php the_search_query(); ?>" />
+        <input type="image" alt="Cerca" src="<?php bloginfo( 'template_url' ); ?>/images/search.png" />
+    </fieldset>
+</form>
+</pre>
+
+L'unico parametro che verrà inviato è <tt>s</tt> con il valore della corrente query di ricerca. Tuttavia, è possibile affinarla in molti modi. Ad esempio mostrando solo i post nei risultati della ricerca. Questo si può fare con la seguente aggiunta al form:
+
+<pre>
+<input type="hidden" value="post" name="post_type" id="post_type" />
+</pre>
+
+Qui viene inviato il valore <tt>post</tt>. Il valore predefinito è <tt>any</tt>, ossia articoli, pagine e tipi di post personalizzati. Con questo l'<tt>input</tt> aggiunto al form la ricerca verrà effettuata solo nei post di tipo post_type.
+Ci sono molte aggiunte come questa. Con un <tt>var_dump</tt> dell'oggetto <tt>$wp_query</tt> è possibile vedere tutti i valori predefiniti delle variabili di ricerca. Con un <tt>var_dump</tt> di <tt>$wp_query->query</tt> è possibile vedere la query corrente.
+
+Un'ultima opzione è quella di scrivere una funzione personalizzata (nel file <tt>functions.php</tt>) e agganciare tale funzione all'azione <tt>get_search_form</tt>.
+
+<pre>
+function my_search_form( $form ) {
+    $form = '<form role="search" method="get" id="searchform" class="searchform" action="' . home_url( '/' ) . '" >
+    <div><label class="screen-reader-text" for="s">' . __( 'Cerca:' ) . '</label>
+    <input type="text" value="' . get_search_query() . '" name="s" id="s" />
+    <input type="submit" id="searchsubmit" value="'. esc_attr__( 'Cerca' ) .'" />
+    </div>
+    </form>';
+
+    return $form;
+}
+
+add_filter( 'get_search_form', 'my_search_form' );
+</pre>
+
+== Note ==
+
+Il parametro $echo viene ignorato quando searchform.php è presente. C'è una [http://core.trac.wordpress.org/ticket/16541 discussione] a tal proposito nel WordPress Trac.
+
+Uno stratagemma è quello di passare il form a get_search_form() attraverso il filtro get_search_form.
+
+Si prega di utilizzare <code>value="<?php echo get_search_query(); ?>"</code> (una funzione wrapper per: <code>esc_attr( $s )</code> e altri filtri necessari) se si desidera stampare i termini appena cercati nel campo di ricerca una volta effettuata la ricerca. Questo è uno dei punti nei temi più vulnerabili ai cross-site scripting se non si prendono precauzioni.
+
+== Log delle modifiche ==
+
+* Da: [[Version 2.7|2.7.0]]
+
+== File sorgente ==
+
+<tt>get_search_form()</tt> si trova in {{Trac|wp-includes/general-template.php}}.
+
+== Correlati ==
+
+{{Include Tags}}
+
+{{it:Tag Footer}}
+
+[[Category:Functions]]

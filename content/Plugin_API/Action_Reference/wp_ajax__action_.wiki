@@ -1,0 +1,47 @@
+''See also [https://developer.wordpress.org/reference/hooks/wp_ajax__requestaction/ '''wp_ajax__requestaction'''] on the new WordPress Developer Resources.''
+-------
+
+==Description==
+This hook allows you to handle your custom AJAX endpoints. The <tt>wp_ajax_</tt> hooks follows the format <code>"wp_ajax_$youraction"</code>, where <tt>$youraction</tt> is the <code>'action'</code> field submitted to <tt>admin-ajax.php</tt>.
+
+==Usage==
+If you need to create an AJAX handler for an <tt>"add_foobar"</tt> request, you would create a hook like this:
+<pre>
+add_action( 'wp_ajax_foobar', 'my_ajax_foobar_handler' );
+
+function my_ajax_foobar_handler() {
+    // Make your response and echo it.
+
+    // Don't forget to stop execution afterward.
+    wp_die();
+}
+</pre>
+
+The following code is an example using jQuery that would trigger the above hook.
+
+<pre>
+jQuery.post(
+    my_foobar_client.ajaxurl, 
+    {
+        'action': 'foobar',
+        'foobar_id':   123
+    }, 
+    function(response) {
+        console.log('The server responded: ', response);
+    }
+);
+</pre>
+
+Note: The <code>foobar_id</code> would be available in your PHP hook handler via <code>$_POST['foobar_id']</code>.
+
+For more information, see [https://developer.wordpress.org/plugins/javascript/ajax/ '''Ajax Plugin Handbook'''] on the new WordPress Developer Resource.
+
+== Notes ==
+
+This hook only fires for '''logged-in users'''. If your action only allows Ajax requests to come from users not logged-in, you need to instead use <tt>[[Plugin_API/Action_Reference/wp_ajax_nopriv_(action)|wp_ajax_nopriv_]]</tt>, like this: <tt>add_action( 'wp_ajax_nopriv_add_foobar', 'prefix_ajax_add_foobar' );</tt>.
+
+To allow both, you must register both hooks!
+
+== Related ==
+* [[AJAX in Plugins]]
+* [[Function_Reference/WP_Ajax_Response|WP_Ajax_Response]]

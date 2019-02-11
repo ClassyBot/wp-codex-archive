@@ -1,0 +1,88 @@
+{{Languages|
+{{en|Debugging a WordPress Network}}
+{{ja|Debugging a WordPress Network}}
+{{pt-br|Depurando uma Rede WordPress}}
+{{zh-cn|调试 WordPress 站点网络}}
+}}
+
+{{zh-cn:Stub}}
+
+== 调试 WordPress 站点网络 ==
+如果你访问了这个页面，很可能你的[[Glossary#Network|WordPress网络]]出现问题。这个错误是因为WordPress无法找到一个或多个[[Database Description|数据库]]中的全局表单。
+
+在一些共享的网络主机中，主机的一些功能无法使用。在[[Create A Network|创建网络]]之前，最好先检查一下你的网络主机，以确保你的网络主机账户满足WordPress的技术需求。
+
+== 如果你刚安装网络 == 
+
+检查你的 [[Editing wp-config.php|wp-config.php]]文件 :
+* 数据库信息正确
+* <code>SUBDOMAIN_INSTALL</code> 常数
+* <code>MULTISITE</code> 常数
+* <code>$base</code> 变量
+* 表单前缀
+* 在以下代码后不应当有任何其他的代码：
+
+<pre>
+/* That's all, stop editing! Happy blogging. */
+
+/** Absolute path to the WordPress directory. */
+if ( !defined('ABSPATH') )
+	define('ABSPATH', dirname(__FILE__) . '/');
+
+/** Sets up WordPress vars and included files. */
+require_once(ABSPATH . 'wp-settings.php');
+</pre>
+
+剪切所有在 <pre>require_once(ABSPATH . 'wp-settings.php');</pre>之后的代码至<pre>
+/* That's all, stop editing! Happy blogging. */</pre>之上
+
+=== Mod_rewrite无法运行===
+
+主页面工作，但是当试图访问子域名网页时显示404错误。
+在Ubuntu 10.04 LAMP 下安装Apache2 需要以下步骤:
+   sudo a2enmod rewrite
+   sudo nano /etc/apache2/sites-avail/default
+并改变以下两处地方：
+ 'AllowOveride None' to 'AllowOveride all'
+   /etc/init.d/apache2 restart
+来重启Apache2
+
+=== 检查数据库 ===
+
+如果所有设置都正确，检查数据库中的[[Database Description#Multisite Table Overview|所有的表单]] 都已创建。表单如下：
+
+*wp_blogs 
+*wp_blog_versions
+*wp_registration_log 
+*wp_signups  
+*wp_site 
+*wp_sitemeta
+
+== 如果建立新站点突然停止==
+
+请检查以上的数据库。再次确认本地数据库服务器没有改变。如果有变动，请更新你的<code>wp-config.php</code> 文件
+
+== 其他少见情况 == 
+
+检查数据库用户有数据库的所有权限
+
+同时，非常少数的用户在从WordPressMU升级到3.0及之后的版本，会在创建新站点时出现问题。这是数据库校对问题。
+
+检查.htaccess指令没有在Apache记录中出现错误
+
+如：
+
+ Options FollowSymLinks or SymLinksIfOwnerMatch is off which implies that RewriteRule directive is forbidden:
+
+这会导致网络安装显示错误并显示WP错误如：
+
+ One or more database tables are unavailable. The database may need to be repaired.
+
+==相关文章 ==
+* [[Create A Network|创建网络]]
+
+== 相关链接 ==
+* [http://wordpress.org/support/forum/multisite WordPress › 支持 » 多站点]
+
+[[Category:zh-cn:站点网络]]
+[[Category:zh-cn:用户界面链接到的页面]]

@@ -1,0 +1,109 @@
+{{Languages|
+{{en|Function Reference/wp_parse_args}}
+{{it|Riferimento funzioni/wp_parse_args}}
+{{ja|関数リファレンス/wp_parse_args}}
+}}
+
+== Description ==
+
+<tt>'''wp_parse_args'''</tt> is a generic utility for merging together an array of arguments and an array of default values. It can also be given a URL query type string which will be converted into an array (i.e. <tt>"id=5&status=draft"</tt>).
+
+It is used throughout WordPress to avoid having to worry about the logic of defaults and input, and produces a stable pattern for passing arguments around. Functions like <tt>[[Template_Tags/query_posts | query_posts]]</tt>, <tt>[[Template_Tags/wp_list_comments | wp_list_comments]]</tt> and <tt>[[Function_Reference/get_terms | get_terms]]</tt> are common examples of the simplifying power of <tt>wp_parse_args</tt>.
+
+Functions that have an <tt>'''$args'''</tt> based setting are able to infinitely expand the number of values that can potentially be passed into them, avoiding the annoyance of super-long function calls because there are too many arguments to keep track of, many of whose only function is to override usually-good defaults on rare occasions.
+
+== Usage ==
+<tt>'''wp_parse_args()'''</tt> is used inside a function you are defining to process incoming arguments. Below is an example of how <tt>wp_parse_args()</tt> can merge an array of defaults with an array of mixed arguments.
+
+<pre>
+/**
+ * Define the array of defaults
+ */ 
+$defaults = array(
+	'type' => 'post',
+	'before' => "<nowiki><p></nowiki>",
+	'after' => "<nowiki></p></nowiki> \n",
+	'echo' => TRUE
+);
+
+/**
+ * Parse incoming $args into an array and merge it with $defaults
+ */ 
+$args = wp_parse_args( $args, $defaults );
+</pre>
+
+== Parameters ==
+{{Parameter|$args|array/string|Query string or Array of mixed arguments that will override the values in <tt>$defaults</tt>. }}
+Can be passed URL-query style
+ type=post&posts_per_page=5&cat=1
+Or as an array definition
+ array( 'type' => 'post', 'posts_per_page' => 5, 'cat' => '1' )
+
+{{Parameter|$defaults|array|Array of default values that will be overridden by <tt>$args</tt>|optional|''}}
+
+== Example ==
+Below is an example function using the <tt>wp_parse_args</tt> system to manage its single <tt>$args</tt> argument, which could be given whatever values you wanted. In this case <tt>$args</tt> stores detailed display overrides, a pattern found in many WordPress functions.
+
+<pre>
+/**
+ * Define a new function that uses $args and wp_parse_args()
+ */
+function explain_parse_args( $args ) {
+	$defaults = array (
+ 		'text' => 'wp_parse_args() merges $args into $defaults',
+ 		'before' => "<nowiki><p></nowiki>",
+ 		'after' => "<nowiki></p></nowiki> \n",
+ 		'echo' => TRUE
+	);
+	
+	// Parse incoming $args into an array and merge it with $defaults
+	$args = wp_parse_args( $args, $defaults );
+	
+	$output = $args['before'] . $args['text'] . $args['after'];
+	
+	if (!$echo) 
+		return $output;
+	
+	echo $output;
+}
+
+/**
+ * Run our new function using the defaults (no $args)
+ * This would print out: 
+ * 	<p>wp_parse_args() merges $args into $defaults</p>
+ */
+explain_parse_args();
+
+/**
+ * Run the function with some options overridden with an array
+ * This would echo the output with the modified text and before arguments:
+ * 	<p class='specialclass'>A better explanation</p>
+ */
+explain_parse_args( array (
+	'text' => "A better explanation",
+	'before' => "<p class='specialclass'>"
+) );
+
+/**
+ * We can also pass in URL-style string-query and it will be converted
+ * This would set $args['echo'] to 1 and $args['text'] to 0	
+ */
+explain_parse_args( 'echo=1&text=0' );
+
+</pre>
+
+== Change Log ==
+
+Since: [[Version 2.2|2.2.0]]
+
+==Source File==
+
+<tt>wp_parse_args()</tt> is located in {{Trac|wp-includes/functions.php|trunk}}.
+
+==Related==
+
+<tt>[[Function_Reference/shortcode_atts | shortcode_atts()]]</tt>
+
+{{Tag Footer}}
+
+[[Category:Functions]]

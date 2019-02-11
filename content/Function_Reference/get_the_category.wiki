@@ -1,0 +1,115 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/get_the_category/}}
+
+{{Languages|
+{{en|Function Reference/get_the_category}}
+{{ja|テンプレートタグ/get_the_category}}
+}}
+
+== Description ==
+
+Returns an array of objects, one object for each category assigned to the post. This tag may be used outside [[The Loop]] by passing a post id as the parameter.
+
+This function only returns results from the default "category" taxonomy.  For custom taxonomies use [[Function_Reference/get_the_terms|get_the_terms]].
+
+== Usage ==
+
+<pre><?php get_the_category( $post_id ); ?></pre>
+
+== Parameters ==
+
+{{Parameter|post_id|integer|The post id.|optional|$post->ID (The current post ID)}}
+
+== Examples ==
+===Show All Categories as Links===
+This outputs all the categories assigned to the post as links. Must be used inside the loop. You can also use the function  [[Function_Reference/get_the_category_list|get_the_category_list()]] for this. 
+<pre><?php
+$categories = get_the_category();
+$separator = ' ';
+$output = '';
+if($categories){
+	foreach($categories as $category) {
+		$output .= '<a href="'.get_category_link( $category->term_id ).'" title="' . esc_attr( sprintf( __( "View all posts in %s" ), $category->name ) ) . '">'.$category->cat_name.'</a>'.$separator;
+	}
+echo trim($output, $separator);
+}
+?>
+</pre>
+
+===Show Category Images===
+
+This outputs category images named after the <tt>cat_ID</tt> with the <tt>alt</tt> attribute set to <tt>cat_name</tt>. You can also use any of the other member variables instead.
+
+<pre><?php 
+foreach((get_the_category()) as $category) { 
+    echo '<img src="http://example.com/images/' . $category->cat_ID . '.jpg" alt="' . $category->cat_name . '" />'; 
+} 
+?>
+</pre>
+
+===Show the First Category Name Only===
+
+<pre><?php
+$category = get_the_category(); 
+echo $category[0]->cat_name;
+?></pre>
+
+(Echoes the first array ([0]) of $category.)
+
+Make the first category link to the category page.
+
+<pre>
+<?php 
+$category = get_the_category(); 
+if($category[0]){
+echo '<a href="'.get_category_link($category[0]->term_id ).'">'.$category[0]->cat_name.'</a>';
+}
+?>
+</pre>
+
+===Get the Post Categories From Outside the Loop===
+
+<pre><?php
+global $post;
+$categories = get_the_category($post->ID);
+var_dump($categories);
+?></pre>
+
+==Return Values==
+
+; <tt>(array)</tt> : Array of Category Objects
+
+===Member Variables in Returned Objects===
+
+Note that because these are being pulled from the database, they will all be string values, even the <tt>term_id</tt>.
+
+;term_id :string '1' 
+;name :string 'Cat Name' 
+;slug :string 'cat-slug' 
+;term_group :string '0' 
+;term_taxonomy_id :string '1' 
+;taxonomy :string 'category' 
+;description :string '' 
+;parent :string '0' 
+;count :string '1' 
+;object_id :string '1' 
+;cat_ID :string '1' - the category id (also stored as 'term_id')
+;category_count :string '1' - the number of uses of this category (also stored as 'count')
+;category_description :string 'description' - the category description (also stored as 'description')
+;cat_name :string 'Cat Name' - the category name (also stored as 'name')
+;category_nicename :string 'cat-slug' - a slug generated from the category name (also stored as 'slug')
+;category_parent :string '0' - the category id of the current category's parent. '0' for no parents. (also stored as 'parent')
+
+== Changelog ==
+
+* Since: [[Version 0.71|0.71]]
+
+== Source Code ==
+* <tt>get_the_category()</tt> is located in {{Trac|wp-includes/category-template.php}}
+
+== Related ==
+
+{{Category Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

@@ -1,0 +1,148 @@
+{{Languages|
+{{en|Class Reference/WP Ajax Response}}
+{{zh-cn|Class Reference/WP Ajax Response}}
+}}
+
+==Role of WP_Ajax_Response==
+<tt>WP_Ajax_Response</tt> is WordPress' class for generating XML-formatted responses to Ajax requests. This is most commonly used to generate responses to custom AJAX actions when using the [[Plugin_API/Action_Reference/wp_ajax_(action)|wp_ajax_]] action hook.
+
+==Methods and Properties==
+
+
+===Properties===
+
+; <tt>$responses()</tt>
+:   An array that stores the XML responses to be sent.
+
+===Methods===
+
+
+; <tt>WP_Ajax_Response($args)</tt>
+:   Constructor (PHP4-compatible). If provided arguments, it passes them directly to the add method.
+; <tt>add($args)</tt>
+:   This method takes an associative array of various options to be used in the AJAX response XML.
+; <tt>send()</tt>
+:   This will set the correct content type for the header, output the response xml, then die - ensuring a proper XML response.
+
+==Usage==
+To use WP_Ajax_Response, you need to instantiate the class with an array of options, then call the instances <code>send()</code> method to output the response.
+
+The options array takes the following key=>value pairs:
+
+; 'what'
+:   A string containing the XMLRPC response type (used as the name of the xml element).
+; 'action'
+:   A boolean or string that will behave like a nonce. This is added to the '''response''' element's ''action'' attribute.
+; 'id'
+:   This is either an integer (usually 1) or a [[Function_Reference/WP_Error|WP_Error]] object (if you need to return an error). Most commonly, the id value is used as a boolean, where 1 is a success and 0 is a failure.
+; 'old_id'
+:   This is <code>false</code> by default, but you can alternatively provide an integer for the previous id, if needed.
+; 'position'
+:   This is an integer or a string where -1 = top, 1 = bottom, 'html ID' = after, '-html ID' = before
+; 'data'
+:   A string containing output content or a message (such as html). This is disregarded if you pass a WP_Error object as the id.
+; 'supplemental'
+:   This can an associative array of strings, which will be rendered into children of the <code>&lt;supplemental&gt;</code> element. Keys become element names, and values are embedded in CDATA within those elements. Useful for passing additional information to the browser.
+
+==Response Format==
+Responses are made in the XML-RPC format and may be handled by JavaScript. 
+
+A typical WordPress autosave response looks like this:
+<pre>
+<?xml version='1.0' standalone='yes'?>
+<wp_ajax>
+   <response action='autosave_1'>
+      <autosave id='1' position='1'>
+         <response_data>
+            <![CDATA[Draft saved at 9:31:55 pm.]]>
+         </response_data>
+         <supplemental></supplemental>
+      </autosave>
+   </response>
+</wp_ajax>
+</pre>
+
+Let's break this example down to see what it means: 
+
+;&lt;wp_ajax&gt;
+:  This the root element of every response. All responses made by the ''WP_Ajax_Response'' class are wrapped in the <code>&lt;wp_ajax&gt;</code> element.
+
+;&lt;response&gt;
+: Immediately within the wp_ajax element is <code>&lt;response&gt;</code>, which contains the attributes 'action' and 'position'. These attributes correspond to the 'action' and 'position' key=>value pairs defined in the options array.
+
+;&lt;autosave&gt; (arbitrary)
+: Next, the above example shows an <code>&lt;autosave&gt;</code> element - this element matches the value of the 'what' key=>value pair in the options array. In your own use, '''this element can be named whatever you like''', provided it is a valid XML element name.
+
+; &lt;response_data&gt; / &lt;wp_error_data&gt;
+: Within the custom response element (e.g. <code>&lt;autosave&gt;</code>), there will either be a <code>&lt;response_data&gt;</code> element (with CDATA tag) or a <code>&lt;wp_error_data&gt;</code> element. If you pass a WP_Error object to WP_Ajax_Response as the 'id' in your options array, the <code>&lt;wp_error_data&gt;</code> element is automatically generated. Otherwise, the <code>&lt;response_data&gt;</code> element is used with whatever value you passed to WP_Ajax_Response with your option array's "data" value.
+
+: For the most part, any content you want to pass back to the browser (such as HTML), can be passed in your option array's "data" key=>value pair.
+
+; &lt;supplemental&gt;
+: Finally, the <code>&lt;supplemental&gt;</code> element will contain whatever arbitrary structure you decide to pass along with your option array's "supplemental" key=>value pair.
+
+==Plugin Hooks==
+* [[Plugin_API/Action_Reference/wp_ajax_(action)|wp_ajax_ (action hook)]]
+
+==Examples==
+====Typical Response Example====
+This demonstrates a typical response. The first code block shows the PHP required to create a simple response. The second code block shows the generated XML.
+<pre>
+$response = array(
+   'what'=>'foobar',
+   'action'=>'update_something',
+   'id'=>'1',
+   'data'=>'<p><strong>Hello world!</strong></p>'
+);
+$xmlResponse = new WP_Ajax_Response($response);
+$xmlResponse->send();
+</pre>
+The above example would output the following XML:
+<pre>
+<?xml version='1.0' standalone='yes'?>
+<wp_ajax>
+   <response action='update_something_1'>
+      <foobar id='1' position='1'>
+         <response_data><![CDATA[<p><strong>Hello world!</strong></p>]]></response_data>
+         <supplemental></supplemental>
+      </foobar>
+   </response>
+</wp_ajax>
+</pre>
+
+====Error Response Example====
+This demonstrates a typical error response. The first code block shows the PHP required to generate such a response, and the second code block shows the generated XML output. Note that you can just as easily give your response an id of <code>0</code> instead of generating a new [[Function_Reference/WP_Error|WP_Error]]. The choice is up to you.
+<pre>
+$response = array(
+   'what'=>'stuff',
+   'action'=>'delete_something',
+   'id'=>new WP_Error('oops','I had an accident.'),
+   'data'=>'Whoops, there was a problem!'
+);
+$xmlResponse = new WP_Ajax_Response($response);
+$xmlResponse->send();
+</pre>
+The above example would output the following XML:
+<pre>
+<?xml version='1.0' standalone='yes'?>
+<wp_ajax>
+   <response action='delete_something_0'>
+      <stuff id='0' position='1'>
+         <wp_error code='oops'><![CDATA[I had an accident.]]></wp_error>
+         <supplemental></supplemental>
+      </stuff>
+   </response>
+</wp_ajax>
+</pre>
+Note how this response completely disregards our 'data' value.
+
+==Source File==
+The <tt>WP_Ajax_Response</tt> class is located in the file {{Trac|/wp-includes/class-wp-ajax-response.php}}
+
+== Related ==
+* [[AJAX in Plugins]]
+* [[Plugin_API/Action_Reference/wp_ajax_(action)|wp_ajax_ (action hook)]]
+
+{{Class Footer}}
+
+[[Category:Classes]]

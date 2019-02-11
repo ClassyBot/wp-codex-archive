@@ -1,0 +1,112 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/do_action/}}
+
+{{Languages|
+{{en|Function_Reference/do_action}}
+{{fax|Function_Reference/do_action}}
+{{ru|Справочник по функциям/do_action}}
+{{ja|関数リファレンス/do_action}}
+}}
+
+== Description ==
+
+Execute functions hooked on a specific action hook.
+
+This function invokes all functions attached to action hook <tt>$tag</tt>. It is possible to create new action hooks by simply calling this function, specifying the name of the new hook using the <tt>$tag</tt> parameter. You can pass extra arguments to the hooks, much like you can with <tt>[[Function_Reference/apply_filters | apply_filters()]]</tt>. This function works similar to <tt>apply_filters()</tt> with the exception that nothing is returned and only the functions or methods are called.
+
+You can hook a function to an action hook using <tt>[[Function Reference/add_action|add_action()]]</tt>.
+
+== Usage ==
+
+%%% <?php do_action( $tag, $arg ); ?> %%%
+
+Multiple Arguments:
+%%% <?php do_action( $tag, $arg_a, $arg_b, $etc ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$tag|string|The name of the hook you wish to execute.}}
+{{Parameter|$arg|mixed|The list of arguments to send to this hook.|optional|Empty string}}
+
+== Return Values ==
+
+This function does not return a value.
+
+== Example ==
+
+
+<pre>
+<?php 
+# ======= Somewhere in a (mu-)plugin, theme or the core ======= #
+
+/**
+ * You can have as many arguments as you want,
+ * but your callback function and the add_action call need to agree in number of arguments.
+ * Note: `add_action` above has 2 and 'i_am_hook' accepts 2. 
+ * You will find action hooks like these in a lot of themes & plugins and in many place @core
+ * @see: http://codex.wordpress.org/Plugin_API/Action_Reference
+ */
+
+# ======= e.g., inside your functions.php file ======= #
+
+/**
+ * Define callback function
+ * Inside this function you can do whatever you can imagine
+ * with the variables that are loaded in the do_action() call above.
+ */
+function who_is_hook( $a, $b )
+{
+	echo '<code>';
+		print_r( $a ); // `print_r` the array data inside the 1st argument
+	echo '</code>';
+
+	echo '<br />'.$b; // echo linebreak and value of 2nd argument
+}
+
+// then add it to the action hook, matching the defined number (2) of arguments in do_action
+// see [http://codex.wordpress.org/Function_Reference/add_action] in the Codex 
+
+// add_action( $tag, $function_to_add, $priority, $accepted_args );
+add_action( 'i_am_hook', 'who_is_hook', 10, 2 );
+
+// Define the arguments for the action hook
+$a = array(
+	 'eye patch' => 'yes'
+	,'parrot' => true
+	,'wooden leg' => (int) 1
+);
+$b = 'And Hook said: "I ate ice cream with Peter Pan."'; 
+
+// Executes the action hook named 'i_am_hook'
+do_action( 'i_am_hook', $a, $b );
+
+
+# ======= output that you see in the browser ======= #
+
+Array ( 
+	['eye patch'] => 'yes'
+	['parrot'] => true
+	['wooden leg'] => 1
+) 
+And hook said: "I ate ice cream with Peter Pan."
+</pre>
+
+== Notes ==
+
+* Uses: [[Global_Variables | global]] <tt>$wp_filter</tt> - Stores all of the filters and actions.
+* Uses: [[Global_Variables | global]] <tt>$wp_actions</tt> - Increments the amount of times the action was triggered.
+
+== Change Log ==
+
+Since: [[Version_1.2|1.2.0]]
+
+== Source File ==
+
+<tt>do_action()</tt> is located in {{Trac|wp-includes/plugin.php}}.
+
+== Related ==
+
+{{Action Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

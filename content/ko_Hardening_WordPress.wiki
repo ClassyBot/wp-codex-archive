@@ -1,0 +1,251 @@
+{{Languages|
+{{pt-br|Blindando_o_WordPress}}
+{{ko|Hardening WordPress}}
+}}
+__TOC__
+Security in WordPress is taken very seriously, but as with any other system there are potential security issues that may arise if some basic security precautions aren't taken. This article will go through some common forms of vulnerabilities, and the things you can do to help keep your WordPress installation secure.
+
+This article is not the ultimate quick fix to your security concerns. If you have specific security concerns or doubts, you should discuss them with people whom you trust to have sufficient knowledge of computer security and WordPress.
+
+== 보안이 뭔가요? ==
+
+Fundamentally, security ''is not'' about perfectly secure systems. Such a thing might well be impractical, or impossible to find and/or maintain. A secure server protects the privacy, integrity, and availability of the resources under the server administrator's control. 
+
+Qualities of a trusted web host might include:
+
+* Readily discusses your security concerns and which security features and processes they offer with their hosting.
+* Provides the most recent stable versions of all server software.
+* Provides reliable methods for backup and recovery. 
+
+Decide which security you need on your server by determining the software and data that needs to be secured. The rest of this guide will help you with this.
+
+== 보안 테마 ==
+
+Keep in mind some general ideas while considering security for each aspect of your system:
+
+;Limiting access :Making smart choices that reduce possible entry points available to a malicious person.
+;Containment :Your system should be configured to minimize the amount of damage that can be done in the event that it is compromised.
+;Preparation and knowledge :Keeping backups and knowing the state of your WordPress installation at regular intervals.  Having a plan to backup and recover your installation in the case of catastrophe can help you get back online faster in the case of a problem.
+
+== 사용자 컴퓨터의 취약성 ==
+
+Make sure the computers you use are free of spyware, malware, and virus infections. No amount of security in WordPress or on your web server will make the slightest difference if there is a keylogger on your computer.
+
+Always keep your operating system and the software on it, especially your web browser, up to date to protect you from security vulnerabilities.
+
+== 워드프레스의 취약점 ==
+
+Like many modern software packages, WordPress is updated regularly to address new security issues that may arise. Improving software security is always an ongoing concern, and to that end '''you should always keep up to date with the latest version of WordPress'''. Older versions of WordPress are not maintained with security updates.
+
+=== 워드프레스 업데이트 하기 ===
+
+Main article: [[Updating WordPress]].
+
+The latest version of WordPress is always available from the main WordPress website at http://wordpress.org. Official releases are not available from other sites -- '''never''' download or install WordPress from any website other than http://wordpress.org.
+
+Since version 2.7, WordPress has featured automatic updates. Use this functionality to ease the process of keeping up to date. You can also use the WordPress Dashboard to keep informed about updates. Read the entry in the Dashboard or the WordPress Developer Blog to determine what steps you must take to update and remain secure.
+
+If a vulnerability is discovered in WordPress and a new version is released to address the issue, the information required to exploit the vulnerability is almost certainly in the public domain. This makes old versions more open to attack, and is one of the primary reasons you should always keep WordPress up to date.
+
+If you are an administrator in charge of more than one WordPress installation, consider using [[Installing/Updating_WordPress_with_Subversion|Subversion]] to make management easier.
+
+=== 보안 이슈 리포팅 ===
+
+If you think you have found a security flaw in WordPress, you can help by reporting the issue. See the [[Security FAQ]] for information on how to report security issues.
+
+If you think you have found a bug, report it. See [[Submitting Bugs]] for how to do this.  You might have uncovered a vulnerability, or a bug that could lead to one.
+
+== 웹 서버 취약점 ==
+
+The web server running WordPress, and the software on it, can have vulnerabilities. Therefore, make sure you are running secure, stable versions of your web server and the software on it, or make sure you are using a trusted host that takes care of these things for you.
+
+If you're on a shared server (one that hosts other websites besides your own) and a website on the same server is compromised, your website can potentially be compromised too even if you follow everything in this guide. Be sure to ask your [http://wordpress.org/hosting/ web host] what security precautions they take.
+
+== 네트워크 취약점 ==
+
+The network on both ends -- the WordPress server side and the client network side -- should be trusted.  That means updating firewall rules on your home router and being careful about what networks you work from.  An Internet cafe where you are sending passwords over an unencrypted connection, wireless or otherwise, is '''not''' a trusted network.
+
+Your web host should be making sure that their network is not compromised by attackers, and you should do the same.  Network vulnerabilities can allow passwords and other sensitive information to be intercepted.
+
+== 패스워드 ==
+
+Many potential vulnerabilities can be avoided with good security habits. A strong password is an important aspect of this.
+
+The goal with your password is to make it hard for other people to guess and hard for a brute force attack to succeed. Many [http://www.google.com/?q=password+generator automatic password generators] are available that can be used to create secure passwords.
+
+WordPress also features a password strength meter which is shown when changing your password in WordPress. Use this when changing your password to ensure its strength is adequate.
+
+Things to avoid when choosing a password:
+
+* Any permutation of your own real name, username, company name, or name of your website.
+* A word from a dictionary, in any language.
+* A short password.
+* Any numeric-only or alphabetic-only password (a mixture of both is best). 
+
+A strong password is necessary not just to protect your blog content. A hacker who gains access to your administrator account is able to install malicious scripts that can potentially compromise your entire server.
+
+== FTP ==
+
+When connecting to your server you should use SFTP encryption if your web host provides it. If you are unsure if your web host provides SFTP or not, just ask them.
+
+Using SFTP is the same as FTP, except your password and other data is encrypted as it transmitted between your computer and your website. This means your password is never sent in the clear and cannot be intercepted by an attacker.
+
+== 파일 권한 ==
+
+Some neat features of WordPress come from allowing various files to be writable by the web server. However, allowing write access to your files is potentially dangerous, particularly in a shared hosting environment.
+
+It is best to lock down your file permissions as much as possible and to loosen those restrictions on the occasions that you need to allow write access, or to create specific folders with less restrictions for the purpose of doing things like uploading files.
+
+Here is one possible permission scheme.
+
+All files should be owned by your user account, and should be writable by you.  Any file that needs write access from WordPress should be group-owned by the user account used by the web server.
+
+;<code>/</code> :The root WordPress directory: all files should be writable only by your user account, except <code>.htaccess</code> if you want WordPress to automatically generate rewrite rules for you.
+;<code>/wp-admin/</code> :The WordPress administration area: all files should be writable only by your user account.
+;<code>/wp-includes/</code> :The bulk of WordPress application logic: all files should be writable only by your user account.
+;<code>/wp-content/</code> :User-supplied content: intended to be completely writable by all users (owner/user, group, and public).
+
+Within <code>/wp-content/</code> you will find:
+
+;<code>/wp-content/themes/</code> :Theme files.  If you want to use the built-in theme editor, all files need to be group writable.  If you do not want to use the built-in theme editor, all files can be writable only by your user account.
+;<code>/wp-content/plugins/</code> :Plugin files: all files should be writable only by your user account.
+
+Other directories that may be present with <code>/wp-content/</code> should be documented by whichever plugin or theme requires them. Permissions may vary.
+
+=== 파일 권한 변경하기 ===
+
+If you have shell access to your server, you can change file permissions recursively with the following command:
+
+For Directories:
+
+ find /path/to/your/wordpress/install/ -type d -exec chmod 755 {} \;
+
+For Files:
+
+ find /path/to/your/wordpress/install/ -type f -exec chmod 644 {} \;
+
+=== 자동 업데이트에 대하여 ===
+
+When you tell WordPress to perform an automatic update, all file operations are performed as the user that owns the files, not as the web server's user.  All files are set to 0644 and all directories are set to 0755, and writable by only the user and readable by everyone else, including the web server.
+
+== 데이터베이스 보안 ==
+
+If you run multiple blogs on the same server, it is wise to consider keeping them in separate databases each managed by a different user.  This is best accomplished when performing the initial [[Installing_WordPress|WordPress installation]]. This is a containment strategy:  if an intruder successfully cracks one WordPress installation, this makes it that much harder to alter your other blogs.
+
+If you administer MySQL yourself, ensure that you understand your MySQL configuration and that unneeded features (such as accepting remote TCP connections) are disabled.  See [http://www.securityfocus.com/infocus/1667 Secure MySQL Database Design] for a nice introduction.
+
+== wp-admin 보호하기 ==
+
+Adding server-side password protection (such as [http://en.wikipedia.org/wiki/Basic_access_authentication BasicAuth]) to <code>/wp-admin/</code> adds a second layer of protection around your blog's admin area, the login screen, and your files.  This forces an attacker or bot to attack this second layer of protection instead of your actual admin files. Many WordPress attacks are carried out autonomously by malicious software bots.
+
+Simply securing the <code>wp-admin/</code> directory might also break some WordPress functionality, such as the AJAX handler at <code>wp-admin/admin-ajax.php</code>. See the [[#Resources|Resources]] section for more documentation on how to password protect your <code>wp-admin/</code> directory properly.
+
+The most common attacks against a WordPress blog usually fall into two categories.
+
+# Sending specially-crafted HTTP requests to your server with specific exploit payloads for specific vulnerabilities.  These include old/outdated plugins and software.
+# Attempting to gain access to your blog by using "brute-force" password guessing.
+
+The ultimate implementation of this "second layer" password protection is to require an HTTPS SSL encrypted connection for administration, so that all communication and sensitive data is encrypted. ''See [[Administration Over SSL]].''
+
+== wp-includes 보호하기 ==
+
+A second layer of protection can be added where scripts are generally not intended to be accessed by any user.  One way to do that is to block those scripts using mod_rewrite in the .htaccess file. <strong>Note:</strong> to ensure the code below is not overwritten by WordPress, place it outside the <tt># BEGIN WordPress</tt> and <tt># END WordPress</tt> tags in the .htaccess file. WordPress can overwrite anything between these tags.
+
+<pre># Block the include-only files.
+RewriteEngine On
+RewriteBase /
+RewriteRule ^wp-admin/includes/ - [F,L]
+RewriteRule !^wp-includes/ - [S=3]
+RewriteRule ^wp-includes/[^/]+\.php$ - [F,L]
+RewriteRule ^wp-includes/js/tinymce/langs/.+\.php - [F,L]
+RewriteRule ^wp-includes/theme-compat/ - [F,L]
+
+# BEGIN WordPress</pre>
+
+Note that this won't work well on Multisite, as <tt>RewriteRule ^wp-includes/[^/]+\.php$ - [F,L]</tt> would prevent the ms-files.php file from generating images. Omitting that line will allow the code to work, but offers less security.
+
+==wp-config.php 보호하기==
+
+You can move the <tt>wp-config.php</tt> file to the directory above your WordPress install.  This means for a site installed in the root of your webspace, you can store <tt>wp-config.php</tt> outside the web-root folder.
+
+Note that <tt>wp-config.php</tt> can be stored ONE directory level above the WordPress (where wp-includes resides) installation. Also, make sure that only you (and the web server) can read this file (it generally means a 400 or 440 permission).
+
+If you use a server with .htaccess, you can put this in that file (at the very top) to deny access to anyone surfing for it:
+
+<pre><files wp-config.php>
+order allow,deny
+deny from all
+</files></pre>
+
+== SSL 암호화 ==
+
+주요 문서: [[Administration Over SSL]].
+
+== 플러그인 ==
+
+First of all, make sure your plugins are always updated. Also, if you are not using a specific plugin, delete it from the system. 
+
+=== 방화벽 플러그인 ===
+
+There are a few plugins that purport to screen out suspicious-looking requests based on rule databases and/or whitelists.  [http://blogsecurity.net/wordpress/wpids-v012-officially-released/ BlogSecurity's WPIDS plugin] installs [http://php-ids.org/ PHPIDS], a generic security layer for PHP applications, while [http://www.seoegghead.com/software/wordpress-firewall.seo WordPress Firewall] uses some WordPress-tuned pre-configured rules along with a whitelist to screen out attacks without much configuration.
+
+=== 쓰기 권한이 필요한 플러그인 ===
+
+If a plugin wants write access to your WordPress files and directories, please read the code to make sure it is legit or check with someone you trust. Possible places to check are the [http://codex.wordpress.org/Using_the_Support_Forums Support Forums] and [http://codex.wordpress.org/irc IRC Channel].  
+
+=== 코드를 실행하는 플러그인 ===
+
+As we said, part of the goal of hardening WordPress is containing the damage done if there is a successful attack.  Plugins which allow arbitrary PHP or other code to execute from entries in a database effectively magnify the possibility of damage in the event of a successful attack.
+
+A way to avoid using such a plugin is to use [http://codex.wordpress.org/Pages#Creating_your_own_Page_Templates custom page templates] that call the function. Part of the security this affords is active only when you [http://codex.wordpress.org/Hardening_WordPress#File_permissions disallow file editing within WordPress].
+
+== Security through obscurity ==
+
+[http://en.wikipedia.org/wiki/Security_through_obscurity Security through obscurity] is generally an unsound primary strategy. However, there are areas in WordPress where obscuring information ''might'' help with security:  
+
+# '''Rename the administrative account:''' On a new install you can simply create a new Administrative account and delete the default <code>admin</code> account. On an existing WordPress install you may rename the existing account in the MySQL command-line client with a command like <code>UPDATE wp_users SET user_login = 'newuser' WHERE user_login = 'admin';</code>, or by using a MySQL frontend like [[phpMyAdmin]].
+# '''Change the table_prefix:'''  Many published WordPress-specific SQL-injection attacks make the assumption that the table_prefix is <code>wp_</code>, the default.  Changing this can block at least some SQL injection attacks.
+
+== 데이터 백업 ==
+
+Back up your data regularly, including your MySQL databases. See the main article: [[Backing_Up_Your_Database|Backing Up Your Database]].
+
+Data integrity is critical for trusted backups.  Encrypting the backup, keeping an independent record of MD5 hashes for each backup file, and/or placing backups on read-only media increases your confidence that your data has not been tampered with.
+
+A sound backup strategy could include keeping a set of regularly-timed snapshots of your entire WordPress installation (including WordPress core files and your database) in a trusted location.  Imagine a site that makes weekly snapshots.  Such a strategy means that if a site is compromised on May 1st but the compromise is not detected until May 12th, the site owner will have pre-compromise backups that can help in rebuilding the site and possibly even post-compromise backups which will aid in determining how the site was compromised.
+
+== 로깅 ==
+
+It is possible to log various requests sent to WordPress. Standard Apache logs do not offer much help with dealing with security forensics. See [http://www.modsecurity.org/ Mod_Security - Logs and Prevents using Apache].
+
+== 모니터링 ==
+
+Sometimes prevention is not enough and you may still be hacked. That's why intrusion detection/monitoring is very important. It will allow you to react faster, find out what happened and recover your site.
+
+=== 로그 파일 모니터링 ===
+
+If you are on a private server (where you have admin access), you have to watch your logs to detect password guessing attempts, web attacks, etc. A good open source solution to monitor your logs in real time and block the attacker is [http://www.ossec.net OSSEC].
+
+=== 변경된 파일 모니터링 ===
+
+When an attack happens, it always leave traces. Either on the logs or on the file system (new files, modified files, etc). If you are using [http://www.ossec.net OSSEC] for example, it will monitor your files and alert you when they change.
+
+=== 외부 웹 서버 모니터링 ===
+
+If the attacker tries to deface your site or add malware, you can also detect these changes by using a web-based integrity monitor solution.
+
+== 리소스 ==
+* [http://wpsecure.net/basics/ wpsecure.net has a few guides on how to lock down WordPress.]
+* [http://wordpress.tv/2010/01/23/brad-williams-security-boston10/ Brad Williams: Lock it Up (Video)]
+* [http://httpd.apache.org/docs/2.2/howto/auth.html Official docs on how to password protect directories with an .htaccess file]
+* [http://www.javascriptkit.com/howto/htaccess3.shtml A slightly less complex tutorial on how to password protect directories with an .htaccess file]
+* [http://www.nkuttler.de/2010/06/14/htaccess-protect-wordpress-admin/ Whitelisting the admin-ajax.php handler in password protected directories with apache and lighttpd]
+* [http://wordpress.org/extend/plugins/askapache-password-protect AskApache Password Protection plugin for wp-admin/ and other directories] '''Caution:''' Installing the AskApache Password Protection plugin may lock you out of your WordPress Admin panel. See the [http://www.askapache.com/wordpress/htaccess-password-protect.html#comment comments under the author's plugin home page] to read other users' experiences with this plugin.
+
+== 참조 ==
+
+* [[Security FAQ]]
+* [[FAQ_My_site_was_hacked|FAQ - My site was hacked]]
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

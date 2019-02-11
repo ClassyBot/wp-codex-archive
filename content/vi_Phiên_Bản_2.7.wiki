@@ -1,0 +1,183 @@
+{{Nháp}}{{Vietnamese_Category}}
+Ngày 10 tháng Mười Hai 2008, WordPress 2.7 với tên mã John Coltrane - nghệ sĩ nhạc jazz người Mỹ - được phát hành rộng rãi tới người dùng. Bạn có thể tham khảo thêm tại [http://wordpress.org/development/2008/12/coltrane/ Blog phát triển] và [[Changelog/2.7|Changelog của 2.7]].
+
+'''Phiên Bản 2.7''', phiên bảo cơ sở dữ liệu ('''db_version''' trong '''wp_options''') được chuyển thành 9872 và [[Trac]] phiên bản 10187
+
+== Các tính năng mới ==
+
+* [[#Comment_API|API Phản hồi XMLRPC]] ([http://trac.wordpress.org/ticket/7446 Ticket 7446])
+* [[Keyboard_Shortcuts|Phím tắt]] for comment moderation ([http://trac.wordpress.org/ticket/7643 Ticket 7643])
+* Sticky Posts ([http://trac.wordpress.org/ticket/7457 Ticket 7457])
+* API tự động nâng cấp cho giao diện ([http://trac.wordpress.org/ticket/7519 Ticket 7519])
+* Xắp xếp lại bảng thông tin và ô viết bài
+* [[#Plugin_Installer|Cài đặt plugin đơn giản]] ([http://trac.wordpress.org/ticket/6015 Ticket 6015])
+* Reply to comments from admin ([http://trac.wordpress.org/ticket/7435 Ticket 7435])
+* [[#WordPress_Upgrader|Core updating]] ([http://trac.wordpress.org/ticket/5560 Ticket 5560])
+* Frame-like method for moderating ping/trackbacks
+* Plugin browser embedded ([http://trac.wordpress.org/ticket/6015 Ticket 6015])
+* [[PHPXref]] đặt tại máy chủ của WordPress.org
+* Tách riêng ảnh cỡ lớn và ảnh gốc, và các cải tiến khác ([http://trac.wordpress.org/ticket/7151 Ticket 7151])
+* Phản hồi đa cấp ([http://trac.wordpress.org/ticket/7635 Ticket 7635])
+* Phân chia trang cho phản hồi
+* Batch and inline editing ([http://trac.wordpress.org/ticket/6815 Ticket 6815])
+* Cookie chỉ sửa đổi thông qua HTTP
+* Column hiding for all management pages
+* Post box hiding for all edit pages
+* Nâng cấp và cài đặt thông qua SFTP
+* Template Tag [[Template_Tags/wp_page_menu|wp_page_menu]] wrapper for wp_list_pages and support for Home page ([http://trac.wordpress.org/ticket/7698 Ticket 7698])
+
+== Developer Features ==
+
+'''All of these features should be experimental at the moment and subject to change or removal before the final release.'''
+
+=== HTTP API ===
+
+''This should be moved to its own section. I didn't mean to actually write everything about the HTTP API.'' -- [http://trac.wordpress.org/ticket/4779 Ticket 4779]
+
+The HTTP API is an attempt to standardize the HTTP requests and responses for WordPress. It will eventually obsolete Snoopy and deprecate the other functions in WordPress. That is, once the HTTP API is completely stable.
+
+The HTTP API handles the response as well, so that it standardizes how you handle the final response. What is given back to you is in the form of an array, with the headers, body, and response as array keys. More will be explained about them later.
+
+The main focus is the WP_Http class, which facilitates the HTTP requests and the transports. '''Transport''' is the term given to the classes, which handle the HTTP requests. The five supported transports are Fsockopen, Fopen, Streams, Curl, and HTTP.
+
+The fsockopen uses the fsockopen() PHP function to handle the HTTP requests. The fopen and stream transports use the fopen() PHP function, with the latter one using the context parameter to activate the PHP streams. The Curl and HTTP transports use their respective PHP extensions to handle the PHP extensions and are the preferred transports.
+
+The plugin developers will be handling HTTP requests using the [[Function_Reference/wp_remote_request|wp_remote_request()]], [[Function_Reference/wp_remote_get|wp_remote_get()]], [[Function_Reference/wp_remote_post|wp_remote_post()]], and [[Function_Reference/wp_remote_head|wp_remote_head()]]. There are several helper functions for handling the responses, but it is advised for performance purposes to access the raw response array as much as possible. The response helper functions are [[Function_Reference/wp_remote_retrieve_headers|wp_remote_retrieve_headers()]], [[Function_Reference/wp_remote_retrieve_header|wp_remote_retrieve_header()]], [[Function_Reference/wp_remote_retrieve_response_code|wp_remote_retrieve_response_code()]], [[Function_Reference/wp_remote_retrieve_response_message|wp_remote_retrieve_response_message()]], and [[Function_Reference/wp_remote_retrieve_body|wp_remote_retrieve_body()]].
+
+There are test cases available for the HTTP API and eventually they will probably be added to the Automattic WordPress Tests repository. The current coverage isn't that great, but is currently being improved.
+
+=== Plugin Uninstaller ===
+
+There is a new plugin uninstall in WordPress 2.7 that allows a plugin to uninstall itself, when the user deletes the plugin. There are two uninstall methods that the plugin can implement. One is by creating a file in the base plugin directory named '''uninstall.php''' and storing the uninstall code there. The second method is by creating a hook that will execute the uninstall routines and using [[Function_Reference/register_uninstall_hook|register_uninstall_hook()]] function to register the hook with WordPress.
+
+=== Comment API ===
+
+The Comment API is for managing comments using the XMLRPC protocol. See [http://trac.wordpress.org/ticket/7446 Ticket #7446] for more information and progress.
+
+=== Inline Documentation ===
+
+The WordPress 2.7 has almost every file fully documented with phpdoc type inline documentation. This includes most of the files with file level phpdoc blocks. The functions have the parameters accepted type documented with descriptions. The functions also have short descriptions and many functions have long descriptions.
+
+This should improve the support and limit the questions newcomers have about the WordPress library. It is also along the goal of better quality assurance.
+
+=== Administration Manage Section API ===
+
+WordPress 2.7 is going to have an API for adding additional sections to the manage or settings administration panels. This means directly in those pages and not as a new page. The functions add_settings_section(), add_settings_field(), register_setting(), unregister_setting() implement this feature.
+
+The functions are found in '''wp-admin/includes/template.php'''.
+
+=== Page Menu API ===
+
+The wp_page_menu() function can be found in '''wp-includes/post-template.php'''. The details on the function are minor, so more information should be on the way.
+
+== User Features ==
+
+=== Plugin Installer ===
+
+The ticket can be found at [http://trac.wordpress.org/ticket/6015 #6015].
+
+The plugin installer allows for installing plugins from the WordPress Administration panels. You can search for plugins by tag, plugin author, or by subject. It also lists the featured, most popular, and recently added and updated. When you click on the title of a plugin, you can see the details and choose to install it into your WordPress plugin list.
+
+=== WordPress Upgrader ===
+
+The ticket can be found at [http://trac.wordpress.org/ticket/5560 #5560].
+
+The WordPress Upgrader will give you the option of downloading, installing, and upgrading to the latest WordPress version from your Administration Panel.
+
+The upgrader can be executed by clicking on the "stay updated" link at the bottom of the screen. It will take you to a page that will ask you whether you want to download the latest version or update automatically. Update automatically will download the latest version of WordPress and install it over the current installation.
+
+Some hosts may have problems with automatic upgrade.  Check the [[Core Update Host Compatibility|compatibility list]] to see if your web host supports the new core updating functionality.
+
+Some old files and folders are deleted upon upgrading. Check the [[Files Automatically Replaced by Core Upgrade]] page, for more information on which files are deleted, if you've modified any WordPress files.
+
+
+2.7 supports SFTP if you have the ssh2 php extension installed.
+
+'''The code is currently being finalized, with only a rough draft being committed. It will be finalized before WordPress 2.7 is released.'''
+
+====Steps performed during upgrade====
+As taken from [http://trac.wordpress.org/ticket/5560#comment:60 Ryan's Trac comments]:
+
+#Send version and locale to http://api.wordpress.org/core/version-check/1.2/ to see if there is an update available. Get a link to the WP package if so. The package for the requested locale is used if available, otherwise the English package is used. Only locales that have setup an international site on wp.org will have packages available. Reference http://api.wordpress.org/core/version-check/1.2/ 
+#Download the package from wordpress.org to the system temp directory 
+#Create working dir, usually wp-content/upgrade/core 
+#Unzip the package into our working dir 
+#Copy wp-admin/includes/update-core.php from the new version unzipped in the working dir into the current WP install 
+#Include the new update-core.php 
+#Call update_core(), which is defined in update-core.php 
+#update_core() takes over and does the following:
+##Sanity check the new version of WP sitting in the working dir 
+##Create a .maintenance file in the WP root dir. wp-settings.php checks this and prevents WP from fully loading if it exists. We don't want WP loading while files are being upgraded 
+##Overwrite old WP files with the new ones 
+##Remove files that are no longer part of the WP distro 
+##Send a request to ugrade.php to perform a DB upgrade. We do this as a separate request instead of calling the upgrade function directly because we need a fresh request that has all of the new stuff loaded. 
+##Delete the working dir
+##Delete .maintenance 
+##Done
+
+====File Permissions====
+All file operations are performed as the user that owns the files, not as the web server's user. All files are set to 0644 and all directories are set to 0755, and writable by only the user and readable by everyone else, including the web server.
+
+=== Administration Panel ===
+
+The WordPress Administration panels are undergoing another set of changes. The general look and navigation are intended to make the administration interface highly customizable as well as faster and easier to use.
+
+Other parts of the Administration panels are being improved to ease the administration tasks. Improvements so far have been made to the comments view, the posts and pages management panels.
+
+'''These changes are merged from the crazyhorse branch and development is ongoing and subject to change.'''
+
+==== Navigation ====
+The most drastic change is the move from a top navigation to a side navigation. This will allow for virtually unlimited amount of plugins to add "top level" links to the administration. The side navigation will allow users to expand and collapse sections to reveal the submenus without loading a new screen. In addition, the entire navigation column is collapsible, with a remnant of icons providing an "advanced" mode that creates the largest possible working area. 
+
+==== Shortcuts ====
+A shortcuts menu in the header near the blog title allows one-click access to frequently used screens such as Add New Post and Comments.
+
+==== Module Control ====
+On the Dashboard and the Add New Post screens, modules can be moved between columns using drag and drop, can be expanded or collapsed based on your preferences, and can even be removed from (or returned to) the screen based on which modules you find the most useful. 
+
+==== Column Control ====
+On screens that display lists in table format (posts, media library, etc), you will now be able to decide for yourself which columns to display on the screen. Columns you've hidden may be returned to the table at any time by using the new options tab. 
+
+==== Post Editor ====
+The update notifications have moved to the bottom of the writing area, as well as the word count. Additional icons for embedding media will enable fast posting of media from external sources.
+
+=== Sticky Posts ===
+WordPress 2.7 will include Sticky Posts check box on the write screens. This will place the post at the top of the front page for posts and keep it there after new posts are made.
+
+=== Admin Comment Inline Reply ===
+The ticket can be found at [http://trac.wordpress.org/ticket/7435 #7435].
+
+The Administration Comment Panel inline reply to comments opens a JavaScript HTML window that allows for replying to the comment. This enhancement is over having to visit the article and using the comment box. The dialog window can be resized and will save the resize state only while on that page. Going to a separate page will not save the resize state. The dialog also has buttons for adding HTML tags, but does not use TinyMCE.
+
+=== QuickPress ===
+The new QuickPress module on the Dashboard provides a fast way to create drafts or posts that don't require the full metadata options of the Add New Post screen. Drafts created with QuickPress will be listed immediately in the Recent Drafts module on the Dashboard. 
+
+=== Recent Drafts ===
+A module will now appear on the Dashboard displaying links to your most recent drafts, for quick access to posts in progress. 
+
+=== Dashboard Comment Moderation ===
+In 2.7 you will be able to moderate new comments directly from the Dashboard, including the new Reply to Comment function.
+
+== Features That Didn't Make It ==
+
+These features didn't make it into 2.7, but there's hope that they ''might'' make it into 2.8.
+
+* Some default shortcodes, maybe the most popular 10 from WordPress.com
+* oEmbed support, tied in with shortcodes
+* Better UI for post revisions, maybe an optional field to say what changed in a version
+* OAuth support
+* GeoData for posts, comments, attachments, etc.
+* Duplicate post Tags UI for other taxonomies ([http://trac.wordpress.org/ticket/6387 Ticket 6387])
+* Template tags to do everything the custom gallery on ma.tt does
+* Codepress code highlighting for template editing
+* Menu editor
+* Unbalanced tags across more and nextpage tags ([http://trac.wordpress.org/ticket/6297 Ticket 6297])
+* Sitemaps by default
+* Refresh of the importers
+* Gallery post_type
+* Versioning of template edits
+* Documentation links for functions used in currently edited template
+* [[MPTT]] for hierarchies
+* Automatic notification of theme updates ([http://trac.wordpress.org/ticket/7519 Ticket 7519])
+
+[[Category:Versions]]

@@ -1,0 +1,52 @@
+==Description==
+This filter is applied before a metadata gets updated. For example if a user metadata gets updated the hook would be 'update_user_metadata'.
+
+== Return Parameter ==
+The filter must return null if the data should be saved to the database. If it returns anything else, the <tt>update_metadata</tt> (and therefore the <tt>update_user_meta</tt>) function will return what the filter returns.
+See {{Trac|wp-includes/meta.php|tags/3.7.1|122}}, line 122 for more information on this.
+
+== Parameters ==
+{{Parameter|$null|null|Always null|required}}
+{{Parameter|$object_id|int|ID of the object metadata is for|required}}
+{{Parameter|$meta_key|string|Metadata key|required}}
+{{Parameter|$meta_value|mixed|Metadata value. Must be serializable if non-scalar.|required}}
+{{Parameter|$prev_value|mixed|The previous metadata value.|required}}
+
+== Example ==
+
+<pre>
+
+function myplugin_init() {
+	add_filter( 'update_user_metadata', 'myplugin_update_foo', 10, 5 );
+}
+
+function myplugin_update_foo( $null, $object_id, $meta_key, $meta_value, $prev_value ) {
+
+	if ( 'foo' == $meta_key && empty( $meta_value ) ) {
+		return true; // this means: stop saving the value into the database
+	}
+
+	return null; // this means: go on with the normal execution in meta.php
+
+}
+
+add_action( 'init', 'myplugin_init' );
+
+</pre>
+== Change Log ==
+
+Since: [[Version 3.1|3.1]]
+
+== Source File ==
+The <tt>update_(meta_type)_metadata</tt> hook is located in {{Trac|wp-includes/meta.php|tags/3.7.1|122}}, line 122
+
+==Related==
+===Action Hooks===
+* [[Plugin_API/Action_Reference/update_(meta_type)_meta|update_(meta_type)_meta]]
+* [[Plugin_API/Action_Reference/updated_(meta_type)_meta|updated_(meta_type)_meta]]
+* [[Plugin_API/Action_Reference/updated_postmeta|updated_postmeta]]
+
+== See Also ==
+[[Plugin_API/Filter_Reference]]
+
+[[Category:Filters]]

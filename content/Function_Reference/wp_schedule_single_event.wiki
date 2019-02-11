@@ -1,0 +1,86 @@
+{{Languages|
+{{en|Function_Reference/wp_schedule_single_event}}
+{{ja|関数リファレンス/wp_schedule_single_event}}
+}}
+
+== Description ==
+
+Schedules a hook which will be executed once by the WordPress actions core at a time which you specify. The action will fire off when someone visits your WordPress site, if the schedule time has passed.
+
+== Usage ==
+
+%%% <?php wp_schedule_single_event( $timestamp, $hook, $args ); ?> %%%
+
+Note that scheduling an event to occur before 10 minutes after an existing event of the same name will be ignored, unless you pass unique values for <tt>$args</tt> to each scheduled event. See <tt>[[Function_Reference/wp_next_scheduled | wp_next_scheduled()]]</tt> for more information.
+
+<i>This behavior is subject to change, as the [https://core.trac.wordpress.org/ticket/6966 original intention] of the code was to prevent scheduling two identical events within ten minutes of each other, not preventing scheduling of identical events until ten minutes after the next scheduled occurrence.</i>
+
+Attempts to schedule an event after an event of the same name and <tt>$args</tt> will also be ignored.
+
+== Parameters ==
+
+{{Parameter|$timestamp|integer|The time you want the event to occur. This must be in a [http://en.wikipedia.org/wiki/Unix_time UNIX timestamp format]. WP cron uses UTC/GMT time, not local time. Use <tt>[http://php.net/manual/en/function.time.php time()]</tt>, which is always GMT in WordPress. (<tt>[[Function_Reference/current_time|current_time( 'timestamp' )]]</tt> is local time in WordPress.)}}
+{{Parameter|$hook|string|The name of an action hook to execute.}}
+{{Parameter|$args|array|Arguments to pass to the hook function(s)|optional|<tt>array()</tt>}}
+
+== Return Value ==
+
+{{Return||boolean&#124;null|False if the event was cancelled by a plugin, <tt>null</tt> otherwise.}}
+
+== Examples ==
+
+=== Schedule an event one hour from now ===
+
+<pre>
+function do_this_in_an_hour() {
+
+    // do something
+}
+add_action( 'my_new_event','do_this_in_an_hour' );
+
+// put this line inside a function, 
+// presumably in response to something the user does
+// otherwise it will schedule a new event on every page visit
+
+wp_schedule_single_event( time() + 3600, 'my_new_event' );
+
+// time() + 3600 = one hour from now.
+</pre>
+
+=== Schedule an event one hour from now with arguments ===
+
+<pre>
+function do_this_in_an_hour( $arg1, $arg2, $arg3 ) {
+    // do something
+}
+add_action( 'my_new_event', 'do_this_in_an_hour', 10, 3 );
+
+// put this line inside a function, 
+// presumably in response to something the user does
+// otherwise it will schedule a new event on every page visit
+
+wp_schedule_single_event( time() + 3600, 'my_new_event', array( $arg1, $arg2, $arg3 ) );
+
+// time() + 3600 = one hour from now.
+</pre>
+
+== Notes ==
+
+[http://en.wikipedia.org/wiki/Unix_time Wikipedia UNIX timestamp format]
+
+== Change Log ==
+
+Since: [[Version 2.1|2.1.0]]
+
+== Source File ==
+
+<tt>wp_schedule_single_event()</tt> is located in {{Trac|wp-includes/cron.php}}
+
+== Related ==
+
+{{Cron Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:WP-Cron Functions]]

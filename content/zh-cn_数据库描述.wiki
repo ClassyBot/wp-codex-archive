@@ -1,0 +1,878 @@
+{{Languages|
+{{en|Database Description}}
+{{zh-cn|数据库描述}}
+{{ja|データベース概要}}
+}}
+__TOC__
+
+以下是在WordPress3.0版本标准安装过程中所创建的数据库表的大纲和描述。目前，WordPress3.0仅支持 [[Glossary#MySQL|MySQL]] 4.1.2及更高版本的数据库。  
+
+参见:
+*[[Database_Description/2.0|WordPress 2.0.x数据库描述]]
+*[[Database_Description/2.2|WordPress 2.2.x数据库描述]]
+*[[Database_Description/2.3|WordPress 2.3.x数据库描述]]
+*[[Database_Description/2.5|WordPress 2.5.x数据库描述]]
+*[[Database_Description/2.7|WordPress 2.7.x数据库描述]]
+*[[Database_Description/2.8|WordPress 2.8.x数据库描述]]
+*[[Database_Description/2.9|WordPress 2.9.x数据库描述]]
+
+由于WordPress自己与数据库接口，作为终端用户，不必过分担心它的结构。而如果你是在[[编写插件]]，你也许会对学习如何直接与数据库接口感兴趣。WordPress提供了[[Function_Reference/wpdb Class|wpdb类]]简化了这一过程。
+
+= 数据库图表 =
+下面的图表提供了一个图形化的WordPress数据库概览，以及在WordPress（WordPress2.5+）标准安装过程中创建的表之间的关系。以下的数据表概览包含了表和列的额外详细说明。
+
+[[Image:WP3.0-ERD.png|500px|thumb|(WP 3.0 Database diagram)]]
+
+请注意，在wp的标准安装过程中表之间的完整性不是强制性的，比如文章和评论之间。如果你正在创建操作数据库的插件或扩展，你的代码应该做些清理工作，以便没有无用的记录留在表里。比如当外键被删除时，使用一个SQL命令集来删除其它表中的数据(不要忘记提醒用户，在进行此类操作前进行备份)。
+
+= 表概述 =
+这一节是在wp标准安装过程中创建的所有数据表的概述。详细内容在以下各表中。
+
+
+{| <!-- width="75%" --> border="1" 
+|- valign="top"
+| colspan="3" bordercolor="#FFFFFF" | <strong> wp2.8数据表(10)</strong>
+|- valign="top"
+! width="6%" | '''表名''' !! width="35%" | '''描述''' !! ''' WordPress用户界面相关区域'''
+|- valign="top"
+!  [[#Table:_wp_comments|wp_comments]]
+|  WordPress中的'''评论''' 存储在<tt>wp_comments</tt>表中 ||评论是由读者创建的作为对文章的回应。评论由管理员管理，通过[[Administration Panels|管理]] > [[Administration Panels#Comments|评论]] > [[Comments Comments SubPanel|评论]]
+|- valign="top"
+! [[#Table:_wp_links|wp_links]]
+| <tt>wp_links</tt> 保存包含在WordPress [[Administration Panels#Links - Putting the Inter in the Internet|Links]] feature部分的'''链接'''的相关信息。 || 
+* [[Administration Panels|管理]] > [[Administration Panels#Add New Link|链接]] > [[Links Add New SubPanel|添加]]
+* [[Administration Panels|管理]] > [[Administration Panels#Edit Links|链接]] > [[Links Edit SubPanel|编辑]]
+|- valign="top"
+!  [[#Table:_wp_options|wp_options]]
+| '''管理 > [[Administration Panels#Settings - Configuration Settings|设置]]'''面板下的'''[[Administration Panels#Settings - Configuration Settings|选项]]'''存储在<tt>wp_options</tt>表里。  || 
+* [[Administration Panels|管理]] > [[Administration Panels#Settings - Configuration Settings|设置]] > [[Settings General SubPanel|常规]]
+* [[Administration Panels|管理]] > [[Administration Panels#Settings - Configuration Settings|设置]] > [[Settings Writing SubPanel|撰写]]
+* [[Administration Panels|管理]] > [[Administration Panels#Settings - Configuration Settings|设置]] > [[Settings Reading SubPanel|阅读]]
+* [[Administration Panels|管理]] > [[Administration Panels#Settings - Configuration Settings|设置]] > [[Settings Discussion SubPanel|讨论]]
+* [[Administration Panels|管理]] > [[Administration Panels#Settings - Configuration Settings|设置]] > [[Settings Privacy SubPanel|隐私]]
+* [[Administration Panels|管理]] > [[Administration Panels#Settings - Configuration Settings|设置]] > [[Settings Permalinks SubPanel|固定链接]]
+* [[Administration Panels|管理]] > [[Administration Panels#Settings - Configuration Settings|设置]] > [[Settings Miscellaneous SubPanel|杂项]]
+* [[Administration Panels|管理]] > [[Administration Panels#Widgets|外观]] > [[Appearance Widgets SubPanel|小工具]]
+|- valign="top"
+! [[#Table:_wp_postmeta|wp_postmeta]]
+| 每篇'''文章'''的特性信息被称为'''元数据'''，它存储在<tt>wp_postmeta</tt>. 有些插件可能会添加他们自己的信息到这个表里.   || 
+* [[Administration Panels|管理]] > [[Administration Panels#Add New Post|文章]] > [[Posts Add New SubPanel|添加]]
+* [[Administration Panels|管理]] > [[Administration Panels#Add New Page|页面]] > [[Pages Add New SubPanel|添加]]
+|- valign="top"
+! [[#Table:_wp_posts|wp_posts]]
+| 数据的核心是'''文章'''，它存储在<tt>wp_posts</tt>表.  || 
+* [[Administration Panels|管理]] > [[Administration Panels#Add New Post|文章]] > [[Posts Add New SubPanel|添加]]
+* [[Administration Panels|管理]] > [[Administration Panels#Edit Posts|文章]] > [[Posts Edit SubPanel|编辑]]
+* [[Administration Panels|管理]] > [[Administration Panels#Add New Page|页面]] > [[Pages Add New SubPanel|添加]]
+* [[Administration Panels|管理]] > [[Administration Panels#Edit Pages|页面]] > [[Pages Edit SubPanel|编辑]]
+* [[Administration Panels|管理]] > [[Administration Panels#Upload New Media|媒体]] > [[Media Add New SubPanel|添加]]
+* [[Administration Panels|管理]] > [[Administration Panels#Media Library|媒体]] > [[Media Library SubPanel|媒体库]]
+|- valign="top"
+! [[#Table:_wp_terms|wp_terms]]
+| 文章和链接'''分类'''以及文章的tag'''分类'''可以在<tt>wp_terms</tt>表里找到. || rowspan="3" |
+* [[Administration Panels|管理]] > [[Administration Panels#Tags|文章]] > [[Posts Tags SubPanel|Tags]]
+* [[Administration Panels|管理]] > [[Administration Panels#Categories|文章]] > [[Posts Categories SubPanel|分类]]
+* [[Administration Panels|管理]] > [[Administration Panels#Link Categories|链接]] > [[Links Link Categories SubPanel|链接分类]]
+* [[Administration Panels|管理]] > [[Administration Panels#Add New Post|文章]] > [[Posts Add New SubPanel|添加]]
+* [[Administration Panels|管理]] > [[Administration Panels#Edit Posts|文章]] > [[Posts Edit SubPanel|编辑]]
+* [[Administration Panels|管理]] > [[Administration Panels#Add New Page|文章]] > [[Pages Add New SubPanel|添加]]
+* [[Administration Panels|管理]] > [[Administration Panels#Edit Pages|文章]] > [[Pages Edit SubPanel|编辑]]
+|- valign="top"
+! [[#Table:_wp_term_relationships|wp_term_relationships]]
+| 与'''文章'''有关的分类、来自<tt>wp_terms</tt>表的tags以及这一关联存在于<tt>wp_term_relationships</tt>表里. '''链接'''与各自分类的联系也存储于这张表中.
+|- valign="top"
+! [[#Table:_wp_term_taxonomy|wp_term_taxonomy]]
+| 这张表描述了<tt>wp_terms</tt>表中每个条目的分类系统 ('''分类''','''链接''',或'''tag''').
+|- valign="top"
+! [[#Table:_wp_usermeta|wp_usermeta]]
+| 每个'''用户'''的特性信息称为'''元数据''',它存储在<tt>wp_usermeta</tt>. ||
+* [[Administration Panels|管理]] > [[Administration Panels#Users - Your Blogging Family|用户]]
+|- valign="top"
+! [[#Table:_wp_users|wp_users]]
+| '''用户'''列表存在于<tt>wp_users</tt>表. || 
+* [[Administration Panels|管理]] > [[Administration Panels#Users - Your Blogging Family|用户]]
+|}<br /><br />
+
+=表详细资料=
+以下是在wp标准安装过程中创建的数据表每个字段的详细信息。
+
+===Table: wp_commentmeta===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|meta_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|comment_id||bigint(20)  unsigned||&nbsp;||IND||0||FK-&gt;wp_comments.comment_id
+|-
+|meta_key||varchar(255)||YES||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||YES||&nbsp;||NULL||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||0||meta_ID
+|-  
+|comment_id||INDEX||none||comment_id  
+|-  
+|meta_key||INDEX||none||meta_key  
+|}
+
+===Table: wp_comments===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|comment_ID||bigint(20) unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|comment_post_ID||bigint(20) unsigned||&nbsp;||IND||0||FK-&gt;wp_posts.ID
+|-
+|comment_author||tinytext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_url||varchar(200)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_IP||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_date||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|comment_date_gmt||datetime||&nbsp;||IND & IND Pt2||0000-00-00 00:00:00||&nbsp;
+|-
+|comment_content||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_karma||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|comment_approved||varchar(20)||&nbsp;||IND & Ind Pt1||1||&nbsp;
+|-
+|comment_agent||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_type||varchar(20)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_parent||bigint(20) unsigned||&nbsp;||&nbsp;||0||FK-&gt;wp_comments.ID
+|-
+|user_id||bigint(20) unsigned||&nbsp;||&nbsp;||0||FK-&gt;wp_users.ID
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||1||comment_ID
+|-  
+|comment_approved||INDEX||None||comment_approved  
+|-  
+|comment_post_ID||INDEX||None||comment_post_ID  
+|-  
+|comment_approved_date_gmt||INDEX||None||comment_approved<br />comment_date_gmt
+|-  
+|comment_date_gmt||INDEX||None||comment_date_gmt  
+|-  
+|comment_parent||INDEX||None||comment_parent
+|}
+
+===Table: wp_links===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|link_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|link_url||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_name||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_image||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_target||varchar(25)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_description||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_visible||varchar(20)||&nbsp;||IND||Y||&nbsp;
+|-
+|link_owner||bigint(20)  unsigned||&nbsp;||&nbsp;||1||&nbsp;
+|-
+|link_rating||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|link_updated||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|link_rel||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_notes||mediumtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_rss||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||7||link_ID
+|-  
+|link_category||INDEX||None||link_category  
+|-  
+|link_visible||INDEX||None||link_visible  
+|}
+
+===Table: wp_options===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|option_id||bigint(20)  unsigned||&nbsp;||PRI Pt1||NULL||auto_increment
+|-
+|blog_id||int(11)||&nbsp;||PRI Pt2||0||&nbsp;
+|-
+|option_name||varchar(64)||&nbsp;||PRI Pt3 & IND||&nbsp;||&nbsp;
+|-
+|option_value||longtext||&nbsp;||&nbsp;||&nbsp;||
+|-
+|autoload||varchar(20)||&nbsp;||&nbsp;||yes||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||184||option_id<br />blog_id<br />option_name
+|-  
+|option_name||UNIQUE||184||option_name  
+|}
+
+===Table: wp_postmeta===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|meta_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|post_id||bigint(20)  unsigned||&nbsp;||IND||0||FK-&gt;wp_posts.ID
+|-
+|meta_key||varchar(255)||YES||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||YES||&nbsp;||NULL||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||13||meta_ID
+|-  
+|post_id||INDEX||15||post_id  
+|-  
+|meta_key||INDEX||7||meta_key  
+|}
+
+===Table: wp_posts===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI & IND Pt4||&nbsp;||auto_increment
+|-
+|post_author||bigint(20) unsigned||&nbsp;||&nbsp;||0||FK-&gt;wp_users.ID
+|-
+|post_date||datetime||&nbsp;||IND Pt3||0000-00-00 00:00:00||&nbsp;
+|-
+|post_date_gmt||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_content||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_title||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_excerpt||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_status||varchar(20)||&nbsp;||IND PT2||publish||&nbsp;
+|-
+|comment_status||varchar(20)||&nbsp;||&nbsp;||open||&nbsp;
+|-
+|ping_status||varchar(20)||&nbsp;||&nbsp;||open||&nbsp;
+|-
+|post_password||varchar(20)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_name||varchar(200)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|to_ping||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|pinged||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_modified||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_modified_gmt||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_content_filtered||text||&nbsp;||&nbsp;||&nbsp;||
+|-
+|post_parent||bigint(20) unsigned||&nbsp;||&nbsp;||0||FK-&gt;wp_posts.ID
+|-
+|guid||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|menu_order||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|post_type||varchar(20)||&nbsp;||IND Pt1||post||&nbsp;
+|-
+|post_mime_type||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_count||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||2||ID
+|-  
+|post_name||INDEX||None||post_name  
+|-
+|type_status_date||INDEX||None||post_type<br />post_status<br />post_date<br />ID
+|-
+|post_parent||INDEX||None||post_parent
+|-
+|post_author||INDEX||None||post_author
+|}
+
+===Table: wp_terms===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|term_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|name||varchar(200)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|-
+|slug||varchar(200)||&nbsp;||UNI||&nbsp;||&nbsp;
+|-
+|term_group||bigint(10)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||2||term_ID
+|-  
+|slug||UNIQUE||2||slug 
+|-
+|name||Index||none||name
+|}
+
+===Table: wp_term_relationships===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|object_id||bigint(20)  unsigned||&nbsp;||PRI Pt1||0||&nbsp;
+|-
+|term_taxonomy_id||bigint(20)  unsigned||&nbsp;||PRI Pt2 & IND||0||FK-&gt;wp_term_taxonomy.term_taxonomy_id
+|-
+|term_order||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||8||object_id<br />term_taxonomy_id
+|-  
+|term_taxonomy_id||INDEX||None||term_taxonomy_id  
+|}
+
+===Table: wp_term_taxonomy===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|term_taxonomy_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|term_id||bigint(20)  unsigned||&nbsp;||UNI Pt1||0 ||FK-&gt;wp_terms.term_id
+|-
+|taxonomy||varchar(32)||&nbsp;||UNI Pt2||&nbsp;||&nbsp;
+|-
+|description||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|parent||bigint(20)  unsigned||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|count||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||2||term_taxonomy_id
+|-  
+|term_id_taxonomy||UNIQUE||2||term_id<br />taxonomy 
+|-  
+|taxonomy||INDEX||None||taxonomy 
+|}
+
+===Table: wp_usermeta===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|umeta_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|user_id||bigint(20)  unsigned||&nbsp;||&nbsp;||'0'||FK-&gt;wp_users.ID
+|-
+|meta_key||varchar(255)||Yes||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||Yes||IND||NULL||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||9||umeta_id
+|-  
+|user_id||INDEX||None||user_id  
+|-  
+|meta_key||INDEX||None||meta_key  
+|}
+
+===Table: wp_users===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|user_login||varchar(60)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_pass||varchar(64)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_nicename||varchar(50)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_url||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|user_activation_key||varchar(60)||&nbsp;||&nbsp;||&nbsp;||
+|-
+|user_status||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|display_name||varchar(250)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|}
+
+====Indexes====
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||1||ID
+|-  
+|user_login_key||INDEX||None||user_login  
+|-  
+|user_nicename||INDEX||None||user_nicename  
+|}
+
+==多站点表概述==
+
+本部分是Wordpress的[[Glossary#Multisite|Multisite]]特性所建立的表的概述。这些表通过[[Super Admin Menu|Administration]] > [[Super Admin Menu#Tools|Tools]] > [[Tools Network SubPanel|Network]]下的操作建立。
+
+这些表被看作是全局多站点的表。
+
+{| class="widefat"
+|- valign="top" style="background:#464646; color:#d7d7d7;"
+! colspan="3" bordercolor="#FFFFFF" | '''WordPress 3.0 Multisite Tables'''
+|- valign="top" style="background:#464646; color:#d7d7d7;"
+! width="6%" | Table Name !! width="35%" | Description !! Relevant Area(s) of WordPress User Interface
+|- valign="top"
+!  [[#Table:_wp_blogs|wp_blogs]]
+| Each '''site''' created is stored in the table, <tt>wp_blogs</tt>. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Tools|Tools]] > [[Tools Network SubPanel|Network]] 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Sites|Super Admin]] > [[Super Admin Sites SubPanel|Sites]]  
+|- valign="top"
+!  [[#Table:_wp_blog_versions|wp_blog_versions]]
+| The current database version status of each '''site''' is maintained in the <tt>wp_blogs_versions</tt> table and is updated as each site is upgraded. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Update|Super Admin]] > [[Super Admin Update SubPanel|Update]] 
+|- valign="top"
+! [[#Table:_wp_registration_log|wp_registration_log]]
+| The <tt>wp_registration_log</tt> records the admin user created when each new site is created. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Sites|Super Admin]] > [[Super Admin Sites SubPanel|Sites]]   
+|- valign="top"
+!  [[#Table:_wp_signups|wp_signups]]
+| This table holds the user that have registered for a site via the login registration process.  User registration is enable in [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Options|Super Admin]] > [[Super Admin Options SubPanel|Options]]. || 
+* [[Administration Panels|Administration]] > [[Administration Panels#Settings|Settings]] > [[Settings General SubPanel|General]]
+|- valign="top"
+! [[#Table:_wp_site|wp_site]]
+| The <tt>wp_site</tt> table contains the main site address. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Tools|Tools]] > [[Tools Network SubPanel|Network]] 
+|- valign="top"
+! [[#Table:_wp_sitecategories|wp_sitecategories]]
+| If global terms (global_terms_enabled = true) are enabled for a site the <tt>wp_sitecategories</tt> table holds those terms.  || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Options|Super Admin]] > [[Super Admin Options SubPanel|Options]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Add New Post|Posts]] > [[Posts Add New SubPanel|Add New]]
+|- valign="top"
+! [[#Table:_wp_sitemeta|wp_sitemeta]]
+| Each '''site''' features information called the '''site data''' and it is  stored in <tt>wp_sitemeta</tt>. Various '''option''' information, including the site admin is kept in this table. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Options|Super Admin]] > [[Super Admin Options SubPanel|Options]]
+|- valign="top"
+! [[#Table:_wp_users_2|wp_users]]
+| The list of all '''users''' is maintained in table <tt>wp_users</tt>. Multisite add two fields not in [[#Table: wp_users|the stand-alone version]].|| 
+* [[Administration Panels|Administration]] > [[Administration Panels#Users|Users]]
+* [[Super Admin Menu|Administration]] > [[Super Admin Menu#Super Admin|Super Admin]] > [[Super Admin Users SubPanel|Users]]
+* [[Super Admin Menu|Administration]] > [[Super Admin Menu#Super Admin|Super Admin]] > [[Super Admin Sites SubPanel|Sites]] - Edit Site
+|- valign="top"
+! [[#Table:_wp_usermeta|wp_usermeta]]
+| This table is not re-create for multisite, but '''meta data of users''' for each site are stored in <tt>wp_usermeta</tt>. ||
+* [[Administration Panels|Administration]] > [[Administration Panels#Users|Users]]
+* [[Super Admin Menu|Administration]] > [[Super Admin Menu#Super Admin|Super Admin]] > [[Super Admin Users SubPanel|Users]]
+* [[Super Admin Menu|Administration]] > [[Super Admin Menu#Super Admin|Super Admin]] > [[Super Admin Sites SubPanel|Sites]] - Edit Site
+|- valign="top"
+! [[#Site Specific Tables|Site Specific Tables]]
+| The data of the main site are stored in existing unnumbered tables. The data of additional sites are stored in new numbered tables.
+||
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Sites|Super Admin]] > [[Super Admin Sites SubPanel|Sites]] - Add Site
+|}<br /><br />
+
+==多站点表详细资料==
+
+The following describe the tables and fields created [[Create A Network#Step 4: Installing a Network|during the network installation]].  Note that a global set of tables is created upon creation of the network, and [[#Site Specific Tables|site-specific tables]] are established as each site is created. 
+
+===Table: wp_blogs===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|blog_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|site_id||bigint(20)  unsigned||&nbsp;||IND||0||
+|-
+|domain||varchar(200)||NO||&nbsp;||0||&nbsp;
+|-
+|path||varchar(100)||NO||&nbsp;||&nbsp;||&nbsp;
+|-
+|registered||datetime||NO||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|last_updated||datetime||NO||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|public||tinyint(2)||NO||&nbsp;||0||&nbsp;
+|-
+|archived||enum('0','1')||NO||&nbsp;||0||&nbsp;
+|-
+|mature||tinyint(2)||NO||&nbsp;||0||&nbsp;
+|-
+|spam||tinyint(2)||NO||&nbsp;||0||&nbsp;
+|-
+|deleted||tinyint(2)||NO||&nbsp;||0||&nbsp;
+|-
+|lang_id||int(11)||NO||&nbsp;||0||&nbsp;
+|}
+
+====Indexes====
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||2||blog_id
+|-  
+|domain||INDEX||none||domain(50),path(5)
+|-  
+|lang_id||INDEX||none||lang_id  
+|}
+
+===Table: wp_blog_versions===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|blog_id||bigint(20)  unsigned||&nbsp;||PRI||0||FK->wp_blogs.blog_id 
+|-
+|db_version||varchar(20)||NO||&nbsp;||&nbsp;||&nbsp;
+|-
+|last_updated||datetime||NO||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|}
+
+====Indexes====
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||2||blog_id
+|-  
+|db_version||INDEX||none||db_version
+|}
+
+===Table: wp_registration_log===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|ID||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|email||varchar(255)||NO||&nbsp;||&nbsp;||&nbsp; 
+|-
+|IP||varchar(30)||NO||&nbsp;||&nbsp;||&nbsp; 
+|-
+|blog_id||bigint(20)  unsigned||&nbsp;||PRI||0||FK->wp_blogs.blog_id 
+|-
+|date_registered||datetime||NO||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|}
+
+====Indexes====
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||1||ID
+|-  
+|IP||INDEX||none||IP
+|}
+
+===Table: wp_signups===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|domain||varchar(200)||NO||&nbsp;||0||&nbsp;
+|-
+|path||varchar(100)||NO||&nbsp;||&nbsp;||&nbsp;
+|-
+|title||longtext||NO||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_login||varchar(60)||NO||IND||&nbsp;||&nbsp;
+|-
+|user_email||varchar(100)||NO||&nbsp;||&nbsp;||&nbsp;
+|-
+|registered_date||datetime||NO||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|activated||datetime||NO||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|active||tinyint(1)||NO||&nbsp;||&nbsp;||
+|-
+|activation_key||varchar(50)||NO||&nbsp;||&nbsp;||&nbsp;
+|-
+|meta||longtext||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|}
+
+====Indexes====
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|activation_key||INDEX||None||activation_key  
+|-  
+|domain||INDEX||None||domain 
+|}
+
+===Table: wp_site===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|domain||varchar(200)||NO||&nbsp;||0||&nbsp;
+|-
+|path||varchar(100)||NO||&nbsp;||&nbsp;||&nbsp;
+|}
+
+====Indexes====
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||1||id
+|-  
+|domain||INDEX||none||domain,path
+|}
+
+===Table: wp_sitecategories===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|cat_id||bigint(20)  unsigned||NO||PRI||NULL||auto_increment
+|-
+|cat_name||carchar(55)||NO||&nbsp;||&nbsp;||&nbsp;
+|-
+|category_nicename||varchar(200)||NO||&nbsp;||&nbsp;||&nbsp;
+|-
+|last_updated||timestamp||NO||&nbsp;||&nbsp;||&nbsp;
+|}
+
+====Indexes====
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||9||cat_id
+|-  
+|category_nicename||INDEX||None||category_nicename  
+|- 
+|last_updated||INDEX||None||last_updated  
+|}
+
+===Table: wp_sitemeta===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|meta_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|site_id||bigint(20)  unsigned||&nbsp;||&nbsp;||'0'||FK-&gt;wp_site.site_id
+|-
+|meta_key||varchar(255)||Yes||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||Yes||IND||NULL||&nbsp;
+|}
+
+====Indexes====
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||9||meta_id
+|-  
+|meta_key||INDEX||None||meta_key  
+|- 
+|site_id||INDEX||None||site_id  
+|}
+
+===Table: wp_users===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Field!!Type!!Null!!Key!!Default!!Extra
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|user_login||varchar(60)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_pass||varchar(64)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_nicename||varchar(50)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_url||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|user_activation_key||varchar(60)||&nbsp;||&nbsp;||&nbsp;||
+|-
+|user_status||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|display_name||varchar(250)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|-
+|spam||tinyint(2)||NO||&nbsp;|| 0 || 
+|-
+|deleted||tinyint(2)||NO||&nbsp;|| 0 || 
+|}
+
+====Indexes====
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Keyname!!Type!!Cardinality!! Field
+|-
+|PRIMARY||PRIMARY||1||ID
+|-  
+|user_login_key||INDEX||None||user_login  
+|-  
+|user_nicename||INDEX||None||user_nicename  
+|}
+
+===Site Specific Tables===
+When a new additional site is created, the site-specific tables, similar to [[#Table Overview|the stand-alone tables above]], are created. Each set of tables for a site are created with the site ID ([[#Table: wp_blogs|<code>blog_id</code>]]) as part of the table name.  These are the tables that would be created for site ID ''2'' and [[Editing wp-config.php#table_prefix|table_prefix]] ''wp'':
+* [[#Table: wp_commentmeta|''wp_2''_commentmeta]]
+* [[#Table: wp_comments|''wp_2''_comments]]
+* [[#Table: wp_links|''wp_2''_links]]
+* [[#Table: wp_options|''wp_2''_options]]
+* [[#Table: wp_postmeta|''wp_2''_postmeta]]
+* [[#Table: wp_posts|''wp_2''_posts]]
+* [[#Table: wp_terms|''wp_2''_terms]]
+* [[#Table: wp_term_relationships|''wp_2''_term_relationships]]
+* [[#Table: wp_term_taxonomy|''wp_2''_term_taxonomy]]
+
+The data of the main site are stored in unnumbered tables.
+
+= 资源 =
+*[http://wpbits.wordpress.com/2007/08/08/a-look-inside-the-wordpress-database/ A look inside the WordPress database] 一篇Leonid Mamchenkov 的关于数据库表的深入探讨. 
+
+= 更新日志 =
+
+* [[Version 3.0|3.0]] : 
+** [[#Table: wp_comments|comments table]]: 增加<code>comment_parent</code>索引.
+** [[#Table: wp_posts|posts table]]: 增加<code>post_author</code>索引.
+** 开启[[Glossary#Multisite|Multisite]]特性时:
+*** 增加[[#Multisite Table Overview|multisite tables]].
+*** 增加<code>spam</code>和<code>deleted</code>字段到[[#Table:_wp_users_2|users table]].
+
+* [[Version 2.9|2.9]] : 
+** [[#Table: wp_commentmeta|commentmeta table]]: 用于存储评论相关的数据.
+** [[#Table: wp_option|options table]]: 增加唯一索引<code>option_name</code>.
+** [http://schemabank.com/p/5Lj5F 更新了数据库图表]
+
+* [[Version 2.8|2.8]] : 
+** [[#Table: wp_comments|comments table]] : 修改 <code>comment_post_ID</code> 列为 bigint(20), unsigned.
+** [[#Table: wp_links|links table]] : 删除 <code>link_category</code> 列.
+** [[#Table: wp_posts|posts table]]: 删除 <code>post_category</code> 列.
+** [[#Table: wp_term_taxonomy|term_taxonomy table]]:添加键 <code>taxonomy</code>.
+** 添加 unsigned 属性到类型为 bigint(20) 的字段.
+* [[Version 2.7|2.7]] : 
+** [[#Table: wp_terms|term table]] : 修改 <code>name</code> 字段 <code>varchar(55)</code> -> <code>varchar(200)</code>.
+** 添加键 <code>name</code> 到 [[#Table: wp_terms|term table]].
+** 添加键 <code>post_parent</code> 到 [[#Table: wp_posts|posts table]].
+* [[Version 2.5|2.5]] : 
+** 所有 <code>enum</code> 类型字段改为 <code>varchar(20)</code>:
+*** [[#Table: wp_comments|comments table]]： <code>comment_approved</code> field
+*** [[#Table: wp_links|links table]]： <code>link_visible</code>
+*** [[#Table: wp_options|options table]]： <code>autoload</code>
+*** [[#Table: wp_posts|posts table]]: <code>post_status</code>, <code>comment_status</code>, <code>ping_status</code>
+** 添加键 <code>comment_approved_date_gmt</code> 和 <code>comment_date_gmt</code> 到 [[#Table: wp_comments|comments table]].
+** 添加 <code>term_order</code> 字段到 [[#Table: term_relationships|term_relationships table]]
+** 参见: [[Migrating Plugins and Themes to 2.5#Database changes|Migrating Plugins and Themes to 2.5 - Database changes]]
+* [[Version 2.3|2.3]] :
+** 添加 [[#Table: wp_terms|terms]], [[#Table: wp_term_taxonomy|term_taxonomy]] and [[#Table: wp_term_relationships|term_relationships]] 表. 删除 <code>categories</code>, <code>link2cat</code>和 <code>post2cat</code>表.
+** 删除 [[#Table: wp_options|options table]]中的6个字段. (<code>option_can_override</code>, <code>option_type</code>, <code>option_width</code>, <code>option_height</code>, <code>option_description</code>, and <code>option_admin_level</code>)
+** 添加新状态 <code>'pending'</code>到[[#Table: wp_posts|posts table]]的<code>post_status</code>字段.
+** 参见: [[WordPress Taxonomy]]
+* [[Version 2.1|2.1]] :
+** 删除<code>linkcategories</code>表. 链接分类数据合并到<code>categories</code>表, 重设IDs.
+** 添加<code>post_type</code>字段到[[#Table: wp_posts|posts table]] (in 2.0.x, <code>post_status</code> = <code>'static'</code> for [[Pages]])
+** 添加新状态 <code>'future'</code> [[#Table: wp_posts|posts table]]的 <code>post_status</code>字段 , 代替2.0.x版本中的 <code>NOW()</code>.
+** 参见： [[Migrating Plugins and Themes to 2.1#Core WordPress Database Changes|Migrating Plugins and Themes to 2.1 - Core WordPress Database Changes]]
+
+[[Category:Getting Started]]
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

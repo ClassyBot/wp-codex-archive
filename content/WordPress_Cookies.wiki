@@ -1,0 +1,62 @@
+__TOC__
+WordPress uses cookies, or tiny pieces of information stored on your computer, to verify who you are. There are cookies for logged in users and for commenters.
+
+This page is a partial work in progress.
+
+==Users==
+
+Users are those people who have registered an account with the WordPress blog in question.
+
+
+===WordPress > 2.4===
+When you log into WordPress from <tt><nowiki>http://example.com/wp-login.php</nowiki></tt>, WordPress stores the following two cookies:
+
+* Your user name
+* A double-hashed copy of your password
+
+The cookies are set to expire two weeks from the time they are set. 
+
+===WordPress > 2.8===
+Filter to [https://developer.wordpress.org/reference/hooks/auth_cookie_expiration/ change the expiration time].
+
+===WordPress > 3.0===
+
+On login, wordpress uses the wordpress_[hash] cookie to store your authentication details. Its use is limited to the admin console area, /wp-admin/
+
+After login, wordpress sets the wordpress_logged_in_[hash] cookie, which indicates when you're logged in, and who you are, for most interface use. 
+
+WordPress also sets a few wp-settings-{time}-[UID] cookies. The number on the end is your individual user ID from the users database table. This is used to customize your view of admin interface, and possibly also the main site interface.
+
+The cookies length can be adjusted with the 'auth_cookie_expiration' hook (An example can be found at [http://wordpress.stackexchange.com/questions/515/whats-the-easiest-way-to-stop-wp-from-ever-logging-me-out what's the easiest way to stop wp from ever logging me out]).
+
+===Non-Version-Specific Data===
+
+The actual cookies contain ''hashed'' data, so you don't have to worry about someone gleaning your username and password by reading the cookie data.  A ''hash'' is the result of a specific mathematical formula applied to some input data (in this case your user name and password, respectively).  It's quite hard to reverse a hash (bordering on practical infeasibility with today's computers).  This means it is very difficult to take a hash and "unhash" it to find the original input data.
+
+WordPress uses the two cookies to bypass the password entry portion of <tt>wp-login.php</tt>.  If WordPress recognizes that you have valid, non-expired cookies, you go directly to the WordPress [[Administration Panels|Administration]] interface.  If you don't have the cookies, or they're expired, or in some other way invalid (like you edited them manually for some reason), WordPress will require you to log in again, in order to obtain new cookies.
+
+The functions to set and remove cookies are currently defined in <tt>/wp-includes/pluggable.php</tt>.
+
+;[[Function Reference/wp_set_auth_cookie|wp_set_auth_cookie( $user_id, $remember, $secure )]] :This function sets the cookie.
+;[[Function Reference/wp_clear_auth_cookie|wp_clear_auth_cookie()]] :This function will delete the cookie from the client browser.  This happens when the user clicks on the <strong>Logout</strong> link in the [[Administration Panels|Administration]] interface. 
+
+;[[Function Reference/auth_redirect|auth_redirect()]] :This function also utilizes the cookies. Checks whether the cookie is present on the client browser.  If it <em>is not</em>, the user is sent to the <tt>wp-login.php</tt> login screen. After logging in, the user is sent back to the page he or she attempted to access.
+
+==Commenters==
+
+When visitors comment on your blog, they too get cookies stored on their computer.  This is purely a convenience, so that the visitor won't need to re-type all their information again when they want to leave another comment.  Three cookies are set for commenters:
+
+* <tt>comment_author_{HASH}</tt>
+* <tt>comment_author_email_{HASH}</tt>
+* <tt>comment_author_url_{HASH}</tt>
+
+The commenter cookies are set to expire a little under one year from the time they're set.
+
+==References==
+
+* [http://en.wikipedia.org/wiki/HTTP_cookie Wikipedia: Cookies]
+* [http://www.faqs.org/rfcs/rfc2965 RFC2965]
+* [http://www.php.net/manual/en/features.cookies.php PHP cookie documentation]
+
+
+[[Category:WordPress Development]]

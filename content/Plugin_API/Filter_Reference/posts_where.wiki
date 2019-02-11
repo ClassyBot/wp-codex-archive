@@ -1,0 +1,45 @@
+This filter applies to the posts where clause and allows you to restrict which posts will show up in various areas of the site. Combined with [[Plugin_API/Filter_Reference/restrict_manage_posts|restrict_manage_posts]] it allows you to only show posts matching specific conditions. 
+
+Here is an example to match the restrict_manage_posts example
+
+<pre>add_filter( 'posts_where' , 'posts_where' );
+
+function posts_where( $where ) {
+
+	if( is_admin() ) {
+		global $wpdb;
+		
+		if ( isset( $_GET['author_restrict_posts'] ) && !empty( $_GET['author_restrict_posts'] ) && intval( $_GET['author_restrict_posts'] ) != 0 ) {
+			$author = intval( $_GET['author_restrict_posts'] );
+		
+			$where .= " AND ID IN (SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id=$author )";
+		}
+	}
+	return $where;
+}</pre>
+
+Depending on setup, if we had a custom post type of type 'book' with a taxonomy (category style) of type 'author', this filter would allow us to only show books written by a specific author.
+
+==Note==
+Certain functions which retrieve posts do not run filters, so the posts_where filter functions you attach will not modify the query.  To overcome this, set suppress_filters to false in the argument array passed to the function.  The following code sample illustrates this.
+
+<pre>
+<?php
+//some function that modifies the query
+function useless_condition ( $where ) { return $where . ' AND 1=1 '; }
+
+//attach your function to the posts_where filter
+add_filter( 'posts_where' , 'useless_condition' );
+
+//get posts AND make sure filters are NOT suppressed
+$posts = get_posts( array( 'suppress_filters' => FALSE ) );
+?>
+</pre>
+
+===Functions which suppress filters by default===
+<ul>
+<li><tt>[[Function Reference/get_posts|get_posts()]]</tt></li>
+</ul>
+
+<h2>See Also</h2>
+http://codex.wordpress.org/Plugin_API#Create_a_Filter_Function

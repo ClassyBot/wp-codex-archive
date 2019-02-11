@@ -1,0 +1,234 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/クラスリファレンス/WP">Meta Query 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Accepted_Arguments"><span class="tocnumber">2.1</span> <span class="toctext">Accepted Arguments</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Initializing_WP_Meta_Query"><span class="tocnumber">2.2</span> <span class="toctext">Initializing WP_Meta_Query</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Getting_the_final_SQL"><span class="tocnumber">2.3</span> <span class="toctext">Getting the final SQL</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Named_sub-meta_queries_and_multiple_orderby_arguments"><span class="tocnumber">2.4</span> <span class="toctext">Named sub-meta queries and multiple orderby arguments</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">3</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Meta_Query&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>WP_Meta_Query is a class defined in wp-includes/meta.php that generates the necessary SQL for meta-related queries. It was introduced in Version 3.2.0 and greatly improved the possibility to query posts by custom fields. In the WP core, it's used in the <a href="https://codex.wordpress.org/Class_Reference/WP_Query#Custom_Field_Parameters" title="Class Reference/WP Query">WP_Query</a> and <a href="https://codex.wordpress.org/Class_Reference/WP_User_Query#Custom_Field_Parameters" title="Class Reference/WP User Query">WP_User_Query</a> classes, and since Version 3.5 in the <a href="https://codex.wordpress.org/Class_Reference/WP_Comment_Query#Custom_Field_Parameters" title="Class Reference/WP Comment Query">WP_Comment_Query</a> class. Unless you're writing a custom SQL query, you should look in the *Custom Field Parameters* section for the corresponding class.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Meta_Query&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Accepted_Arguments">Accepted Arguments</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Meta_Query&amp;action=edit&amp;section=3" title="Edit section: Accepted Arguments">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The following arguments can be passed in a key=&gt;value paired array.
+</p>
+<ul><li> <b><tt>meta_key</tt></b> (<i>string</i>) - Custom field key. ( You must sanitize this yourself )</li>
+<li> <b><tt>meta_value</tt></b> (<i>string|array</i>) - Custom field value. ( You must sanitize this yourself )</li>
+<li> <b><tt>meta_type</tt></b> (<i>string</i>) - Custom field type (see <b><tt>type</tt></b> below for options).</li>
+<li> <b><tt>meta_compare</tt></b> (<i>string</i>) - Operator to test the <tt>'meta_value'</tt> (see <b><tt>compare</tt></b> below for possible values).</li></ul>
+<ul><li> <b><tt>meta_query</tt></b> (<i>array</i>) - Contains one or more arrays with the following keys:
+<ul><li> <b><tt>key</tt></b> (<i>string</i>) - Custom field key.</li>
+<li> <b><tt>value</tt></b> (<i>string</i>|<i>array</i>) - Custom field value. It can be an array only when <tt><b>compare</b></tt> is <tt>'IN'</tt>, <tt>'NOT IN'</tt>, <tt>'BETWEEN'</tt>, or <tt>'NOT BETWEEN'</tt>. You don't have to specify a value when using the <tt>'EXISTS'</tt> or <tt>'NOT EXISTS'</tt> comparisons in WordPress 3.9 and up. <br />(<strong>Note:</strong> Due to <a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/ticket/23268">bug #23268</a>, <tt>value</tt> was required for <tt>NOT EXISTS</tt> comparisons to work correctly prior to 3.9. You had to supply <i>some</i> string for the <tt>value</tt> parameter. An empty string or <tt>NULL</tt> will NOT work. However, any other string will do the trick and will NOT show up in your SQL when using <tt>NOT EXISTS</tt>. Need inspiration? How about <tt>'bug #23268'</tt>.)</li>
+<li> <b><tt>compare</tt></b> (<i>string</i>) - Operator to test. Possible values are '=', '!=', '&gt;', '&gt;=', '&lt;', '&lt;=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS' (only in WP &gt;= 3.5), and 'NOT EXISTS' (also only in WP &gt;= 3.5). Values 'REGEXP', 'NOT REGEXP' and 'RLIKE' were added in WordPress 3.7. Default value is '='.</li>
+<li> <b><tt>type</tt></b> (<i>string</i>) - Custom field type. Possible values are 'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', 'UNSIGNED'. Default value is 'CHAR'.</li></ul></li></ul>
+<p>The <tt>'type'</tt> <tt>DATE</tt> works with the <tt>'compare'</tt> value <tt>BETWEEN</tt> only if the date is stored at the format <tt>YYYY-MM-DD</tt> and tested with this format.
+</p><p><em>Note:</em> The <tt>'meta_key'</tt>, <tt>'meta_value'</tt>, <tt>'meta_type'</tt> and <tt>'meta_compare'</tt> arguments will only work if you use the second method described below.
+</p>
+<h3><span class="mw-headline" id="Initializing_WP_Meta_Query">Initializing WP_Meta_Query</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Meta_Query&amp;action=edit&amp;section=4" title="Edit section: Initializing WP Meta Query">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>You generally have two options on how to initialize and use a new WP_Meta_Query object:
+</p><p><b>Passing an Array of query parameters to the constructor:</b>
+</p>
+<pre>
+$meta_query_args = array(
+	'relation' =&gt; 'OR', // Optional, defaults to "AND"
+	array(
+		'key'     =&gt; '_my_custom_key',
+		'value'   =&gt; 'Value I am looking for',
+		'compare' =&gt; '='
+	)
+);
+$meta_query = new WP_Meta_Query( $meta_query_args );
+</pre>
+<p>In this case, you pass an array of key/value pair arrays (which were described above in the <b>meta_query</b> argument).
+</p><p>You can optionally pass the `relation` key and set it to either <b>OR</b> or <b>AND</b>. It defines the relation, when there is more than one meta query (whether all of the conditions should be met, or at least one of them needs to be met). 
+</p><p>Nested arrays can be used to construct complex queries. For example, where _my_custom_key = value OR (_my_custom_key_2 = value AND _my_custom_key_3 = value).
+</p>
+<pre>
+$meta_query_args = array(
+	'relation' =&gt; 'OR', // Optional, defaults to "AND"
+	array(
+		'key'     =&gt; '_my_custom_key',
+		'value'   =&gt; 'Value I am looking for',
+		'compare' =&gt; '='
+	),
+	array(
+		'relation' =&gt; 'AND',
+		array(
+			'key'     =&gt; '_my_custom_key_2',
+			'value'   =&gt; 'Value I am looking for 2',
+			'compare' =&gt; '='
+		),
+		array(
+			'key'     =&gt; '_my_custom_key_3',
+			'value'   =&gt; 'Value I am looking for 3',
+			'compare' =&gt; '='
+		)
+	)
+);
+$meta_query = new WP_Meta_Query( $meta_query_args );
+</pre>
+<p><b>Using the WP_Meta_Query::parse_query_vars( $query ) method:</b>
+You can use this method, if you want to use the simple query args(`meta_key`, `meta_value`, `meta_type`, `meta_compare`), or if you are unsure of the presence of meta query parameters.
+</p>
+<pre>
+// $query_vars can have various contents, so an example is not added here, but you need to have it defined beforehand
+$meta_query = new WP_Meta_Query();
+// Won't work with an array( 'relation', array( 'key' =&gt; '...' ) )
+// as the parse_query_vars() method searches for the `meta_` prefix
+$meta_query-&gt;parse_query_vars( array(
+	'meta_key' =&gt; 'some_key',
+	// etc.
+) );
+</pre>
+<h3><span class="mw-headline" id="Getting_the_final_SQL">Getting the final SQL</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Meta_Query&amp;action=edit&amp;section=5" title="Edit section: Getting the final SQL">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>You can retrieve the generated SQL by using the following method.
+</p>
+<pre>$mq_sql = $meta_query-&gt;get_sql(
+	$type,
+	$primary_table,
+	$primary_id_column,
+	$context = null
+);</pre>
+<p>List of Arguments:
+</p>
+<ul><li> <b><tt>$type</tt>'<i> (</i>string<i>) - Type of meta(</i>post<i>, </i>comment<i>, </i>user</b>).</li>
+<li> <b><tt>$primary_table</tt></b> (<i>string</i>) - The table where we will be looking for rows. You can pass for instance <code>$wpdb-&gt;posts</code>, or the alias name if you are aliasing the table in your SQL query</li>
+<li> <b><tt>$primary_id_column</tt></b> (<i>string</i>) - The column that holds the ID(for posts, it is <i>ID</i>, for comments it is <i>comment_ID</i> and for users is <i>ID</i>).</li>
+<li> <b><tt>$context</tt></b> (<i>object</i>) - Optional - The main query object. It is only used when the result is passed to the <i>get_meta_sql</i> filter.</li></ul>
+<p>On failure(for instance - lacking any meta query parameters in the query array), this function will return `false`. 
+</p><p>On success, it will return an array like this: 
+</p>
+<pre>
+array(
+	'join'  =&gt; $join_sql,
+	'where' =&gt; $where_sql
+)
+</pre>
+<p>With each key holding the SQL for the corresponding section.
+</p><p><b>Example: Single Meta Entry - Flat array</b>
+</p><p><i>Query</i>
+</p>
+<pre>
+// Note that this will produce a "key only" query
+// If you want a full one, add a meta_value and meta_compare array key/value pair
+$query_args = array(
+	'meta_key' =&gt; 'some_key_name',
+);
+$meta_query = new WP_Meta_Query();
+$meta_query-&gt;parse_query_vars( $query_args );
+$mq = $meta_query-&gt;get_sql(
+	'post',
+	$wpdb-&gt;posts,
+	'ID',
+	null
+);</pre>
+<p><i>Result</i>
+</p>
+<pre>array (size=2)
+  'join' =&gt; string ' INNER JOIN wp_postmeta ON (wp_posts.ID = wp_postmeta.post_id)' (length=62)
+  'where' =&gt; string ' AND (wp_postmeta.meta_key = 'some_key' )' (length=40)</pre>
+<p><b>Example: Multiple Meta Entries - Multi dimensional array:</b>
+</p><p><i>Query:</i>
+</p>
+<pre>$query_args = array( 'meta_query' =&gt; array(
+	'relation' =&gt; 'OR',
+	array(
+		'key' =&gt; 'foo_key',
+		// 'value' =&gt; 'foo',
+		// 'compare' =&gt; 'LIKE',
+	),
+	array(
+		'key' =&gt; 'bar_key',
+	),
+) );
+$meta_query = new WP_Meta_Query();
+$meta_query-&gt;parse_query_vars( $query_args );
+$mq_sql = $meta_query-&gt;get_sql(
+	'post',
+	$wpdb-&gt;posts,
+	'ID',
+	null
+);</pre>
+<p><i>Result:</i>
+</p>
+<pre>'join' =&gt; string ' INNER JOIN wp_postmeta ON wp_posts.ID = wp_postmeta.post_id' (length=60)
+'where' =&gt; string ' AND (wp_postmeta.meta_key = 'foo_key' OR wp_postmeta.meta_key = 'bar_key' )' (length=75)</pre>
+<p><i>Note: This example will <b>not</b> append a space to the <tt>join</tt> statement, so you have to do it manually to not crash your query. The same goes for the <tt>where</tt> statement.</i>
+</p><p>If you're using the <tt>value</tt> and <tt>compare</tt> parts of the <tt>meta_query</tt> input argument array, then the query string will look something like the following:
+</p>
+<pre>'where' =&gt; string ' AND (wp_postmeta.meta_key = 'foo_key' OR  (mt1.meta_key = 'bar_key' AND CAST(mt1.meta_value AS CHAR) LIKE '%foo%') )'</pre>
+<p>Keep in mind that <tt>mt1</tt> is the <tt>alias</tt> of the meta table and the <tt>join</tt> clause will look something like this and therefore use the <tt>JOIN</tt> <b>twice</b>:
+</p>
+<pre>'join' =&gt; string ' INNER JOIN wp_postmeta ON wp_posts.ID = wp_postmeta.post_id INNER JOIN wp_postmeta AS mt1 ON (wp_posts.ID = mt1.post_id)'</pre>
+<p>Use that in further queries or form inside your <tt>posts_clauses</tt>, <tt>posts_where</tt> or <tt>posts_join</tt> filter callbacks.
+</p>
+<h3><span class="mw-headline" id="Named_sub-meta_queries_and_multiple_orderby_arguments">Named sub-meta queries and multiple orderby arguments</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Meta_Query&amp;action=edit&amp;section=6" title="Edit section: Named sub-meta queries and multiple orderby arguments">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Named meta sub-queries are particularly useful when you wish to sort by multiple different meta keys. If you pass the name (key) of your meta sub-query to the orderby array, WordPress will use that sub-query as the orderby parameter. See this example below:
+</p>
+<pre>
+$q = new WP_Query( array(
+    'meta_query' =&gt; array(
+        'relation' =&gt; 'AND',
+        'state_clause' =&gt; array(
+            'key' =&gt; 'state',
+            'value' =&gt; 'Wisconsin',
+        ),
+        'city_clause' =&gt; array(
+            'key' =&gt; 'city',
+            'compare' =&gt; 'EXISTS',
+        ), 
+    ),
+    'orderby' =&gt; array( 
+        'city_clause' =&gt; 'ASC',
+        'state_clause' =&gt; 'DESC',
+    ),
+) );
+</pre>
+<p>Props cybmeta on WPSE for <a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/a/246358/3687">this example</a>.
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Meta_Query&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>WP_Meta_Query()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/class-wp-meta-query.php#L0">wp-includes/class-wp-meta-query.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Meta_Query&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div style="background-color:#DFDFDF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Class_Reference" title="Class Reference">Class Reference</a> and index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003738
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.024 seconds
+Preprocessor visited node count: 186/1000000
+Preprocessor generated node count: 555/1000000
+Post‐expand include size: 1254/2097152 bytes
+Template argument size: 396/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    8.610      1 - -total
+ 39.86%    3.432      1 - Template:Languages
+ 25.69%    2.212      1 - Template:Trac
+ 24.75%    2.131      1 - Template:Class_Footer
+ 13.39%    1.153      1 - Template:Message
+ 12.92%    1.112      1 - Template:ja
+ 11.84%    1.019      1 - Template:en
+  9.43%    0.812      1 - Template:CurrentVersion
+-->

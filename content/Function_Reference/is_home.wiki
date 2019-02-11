@@ -1,0 +1,89 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/is_home/}}
+
+{{Languages|
+{{en|Function_Reference/is_home}}
+{{zh-cn|Function_Reference/is_home}}
+{{he|סימוכין פונקציות/is_home}}
+{{ja|関数リファレンス/is_home}}
+{{tr|Fonksiyon_Listesi/is_home}}
+}}
+==Description==
+This [[Conditional Tags|Conditional Tag]] checks if the [[Template_Hierarchy#Home_Page_display|blog posts index page]] is being displayed. This is a Boolean function, meaning it returns either TRUE or FALSE.
+
+==Usage==
+%%%<?php is_home(); ?>%%%
+
+==Parameters==
+This tag does not accept any parameters.
+
+==Return Values==
+; <tt>(boolean)</tt> : True on success, false on failure.
+
+==Blog Posts Index vs. Site Front Page==
+Since WordPress 2.1, when the static front page functionality was introduced, the blog posts index and site front page have been treated as two different query contexts, with <code>is_home()</code> applying to the blog posts index, and <code>is_front_page()</code> applying to the site front page.
+
+Be careful not to confuse the two query conditionals:
+
+* On the site front page, <code>is_front_page()</code> will always return <code>TRUE</code>, regardless of whether the site front page displays the blog posts index or a static page.
+* On the blog posts index, <code>is_home()</code> will always return <code>TRUE</code>, regardless of whether the blog posts index is displayed on the site front page or a separate page.
+
+Whether <code>is_home()</code> or <code>is_front_page()</code> return <code>TRUE</code> or <code>FALSE</code> depends on the values of certain option values:
+
+* <code>get_option( 'show_on_front' )</code>: returns either <code>'posts'</code> or <code>'page'</code>
+* <code>get_option( 'page_on_front' )</code>: returns the <code>ID</code> of the static page assigned to the front page
+* <code>get_option( 'page_for_posts' )</code>: returns the <code>ID</code> of the static page assigned to the blog posts index (posts page)
+
+When using these query conditionals:
+
+* If <code>'posts' == get_option( 'show_on_front' )</code>:
+** On the site front page:
+*** <code>is_front_page()</code> will return <code>TRUE</code>
+*** <code>is_home()</code> will return <code>TRUE</code>
+** If assigned, WordPress ignores the pages assigned to display the site front page or the blog posts index
+*If <code>'page' == get_option( 'show_on_front' )</code>:
+** On the page assigned to display the site front page:
+*** <code>is_front_page()</code> will return <code>TRUE</code>
+*** <code>is_home()</code> will return <code>FALSE</code>
+** On the page assigned to display the blog posts index:
+*** <code>is_front_page()</code> will return <code>FALSE</code>
+*** <code>is_home()</code> will return <code>TRUE</code>
+
+==Examples==
+The following example can be used in your sidebar to display different content when displaying the blog posts index.
+%%%
+<?php
+if ( is_home() ) {
+    // This is the blog posts index
+    get_sidebar( 'blog' );
+} else {
+    // This is not the blog posts index
+    get_sidebar();
+}
+?>
+%%%
+
+==Notes==
+
+<code>is_home</code> uses the global <var>$wp_query</var> WP_Query object. <code>is_home</code> isn't usable before the [[Plugin API\Action Reference\parse_query|parse_query]] action.
+
+* See Also: [[Function Reference/is front page|is_front_page()]]
+
+==Obsolete Usage==
+
+Prior to WordPress 2.1, WordPress did not have static front page functionality, which meant that the site front page and the blog posts index were always the same. Thus, <code>is_home()</code> always returned <code>TRUE</code> on the site front page. 
+
+==Change Log==
+Since: 1.5.0
+
+==Source File==
+<!-- Need links to current source code files -->
+<tt>is_home()</tt> is located in {{Trac|wp-includes/query.php}}.
+
+==Related==
+
+{{Conditional Tags}}
+
+{{Tag Footer}}
+
+[[Category:Conditional Tags]]
+[[Category:Functions]]

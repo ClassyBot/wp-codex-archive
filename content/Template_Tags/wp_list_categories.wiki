@@ -1,0 +1,314 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/wp_list_categories/}}
+
+{{Languages|
+{{en|Template Tags/wp_list_categories}}
+{{ja|テンプレートタグ/wp_list_categories}}
+}}
+
+== Description ==
+
+Displays a list of [[Glossary#Category|Categories]] as links. When a Category link is clicked, all the posts in that Category will display on a Category Page using the appropriate [[Category Templates|Category Template]] dictated by the [[Template_Hierarchy|Template Hierarchy rules]].  
+
+'''NOTE''': '''wp_list_categories()''' works in much the same way as the two template tags replaced in WordPress 2.1, [[Template_Tags/list_cats|list_cats()]] and [[Template_Tags/wp_list_cats|wp_list_cats()]] (both deprecated).
+
+If you need a function that does not format the results, try [http://codex.wordpress.org/Function_Reference/get_categories get_categories()]
+
+== Usage ==
+
+%%% <?php wp_list_categories( $args ); ?> %%%
+
+===Default Usage===
+
+<pre>
+<?php 
+    $args = array(
+	'show_option_all'    => '',
+	'orderby'            => 'name',
+	'order'              => 'ASC',
+	'style'              => 'list',
+	'show_count'         => 0,
+	'hide_empty'         => 1,
+	'use_desc_for_title' => 1,
+	'child_of'           => 0,
+	'feed'               => '',
+	'feed_type'          => '',
+	'feed_image'         => '',
+	'exclude'            => '',
+	'exclude_tree'       => '',
+	'include'            => '',
+	'hierarchical'       => 1,
+	'title_li'           => __( 'Categories' ),
+	'show_option_none'   => __( '' ),
+	'number'             => null,
+	'echo'               => 1,
+	'depth'              => 0,
+	'current_category'   => 0,
+	'pad_counts'         => 0,
+	'taxonomy'           => 'category',
+	'walker'             => null
+    );
+    wp_list_categories( $args ); 
+?>
+</pre>
+
+By default, the usage shows:
+* No link to all categories
+* Sorts the list of Categories by the Category name in ascending order
+* Displayed in an unordered list style
+* Does not show the post count
+* Displays only Categories with posts
+* Sets the title attribute to the Category Description
+* Is not restricted to the child_of any Category
+* No feed or feed image used
+* Does not exclude any Category and includes all Categories
+* Displays the active Category with the CSS Class-Suffix ' current-cat'
+* Shows the Categories in hierarchical indented fashion
+* Display Category as the heading over the list
+* No SQL LIMIT is imposed ('number' => 0 is not shown above)
+* Displays (echos) the categories
+* No limit to depth
+* All categories.
+* The list is rendered using a new walker object of the the Walker_Category class
+
+== Parameters ==
+
+; show_option_all : (''string'') When "style" is set to "list" (see below), setting this parameter outputs a link to all categories. The default value is "NULL" (all category link not displayed).
+ 
+; orderby : (''string'') Sort categories alphabetically, by unique Category ID, or by the count of posts in that Category. Valid values:
+:* <tt>ID</tt> 
+:* <tt>name</tt> - Default
+:* <tt>slug</tt> 
+:* <tt>count</tt> 
+:* <tt>term_group</tt>
+
+; order : (''string'') Sort order for categories (either ascending or descending). The default is ''ascending''. Valid values:
+:* <tt>ASC</tt> - Default
+:* <tt>DESC</tt>
+
+; style : (''string'') Style to display the categories list in. A value of ''list'' displays the categories as list items while ''none'' generates no special display method (the list items are separated by <tt><nowiki><br></nowiki></tt> tags). The default setting is ''list'' (creates list items for an unordered list). See [[Template_Tags/wp_list_categories#Markup_and_Styling_of_Category_Lists|the markup section]] for more. Valid values:
+:* <tt>list</tt> - Default
+:* <tt>none</tt>
+
+; show_count : (''boolean'') Toggles the display of the current count of posts in each category. The default is ''false'' (do not show post counts). Valid values:
+:* <tt>1 (True)</tt> 
+:* <tt>0 (False)</tt> - Default
+
+; hide_empty : (''boolean'') Toggles the display of categories with no posts. The default is ''true'' (hide empty categories). Valid values:
+:* <tt>1 (True)</tt> - Default
+:* <tt>0 (False)</tt>
+
+; use_desc_for_title : (''boolean'') Sets whether a category's [[Manage_Categories_SubPanel|description]] is inserted into the <tt>title</tt> attribute of the links created (i.e. <nowiki><a title="<em>Category Description</em>" href="...</nowiki>). The default is ''true'' (category descriptions will be inserted). Valid values:
+:* <tt>1 (True)</tt> - Default
+:* <tt>0 (False)</tt>
+
+; child_of : (''integer'') Only display categories that are children of the category identified by this parameter.  There is no default for this parameter.
+
+; feed : (''string'') Display a link to each category's [[Glossary#RSS|rss-2]] feed and set the link text to display. The default is ''no text and no feed displayed''.
+
+; feed_type : (''string'')
+
+; feed_image : (''string'') Set a URI for an image (usually an rss feed icon) to act as a link to each categories' rss-2 feed. This parameter overrides the '''feed''' parameter. There is no default for this parameter.
+
+; exclude : (''string'') Exclude one or more categories from the results. This parameter takes a comma-separated list of category ids. The parameter ''include'' must be empty. See [[#Include_or_Exclude_Categories|the example]].
+
+; exclude_tree : (''string'') Exclude category-tree from the results. This parameter takes a comma-separated list of category ids. The parameter ''include'' must be empty. If the ''hierarchical'' parameter is true, then use ''exclude'' instead of ''exclude_tree''. This parameter added at [[Version 2.7.1]]
+
+; include : (''string'') Only include the categories detailed in a comma-separated list by category id. See [[Template_Tags/wp_list_categories#Include_or_Exclude_Categories|the example]].
+
+; hierarchical : (''boolean'') Display sub-categories as inner list items (below the parent list item) or inline.  The default is ''true'' (display sub-categories below the parent list item). Valid values:
+:* <tt>1 (True)</tt> - Default
+:* <tt>0 (False)</tt>
+
+; title_li : (''string'') Set the title and style of the outer list item. Defaults to "Categories".  If present but empty, the outer list item will not be displayed. See below for [[#Display or Hide the List Heading|examples]].
+
+; show_option_none : (''string'') Set the text to show when no categories are listed. Defaults to "No categories".
+
+; number : (''integer'') Sets the number of Categories to display.  This causes the SQL LIMIT value to be defined.  Default to no LIMIT.
+
+; echo : (''boolean'') Show the result or keep it in a variable. The default is ''true'' (display the categories organized). This parameter added at [[Version 2.3]] Valid values:
+:* <tt>1 (True)</tt> - Default
+:* <tt>0 (False)</tt>
+
+; depth : (''integer'') This parameter controls how many levels in the hierarchy of Categories are to be included in the list of Categories. The default value is ''0'' (display all Categories and their children). <strong>NOTE - From #L289: The 'hierarchical' argument, which is disabled by default, will override the depth argument, unless it is true. When the argument is false, it will display all of the categories. When it is enabled it will use the value in the 'depth' argument.</strong> This parameter added at [[Version 2.5]]
+:* <tt>0</tt>  - All Categories and child Categories (Default).
+:* <tt>-1</tt> - All Categories displayed in flat (no indent) form (overrides '''hierarchical''').
+:* <tt>1</tt>  - Show only top level Categories
+:* <tt>n</tt>  - Value of n (some number) specifies the depth (or level) to descend in displaying Categories
+
+; current_category : (''integer'') Allows you to force the "current-cat" to appear on uses of wp_list_categories that are not on category archive pages. Normally, the current-cat is set only on category archive pages. If you have another use for it, or want to force it to highlight a different category, this overrides what the function thinks the "current" category is. This parameter added at [[Version 2.6]]
+
+; pad_counts : (''boolean'') Calculates link or post counts by including items from child categories.  If show_counts and hierarchical are true this is automatically set to true.  This parameter added at [[Version 2.9]] Valid values:
+:* <tt>1 (true)</tt> 
+:* <tt>0 (false)</tt> - default
+
+; taxonomy : (''string'') Taxonomy to return.
+This parameter added at [[Version 3.0]] Valid values:
+:* <tt>category</tt> - default
+:* <tt>taxonomy</tt> - or any registered taxonomy
+
+; walker : (''object'') Walker class to render the list with. Valid values:
+:* <tt>object</tt> - an instance of a class that extends either [http://codex.wordpress.org/Class_Reference/Walker_Category Walker_Category] or [http://codex.wordpress.org/Class_Reference/Walker Walker]
+
+== Examples ==
+
+=== Include or Exclude Categories ===
+To sort categories alphabetically and include only the categories with IDs of 16, 3, 9 and 5, you could write the following code:
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('orderby=name&include=3,5,9,16'); ?&gt; 
+&lt;/ul&gt;
+</pre>
+
+The following example displays category links sorted by name, shows the number of posts for each category, and excludes the category with the ID of 10 from the list.  
+ 
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('orderby=name&show_count=1&exclude=10'); ?&gt; 
+&lt;/ul&gt;
+</pre>
+
+=== Display or Hide the List Heading ===
+The '''title_li''' parameter sets or hides a title or heading for the category list generated by ''wp_list_categories''. It defaults to <tt>'(__('Categories')'</tt>, i.e. it displays the word "Categories" as the list's heading. If the parameter is set to a null or empty value, no heading is displayed. The following example code excludes categories with IDs 4 and 7 and hides the list heading:
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('exclude=4,7&title_li='); ?&gt;
+&lt;/ul&gt;
+</pre>
+
+In the following example, only Categories with IDs 9, 5, and 23 are included in the list and the heading text has been changed to the word "Poetry", with a heading style of <tt><nowiki><h2></nowiki></tt>: 
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('include=5,9,23&title_li=&lt;h2&gt;' . __('Poetry') . '&lt;/h2&gt;' ); ?&gt; 
+&lt;/ul&gt;
+</pre>
+
+=== Only Show Children of a Category ===
+The following example code generates category links, sorted by ID, only for the children of the category with ID 8; it shows the number of posts per category and hides category descriptions from the <tt>title</tt> attribute of the generated links. '''Note:''' If there are no posts in a parent Category, the parent Category will not display.
+
+<pre>
+&lt;ul&gt; 
+&lt;?php wp_list_categories('orderby=id&show_count=1&use_desc_for_title=0&child_of=8'); ?&gt;
+&lt;/ul&gt;
+</pre>
+
+=== Remove Parentheses from Category Counts ===
+When <tt>show_count=1</tt>, each category count is surrounded by parentheses.  In order to remove the parentheses without modifying core WordPress files, use the following code.
+
+<pre>
+&lt;?php
+$variable = wp_list_categories('echo=0&show_count=1&title_li=&lt;h2&gt;Categories&lt;/h2&gt;');
+$variable = preg_replace('~\((\d+)\)(?=\s*+<)~', '$1', $variable);
+echo $variable;
+?&gt;
+</pre>
+
+=== Display Categories with RSS Feed Links ===
+The following example generates Category links sorted by name, shows the number of posts per Category, and displays links to the RSS feed for each Category.
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('orderby=name&show_count=1&feed=RSS'); ?&gt;
+&lt;/ul&gt;
+</pre>
+
+To replace the rss link with a feed icon, you could write:
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('orderby=name&show_count=1&feed_image=/images/rss.gif'); ?&gt;
+&lt;/ul&gt;
+</pre>
+
+=== Display Terms in a custom taxonomy ===
+With [[Version 3.0]] the ''taxonomy'' parameter was added to enable wp_list_categories() function to list [[Custom Taxonomies]].  This example list the terms in the taxonomy ''genre'':
+
+<pre>
+<?php 
+//list terms in a given taxonomy using wp_list_categories (also useful as a widget if using a PHP Code plugin)
+
+$taxonomy     = 'genre';
+$orderby      = 'name'; 
+$show_count   = 0;      // 1 for yes, 0 for no
+$pad_counts   = 0;      // 1 for yes, 0 for no
+$hierarchical = 1;      // 1 for yes, 0 for no
+$title        = '';
+
+$args = array(
+  'taxonomy'     => $taxonomy,
+  'orderby'      => $orderby,
+  'show_count'   => $show_count,
+  'pad_counts'   => $pad_counts,
+  'hierarchical' => $hierarchical,
+  'title_li'     => $title
+);
+?>
+
+<ul>
+<?php wp_list_categories( $args ); ?>
+</ul>
+</pre>
+
+=== Display Categories Assigned to a Post ===
+Display the categories (or terms from other taxonomies) assigned to a post ordered by parent-child category relationship. Similar to the function [[Function_Reference/get_the_category_list|get_the_category_list()]] which orders the categories by name. This example must be used inside the loop. 
+<pre>
+<?php
+$taxonomy = 'category';
+
+// get the term IDs assigned to post.
+$post_terms = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
+// separator between links
+$separator = ', ';
+
+if ( !empty( $post_terms ) && !is_wp_error( $post_terms ) ) {
+
+	$term_ids = implode( ',' , $post_terms );
+	$terms = wp_list_categories( 'title_li=&style=none&echo=0&taxonomy=' . $taxonomy . '&include=' . $term_ids );
+	$terms = rtrim( trim( str_replace( '<br />',  $separator, $terms ) ), $separator );
+
+	// display post categories
+	echo  $terms;
+}
+?>
+</pre>
+
+=== Markup and Styling of Category Lists ===
+By default, '''wp_list_categories()''' generates nested unordered lists (<tt>ul</tt>) within a single list item (<tt>li</tt>) titled "Categories".
+
+You can [[#Display_or_Hide_the_List_Heading|remove the outermost item and list]] by setting the <tt>title_li</tt> [[#Parameters|parameter]] to an empty string. You'll need to wrap the output in an ordered list (<tt>ol</tt>) or unordered list yourself (see the [[#Examples|examples]] above). If you don't want list output at all, set the <tt>style</tt> parameter to <var>none</var>.
+
+You can style the output with these [[Glossary#CSS|CSS selectors]] :
+
+  li.categories { ... }  /* outermost list item */
+  li.cat-item { ... }
+  li.cat-item-7 { ... }  /* category ID #7, etc */
+  li.current-cat { ... }
+  li.current-cat-parent { ... }
+  ul.children { ... }
+
+== Changelog ==
+* Since: [[Version 2.1|2.1.0]]
+* [[Version 2.3|2.3.0]] : Added the <code>echo</code> parameter.
+* [[Version 2.5|2.5.0]] : Added the <code>depth</code> parameter.
+* [[Version 2.6|2.6.0]] : Added the <code>current_category</code> parameter.
+* [[Version 2.7.1|2.7.1]] : Added the <code>exclude_tree</code> parameter.
+* [[Version 2.9|2.9.0]] : Added the <code>pad_counts</code> parameter.
+* [[Version 3.0|3.0.0]] : Added the <code>taxonomy</code> parameter.
+* [[Version 3.4|3.4.0]] : Removed <code>show_last_update</code> parameter.
+
+== Source File ==
+
+<tt>wp_list_categories()</tt> is located in {{Trac|wp-includes/category-template.php}}.
+
+== Related ==
+
+{{Category Tags}}
+, [[Function_Reference/get_categories|get_categories]]
+
+{{Lists Tags}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

@@ -1,0 +1,372 @@
+<p><br />[15:00:42] &lt;MarkJaquith&gt; Who is here?
+<br />[15:00:46] |&lt;-- fergbrain has left irc.freenode.net (Connection timed out)
+<br />[15:01:01] &lt;Nazgul&gt; Me
+<br />[15:01:11] &lt;mdawaffe&gt; I'll probably be in and out
+<br />[15:01:12] &lt;Strider72&gt; present
+<br />[15:01:19] &lt;TVSET&gt; here
+<br />[15:01:29] &lt;MarkJaquith&gt; rboren and photomatt_london&#160;?
+<br />[15:01:39] &lt;Strider72&gt; keeping tabs mostly.  I'm in and out as well
+<br />[15:02:17] &lt;rboren&gt; MarkJaquith: I'm here, but i have toddler duty.
+<br />[15:02:24] &lt;rboren&gt; So typing will be slow.
+<br />[15:02:32] &lt;photomatt_london&gt; howdy
+<br />[15:05:02] &lt;--| josephscott has left #wordpress-dev
+<br />[15:05:37] --&gt;| josephscott (n=josephsc@67-42-121-57.slkc.qwest.net) has joined #wordpress-dev
+<br />[15:06:07] &lt;MarkJaquith&gt; I've started moving forward on prepare() and marking places that expect pre-slashed data.  Marking those places with: // expected_slashed ($slashed_varname)
+<br />[15:06:49] --&gt;| fergbrain (n=AndrewFe@wl-dhcp142-33.Mines.EDU) has joined #wordpress-dev
+<br />[15:07:07] * westi|dinner is making and eating dinner
+<br />[15:07:11] &lt;rboren&gt; MarkJaquith: good stuff
+<br />[15:07:18] --&gt;| Danco (n=dcoulter@gc81-141.greenville.edu) has joined #wordpress-dev
+<br />[15:07:20] &lt;MarkJaquith&gt; Good news is that many of the places that expect slashed data are inputs that would seldom have need for slashing.
+<br />[15:07:39] &lt;rboren&gt; slugs, ids, and such?
+<br />[15:07:40] &lt;MarkJaquith&gt; Things like meta_keys (which are usually a-zA-Z0-9_)
+<br />[15:08:01] &lt;MarkJaquith&gt; yeah.  So that mutes the impact somewhat.
+<br />[15:08:19] --&gt;| skeltoac_mac (n=andy@cpe-70-113-30-226.austin.res.rr.com) has joined #wordpress-dev
+<br />[15:09:28] &lt;besonen_mobile2&gt; i'm here to offer some feedback about the wp-hackers s/n issue.  just finishing up another task.
+<br />[15:09:51] =-= skeltoac_mac has changed the topic to ``2.4 Planning at each Wednesday 12:00 PDT (01900 UTC)
+<br />[15:10:46] &lt;MarkJaquith&gt; I'll be writing an article about $wpdb-&gt;prepare() sometime in the next week, targeted towards plugin developers (good thing is that it is in 2.3, so they can start updating now)
+<br />[15:13:27] &lt;MarkJaquith&gt; One other thing I'd like to work on for 2.4: new default "bird's-eye/dashboard" view for Manage &gt; Posts.  The dropdowns/search stuff is great for specific views, but the default unfiltered view is not all that useful, especially for things like drafts.
+<br />[15:14:18] &lt;MarkJaquith&gt; Don't know if that is affected by admin redesign at all.
+<br />[15:15:16] &lt;mdawaffe&gt; MarkJaquith: tangentially - we never did that: if ( count &lt; 35 ) dropdown(); else textbox();
+<br />[15:15:16] &lt;Nazgul&gt; Talking about design. Will Sandbox be included in 2.4?
+<br />[15:15:42] &lt;MarkJaquith&gt; mdawaffe: for authors/cats&#160;?
+<br />[15:15:46] &lt;mdawaffe&gt; yeah
+<br />[15:16:01] &lt;MarkJaquith&gt; Runs into scaling issues?
+<br />[15:16:03] &lt;skeltoac_mac&gt; Sandbox 1.0 is ready and it supports tags nicely, so I see no reason not to put it in.
+<br />[15:16:13] &lt;mdawaffe&gt; MarkJaquith: yeah
+<br />[15:16:44] &lt;MarkJaquith&gt; mdawaffe: would be awesome if it had unobtrusive JS autosuggest for the textbox
+<br />[15:16:58] &lt;mdawaffe&gt; agreed
+<br />[15:17:44] &lt;MarkJaquith&gt; I believe the plan for Sandbox was to bundle it as a non-default theme.  Right?
+<br />[15:19:42] &lt;mdawaffe&gt; skeltoac_mac: does sandbox 1.0 still have its own skin mechanism (in contrast to WP's native potential for stylesheet only themes)
+<br />[15:19:44] &lt;mdawaffe&gt;&#160;?
+<br />[15:19:52] &lt;skeltoac_mac&gt; no
+<br />[15:20:09] &lt;MarkJaquith&gt; Uses WP native stylesheet-only themes.
+<br />[15:20:13] &lt;mdawaffe&gt; good
+<br />[15:20:16] &lt;skeltoac_mac&gt; we ripped that out and encouraged stylesheet-only themes
+<br />[15:20:23] &lt;mdawaffe&gt; awesome&#160;:)
+<br />[15:21:23] &lt;skeltoac_mac&gt; non-default theme, yes
+<br />[15:21:47] --&gt;| Ozh (n=ozh@194.5.30.100) has joined #wordpress-dev
+<br />[15:22:01] &lt;Ozh&gt; (hello)
+<br />[15:22:23] --&gt;| jared (n=jared@worldcharitypoker.org) has joined #wordpress-dev
+<br />[15:22:27] &lt;skeltoac_mac&gt; I wouldn't mind too much if we broke default-based themes (few or none that I know of)
+<br />[15:22:57] &lt;MarkJaquith&gt; How would we be breaking default-based themes?
+<br />[15:22:59] &lt;skeltoac_mac&gt; but I wouldn't want to put sandbox in a "default" dir
+<br />[15:23:34] &lt;skeltoac_mac&gt; we wouldn't be unless we changed the kubrick dirname from "default"
+<br />[15:23:50] &lt;MarkJaquith&gt; ah.  Short-sighted directory name, that.
+<br />[15:23:50] &lt;skeltoac_mac&gt; which isn't part of the proposal
+<br />[15:23:59] &lt;skeltoac_mac&gt; yup&#160;:)
+<br />[15:24:36] &lt;MarkJaquith&gt; josephscott: how goes the XML-RPC buddy search?
+<br />[15:24:41] &lt;rboren&gt; We can move kubrick and map requests for default to the new dir.
+<br />[15:24:53] &lt;josephscott&gt; I had two responses
+<br />[15:25:08] &lt;josephscott&gt; Dougal said he may have some time, perhaps
+<br />[15:25:19] &lt;josephscott&gt; which is excellent, he knows all the background stuff
+<br />[15:25:26] &lt;MarkJaquith&gt; excellent.
+<br />[15:25:55] &lt;josephscott&gt; and Paolo Tresso who expressed an interest
+<br />[15:26:07] &lt;MarkJaquith&gt; rboren, skeltoac_mac, will sandbox files work when integrated into another theme (i.e. without Sandbox's functions.php)&#160;?
+<br />[15:27:17] &lt;skeltoac_mac&gt; Sandbox's functions defined in functions.php are unconditional at this time -- fatal to remove
+<br />[15:28:06] &lt;skeltoac_mac&gt; themes based on another theme and providing their own functions.php should not prevent loading the basis theme's functions.php
+<br />[15:28:07] &lt;skeltoac_mac&gt; does it?
+<br />[15:31:01] &lt;Nazgul&gt; MarkJaquith, will there be another 2.0.x maintenace release? We still have some treck tickets milestoned for 2.0.eventually that are just sitting there.
+<br />[15:31:42] &lt;MarkJaquith&gt; Nazgul: yeah, there will be.  But most of those 2.0.eventually things are probably going to have to be sidelined if they're not security issues.
+<br />[15:32:33] &lt;MarkJaquith&gt; skeltoac_mac: I'm thinking of fallback, say if a theme doesn't supply comments.php
+<br />[15:32:39] &lt;MarkJaquith&gt; It'll use /default/comments.php
+<br />[15:32:52] &lt;skeltoac_mac&gt; oh
+<br />[15:33:02] &lt;Nazgul&gt; Afaik non of them are security related. Mind if Ise them than?
+<br />[15:33:13] &lt;skeltoac_mac&gt; MarkJaquith: sandbox wasn't meant for that
+<br />[15:33:16] &lt;Nazgul&gt; "I close" I mean
+<br />[15:33:19] &lt;MarkJaquith&gt; skeltoac_mac: also with get_header() if header.php is missing... get_sidebar(), get_footer()
+<br />[15:33:49] &lt;MarkJaquith&gt; skeltoac_mac: Okay, so fallback would still be to Kubrick
+<br />[15:33:59] &lt;MarkJaquith&gt; Nazgul: go for it.
+<br />[15:34:00] --&gt;| io_error (n=error@unaffiliated/ioerror/x-384576) has joined #wordpress-dev
+<br />[15:35:33] &lt;MarkJaquith&gt; rboren: where are we with page searching?
+<br />[15:35:43] &lt;Ozh&gt; doing fallback to default theme will probably break a lot of themes (style wise, if not code wise)
+<br />[15:35:43] &lt;rboren&gt; The shed is red.
+<br />[15:36:06] &lt;josephscott&gt; and the discussion plentiful&#160;:-)
+<br />[15:36:17] &lt;MarkJaquith&gt; Ozh: fallback to default theme is what we've been doing the whole time.
+<br />[15:36:17] &lt;rboren&gt; I'm leaning toward a unified search of everything with page content and excerpts stripped via filter.
+<br />[15:37:01] &lt;MarkJaquith&gt; So, relevance-based results?
+<br />[15:37:10] &lt;Ozh&gt; Mark: but not extended to more file than doing now, then&#160;? I thought it was about falling back to every missing files (single pages archives etc)
+<br />[15:37:22] &lt;rboren&gt; If we can work it, otherwise just use the ordering we already have.
+<br />[15:38:06] &lt;jared&gt; &lt;MarkJaquith&gt; rboren: where are we with page searching?
+<br />[15:38:06] &lt;jared&gt; &lt;Ozh&gt; doing fallback to default theme will probably break a lot of themes
+<br />[15:38:06] &lt;jared&gt;           (style wise, if not code wise)
+<br />[15:38:07] &lt;jared&gt; &lt;rboren&gt; The shed is red.
+<br />[15:38:07] &lt;jared&gt; &lt;josephscott&gt; and the discussion plentiful&#160;:-)
+<br />[15:38:07] &lt;jared&gt; &lt;MarkJaquith&gt; Ozh: fallback to default theme is what we've been doing the
+<br />[15:38:08] &lt;jared&gt;               whole time.
+<br />[15:38:11] &lt;jared&gt; &lt;rboren&gt; I'm leaning toward a unified search of everything with page content
+<br />[15:38:12] &lt;rboren&gt; And maybe add a function that excerpts the relevant part of the post or page.
+<br />[15:38:17] &lt;MarkJaquith&gt; Ozh: no, that kind of fallback is still within the theme.  If no single.php, use index.php
+<br />[15:38:22] &lt;Ozh&gt; ok
+<br />[15:38:35] &lt;jared&gt; oops, sorry
+<br />[15:38:41] &lt;rboren&gt; no worries
+<br />[15:38:59] &lt;MarkJaquith&gt; rboren: so the ordering would be based on date of publishing
+<br />[15:39:12] &lt;rboren&gt; yeah, that's what we do now, i think
+<br />[15:39:27] &lt;ai2097&gt; "Last modified" might be a good fake for "relevance," but that's a detail&#160;;)
+<br />[15:39:38] &lt;rboren&gt; but relevance would be sweet and should be the default if we go there
+<br />[15:39:42] &lt;MarkJaquith&gt; Only problem there is that unless you're creating new pages all the time, pages will fall off.
+<br />[15:40:54] &lt;ai2097&gt; MarkJaquith: which is what last modified ordering -could- help deal with (albeit in my specific case). But +1 on that.
+<br />[15:43:09] &lt;MarkJaquith&gt; mdawaffe, you started on jQuery stuff yet?
+<br />[15:43:33] --&gt;| zamoose (n=zamoose@213.sub-70-211-181.myvzw.com) has joined #wordpress-dev
+<br />[15:43:36] &lt;mdawaffe&gt; MarkJaquith: I have a fairly comprehensive patch that should apply cleanly with a few tweaks
+<br />[15:43:53] --&gt;| dcj (n=daniel@146-115-123-14.c3-0.smr-ubr2.sbo-smr.ma.cable.rcn.com) has joined #wordpress-dev
+<br />[15:43:59] &lt;MarkJaquith&gt; Great.  That up on Trac?
+<br />[15:44:01] &lt;mdawaffe&gt; I wanted to know if photomatt_london has already started modifying admin files on his local box
+<br />[15:44:09] &lt;mdawaffe&gt; MarkJaquith: will be this afternoon
+<br />[15:44:29] &lt;mdawaffe&gt; last time photomatt_london did that, he reverted a bunch of other changes so that his patch would apply cleanly&#160;:)
+<br />[15:44:51] &lt;MarkJaquith&gt; Hm... I didn't think photomatt_london was going to start on that until he got back, but I could be mistaken (or he could have gotten itchy fingers)
+<br />[15:45:28] &lt;mdawaffe&gt; ok - I'll put it up this afternoo for people to disagree with in any case&#160;:)
+<br />[15:45:36] &lt;--| io_error has left #wordpress-dev ("Vote Yes to Dr. No!")
+<br />[15:46:11] &lt;dcj&gt; you guys are too effcient
+<br />[15:46:16] &lt;dcj&gt; 45 minutes late and the party's over&#160;?&#160;:) 
+<br />[15:46:27] &lt;zamoose&gt; yeah, no kidding
+<br />[15:46:29] &lt;dcj&gt; this must be a stand-up IRC meeting
+<br />[15:46:29] &lt;zamoose&gt; *grin*
+<br />[15:46:29] &lt;error_bot&gt; zamoose: Sent 16 weeks, 0 days, 14 hours, and 40 minutes ago: &lt;RandyWalker&gt; thank you very much for all your help
+<br />[15:47:26] &lt;MarkJaquith&gt; rboren: how about refactoring of the admin menu code.  Given that any thought, or do you want to wait until Matt starts doing some of the admin redesign (which I think may affect a little bit of the admin menu)
+<br />[15:47:45] &lt;rboren&gt; I was gonna wait for that.
+<br />[15:47:51] &lt;rboren&gt; Come in behind and make it work&#160;:-)
+<br />[15:47:58] &lt;--| Danco has left #wordpress-dev
+<br />[15:48:17] =-= mdawaffe is now known as mdawaffe|bbl
+<br />[15:48:52] &lt;MarkJaquith&gt; okay.  My thought about that was that we should definitely retain current API functions for adding menus ... but if the hacky altering of the global arrays has to break, that wouldn't break my heart.  Especially if an API for doing the same thing emerged.
+<br />[15:49:20] &lt;rboren&gt; agreed
+<br />[15:50:15] &lt;TVSET&gt; it would be nice to have more CSS control over admin menu 
+<br />[15:50:25] =-= westi|dinner is now known as westi
+<br />[15:50:35] * westi turns up late
+<br />[15:50:36] &lt;TVSET&gt; there was a ticket in trac with my first attempt, but it wans't localization-friendly&#160;:)
+<br />[15:50:46] --&gt;| CodeNinja (n=Brian@cpe-75-179-6-115.neo.res.rr.com) has joined #wordpress-dev
+<br />[15:51:38] &lt;MarkJaquith&gt; photomatt_london: you still here?  Have anything to say about wp-hackers S/N ratio issues?
+<br />[15:52:59] &lt;zamoose&gt; is the issue that those with commit access and/or real intellectual sway in the process just tune out the list due to noise?
+<br />[15:53:05] &lt;zamoose&gt; is that the issue that we need to address?
+<br />[15:53:08] &lt;westi&gt; MarkJaquith: he has very lagged poor WIFI so he may have lost connection
+<br />[15:54:02] &lt;MarkJaquith&gt; zamoose: (1) too much noise (2) positive feedback loop causes bad S/N ratio to reduce S, further lowering the ratio.
+<br />[15:55:02] &lt;zamoose&gt; I think the issue remains, though: if you create a "ghettoized" area for Those In The Know, how do you encourage/recruit the next generation of contributors?
+<br />[15:55:15] &lt;zamoose&gt; I can understand not wanting to wade through the chaff
+<br />[15:55:57] &lt;zamoose&gt; somebody's gotta be out amongst the hoi polloi
+<br />[15:56:48] &lt;besonen_mobile2&gt; zamoose is hitting the nail on the head
+<br />[15:57:22] &lt;ai2097&gt; That whole argument's already gone down on the list, and it can go back-and-forth 'till everyone's fingers fall off. What's option 3?
+<br />[15:57:40] &lt;MarkJaquith&gt; Yeah, that's definitely a concern.  Trac contributions could be one way that people prove themselves.
+<br />[15:58:20] &lt;zamoose&gt; trac suffers from the s/n problem just as badly, though
+<br />[15:58:28] &lt;zamoose&gt; how many dupe issues get submitted?
+<br />[15:58:40] &lt;zamoose&gt; how many post2cat tickets were generated and then closed in the last two weeks?
+<br />[15:58:41] &lt;MarkJaquith&gt; I don't think it's that bad on Trac.
+<br />[15:58:55] &lt;zamoose&gt; I subscribe to the "all tickets" mailing option
+<br />[15:59:02] &lt;zamoose&gt; it definitely gets bad on certain days
+<br />[15:59:14] &lt;zamoose&gt; esp. coming back on a Monday after a bughunt weekend *grin*
+<br />[15:59:15] &lt;TVSET&gt; I just unsubscribed from that
+<br />[15:59:32] &lt;westi&gt; trac is not too bad and the post2cat type issues can be solved with better communication of changes which I am trying to address
+<br />[16:00:01] &lt;westi&gt; with weekly posts on whats happening in trunk
+<br />[16:00:11] &lt;zamoose&gt; westi: the fact remains, though, that people [ab]use trac in a similar fashion to wp-hackers, submitting what ought to be Support forum posts...
+<br />[16:01:02] &lt;westi&gt; zamoose: yes and they will do that what ever unless we take the approach that other projects have taken in limiting what can be a ticket
+<br />[16:01:08] &lt;MarkJaquith&gt; zamoose: but at least with Trac, we can close tickets... they don't tend to go on and on like wp-hackers threads.
+<br />[16:01:26] &lt;zamoose&gt; true, but ANYONE can close AND reopen them
+<br />[16:01:31] &lt;zamoose&gt; it's a degree of control
+<br />[16:01:49] &lt;zamoose&gt; but I think it benefits from more of a "security by obscurity" than the other venues
+<br />[16:02:01] &lt;westi&gt; if you reduce the control on those who can close and open tickets you just put more work on the people with the power
+<br />[16:02:12] &lt;MarkJaquith&gt; Yeah.  
+<br />[16:02:23] &lt;westi&gt; and increase the hurdle height for people who want to contribute
+<br />[16:02:33] &lt;besonen_mobile2&gt; exactly
+<br />[16:02:38] &lt;zamoose&gt; I understand that
+<br />[16:02:41] &lt;Strider72&gt; how often do people close tickets that they shouldn't close?
+<br />[16:02:47] &lt;westi&gt; we need _anyone_ to be able to reopen a ticket if the issue is not fixed
+<br />[16:02:48] &lt;zamoose&gt; 5% of the time or so
+<br />[16:02:55] &lt;zamoose&gt; in my estimation..
+<br />[16:03:18] &lt;zamoose&gt; westi:
+<br />[16:03:20] &lt;zamoose&gt; agreed
+<br />[16:03:21] &lt;Strider72&gt; better to reopen existing than just have them post a new one.
+<br />[16:03:22] &lt;MarkJaquith&gt; But we have people watching, like lloydbudd et al, who handle that nicely.
+<br />[16:04:06] &lt;westi&gt; the only thing trac needs is a way to block people when we get the very infrequent spam attacks
+<br />[16:04:13] &lt;zamoose&gt; I guess what I'm trying to express is that if wp-hackers is shut down as the Forum Where The Magic Happens and Trac gets promoted fully to that status, there is a distinct possibility that it could begin to exhibit similar behavior
+<br />[16:04:21] &lt;lloydbudd&gt; the team is pretty good about it, I'm only a small part of it
+<br />[16:04:49] &lt;zamoose&gt; what, you don't want discount Soma?
+<br />[16:05:00] &lt;zamoose&gt; and that supr-gro grass seed, my goodness!
+<br />[16:05:09] &lt;zamoose&gt; *grin*
+<br />[16:06:10] &lt;MarkJaquith&gt; We're not talking about having Trac be where discussions/future of project type stuff happens.  Trac is for fixing bugs and letting your code speak.
+<br />[16:06:28] &lt;Strider72&gt; Could it make sense to put a posting limit on the mailing list?  2 emails per day or something?  Would at least encourage consolidating comments (and taking aspects of discussion off-list)
+<br />[16:06:41] &lt;zamoose&gt; it also gets "Here's an idea and let's get diffs associated with it" tickets, Mark...
+<br />[16:07:04] &lt;dcj&gt; down with artificial limits
+<br />[16:07:05] |&lt;-- fergbrain has left irc.freenode.net (Read error: 113 (No route to host))
+<br />[16:07:06] &lt;zamoose&gt; Strider72: artificially limiting discussion isn't a great idea, IMNSHO
+<br />[16:07:14] &lt;dcj&gt; if somebody is being abusive on a list then warn them and then ban them
+<br />[16:07:46] &lt;besonen_mobile2&gt; 2 emails per day is interesting because it provides a mechanism for encouraging people to think before they post
+<br />[16:08:04] &lt;dcj&gt; or to withhold useful comments because they're afraid they'll have somethign more important to say later
+<br />[16:08:14] &lt;besonen_mobile2&gt; and doesn't create a barrier
+<br />[16:08:17] &lt;zamoose&gt; dcj++
+<br />[16:08:18] &lt;MarkJaquith&gt; I think that's a recipe for having people cram a bunch of topics into one e-mail.
+<br />[16:08:25] &lt;zamoose&gt; most def
+<br />[16:08:27] &lt;Strider72&gt; I'm not advocating so much as bouncing ideas....&#160;:)
+<br />[16:08:41] &lt;dcj&gt; i'm not advocating so much as crushing ideas&#160;:) 
+<br />[16:08:53] &lt;zamoose&gt; what about a web-based system with a karmic component ala Slashdot?
+<br />[16:08:59] &lt;dcj&gt; i don't believe there is any kind of regular "list standards" email on the ilst
+<br />[16:09:03] &lt;dcj&gt; that might be a good starting point
+<br />[16:09:09] &lt;zamoose&gt; then the annoying ones get karma'd out of the discussion
+<br />[16:09:13] &lt;dcj&gt; to clarify and elaborate on what is considered good form for the list
+<br />[16:09:18] &lt;zamoose&gt; griefers, etc. can be policed by the community itself
+<br />[16:09:27] &lt;dcj&gt; send it once a month (perhaps in lieu of the fairly useless and chatter-inspiring "stats" post)
+<br />[16:09:33] &lt;Strider72&gt; I'm on another list that has that as a "strongly encouraged rule", but not enforced by software in any way.
+<br />[16:10:09] &lt;Strider72&gt; dcj:  heh&#160;:)
+<br />[16:10:24] &lt;dcj&gt; you can get a lot of mileage by having a few moderator-types gently curtail conversations
+<br />[16:10:28] &lt;dcj&gt; (ahem, php, cough)
+<br />[16:10:44] &lt;dcj&gt; assign rights of banning/probation to some moderator-types
+<br />[16:10:44] &lt;MarkJaquith&gt; dcj: I agree.
+<br />[16:11:08] &lt;zamoose&gt; the mailing list stats that [checks wp-hackers list] Roy sends out each month are an interesting metric -- any way to leverage something like that?
+<br />[16:11:44] &lt;jared&gt; I think the moderator concept is a good one; maybe a warning then a ban
+<br />[16:11:52] &lt;dcj&gt; definitely work probation in there
+<br />[16:11:56] &lt;MarkJaquith&gt; zamoose: I don't think we're looking for quantitative methods like karma points or statistics.
+<br />[16:11:58] &lt;dcj&gt; you can ban somebody from posting for a week or something
+<br />[16:12:11] &lt;zamoose&gt; so the question becomes: how to jumpstart a meritocratic mailing list?
+<br />[16:12:25] &lt;jared&gt; The most important thing I think would be putting an end to out of control threads
+<br />[16:12:27] &lt;dcj&gt; just the understanding that inappropriate behavior will have consequences helps a lot
+<br />[16:12:31] * TVSET agrees with the human moderation idea
+<br />[16:12:33] &lt;ai2097&gt; Get a cool-headed list mom.
+<br />[16:12:36] &lt;jared&gt; by someone who everyone will/must respect
+<br />[16:12:41] &lt;dcj&gt; somebody comes in and says "OK, that's enough guys. Thanks."
+<br />[16:12:53] &lt;dcj&gt; and if people flagrantly abuse the declaration, they get a week vacation from posting.
+<br />[16:13:16] &lt;dcj&gt; this is what apple's programmer lists do
+<br />[16:13:24] &lt;Nazgul&gt; There are a lot of list out there where a moderator "approves" posts before they're forwarded to the list.
+<br />[16:13:25] &lt;dcj&gt; they're still busy as hell but fairly high signal:noise
+<br />[16:13:41] &lt;dcj&gt; i think complete moderation is too much work for the moderators
+<br />[16:13:44] &lt;Nazgul&gt; Think bugtraq for instance
+<br />[16:13:50] &lt;dcj&gt; for the size of this list 
+<br />[16:14:09] &lt;besonen_mobile2&gt; moderation is too much work
+<br />[16:14:36] &lt;TVSET&gt; post moderation is much lighter... pre-moderation needs several people in different time zones with lots of free time on their hands&#160;;)
+<br />[16:14:38] &lt;dcj&gt; that's why consequences-based intervention is good - it can slack off and on elastically without dire consequences
+<br />[16:14:42] &lt;Strider72&gt; I think the "Rules" posting each month is a must-have too.  Encourage taking things off-list at times, how to quote appropriately (instead of &lt;500 lines of nested quotes&gt; followed by "me too", etc...
+<br />[16:14:43] &lt;TVSET&gt; that just limits the moderators' pool 
+<br />[16:14:45] &lt;Nazgul&gt; No more work than reading all post and moderating them afterwards if needed.
+<br />[16:15:17] &lt;dcj&gt; Nazgul: tons more work
+<br />[16:15:17] &lt;TVSET&gt; Strider72: i think 40% of Gmail users has something to do with overquoting&#160;:)
+<br />[16:15:21] &lt;Ozh&gt; define('END_FORMULA', "OK, that's enough guys. Thanks.") &amp;&amp; promote committers to list-mom/banner status
+<br />[16:15:38] &lt;Ozh&gt; with a clear mailing list rules &amp; goal
+<br />[16:15:48] &lt;dcj&gt; Nazgul: compare it with a traffic cop who only enforces on a car-by-car basis when there's a traffic jam
+<br />[16:15:55] &lt;dcj&gt; Nazgul: when things are flowing smoothly, just kick back.
+<br />[16:17:02] &lt;Strider72&gt; Heh.  Give an award for the first person banned.&#160;;)
+<br />[16:17:34] &lt;Nazgul&gt; dcj: See your point.
+<br />[16:18:19] &lt;zamoose&gt; I like this post hoc comment moderation solution:
+<br />[16:18:19] &lt;zamoose&gt; <a rel="nofollow" class="external free" href="http://www.younggogetter.com/2007/08/28/douche-bag-our-first-official-wordpress-plugin/">http://www.younggogetter.com/2007/08/28/douche-bag-our-first-official-wordpress-plugin/</a>
+<br />[16:18:21] &lt;zamoose&gt; *grin*
+<br />[16:18:32] &lt;besonen_mobile2&gt; i agreed that establishing some official guidelines would help a lot--and these can be casually referenced by any participant
+<br />[16:18:44] &lt;MarkJaquith&gt; Would like to have this conversation when photomatt_london is around -- maybe next week when he's back in the States.  He kick-started it and likely has some ideas on the matter.
+<br />[16:18:55] &lt;ai2097&gt; besonen_mobile2: Be careful -- citizen enforcement could lead to more flamage.
+<br />[16:20:08] &lt;besonen_mobile2&gt; ai2097:  my experience has been that this is generally not the case
+<br />[16:20:41] &lt;Strider72&gt; If a "citizen" gets over-zealous with enforement, a mod can poke them in the ribs....
+<br />[16:21:08] &lt;Strider72&gt; zamoose, that plugin is hysterical.&#160;:)
+<br />[16:21:25] &lt;besonen_mobile2&gt; in fact it's typically easier because everyone is empowered maintain community standards
+<br />[16:22:51] &lt;zamoose&gt; so here's one of the issues I see in this whole S/N issue
+<br />[16:23:21] &lt;zamoose&gt; there's a perception that the upper reaches of the WP development community are unresponsive to enduser concerns, suggestions, etc.
+<br />[16:23:40] &lt;zamoose&gt; true or not, it has resulted in fire from all corners (see: Habari)
+<br />[16:23:57] &lt;zamoose&gt; fair or not, it is a perception that is out there
+<br />[16:24:05] &lt;zamoose&gt; I too want to hear Matt's take on the issue
+<br />[16:24:35] &lt;zamoose&gt; but in waiting for him to make his call/pronouncement/etc. seems to be in-line with those criticisms (once again, fair or not)
+<br />[16:25:10] &lt;zamoose&gt; now obviously Automattic pays the WP.org hosting bills and thus can make every call they wish in re: services and infrastructure offered
+<br />[16:25:34] &lt;zamoose&gt; and if I don't like it, I can establish something on my polly wolly crappy DH shared host and attempt to draw others
+<br />[16:25:46] &lt;MarkJaquith&gt; I want to hear his opinion.  It's not a pronouncement, but it does carry weight.
+<br />[16:26:04] &lt;zamoose&gt; no I understand that
+<br />[16:26:16] &lt;ai2097&gt; Could I ask about work on api.wordpress.org WRT bug 5117?
+<br />[16:26:35] &lt;ai2097&gt; I know we only have a couple minutes left, but I'd really like to work on fixing that bug.
+<br />[16:26:41] &lt;zamoose&gt; I cede the floor to the Honorable ai...
+<br />[16:26:42] &lt;zamoose&gt; *grin*
+<br />[16:27:38] &lt;MarkJaquith&gt; ai2097: agreed that it is an issue.  "up to date" is assumed, so we get false positives.
+<br />[16:27:48] &lt;MarkJaquith&gt; Might be better if the UI for displaying it was different.
+<br />[16:28:18] &lt;ai2097&gt; Well, the service doesn't indicate a difference between "not present" and "no updates" so the UI doesn't know what to show.
+<br />[16:28:21] &lt;MarkJaquith&gt; Have three states: "update available," "up to date," "unknown"
+<br />[16:28:23] &lt;Ozh&gt; 'up to date', 'please update', 'could not checked' are sane &amp; needed options I think
+<br />[16:28:29] &lt;Ozh&gt; (voilà)
+<br />[16:28:58] &lt;jared&gt; +1 to that (Mark &amp; Ozh)
+<br />[16:29:02] &lt;ai2097&gt; I need to change api.wordpress.org's service to add that piece of information, but the source isn't available -- I can't make a patch to fix this bug on my own.
+<br />[16:29:25] &lt;ai2097&gt; (Well, short of scraping SVN *g*)
+<br />[16:29:59] &lt;Ozh&gt; also, this kind of enforces an extra column I guess, in plugin list presentation, otherwise list would get really unreadable &amp; long
+<br />[16:30:10] &lt;zamoose&gt; does api need to be fixed or the WP end of things parser?
+<br />[16:30:30] &lt;ai2097&gt; The API returns nothing if the plugin is not in the repo, and if the plugin is up to date.
+<br />[16:30:39] &lt;zamoose&gt; Ozh: why not break it into three sections, grouped verticall?
+<br />[16:30:47] &lt;MarkJaquith&gt; I think we could do it without using a lot of space.  Think red x, green check, orange question mark.
+<br />[16:30:50] &lt;zamoose&gt; errm verticaly
+<br />[16:30:58] * zamoose smacks forehead
+<br />[16:31:11] &lt;MarkJaquith&gt; er, red exclamation point.
+<br />[16:31:35] &lt;zamoose&gt; Mark: with a legend at the top or bottom?
+<br />[16:31:40] &lt;Ozh&gt; Mark: yes. In any case, no more extra line under checked plugin.
+<br />[16:31:41] &lt;westi&gt; MarkJaquith: excellent idea - in the row itself
+<br />[16:31:42] &lt;zamoose&gt; or title="" attributes
+<br />[16:32:02] &lt;MarkJaquith&gt; zamoose: yeah.  title.  And for things that have update, expand like we do now.
+<br />[16:32:20] &lt;Strider72&gt; +1 on MarkJaquith's icon concept.  Must include title= though so mouseover shows what it means.
+<br />[16:32:24] &lt;jared&gt; Icons in the rows + a one line legend would be nice
+<br />[16:32:27] &lt;zamoose&gt; I still think out-of-date plugins should be marked in "color: red" so as to blind the admins
+<br />[16:32:31] &lt;MarkJaquith&gt; But we need the API to support it first.  I'll assign the ticket to Matt and we can discuss next week.
+<br />[16:32:50] &lt;ai2097&gt; Thank you so much.
+<br />[16:32:52] &lt;Ozh&gt; could this (presentation with red/green/orange stuff) be something the happy cog team have an idea about&#160;? (sorry I'm not sure I'm fully aware of their mission)
+<br />[16:33:06] &lt;MarkJaquith&gt; Another reason to assign it to Matt.  Don't know the answer to that.
+<br />[16:33:19] &lt;MarkJaquith&gt; He should be getting started on that in the next week.
+<br />[16:34:28] &lt;Ozh&gt; (maybe dumb idea, but I thought, if the admin part is fully revamped, this might even be worth a '3.0' version)
+<br />[16:34:42] &lt;zamoose&gt; are there any other mockups of the designs floating around out there other than the three wireframes Matt posted a while back?
+<br />[16:34:53] &lt;Strider72&gt; What about the discussion about adding a hook or API for third-party checking?  non-WP-hosted plugins?
+<br />[16:35:03] &lt;MarkJaquith&gt; Ozh: really don't want to get into version inflation territory just yet.
+<br />[16:35:12] &lt;ai2097&gt; Strider72: Trac #5116
+<br />[16:35:13] &lt;wp-trac-bot&gt; ai2097: <a rel="nofollow" class="external free" href="http://trac.wordpress.org/ticket/5116">http://trac.wordpress.org/ticket/5116</a> normal, normal, 2.3.1, Quandary-&gt;anonymous, new, WordPress (plugin) updates can trigger innapropriatly for non-hosted plugins
+<br />[16:35:22] &lt;MarkJaquith&gt; zamoose: don't think so.
+<br />[16:35:45] |&lt;-- CodeNinja has left irc.freenode.net (Read error: 110 (Connection timed out))
+<br />[16:35:47] &lt;zamoose&gt; can someone crack into Matt's email and make it so?  *grin*
+<br />[16:36:21] &lt;MarkJaquith&gt; Strider72: I'd be open to that.  We want to encourage hosting on wp.org, but I don't think it should be mandatory.
+<br />[16:36:55] &lt;jared&gt; I'd think for non-WP hosted plugins, there could be at least a hook in that plugins could use to implement their own version checking
+<br />[16:37:13] &lt;zamoose&gt; what about having plugins simply host the README?
+<br />[16:37:29] &lt;zamoose&gt; allow for download location to be specified in the metadata
+<br />[16:37:33] &lt;MarkJaquith&gt; zamoose: we don't want to make the client side too heavy.
+<br />[16:37:36] &lt;zamoose&gt; then there's only one update beacon
+<br />[16:37:45] &lt;MarkJaquith&gt; oh, hm.
+<br />[16:37:54] &lt;zamoose&gt; the devs update their README on wp.org
+<br />[16:37:59] &lt;zamoose&gt; when they release a new version
+<br />[16:38:00] &lt;ai2097&gt; zamoose: Because then wordpress.org would advertise the plugin.
+<br />[16:38:03] &lt;jared&gt; Yeah, I think quot-updates only for WP-hosted, but notification hooks for others
+<br />[16:38:05] &lt;ai2097&gt; Which may not be desirable.
+<br />[16:38:22] &lt;zamoose&gt; or it could be very desirable
+<br />[16:38:24] &lt;jared&gt; meant auto-updates
+<br />[16:38:49] &lt;Strider72&gt; Modify the wordpress plugin hosting to allow for a "update notification"-only entries for non-hosted plugins?
+<br />[16:38:55] &lt;zamoose&gt; yes
+<br />[16:39:09] &lt;MarkJaquith&gt; The readme.txt format is documented and the parsing code is open source, so someone could implement it on their own site if they didn't want it on wp.org for whatever reason.
+<br />[16:39:21] &lt;MarkJaquith&gt; I think Alex King has done that.
+<br />[16:39:24] &lt;zamoose&gt; then, theoretically, there could exist a known ecosystem of "WordPress-approved" plugins
+<br />[16:40:15] &lt;jared&gt; What about (once the not-available status mentioned above is implemented), a hook that fires only on not-available responses, to allow plugin devs to use their own, if they want to
+<br />[16:40:17] &lt;Strider72&gt; I'm just thinking that the "single beacon" idea is a good one.  If your WordPress install is checking all over the place when you load (or reload) the Plugins page, it could take a looong time.
+<br />[16:40:24] &lt;ai2097&gt; Waiting 10 minutes for your plugin page to load because it's pinging disparate places that are down is not a fun user experience. Also, I'd rather not splatter my stats hither and thither.&#160;;)
+<br />[16:41:45] &lt;Ozh&gt; the pinging could be ajaxed, like with devnew &amp; incoming links&#160;?
+<br />[16:41:55] &lt;ai2097&gt; I run with JS turned off.
+<br />[16:42:20] &lt;--| skeltoac_mac has left #wordpress-dev
+<br />[16:42:39] &lt;Strider72&gt; You'd have to ajax the whole page, wouldn't you/  Does the checking happen every time the page loads?
+<br />[16:42:55] &lt;MarkJaquith&gt; Well, we've run long.  Have some stuff to think about for next week, or maybe to bring up on wp-hackers.  I'm off to start dinner.
+<br />[16:43:11] &lt;ai2097&gt; Sorry for the late question.&#160;:)
+<br />[16:43:13] &lt;zamoose&gt; back to the ramparts, errr, wp-hackers!
+<br />[16:43:16] &lt;Ozh&gt; last suggestion -- not sure if it's the place, it has been already expressed by some on wp-hackers I think&#160;: I'd love to have something like xref.wordpress.org (ideal would be xref.wordpress.org/XXX where 'XXX' would be '1.5', '2.0', ..., '2.2.2', '2.2.3', '2.3' &amp; trunk
+<br />[16:43:53] &lt;westi&gt; Ozh: by xref do you mean phpxref style?
+<br />[16:43:56] &lt;Ozh&gt; yes
+<br />[16:43:57] &lt;ai2097&gt; Ozh: What I'd love? Good PHPdoc.&#160;;)
+<br />[16:44:00] |&lt;-- MarkJaquith has left irc.freenode.net ()
+<br />[16:44:24] &lt;Strider72&gt; MArk's gone.  Bring out the beer!
+<br />[16:44:28] &lt;westi&gt; Ozh: I hope to do something like that esp when we have more phpDOC stuff in as that makes it really useful
+<br />[16:44:46] &lt;Ozh&gt; i don't know if there are other/better stuff than phpxref, but that's my most used WP related tool
+<br />[16:44:46] &lt;ai2097&gt; @since. @since. @since.
+<br />[16:44:56] &lt;westi&gt; also I'm considering a wphooks.flatearth.org style WP blog which functions &lt;&gt; versions mapping
+<br />[16:45:36] &lt;Ozh&gt; woot
+<br />[16:45:41] &lt;westi&gt; i just need to write the searching and importing code to generate the content automatically - pulling in and parsing the PHPdoc for the functions
+<br />[16:45:48] &lt;westi&gt; as the post content
+<br />[16:45:53] &lt;ai2097&gt; What? There is no PHPDoc.
+<br />[16:46:36] &lt;westi&gt; ai2097: there is some... it took a while to persuade matt&#160;;-) there is more detailed docs on the codex though
+<br />[16:47:33] &lt;ai2097&gt; I'm all about specifying public APIs to a T; PHPDoc is my weapon of choice. I don't see nearly enough of it to be useful (and I see plenty of subtle API semantic changes between releases).
+</p><p><a href="https://codex.wordpress.org/IRC_Meetups" title="IRC Meetups">Back to IRC Meetups</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004035
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.036 seconds
+Real time usage: 0.036 seconds
+Preprocessor visited node count: 352/1000000
+Preprocessor generated node count: 706/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 1/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

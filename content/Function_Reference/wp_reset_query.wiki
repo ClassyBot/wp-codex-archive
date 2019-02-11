@@ -1,0 +1,78 @@
+{{Languages|
+{{en|Function Reference/wp reset query}}
+{{it|Riferimento funzioni/wp reset query}}
+{{ja| 関数リファレンス/wp reset query}}
+}}
+__TOC__
+==Description==
+
+wp_reset_query() restores the $wp_query and global post data to the original main query. This function should be called after query_posts(), if you must use that function. As noted in the examples below, it's heavily encouraged to use the [https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts pre_get_posts] filter to alter query parameters before the query is made.
+
+Calling wp_reset_query is not necessary after using WP_Query or get_posts as these don't modify the main query object. Instead use [[wp_reset_postdata]]
+
+==Usage==
+
+%%%<?php wp_reset_query(); ?>%%%
+
+==Parameters==
+
+This function does not accept any parameters.
+
+==Return Values==
+
+This function does not return any values.
+
+==Examples==
+
+The following example shows how to use wp_reset_query() after a custom loop. Note that the loop in the example is probably being used in addition to the main loop.
+<pre>
+<?php
+
+$args = array ( 'post_parent' => 5 );
+query_posts( $args );
+
+if ( have_posts() ):
+    while ( have_posts() ) :
+        the_post();
+
+        // Do stuff with the post content.
+        the_title();
+        the_permalink(); // Etc.
+
+    endwhile;
+else:
+    // Insert any content or load a template for no posts found.
+endif;
+
+wp_reset_query();
+
+?>
+</pre>
+<b>query_posts() will change your main query and is not recommended. Only use if <em>absolutely necessary</em> (see [[Function_Reference/query_posts#Caveats|query_posts: Caveats]]).</b> Creating a new instance of [[Class_Reference/WP_Query|WP_Query]] or [[Function_Reference/get_posts|get_posts()]] is preferred for secondary loops. If you would like to modify the main query, use the [[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]] action. Be sure to put your pre_get_posts filtering in your functions.php file.
+<pre>
+<?php
+query_posts( 'post_parent=5' );
+if ( have_posts() ) :
+	while ( have_posts() ) : the_post();
+		?><a href="<?php the_permalink() ?>"><?php the_title() ?></a><br /><?php
+	endwhile;
+endif;
+wp_reset_query();
+?>
+</pre>
+
+==Change Log==
+
+* Since: [[Version 2.3|2.3.0]]
+
+==Source File==
+
+<tt>wp_reset_query()</tt> is located in {{Trac|wp-includes/query.php}}.
+
+==Related==
+
+{{Query Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

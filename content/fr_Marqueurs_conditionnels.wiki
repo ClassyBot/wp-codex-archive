@@ -1,0 +1,608 @@
+{{Languages|
+{{en|Conditional Tags}}
+{{fr|Marqueurs_conditionnels}}
+{{it|Tag condizionali}}
+{{ja|Conditional Tags}}
+{{tr|Kosul Etiketleri}}
+{{pt-br|Tags condicionais}}
+{{zh-cn|条件标签}}
+}}
+{{French Header}}
+== Introduction ==
+
+Les Marqueurs Conditionnels peuvent être utilisés dans vos Thèmes pour décider du contenu à afficher sur une page spécifique ou comment ce contenu doit être affiché en fonction de ''conditions'' que remplit cette page.  Par exemple, si vous voulez insérer un texte particulier au-dessus d'une série d'Articles, mais seulement sur la page principale de votre blog, avec le Marqueur Conditionnel <tt>[[#La_page_principale|is_home()]]</tt>, cela devient facile.
+
+Ces Marqueurs sont en relation étroite avec la [[fr:Hierarchie_de_modeles|Hiérarchie des Modèles]] de WordPress.
+
+'''Attention''' : Vous ne pouvez utiliser les marqueurs conditionnels des requêtes après le [http://codex.wordpress.org/Plugin_API/Action_Reference#Actions_Run_During_a_Typical_Request hook action] <tt>post_selection</tt>. Le hook action <tt>wp</tt> est le premier possible.
+Pour les thèmes cela signifie qu'un marqueur conditionnel ne fonctionnera pas correctement si vous l'utilisez directement dans le corps de <tt>functions.php</tt>, hors d'une fonction et d'un hook.
+
+==Les Conditions Pour...==
+
+Tous les marqueurs conditionnels testent si une condition est remplie, et retourne ensuite <tt>true</tt> ou <tt>false</tt>. '''Les conditions selon lesquelles les différents marqueurs renvoient <tt>true</tt> sont listées ci-dessous'''. Les paramètres acceptés par certains marqueurs sont également mentionnés.
+
+=== La page principale ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_home is_home()]</tt> : Retourne <tt>true</tt> quand la page principale est affichée. C'est la page qui affiche le contenu de type ''blog'' de votre site, donc si vous avez choisi "Page statique" pour l'option "La page d'accueil affiche :", alors cette fonction renverra <tt>true</tt> seulement sur la page où vous avez sélectionné "Page des articles :" dans [[Administration_Panels|Administration]] > [[Administration_Panels#Reading|Réglages]] > [[Settings_Reading_SubPanel|Lecture]].
+
+=== La page d'accueil ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_front_page is_front_page()]</tt> : Retourne <tt>true</tt> quand la page d'accueil de votre site est affichée, que ce soit pour des articles ou une [[Pages|Page]]. Retourne <tt>true</tt> quand la page principale du blog est affichée et le paramètre '[[Administration_Panels#Reading|Réglages]] > [[Settings_Reading_SubPanel|Lecture]] -> La page d’accueil affiche' réglé sur "Les derniers articles", '''ou''' quand '[[Administration_Panels#Reading|Réglages]] > [[Settings_Reading_SubPanel|Lecture]] -> La page d’accueil affiche' réglé sur "Une page statique" et "Page d'accueil" est la [[Pages|Page]] actuellement affichée.
+
+=== La page du blog ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_front_page is_front_page()]</tt> et <tt>[http://codex.wordpress.org/Function_Reference/is_home is_home()]</tt> :
+A l'heure actuelle, il n'existe pas de marqueur conditionnel pour cibler uniquement la page de blog. On utilisera alors les fonctions <tt>is_home()</tt> et <tt>is_front_page()</tt> pour la détecter. Elles peuvent être mal utilisées. On peut en effet définir une page statique pour l'accueil et une autre page pour son blog. Cette dernière va renvoyer <tt>true</tt> avec la fonction <tt>is_home()</tt> même s'il ne s'agit pas de la page d'accueil du site. Lorsque l'on utilise les fonctions <tt>is_home()</tt> et <tt>is_front_page()</tt>, il faut donc les tester dans le bon ordre pour être sûr des données affichées, quelle que soit la configuration choisie par l'utilisateur. Celui-ci peut en effet choisir :
+* une page d'accueil par défaut avec des articles
+* une page d'accueil qui utilise une page statique et pas de page de blog
+* une page d'accueil qui utilise une page statique et une page de blog
+
+Pour faire cela, il faut donc utiliser conjointement les deux fonctions dans l'ordre donné dans cet exemple :
+
+<pre>if ( is_front_page() && is_home() ) {
+  // La page d'accueil par défaut
+} elseif ( is_front_page() ) {
+  // La page d'accueil statique
+} elseif ( is_home() ) {
+  // La page du blog
+} else {
+  //everyting else
+}</pre>
+
+Voir les [[#Ressources_externes|Ressources externes]]
+
+=== Les pages de l'administration ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_admin is_admin()]</tt>: Retourne <tt>true</tt> quand le tableau de bord ou une page de l'administration est affichée.
+'''Attention''' : la page <tt>wp-login.php</tt> ne fait pas partie de l'administration. Cette page n'a pas de marqueur conditionnel. Pour vérifier si c'est cette page qui est affichée, utilisez <tt>[https://codex.wordpress.org/Global_Variables#Admin_Globals la variable globale d'administration] $pagenow</tt>.
+
+=== La barre d'outils (Admin Bar) ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_admin_bar_showing is_admin_bar_showing()]</tt> : Retourne <tt>true</tt> si la barre d'outils sera affichée.
+
+''Note'' : Pour afficher ou non cette barre, utilisez [http://codex.wordpress.org/Function_Reference/show_admin_bar show_admin_bar()], cette function doit être appelée immediatement après le hook <tt>plugins_loaded</tt> ou placée dans le fichier <tt>functions.php</tt> du thème.
+
+=== Une page d'article unique (single post) ===
+
+Concerne les articles qui sont affichés à l'unité (en général, utilise le fichier <tt>single.php</tt> du thème).
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_single is_single()]</tt> : Retourne <tt>true</tt> quand un article (ou attachement ou type de contenu personnalisé (custom post type)) est affiché. (Faux pour une Page)
+; <tt>is_single( '17' )</tt> : Retourne <tt>true</tt> quand l'article avec l'ID 17 est affiché.
+; <tt>is_single( 'Pain et Fromage' )</tt> : Retourne <tt>true</tt> quand l'article dont le titre est "Pain et Fromage" est affiché.
+; <tt>is_single( 'pain-fromage' )</tt> : Retourne <tt>true</tt> quand l'article dont le nom (post_name, ou slug utilisé dans les permaliens) est "pain-fromage" est affiché.
+; <tt>is_single( array( 17, 'pain-fromage', 'Pain et Camembert' ) )</tt> : Retourne <tt>true</tt> quand l'article affiché a l'ID 17, ou son <tt>post_name</tt> valant "pain-fromage", ou son <tt>post_title</tt> valant "Pain et Camembert".
+; <tt>is_single( array( 17, 19, 1, 11 ) )</tt> : Retourne <tt>true</tt> quand l'article affiché a son <tt>ID</tt> valant 17, ou son <tt>ID</tt> valant 19, ou son <tt>ID</tt> valant 1, ou son <tt>ID</tt> valant 11.
+; <tt>is_single( array( 'pain-fromage', 'pain-camembert', 'quiche-maroilles' ) )</tt> : Retourne <tt>true</tt> quand l'article affiché a son <tt>post_name</tt> valant "pain-fromage", ou son <tt>post_name</tt> valant "pain-camembert", ou son <tt>post_name</tt> valant "quiche-maroilles".
+; <tt>is_single( array( 'Pain et Fromage', 'Pain et Camembert', 'Quiche au Maroilles' ) )</tt> : Retourne <tt>true</tt> quand l'article affiché a son <tt>post_title</tt> valant "Pain et Fromage", ou son <tt>post_title</tt> valant "Pain et Camembert", ou son <tt>post_title</tt> valant "Quiche au Maroilles".
+
+''Note'' : Cette function ne fait pas la distinction en l'ID de l'article (ID), le title de l'article (post_title), ou le nom de l'article (post_name). Un article appelé "17" retournera  <tt>true</tt> si l'ID 17 a été demandé. Même chose si le nom (slug) de l'article valant "17".
+
+=== Les articles à la une (Sticky Post) ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_sticky is_sticky()]</tt> : Retourne <tt>true</tt> si la case à cocher "Mettre cet article en avant sur la page d’accueil" est cochée pour l'article en cours d'affichage. Dans cet exemple aucun ID d'article n'est donné, ce sera alors l'ID de l'article en cours d'itération dans [[fr:La Boucle|la Boucle]] qui sera utilisé. 
+; <tt>is_sticky( '17' )</tt> : Retourne <tt>true</tt> quand l'article avec l'ID 17 est mis en avant.
+
+=== Un type de contenu est hiérarchique ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_post_type_hierarchical is_post_type_hierarchical( $post_type )]</tt> : Retourne <tt>true</tt> si le type d'article (CPT) <tt>$post_type</tt>  supporte le format [[Function_Reference/register_post_type|hiérarchique]].
+; <tt>is_post_type_hierarchical( 'vignoble' )</tt> : Retourne <tt>true</tt> si le type d'article (CPT) "vignoble" supporte le format hiérarchique.
+
+=== Un type de contenu archive (Post Type Archive) ===
+;<tt>[http://codex.wordpress.org/Function_Reference/is_post_type_archive is_post_type_archive()]</tt> : Retourne <tt>true</tt> si la page en cours d'affichage est une archive, tout types de contenu (CPT) confondus. 
+;<tt>is_post_type_archive( $post_type )</tt> : Retourne <tt>true</tt> si la page d'archives affichée correspond à <tt>$post_type</tt>.
+;<tt>is_post_type_archive( array( 'truc', 'machin', 'bidule' ) )</tt> : Retourne <tt>true</tt> si la page d'archives affichée correspond au type de contenu (CPT) "truc", "machin", ou "bidule".
+
+''Note'' : Pour activer les archives sur un type d'article, utilisez <tt>'has_archive' => true</tt> quand vous [http://codex.wordpress.org/Function_Reference/register_post_type enregistrez votre type de contenu].
+
+=== Les commentaires en Popup ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_comments_popup is_comments_popup()]</tt> : Retourne <tt>true</tt> quand la fenêtre affichée est celle des commentaires en Popup.
+
+=== Toute page contenant des articles ===
+; <tt>[http://codex.wordpress.org/Function_Reference/comments_open comments_open()]</tt> : Retourne <tt>true</tt> quand les commentaires sont autorisés pour l'article en cours d'affichage dans [[fr:La Boucle|la Boucle]].
+; <tt>[http://codex.wordpress.org/Function_Reference/pings_open pings_open()]</tt> : Retourne <tt>true</tt> quand les pings sont autorisés pour l'article en cours d'affichage dans [[fr:La Boucle|la Boucle ]].
+
+=== Une PAGE ===
+
+Cette section concerne les [[fr:Pages|Pages]] WordPress, et pas n'importe quelle page générique de votre blog ou en d'autres terme il s'agit du type de contenu <tt>post_type='page'</tt>.
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_page is_page()]</tt> : Retourne <tt>true</tt> quand n'importe quelle page est affichée.
+; <tt>is_page( '42' )</tt> : Retourne <tt>true</tt> quand la page avec l'ID 42 est affichée.
+; <tt>is_page( 'À propos de moi' )</tt> : Retourne <tt>true</tt> quand la page dont le titre (<tt>post_title</tt>) est "À propos de moi" est affichée.
+; <tt>is_page( 'about-me' )</tt> : Retourne <tt>true</tt> quand la page dont le nom (ou slug contenu dans le permalien, le <tt>post_name</tt>) est "about-me" est affichée.
+
+''Note'' : Il n'existe pas de fonction pour tester si une page est une sous-page. On peut cependant, contourner ce problème :
+
+<pre>if ( is_page() && $post->post_parent > 0 ) { 
+    echo "Ceci est une page enfant";
+}</pre>
+
+=== Les modèles de page (Custom Page Template) ===
+Afin de déterminer si oui ou non la page affichée utilise un template personnalisé. Que ce soit un modèle de page que l'on retrouve dans la boite des propriétés d'une page, ou qu'elle dépende de la [[fr:Hiérarchie_de_modeles|hiérarchie de modèles.]]
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_page_template is_page_template()]</tt> : Retourne <tt>true</tt> dès qu'un [[Page_Templates|modèle de page]] est utilisé.
+; <tt>is_page_template( 'about.php' )</tt> : Retourne <tt>true</tt> si le fichier 'about.php' est utilisé en modèle.
+
+''Note'' : Si vous rangez vos fichiers de modèles de page dans un sous-dossier (bonne pratique) dans votre thème, vous devrez spécifier son chemin complet à partir de la racine du thème, par exemple <tt>is_page_template( 'pages-template/about.php' )</tt>.
+
+=== Une page de catégorie ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_category is_category( $category )]</tt> : Retourne <tt>true</tt> quand la page en cours d'affichage est associée à la catégorie d'archive <tt>$category</tt> est affichée (peut être un entier, un nom, un identifiant).
+; <tt>is_category( '6' )</tt> : Retourne <tt>true</tt> quand la page de catégorie d'archive dont le term_ID est "6" est affichée.
+; <tt>is_category( 'Des fromages' )</tt> : Retourne <tt>true</tt> quand la page de catégorie d'archive avec le nom (name) "Des fromages" est affichée.
+; <tt>is_category( 'des-fromages' )</tt> : Retourne <tt>true</tt> quand la page de catégorie d'archive avec l'identifiant (slug) "des-fromages" est affichée.
+; <tt>is_category( array( 9, 'fromage-bleu', 'Fromages qui puent' ) )</tt> : Retourne <tt>true</tt> quand la page d'archive a le term_ID à "9", ou  son identifiant (slug) sur "fromage-bleu", ou son nom (name) sur "Fromages qui puent".  
+
+; <tt>[http://codex.wordpress.org/Function_Reference/in_category in_category( '5' )]</tt> : Retourne <tt>true</tt> si l'article en cours d'affichage fait partie de la catégorie dont l'ID est "5". Voir aussi [http://codex.wordpress.org/Template_Tags/in_category in_category()]
+; <tt>in_category( array( 1, 2, 3 ) )</tt> : Retourne <tt>true</tt> quand l'article (tout type de contenus (CPT) confondus) fait parti d'une des categories  "1", "2", ou "3".
+; <tt>! in_category( array( 4, 5, 6 ) )</tt> : Même chose à l'envers : ne fait '''pas''' parti des catégories "4", "5", et "6".
+
+'''Attention''' : Soyez sûr de votre orthographe entre "is" et "in", la différence est grande.
+
+Voir aussi <tt>[[#Les_pages_d.27archives|is_archive()]]</tt> et [[Category Templates]].
+
+=== Une page de mot-clés (Tag) ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_tag is_tag()]</tt> : Retourne <tt>true</tt> quand n'importe quelle page d'archive de mot-clés est affichée.
+; <tt>is_tag( 'moyenne' )</tt> : Retourne <tt>true</tt> quand la page d'archive du mot-clé  'moyenne' est affichée.
+; <tt>is_tag( array( 'petite', 'moyenne', 'grande' ) )</tt> : Retourne <tt>true</tt> quand la page d'archive du mot-clé 'petite', 'moyenne', ou 'grande' est affichée.
+
+; <tt>[[Function_Reference/has_tag|has_tag()]]</tt> : Retourne <tt>true</tt> quand l'article en court d'affichage contient le mot-clé spécifié.
+''Note'' : Avant WordPress 2.7, cette fonction n'est utilisable que dans [[fr:La Boucle|la Boucle]].
+; <tt>has_tag( 'moyenne' )</tt> : Retourne <tt>true</tt> quand l'article en court d'affichage contient le mot-clé  'moyenne'.
+; <tt>has_tag( array( 'petite', 'moyenne', 'grande' ) )</tt> : Retourne <tt>true</tt> quand l'article en court d'affichage contient le mot-clé 'petite', 'moyenne', ou 'grande'.
+
+Voir aussi <tt>[[#Any Archive Page|is_archive()]]</tt> et[[Tag Templates]].
+
+=== Une page de taxonomie (et associées) ===
+
+==== is_tax ====
+; <tt>[http://codex.wordpress.org/Function_Reference/is_tax is_tax()]</tt> : Retourne <tt>true</tt> quand la page affichée est une taxonomie.
+''Note'' : Retourne <tt>false</tt> sur une page de catégorie et de mot-clé, utilisez <tt>is_category()</tt> et <tt>is_tag</tt>;
+; <tt>is_tax( 'taille' )</tt> : Retourne <tt>true</tt> quand la page d'archives de la taxonomie 'taille' est affichée.
+; <tt>is_tax( 'taille', 'moyenne' )</tt> : Retourne <tt>true</tt> quand la page d'archives fait partie de la taxonomie 'taille' ou 'moyenne'.
+; <tt>is_tax( 'taille', array( 'petite', 'moyenne', 'grande' ) )</tt> : Retourne <tt>true</tt> quand la page d'archives fait partie de la taxonomie 'taille', 'petite', 'moyenne' ou 'grande'. 
+
+==== has_term ====
+; <tt>[http://codex.wordpress.org/Function_Reference/has_term has_term()]</tt> : Retourne <tt>true</tt> si l'article (tout type de contenus (CPT) confondus) est associé à n'importe quel termes parmis ceux demandés. Le premier paramètre doit être une chaîne vide. Le second doit être le nom (name) ou l'identifiant (slug) d'une taxonomie.
+; <tt>has_term( 'couleur', 'bleue' )</tt> : Retourne <tt>true</tt> quand l'article en cours d'affichage est associé au terme 'couleur' ou 'bleue'.
+; <tt>has_term( array( 'bleue', 'blanche', 'rouge' ), 'couleur' )</tt> : Retourne <tt>true</tt> quand l'article en cours d'affichage est associé au terme 'bleue', 'blanche', 'rouge', ou 'couleur'.
+
+==== term_exists ====
+; <tt>[http://codex.wordpress.org/Function_Reference/term_exists term_exists( $term, $taxonomy, $parent  )]</tt> : Retourne <tt>true</tt> si <tt>$term</tt> existe dans n'importe quelle taxonomie. Si <tt>$taxonomy</tt> est renseigné, le terme doit alors exister dans celle-ci. Le 3ème paramètre <tt>$parent</tt> est lui aussi optionnel, si renseigné, le terme demandé doit être un enfant de ce parent, la taxonomie doit alors être hiérarchique.
+
+==== is_taxonomy_hierarchical ====
+; <tt>[http://codex.wordpress.org/Function_Reference/is_taxonomy_hierarchical is_taxonomy_hierarchical( $taxonomy )]</tt> : Retourne <tt>true</tt> si la taxonomie demandée <tt>$taxonomy</tt> est de type hiérarchique. Pour déclarer une taxonomie hiérarchique utilisez <tt>'hierarchical' => true</tt> lors de l'utilisation de [https://codex.wordpress.org/Function_Reference/register_taxonomy register_taxonomy()].
+
+==== taxonomy_exists ====
+;<tt>[http://codex.wordpress.org/Function_Reference/taxonomy_exists taxonomy_exists( $taxonomy )]</tt> : Retourne <tt>true</tt> si <tt>$taxonomy</tt> a été enregistrée pour ce site avec [https://codex.wordpress.org/Function_Reference/register_taxonomy register_taxonomy()].
+
+Voir aussi <tt>[[#Les_pages_d.27archives|is_archive()]]</tt>.
+
+=== Une page d'auteur ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_author is_author()]</tt> : Retourne <tt>true</tt> quand la page d'archive de de n'importe quel un auteur est affichée.
+; <tt>is_author( '2112' )</tt> : Retourne <tt>true</tt> quand la page d'archive d'auteur pour le numéro d'auteur (<tt>ID</tt>) 2112 est affichée.
+; <tt>is_author( 'Jonathan Buttigieg' )</tt> : Retourne <tt>true</tt> quand la page d'archive d'auteur avec le surnom<sup>(1)</sup> "Jonathan Buttigieg" est affichée.
+; <tt>is_author( 'julio-potier' )</tt> : Retourne <tt>true</tt> quand la page d'archive d'auteur avec l'identifiant<sup>(2)</sup> "julio-potier" est affichée.
+; <tt>is_author( array( 79, 'julio-potier', 'Greg' ) )</tt> : Retourne <tt>true</tt> quand la page d'archive d'auteur avec l'ID "79", l'identifiant<sup>(2)</sup> "julio-potier" ou le surnom<sup>(1)</sup> "Greg" est affichée.
+
+<sup>(1)</sup> La donnée meta utilisateur <tt>nickname</tt>
+
+<sup>(2)</sup> <tt>user_nicename</tt> et non la donnée meta utilisateur <tt>nickname</tt> ! 
+
+Voir aussi <tt>[[#Les_pages_d.27archives|is_archive()]]</tt> et [[Author Templates]].
+
+=== Un site multi-auteur ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_multi_author is_multi_author()]</tt> : Retourne <tt>true</tt> quand plus d'un auteur a déjà publié du contenu sur le site.
+''Note'' : Disponible depuis WordPress [[Version 3.2]].
+
+=== Une page de date ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_date is_date()]</tt> : Retourne <tt>true</tt> quand n'importe quelle page d'archive basée sur le temps est affichée (c.a.d une archive mensuelle, annuelle, quotidienne ou basée sur l'heure).
+; <tt>[http://codex.wordpress.org/Function_Reference/is_year is_year()]</tt> : Retourne <tt>true</tt> quand une archive annuelle est affichée.
+; <tt>[http://codex.wordpress.org/Function_Reference/is_month is_month()]</tt> : Retourne <tt>true</tt> quand une archive mensuelle est affichée.
+; <tt>[http://codex.wordpress.org/Function_Reference/is_day is_day()]</tt> : Retourne <tt>true</tt> quand une archive quotidienne est affichée.
+; <tt>[http://codex.wordpress.org/Function_Reference/is_time is_time()]</tt> : Retourne <tt>true</tt> quand une archive à l'heure, la minute ou la seconde est affichée.
+
+Voir aussi <tt>[[#Les_pages_d.27archives|is_archive()]]</tt>.
+
+=== Les pages d'archives ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_archive is_archive()]</tt> : Retourne <tt>true</tt> quand n'importe quelle page de type "Archive" est affichée. Les pages de Catégorie, d'Auteur et les pages Datées sont toutes de type "Archive".
+
+=== Une page de résultat de recherche ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_search is_search()]</tt> : Retourne <tt>true</tt> quand une page affichant les résultats de recherche dans les archives est affichée.
+
+=== Une page 404 "Not Found" ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_404 is_404()]</tt> : Retourne <tt>true</tt> quand une page ou un fichier est non trouvé sur le site et affiche le message d'erreur "HTTP 404: Not Found".
+
+=== Une page paginée ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_paged is_paged()]</tt> : Retourne <tt>true</tt> quand la page affichée est "paginée". Cela concerne une archive ou la page d'accueil quand elle est séparée en plusieurs pages. Cela ne se réfère pas à un article ou une page dont le contenu serait divisé par l'utilisation de la balise 
+<tt><!<nowiki></nowiki>--nextpage-<nowiki></nowiki>-></tt>
+
+Voir les [[Write_Post_SubPanel#Quicktags|quicktags]]
+
+=== Une page d'attachement ===
+ 
+; <tt>[http://codex.wordpress.org/Function_Reference/is_attachment is_attachment()]</tt> : Retourne <tt>true</tt> quand un document attaché à un article ou une page est affiché.
+Un attachement (<tt>post_type=attachment</tt>) est une image ou autre fichier téléversé par l'intermédiaire de l'utilitaire de téléchargement de l'éditeur d'article.
+Les attachements peuvent aussi être affichés sur leur propre 'page' ou modèles (template).
+
+Voir aussi [[Using Image and File Attachments|Utilisation d'image ou de fichiers joints]].
+
+=== L'attachement est une image ===
+; <tt>[http://codex.wordpress.org/Function_Reference/wp_attachment_is_image wp_attachment_is_image( $post_id )]</tt> : Retourne <tt>true</tt> si le fichier attaché à l'article dont l'<tt>ID</tt> est <tt>$post_id</tt> est bien une image. Les formats ''mime'' et extensions acceptés sont : .jpg, .jpeg, .gif, et .png.
+
+=== Un attachement local ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_local_attachment is_local_attachment( $url )]</tt> : Retourne <tt>true</tt> si le lien passé dans <tt>$url</tt> est bien un fichier d'attachement de ce site.
+
+=== Une page, un article, une attachement ou n'importe quel autre type de contenu ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_singular is_singular()]</tt>: Retourne <tt>true</tt> si <tt>is_single</tt>, <tt>is_page,</tt> ou <tt>is_attachment</tt>. 
+; <tt>is_singular( 'truc' ) )</tt>: Retourne <tt>true</tt> si le type d'article en cours d'affichage est "truc".
+; <tt>is_singular( array( 'truc', 'machin', 'bidule' ) )</tt>: Retourne <tt>true</tt> si le type d'article en cours d'affichage est "truc", "machin", ou "bidule.
+
+Voir aussi les [[Custom Post Types]].
+
+=== Un type de contenu existe ===
+; <tt>[http://codex.wordpress.org/Function_Reference/post_type_exists post_type_exists( $post_type )]</tt> : Retourne <tt>true</tt> si le type de contenu (CPT) <tt>$post_type</tt>  a été enregistré sur le site avec [http://codex.wordpress.org/Function_Reference/register_post_type register_post_type()].
+
+=== La requête principale (Main Query) ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_main_query is_main_query()]</tt>: Retourne <tt>true</tt> si la requête courante (celle dans la Boucle la plupart du temps) est bien la requête principale et non une seconde requête/boucle dans la page.
+
+'''Exemple avec le hook the_content'''
+<pre>
+add_action( 'the_content', 'baw_add_social_buttons' );
+function baw_add_social_buttons( $content ) {
+    if ( ! is_admin() && is_main_query() ) {
+        return $content . function_from_a_social_plugin();
+    }
+    return $content;
+}
+</pre>
+Si, lorsque WordPress souhaite afficher le contenu de chaque article dans la boucle ou dans la page de l'article seul, nous sommes dans la requête principale et pas côté administration, on ajoute des boutons sociaux (par exemple).
+
+'''Exemple avec le hook pre_get_posts'''
+<pre>
+add_action( 'pre_get_posts', 'baw_modify_query_exclude_category' );
+function baw_modify_query_exclude_category( $query ) {
+    if ( ! is_admin() && $query->is_main_query() && ! $query->get( 'cat' ) ) {
+        $query->set( 'cat', '-5' );
+    }
+}
+</pre>
+Dans <tt>pre_get_posts</tt>, il n'est pas possible d'appeler directement <tt>is_main_query</tt>, il faut donc passer par <tt>$query</tt> qui est passée en paramètre.
+
+=== Un nouveau jour ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_new_day is_new_day()]</tt> : Retourne <tt>true</tt> si aujourd'hui est un nouveau jour. Voir [http://codex.wordpress.org/fr:Marqueurs_conditionnels#Ressources_externes les ressources externes] pour un exemple.
+
+=== Une syndication (RSS feed) ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_feed is_feed()]</tt> : Retourne <tt>true</tt> quand le site est appelé depuis une [[Introduction_to_Blogging#Syndication|Syndication]]. Ce marqueur n'est pas couramment utilisé par les utilisateurs ; il est utilisé en interne par WordPress et est disponible pour les développeurs de plugins.
+
+=== Un trackback ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_trackback is_trackback()]</tt> : Retourne <tt>true</tt> quand le site est appelé depuis un hook vers le moteur de Trackback de WordPress. Ce marqueur n'est pas couramment utilisé par les utilisateurs ; il est utilisé en interne par WordPress et est disponible pour les développeurs de plugins.
+
+=== Un aperçu (Preview) ===
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_preview is_preview()]</tt> : Retourne <tt>true</tt> quand l'article affiché est en brouillon, en mode aperçu.
+
+=== Contient un résumé (Excerpt) ===
+; <tt>[http://codex.wordpress.org/Function_Reference/has_excerpt has_excerpt()]</tt> : Retourne <tt>true</tt> quand l'article en cours d'affichage contient un résumé.
+; <tt>has_excerpt( 42 )</tt> : Retourne <tt>true</tt> quand l'article avec l'ID "42" contient un résumé.
+
+=== Contient un menu assigné ===
+; <tt>[http://codex.wordpress.org/Function_Reference/has_nav_menu has_nav_menu( $location )]</tt> : Retourne <tt>true</tt> si un menu est assigné dans <tt>$location</tt>.
+
+Voir aussi [http://codex.wordpress.org/Function_Reference/register_nav_menu register_nav_menu()]
+
+=== Dans la Boucle (The Loop) ===
+; <tt>[http://codex.wordpress.org/Function_Reference/in_the_loop in_the_loop()]</tt> : Retourne <tt>true</tt> si nous sommes ''dans la boucle''.
+
+=== Les barres latérales sont utilisées (SideBar) ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_dynamic_sidebar is_dynamic_sidebar()]</tt> : Retourne <tt>true</tt> si la barre latérale courante a des widgets activés.
+
+=== Une barre latérale activée (Sidebar) ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_active_sidebar is_active_sidebar( $sidebar )]</tt> : Retourne <tt>true</tt> si la sidebar demandée est activée. Le paramètre <tt>$sidebar</tt> peut être le nom ou l'<tt>ID</tt> de la barre.
+
+''Note'' : Pour afficher le contenu d'une barre latérale, utilisez [http://codex.wordpress.org/Function_Reference/dynamic_sidebar dynamic_sidebar( $sidebar )].
+
+=== Un widget activé ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_active_widget is_active_widget( $widget_callback, $widget_id )]</tt> : Retourne <tt>true</tt> si le widget donc la fonction de retour (callback) est <tt>$widget_callback</tt>, ou son <tt>ID</tt> est <tt>$widget_id</tt> sera affiché sur le front-end (la partie visiteur de votre site).
+
+''Note'' : Pour bien fonctionner, cette fonction doit être lancée après l'initialisation des widgets , donc minimum sur le hook action 'init' ou après, voir les [http://codex.wordpress.org/Plugin_API/Action_Reference références des actions].
+
+=== Un blog installé ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_blog_installed is_blog_installed()]</tt> : Retourne <tt>true</tt> si le blog en cours est bien installé.
+
+''Note'' : Le cache sera vérifié en premier. Si vous avez un plugin de cache qui sauve les valeurs en cache, cela va fonctionner. Si vous utilisez le cache par défaut de WordPress et que la base de données n'est plus là, vous pourriez avoir des problèmes.
+
+=== Lecture de droite à gauche ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_rtl is_rtl()]</tt> : Retourne <tt>true</tt> si la langue courante est lue de droite à gauche (Right To Left, RTL).
+
+'''Exemple'''
+<pre>
+ if ( is_rtl() ) {
+   wp_enqueue_style(  'style-rtl',  plugins_url( '/css/style-rtl.css', __FILE__ ) );
+   wp_enqueue_script( 'script-rtl', plugins_url( '/js/script-rtl.js',  __FILE__ ) );
+ }
+</pre>
+
+=== Un blog d'un réseau (Multisite) ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_multisite is_multisite()]</tt> : Retourne <tt>true</tt> si le site visité fait parti d'une installation [http://codex.wordpress.org/fr:Créer_un_réseau multisite].
+
+=== Le site principal (Multisite) ===
+; <tt>[[Function_Reference/is_main_site|is_main_site()]]</tt> : Retourne <tt>true</tt> si le site visité est le site principal de l'installation multisite.
+
+=== L'utilisateur est l'administrateur du réseau (Multisite) ===
+; <tt>[[Function_Reference/is_super_admin|is_super_admin()]]</tt> : Retourne <tt>true</tt> si l'utilisateur connecté est l'administrateur du réseau de l'installation multisite (super admin).
+
+=== L'utilisateur est connecté ===
+; <tt>[http://codex.wordpress.org/Function_Reference/is_user_logged_in is_user_logged_in()]</tt> : Retourne <tt>true</tt> si l'utilisateur courant est connecté, tout rôle confondu.
+
+=== L'adresse e-mail existe ===
+; <tt>[http://codex.wordpress.org/Function_Reference/email_exists email_exists( $email )]</tt> : Vérifie si l'adresse e-mail <tt>$email</tt> a déjà été utilisée pour un membre inscrit sur ce site, la fonction retourne alors l'<tt>ID</tt> de cet utilisateur, sinon <tt>false</tt>.
+
+=== Le nom d'utilisateur existe ===
+; <tt>[http://codex.wordpress.org/Function_Reference/username_exists username_exists( $username )]</tt> : Vérifie si le nom d'utilisateur <tt>$username</tt> a déjà été utilisé pour un membre inscrit sur ce site, la fonction retourne alors l'<tt>ID</tt> de cet utilisateur, sinon <tt>false</tt>.
+
+=== Un plugin actif ===
+; <tt>[[Function_Reference/is_plugin_active|is_plugin_active( $path )]]</tt> : Retourne <tt>true</tt> si le plugin spécifié est activé.
+; <tt>is_plugin_active( 'akismet/akismet.php' )</tt> : Retourne <tt>true</tt> si le plugin "Akismet" est activé.
+; <tt>[[Function_Reference/is_plugin_inactive|is_plugin_inactive( $path )]]</tt> : Retourne <tt>true</tt> si le plugin spécifié est désactivé. Même chose que <tt>! is_plugin_active( $path )</tt>.
+; <tt>[[Function_Reference/is_plugin_active_for_network|is_plugin_active_for_network( $path )]]</tt> : Même chose mais pour vérifier si le plugin est actif sur le réseau d'une installation [http://codex.wordpress.org/fr:Créer_un_réseau multisite].
+; <tt>[[Function_Reference/is_plugin_page|is_plugin_page()]]</tt> : Retourne <tt>true</tt> si la page chargée du côté administration est celle d'un plugin. '''Cette fonction est dépréciée depuis WordPress 3.1, sans alternative connue.'''
+
+=== Un thème enfant ===
+; <tt>[[Function Reference/is_child_theme|is_child_theme()]]</tt> : Retourne <tt>true</tt> si le thème activé est un [https://codex.wordpress.org/fr:Th%C3%A8mes_Enfant thème enfant].
+
+=== Le theme supporte une fonctionnalité ===
+; <tt>[[Function Reference/current_theme_supports|current_theme_supports( $feature )]]</tt> : Retourne <tt>true</tt> si le thème supporte la fonctionnalité <tt>$feature</tt> demandée.
+; <tt>current_theme_support( 'post-thumbnails' )</tt> : Retourne <tt>true</tt> si le thème supporte les [https://codex.wordpress.org/Post_Thumbnails images à la une]. Pour ajouter un support de fonctionnalité dans une thème, utilisez [http://codex.wordpress.org/Function_Reference/add_theme_support add_theme_support()]
+
+=== L'article contient une image à la une ===
+; <tt>[http://codex.wordpress.org/Function_Reference/has_post_thumbnail has_post_thumbnail( $post_id )]</tt> : Retourne <tt>true</tt> si l'article dont l'<tt>ID</tt> est <tt>$post_id</tt> contient une image à la une. Le thème doit supporter les images à la une (Featured Images), voir ci-dessus.
+
+=== Le script est utilisé ===
+; <tt>[http://codex.wordpress.org/Function_Reference/wp_script_is wp_script_is( $handle, $list )]</tt> : Retourne <tt>true</tt> si le script dont le ''handle'' est <tt>$handle</tt> a été 'enregistré', 'mis en queue', 'imprimé', ou 'à imprimer' selon le paramètre <tt>$list</tt>.
+''Note'' : Les valeurs possibles pour <tt>$list</tt> sont : '''registered''', '''enqueued'''/'''queue''', '''done''', et '''to_do'''.
+
+'''Exemple'''
+<pre>
+    $handle = 'fluidVids.js';
+    $list = 'enqueued';
+      if ( wp_script_is( $handle, $list ) ) {
+        return;
+      } else {
+        wp_register_script( 'fluidVids.js', plugin_dir_url(__FILE__).'js/fluidvids.min.js');
+        wp_enqueue_script( 'fluidVids.js' );
+      }
+</pre>
+Ceci va vérifier si le script nommé "fluidVids.js" est mis en queue. Si non, le fichier sera alors enregistré et mis en queue.
+
+==Exemples==
+
+Voici des exemples pratiques qui montrent l'utilisation des Marqueurs Conditionnels.
+
+=== Un article ===
+
+Cet exemple montre comment utiliser <tt>is_single()</tt> pour un affichage spécifique à une page d'article :
+<pre>
+if ( is_single() ) {
+     echo 'Titre de cet article : ' . get_the_title();
+}
+</pre>
+
+Un autre exemple d'utilisation des tags conditionnales dans [[fr:La Boucle|la Boucle]]. Choisissez d'afficher le contenu (<tt>post_content</tt>) ou son résumé dans in index.php quand ce fichier sera appelé pour l'accueil en mode blog ou pour un article.
+
+<pre>
+if ( is_home() || is_single() ) {
+
+   the_content();
+
+}
+else {
+
+   the_excerpt();
+
+}
+</pre>
+
+Si vous avez besoin d'afficher du code ou des éléments quand ce n'est PAS la page d'accueil
+
+<pre>
+<?php if ( ! is_home() ) {?>
+
+ <p>Ajoutez votre contenu</p>
+
+<?php }?>
+</pre>
+
+=== Utiliser plusieurs marqueurs conditionnels ===
+
+Vous pouvez utiliser les [http://www.w3schools.com/php/php_operators.asp/ opérateurs PHP] pour évaluer de multiples conditions dans un seul test.
+
+C'est très utile si vous avez besoin de vérifier plusieurs conditions en même temps.
+
+<pre>
+// Vérifie si on visite une page ou un article
+if ( is_single() || is_page() ) ) {
+  
+	// oui
+
+}
+
+// Vérifie si on visite une page d'archive qui n'est pas de la catégorie "beret"
+if ( is_archive() && ! is_category( 'beret' ) ) {
+  
+	// oui
+
+}
+</pre>
+
+<pre>
+// Vérifie si nous sommes dans la requête principale, dans une page d'archives du CPT 'product', et pas dans l'administration.
+
+
+if ( is_main_query() && is_post_type_archive( 'product' ) && ! is_admin() ) {
+  
+	// oui
+
+}
+
+// Vérifie si on visite la page d'archives du CPT 'movie', ou la tanonomie personnalisée 'genre' ou 'acteur'.
+if ( is_post_type_archive( 'movie' ) || is_tax( 'genre' ) || is_tax( 'actor' )  ) {
+  
+	// oui
+
+}
+</pre>
+
+===Affichage par date===
+
+Si quelqu'un navigue sur le site en utilisant les liens datés, le code qui suit affectera des couleurs différentes aux Articles en fonction de l'année :
+
+<pre>
+&lt;?php
+// Début de la Boucle (The Loop)
+if ( have_posts() ) : while ( have_posts() ) : the_post(); ?&gt;
+&lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?&gt;" rel="bookmark" title="Lien permanent vers &lt;?php the_title_attribute(); ?&gt;"&gt;
+&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;small&gt;&lt;?php the_time( get_option( 'time_format' ) ) ?&gt; par &lt;?php the_author() ?&gt; &lt;/small&gt;
+
+&lt;?php
+// Affichage d'une page Datée ?
+$class = 'entry';
+if ( is_date() ) {
+     if ( date( 'Y' ) != get_the_date( 'Y' ) ) {
+          // cet Article a été publié une année antérieure
+          // donc, on affiche en utilisant la classe "oldentry"
+          $class = 'oldentry';
+     }
+}
+?>
+&lt;div class="<?php echo $class; ?>"&gt;';
+<?php
+the_content( 'Lire la suite &raquo;' ); 
+?&gt;
+&lt;/div&gt;
+</pre>
+
+=== Contenu variable de la barre latérale (sidebar) ===
+
+Cet exemple affichera des contenus différents dans votre Sidebar en fonction du type de page en cours d'affichage.
+
+<pre>
+<!-- début de la sidebar -->
+<div id="sidebar">
+<?php
+// Génération d'informations liées à la page affichée
+if ( is_home() ) {
+        // Sur la home page, affichage des Catégories mères uniquement          
+        echo '<ul>';
+        wp_list_cats( 'optionall=0&sort_column=name&list=1&children=0' );
+        echo '</ul>';
+} elseif ( is_category() ) {
+        // sur une page de catégorie, affichage de toutes les Catégories
+         echo '<ul>';
+        wp_list_cats( 'optionall=1&sort_column=name&list=1&children=1&hierarchical=1' );
+        echo '</ul>';
+} elseif ( is_single() ) {
+        // Sur une page d'Article unitaire, aucune Catégorie n'est affichée
+} elseif ( is_page() ) {
+        // Affichage de page spécifiques
+        if ( is_page( 'À Propos') ) {
+             // Notre page A propos.
+             echo '<p>Ceci est ma page À propos !</p>';
+        } elseif ( is_page( 'Infos' ) ) {
+             echo '<p>Ceci est la page d'information sur le blog ' . bloginfo( 'name' ) . '</p>';
+        } else {
+              // Pour toutes les autres pages
+              echo "<p>Votez pour BAW !</p>";
+        }
+} else {
+        // Affichage de tous les autres types de pages (archives, recherches, 404, etc)
+        echo '<p>A bientôt.</p>';
+} // C'est tout !
+?>
+<form id="searchform" method="get" action="<?php echo esc_url( $_SERVER['SCRIPT_NAME'] ); ?>">
+<div>
+<input type="text" name="s" id="s" size="15" />
+<input type="submit" value="<?php _e( 'Search' ); ?>" />
+</div>
+</form>
+
+</div>
+<!-- fin de la sidebar -->
+</pre>
+
+=== Une page 404 utile ===
+Lorsqu'un visiteur arrive sur une page d'erreur 404, cela peut être intimidant et inutile. En utilisant WordPress, vous pouvez prendre avantage d'un 404 et le rendre utilise aux utilisateurs, et à vous même en vous envoyant un mail chaque fois qu'un utilisateur clique sur un lien menant vers une page inexistante.
+
+<pre>
+<?php
+// some variables for the script to use
+// if you have some reason to change these, do.  but wordpress can handle it
+$adminemail = get_bloginfo( 'admin_email' ); // the administrator email address, according to wordpress
+$website = home_url(); // gets your blog's url from wordpress
+$websitename = get_bloginfo( 'name' ); // sets the blog's name, according to wordpress
+$url = esc_html( $_SERVER['REQUEST_URI'] );
+if ( ! wp_get_referer() ) {
+	// politely blames the user for all the problems they caused
+	$text = 'Vous avez essayé de joindre '; // starts assembling an output paragraph
+	$casemessage = 'Tout n\'est pas perdu !';
+} else {
+	// this will help the user find what they want, and email me of a bad link
+	$text = 'Vous avez cliqué sur un lien vers '; // now the message says You clicked a link to...
+	// setup a message to be sent to me
+	$failuremess = 'Un visiteur a essayé de joindre ' . $website . $url;
+	$failuremess .= ' et est tombé sur une page 404.<br />';
+	$failuremess .= 'Ce n\'est pas de sa faute, essayez de la réparer.<br />';
+	$failuremess .= 'Il venait de ' . wp_get_referer() . '<br />';
+	mail( $adminemail, '404 sur ' . $url, $failuremess, 'From: ' . get_bloginfo( 'name' ) . ' <noreply@' . $website . '>' ); // email you about problem
+	$casemessage = 'Un administrateur a été alerté du problème.';// set a friendly message
+}
+$text .= $website . $url;
+?>
+
+<p>
+<?php echo $text; ?> et cela n'existe pas.<br />
+<?php echo $casemessage; ?><br />
+Vous pouvez tenter de revenir en arrière ou utiliser la recherche :<br />
+<?php get_template_part( 'searchform' ); ?>
+</p>
+</pre>
+
+===Menu Dynamique mis en évidence===
+
+L'article [[Dynamic Menu Highlighting|Dynamic Menu Highlighting]] explique comment utiliser les marqueurs conditionnels afin de permettre la mise en évidence de la page courante dans un menu.
+
+=== Dans le pied de page du thème, footer.php ===
+Parfois les requêtes effectuées dans d'autres modèles tels que <tt>sidebar.php</tt> pourraient perturber certains marqueurs conditionnels.
+Par exemple, dans <tt>header.php</tt> un marqueur conditionnel fonctionne correctement mais plus dans le fichier <tt>footer.php</tt> du thème.  L'astuce est d'ajouter <tt>wp_reset_query</tt> avant le test conditionnel dans le pied du site.
+
+<pre>
+<?php
+wp_reset_query();
+if ( is_page( '2' ) ) {
+    echo 'Page 2 !';
+} 
+?>
+</pre>
+
+{{Tag Footer}}
+
+[[Category:Advanced Topics]]
+[[Category:Design and Layout]]
+[[Category:Template Tags]]
+
+== Ressources externes ==
+
+* [http://www.carriedils.com/wordpress-conditional-tags/ What the Weatherman Can Teach You About WordPress Conditional Tags] (en) par Carrie Dils
+* Aller plus loin dans les marqueurs conditionnels : [http://www.screenfeed.fr/blog/creer-archive-pour-post-metas-01653/ Créer des pages d'archive pour des post metas] & [https://github.com/Screenfeed/SF-Meta-Archives SF Meta Archives (github)] par Greg Viguier
+* [http://boiteaweb.fr/is_new_day-fonction-semaine-2-7226.html is_new_day(), quel jour sommes-nous ?] par Daniel Roch
+* [http://www.seomix.fr/detecter-page-article-statique-wordpress/ is_home() et is_front_page()] Article détaillé sur l'utilisation conjointe des fonctions is_home et is_front_page, par Daniel Roch

@@ -1,0 +1,63 @@
+== Description ==
+Navigates through an array and removes slashes from the values.
+
+If an array is passed, the [http://www.php.net/manual/en/function.array-map.php <tt>array_map()</tt>] function causes a callback to pass the value back to the function. The slashes from each value will be removed using the [http://www.php.net/manual/en/function.stripslashes.php <tt>stripslashes()</tt>] function.
+
+== Usage ==
+%%%<?php stripslashes_deep( $value ); ?>%%%
+
+== Parameters ==
+{{Parameter|$value|array&#124;string&#124;object|The array, a string or an object to be stripped.}}
+
+== Return Values ==
+; (array&#124;string) : Stripped array (or string in the callback).
+
+== Examples ==
+=== Basic Example ===
+You may want this function when developing your own PHP application intended to run within the WordPress environment. Specifically, your program needs to strip slashes when data arrives via <tt>$_POST</tt>, <tt>$_GET</tt>, <tt>$_COOKIE</tt>, and <tt>$_REQUEST</tt> arrays.
+
+An example would be a "Contact Me" page and the ancillary program that sanitizes the user-supplied text. Such user inputs typically travel from an HTML <form method="post" ... > to your program by way of the <tt>$_POST</tt> array. <tt>stripslashes_deep()</tt>, in that case, could be used thus (caution, see notes below):
+
+ $_POST = stripslashes_deep( $_POST );
+
+The stripslashes_deep() function is recursive and will walk through the $_POST array even when some of the elements are themselves an array.
+
+Please note: WordPress Core and most plugins will still be expecting slashes, and the above code will confuse and break them. If you must unslash, consider only doing it to your own data which isn't used by others: 
+
+ $your_own_data = stripslashes_deep( $_POST['your_own_data'] );
+
+=== Good Coding Practice ===
+WordPress adds slashes to $_POST/$_GET/$_REQUEST/$_COOKIE regardless of what get_magic_quotes_gpc() returns. So in the context of WordPress, stripslashes() or stipslashes_deep() should always be used when using those variables.
+
+Example:
+
+ $my_post = stripslashes_deep($_POST);
+ $my_value = $my_post['value'];
+
+Or:
+
+ $my_value = stripslashes($_POST['value']);
+
+== Notes ==
+* See [http://www.php.net/manual/en/security.magicquotes.disabling.php Disabling Magic Quotes]
+* WordPress ignores the built in php magic quotes setting and the value of get_magic_quotes_gpc() and will always add magic quotes (even after the feature is removed from PHP in 5.4).
+* WordPress does this because too much core and plugin code has come to rely on the quotes being there, so disabling quotes on the super globals (as is done in both the "Basic Example" and "Good Coding Practice" examples above) is likely to cause security holes.
+
+== Change Log ==
+Since: 2.0.0
+
+== Source File ==
+<!-- Need links to current source code files -->
+<tt>stripslashes_deep()</tt> is located in <tt>{{Trac|wp-includes/formatting.php}}</tt>.
+
+== Related ==
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+
+{{Tag Footer}}
+
+[[Category:Functions]]

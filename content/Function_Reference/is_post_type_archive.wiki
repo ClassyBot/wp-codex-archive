@@ -1,0 +1,83 @@
+{{Languages|
+{{en|Function_Reference/is_post_type_archive}}
+{{it|Riferimento_funzioni/is_post_type_archive}}
+{{ja|関数リファレンス/is_post_type_archive}}
+}}
+==Description==
+
+Checks if the ''[[Glossary#Query|query]]'' is for an archive page of a given ''[[Glossary#Post_Type|post type(s)]]''.
+
+==Usage==
+
+%%%<?php is_post_type_archive( $post_types ); ?>%%%
+
+==Parameters==
+
+{{Parameter|$post_types|array/string|''Post type'' or array of ''posts types'' to check against.|optional}}
+
+==Return Values==
+
+{{Return||boolean|Whether the ''query'' is for an archive page of a given ''post type(s)''.}}
+
+==Examples==
+
+Determine if the current page is an archive made by a ''[[Post Types#Custom_Post_Types|custom post type]]'' and display the ''custom post type'' title:
+
+<pre>
+<?php
+if ( is_post_type_archive() ) {
+    ?>
+    <h1><?php post_type_archive_title(); ?></h1>
+    <?php
+}
+?>
+</pre>
+
+==Notes==
+
+This returns false for a page like <tt>/category/uncategorized/?post_type=custom</tt>. It only returns true for a page like <tt>/?post_type=custom</tt>. In other words, it's not checking for the existence of the <tt>post_type</tt> query parameter, it's testing if this is the archive of all posts of a given type. You might instead be looking for [[Function Reference/get query var|<tt>get_query_var('post_type')</tt>]].
+
+Depending on when this function is run it may or may not be run by <code>nav_menu_item</code>. Take the following code example:
+
+<pre>
+<?php
+function some_func( $query ){
+    if ( is_post_type_archive('my_custom_post_type') ) {
+         // Do stuff
+    }
+}
+add_action('pre_get_posts','some_func');
+?>
+</pre>
+
+"Do stuff" may or may not be run in the menu, depending on if the theme is using nav menus or not. The correct usage would be:
+
+<pre>
+<?php
+function some_func( $query ){
+    if ( is_post_type_archive('my_custom_post_type') && ! empty( $query->query['post_type']  == 'my_custom_post_type' )) {
+         // Do stuff
+    }
+}
+add_action('pre_get_posts','some_func');
+?>
+</pre>
+
+==Change Log==
+
+* Since: [[Version 3.1|3.1.0]]
+
+==Source File==
+
+<tt>is_post_type_archive()</tt> is located in {{Trac|wp-includes/query.php}}.
+
+==Related==
+
+{{Post Type Tags}}
+
+{{Conditional Tags}}
+
+{{Tag Footer}}
+
+[[Category:Conditional Tags]]
+[[Category:Functions]]

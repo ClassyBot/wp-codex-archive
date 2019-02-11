@@ -1,0 +1,109 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Return_Values"><span class="tocnumber">4</span> <span class="toctext">Return Values</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Examples"><span class="tocnumber">5</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#display"><span class="tocnumber">5.1</span> <span class="toctext">display</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Notes"><span class="tocnumber">6</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Change_Log"><span class="tocnumber">7</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Source_File"><span class="tocnumber">8</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#Related"><span class="tocnumber">9</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Retrieve supported and filtered Cron recurrences.
+</p><p>The supported recurrences are '<tt>hourly</tt>', '<tt>twicedaily</tt>', and '<tt>daily</tt>'. A plugin may add more by hooking into the '<tt>cron_schedules</tt>' filter. The filter accepts an array of arrays. The outer array has a key that is the name of the schedule or for example '<tt>weekly</tt>'. The value is an array with two keys, one is '<tt>interval</tt>' and the other is '<tt>display</tt>'.
+</p><p>The '<tt>interval</tt>' is a number in seconds of when the cron job should run. So for '<tt>hourly</tt>', the time is <tt>3600</tt> or <tt>60*60</tt>. For weekly, the value would be <tt>60*60*24*7</tt> or <tt>604800</tt>. The value of '<tt>interval</tt>' would then be <tt>604800</tt>.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;wp_get_schedules</span><span style="color: #007700">();&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>None.
+</p>
+<h2><span class="mw-headline" id="Return_Values">Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=4" title="Edit section: Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>Array
+(
+   [hourly] =&gt; Array
+       (
+           [interval] =&gt; 3600
+           [display] =&gt; Once Hourly
+       )
+   [twicedaily] =&gt; Array
+       (
+           [interval] =&gt; 43200
+           [display] =&gt; Twice Daily
+       )
+   [daily] =&gt; Array
+       (
+           [interval] =&gt; 86400
+           [display] =&gt; Once Daily
+       )
+)
+</pre>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=5" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="display">display</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=6" title="Edit section: display">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The '<tt>display</tt>' is the description. For the '<tt>weekly</tt>' key, the '<tt>display</tt>' would be
+</p>
+<pre>__( 'Once Weekly' );
+</pre>
+<p>For your plugin, you will be passed an <tt>array</tt>. You can easily add a new interval schedule by doing the following using the '<tt>cron_schedules</tt>' filter.
+</p>
+<pre>
+ add_filter( 'cron_schedules', 'cron_add_weekly' );
+ 
+ function cron_add_weekly( $schedules ) {
+ 	// Adds once weekly to the existing schedules.
+ 	$schedules['weekly'] = array(
+ 		'interval' =&gt; 604800,
+ 		'display' =&gt; __( 'Once Weekly' )
+ 	);
+ 	return $schedules;
+ }
+</pre>
+<p><br />
+</p>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=7" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=8" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: 2.1.0
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=9" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>wp_get_schedules()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/cron.php#L0">wp-includes/cron.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_get_schedules&amp;action=edit&amp;section=10" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/cron_schedules" title="Plugin API/Filter Reference/cron schedules">Plugin_API/Filter_Reference/cron_schedules</a>
+</p>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003957
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.180 seconds
+Preprocessor visited node count: 81/1000000
+Preprocessor generated node count: 222/1000000
+Post‐expand include size: 667/2097152 bytes
+Template argument size: 166/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   33.056      1 - -total
+ 64.90%   21.452      1 - Template:Trac
+ 59.47%   19.660      1 - Template:CurrentVersion
+ 34.71%   11.474      1 - Template:Tag_Footer
+ 19.33%    6.391      1 - Template:Message
+-->

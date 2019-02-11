@@ -1,0 +1,56 @@
+==Intro==
+Theme and plugin developers can customize WordPress's built-in user registration page through the use of [[Plugin API|hooks]].
+
+Customizing the registration form involves utilizing the following three hooks:
+
+; 1. [[Plugin_API/Action_Reference/register_form|register_form]]: Allows rendering of new HTML form elements.
+; 2. [[Plugin_API/Filter_Reference/registration_errors|registration_errors]]: Perform validation on form registration fields.
+; 3. [[Plugin_API/Action_Reference/user_register|user_register]]: Save custom form data.
+
+==Example==
+The following example demonstrates how to add a "First Name" field to the registration form as a required field. First Name is one of WordPress's built-in user meta types, but you can define any field or custom user meta you want. Just keep in mind that if you create custom user meta, you may need to create additional admin UI as well.
+<pre>
+//1. Add a new form element...
+add_action( 'register_form', 'myplugin_register_form' );
+function myplugin_register_form() {
+
+    $first_name = ( ! empty( $_POST['first_name'] ) ) ? sanitize_text_field( $_POST['first_name'] ) : '';
+        
+        ?>
+        <p>
+            <label for="first_name"><?php _e( 'First Name', 'mydomain' ) ?><br />
+                <input type="text" name="first_name" id="first_name" class="input" value="<?php echo esc_attr(  $first_name  ); ?>" size="25" /></label>
+        </p>
+        <?php
+    }
+
+    //2. Add validation. In this case, we make sure first_name is required.
+    add_filter( 'registration_errors', 'myplugin_registration_errors', 10, 3 );
+    function myplugin_registration_errors( $errors, $sanitized_user_login, $user_email ) {
+        
+        if ( empty( $_POST['first_name'] ) || ! empty( $_POST['first_name'] ) && trim( $_POST['first_name'] ) == '' ) {
+        $errors->add( 'first_name_error', sprintf('<strong>%s</strong>: %s',__( 'ERROR', 'mydomain' ),__( 'You must include a first name.', 'mydomain' ) ) );
+
+        }
+
+        return $errors;
+    }
+
+    //3. Finally, save our extra registration user meta.
+    add_action( 'user_register', 'myplugin_user_register' );
+    function myplugin_user_register( $user_id ) {
+        if ( ! empty( $_POST['first_name'] ) ) {
+            update_user_meta( $user_id, 'first_name', sanitize_text_field( $_POST['first_name'] ) );
+        }
+    }
+</pre>
+
+==Related==
+===Action Hooks===
+* [[Plugin_API/Action_Reference/register_form|register_form]]
+* [[Plugin_API/Action_Reference/register_post|register_post]]
+* [[Plugin_API/Action_Reference/user_register|user_register]]
+===Filter Hooks===
+* [[Plugin_API/Filter_Reference/registration_errors|registration_errors]]
+
+[[Category:WordPress_Lessons]]

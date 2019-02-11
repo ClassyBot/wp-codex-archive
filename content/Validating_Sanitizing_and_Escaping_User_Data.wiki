@@ -1,0 +1,129 @@
+== Overview ==
+
+Your code works, but is it safe? When writing code that will run across hundreds if not thousands of websites, you should be extra cautious of how you handle data coming into WordPress and how it's then presented to the end user. This commonly comes up when building a settings page for your theme, creating and manipulating shortcodes, or saving and rendering extra data associated with a post.
+
+There's a distinction between how input and output are managed, however.
+
+== Validating: Checking User Input ==
+
+To validate is to ensure the data you've requested of the user matches what they've submitted. There are [[Data_Validation#Input_Validation|several core methods you can use for input validation]]; usage obviously depends on the ''type'' of fields you'd like to validate. Let's take a look at an example.
+
+Say we have an input area in our form like this:
+
+<pre>
+<input type="text" id="my-zipcode" name="my-zipcode" maxlength="5" />
+</pre>
+
+Just like that, we've told the browser to only allow up to five characters of input, but there's no limitation on what characters they can input. They could enter "11221" or "eval(". If we're saving to the database, there's no way we want to give the user unrestricted write access.
+
+This is where validation plays a role. When processing the form, we'll write code to check each field for its proper data type. If it's not of the proper data type, we'll discard it. For instance, to check "my-zipcode" field, we might do something like this:
+
+<pre>
+$safe_zipcode = intval( $_POST['my-zipcode'] );
+if ( ! $safe_zipcode ) {
+  $safe_zipcode = '';
+}
+
+if ( strlen( $safe_zipcode ) > 5 ) {
+  $safe_zipcode = substr( $safe_zipcode, 0, 5 );
+}
+
+update_post_meta( $post->ID, 'my_zipcode', $safe_zipcode );
+</pre>
+
+Since the `maxlength` attribute is only enforced by the browser, we still need to validate the length of the input on the server. If we don't, an attacker could manually submit a form with a longer value.
+
+The intval() function casts user input as an integer, and defaults to zero if the input was a non-numeric value. We then check to see if the value ended up as zero. If it did, we'll save an empty value to the database. Otherwise, we'll save the properly validated zipcode.
+
+This style of validation most closely follows WordPress' [[Data_Validation#Whitelist|whitelist philosophy]]: only allow the user to input what you're expecting. Luckily, there's a [[Data_Validation#Input_Validation|number of handy helper functions]] you can use for most every data type.
+
+<span id="sanitizing"></span>
+
+==Sanitizing: Cleaning User Input==
+Sanitization is a bit more liberal of an approach to accepting user data. We can fall back to using these methods when there's a range of acceptable input.
+
+For instance, if we had a form field like this:
+
+<pre>
+<input type="text" id="title" name="title" />
+</pre>
+
+We could sanitize the data with the <tt>[[Function_Reference/sanitize_text_field|sanitize_text_field()]]</tt> function:
+
+<pre>
+$title = sanitize_text_field( $_POST['title'] );
+update_post_meta( $post->ID, 'title', $title );
+</pre>
+
+Behinds the scenes, the function does the following:
+
+* Checks for invalid UTF-8 (uses [[Function_Reference/wp_check_invalid_utf8|wp_check_invalid_utf8()]])
+* Converts single &lt; characters to entity
+* Strips all tags
+* Remove line breaks, tabs and extra white space
+* Strip octets
+
+The sanitize_*() class of helper functions are super nice for us, as they ensure we're ending up with safe data and require minimal effort on our part:
+
+* [[Function_Reference/sanitize_email|sanitize_email()]]
+* [[Function_Reference/sanitize_file_name|sanitize_file_name()]]
+* [[Function_Reference/sanitize_html_class|sanitize_html_class()]]
+* [[Function_Reference/sanitize_key|sanitize_key()]]
+* [[Function Reference/sanitize meta|sanitize_meta()]]
+* [[Function_Reference/sanitize_mime_type|sanitize_mime_type()]]
+* [[Function_Reference/sanitize_option|sanitize_option()]]
+* [[Function_Reference/sanitize_sql_orderby|sanitize_sql_orderby()]]
+* [[Function_Reference/sanitize_text_field|sanitize_text_field()]]
+* [[Function_Reference/sanitize_textarea_field|sanitize_textarea_field()]]
+* [[Function_Reference/sanitize_title|sanitize_title()]]
+* [[Function_Reference/sanitize_title_for_query|sanitize_title_for_query()]]
+* [[Function_Reference/sanitize_title_with_dashes|sanitize_title_with_dashes()]]
+* [[Function_Reference/sanitize_user|sanitize_user()]]
+
+==Escaping: Securing Output==
+
+For security on the other end of the spectrum, we have escaping. To escape is to take the data you may already have and help secure it prior to rendering it for the end user. WordPress thankfully has a [[Data_Validation#Output_Sanitation|few helper functions]] we can use for most of what we'll commonly need to do:
+
+[[Function_Reference/esc_html|esc_html()]] we should use anytime our HTML element encloses a section of data we're outputting.
+
+<pre>
+<h4><?php echo esc_html( $title ); ?></h4>
+</pre>
+
+[[Function_Reference/esc_url|esc_url()]] should be used on all URLs, including those in the 'src' and 'href' attributes of an HTML element.
+
+<pre>
+<img src="<?php echo esc_url( $great_user_picture_url ); ?>" />
+</pre>
+
+[[Function_Reference/esc_js|esc_js()]] is intended for inline Javascript.
+
+<pre>
+<a href="#" onclick="<?php echo esc_js( $custom_js ); ?>">Click me</a>
+</pre>
+
+[[Function_Reference/esc_attr|esc_attr()]] can be used on everything else that's printed into an HTML element's attribute.
+
+<pre>
+<ul class="<?php echo esc_attr( $stored_class ); ?>">
+</pre>
+
+[[Function_Reference/esc_textarea|esc_textarea()]] encodes text for use inside a textarea element.
+
+<pre>
+<textarea><?php echo esc_textarea( $text ); ?></textarea>
+</pre>
+
+It's important to note that most WordPress functions properly prepare the data for output, and you don't need to escape again.
+
+<pre>
+<h4><?php the_title(); ?></h4>
+</pre>
+
+==Conclusion==
+
+'''To recap:''' Follow the whitelist philosophy with data validation, and only allow the user to input data of your expected type. If it's not the proper type, discard it. When you have a range of data that can be entered, make sure you sanitize it. Escape data as much as possible on output to avoid XSS and malformed HTML.
+
+Take a look through <tt>/wp-includes/formatting.php</tt> to see all of the sanitization and escaping functions WordPress has to offer.
+
+''An earlier version of this article appeared on the [http://vip.wordpress.com/2011/10/13/key-differences-between-validation-and-sanitization/ WordPress.com VIP Publisher Blog]. Republished here with permission.''

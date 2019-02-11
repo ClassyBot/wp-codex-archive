@@ -1,0 +1,88 @@
+== Description ==
+
+Attempts activation of plugin in a "sandbox" and redirects on success.
+
+A plugin that is already activated will not attempt to be activated again.
+
+The way it works is by setting the redirection to the error before trying to include the plugin file. If the plugin fails, then the redirection will not be overwritten with the success message. Also, the options will not be updated and the activation hook will not be called on plugin error.
+
+It should be noted that in no way the below code will actually prevent errors within the file. The code should not be used elsewhere to replicate the "sandbox", which uses redirection to work.
+
+If any errors are found or text is outputted, then it will be captured to ensure that the success redirection will update the error redirection.
+
+== Usage ==
+
+%%%<?php activate_plugin( $plugin, $redirect = '', $network_wide = false, $silent = false ); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$plugin|string|Plugin path to main plugin file with plugin data.}}
+
+{{Parameter|$redirect|string|URL to redirect to.|optional|NULL}}
+
+{{Parameter|$network_wide|boolean|Whether to enable the plugin for all sites in the network or just the current site. Multisite only.|optional|false}}
+
+{{Parameter|$silent|boolean|Prevent calling activation hooks.|optional|false}}
+
+== Return Value ==
+
+(''WP_Error|null'') [[Class_Reference/WP_Error|WP_Error]] on invalid file or 'NULL' on success.
+
+== Examples ==
+
+=== Default Usage ===
+
+Attempts to activate the plugin, and returns WP_Error on failure
+
+<pre>
+$result = activate_plugin( 'plugin-dir/plugin-file.php' );
+if ( is_wp_error( $result ) ) {
+	// Process Error
+}
+</pre>
+
+== Notes ==
+
+* Plugin will fail to activate with the following generic response for multiple reasons, including; issues parsing the header information, issue with the 'plugin' cache (see [[Class Reference/WP Object Cache|WordPress Object Cache]]), or a permissions error.
+ The plugin does not have a valid header
+
+* Issues with the plugin cache, are caused when the plugin files are added or modified, after the plugins have all been initialised. This can be resolved by reloading the page, sending the ''activate_plugin()'' as a separate AJAX request, or if necessary, by manually updating the cache. Example below;
+<pre>
+$cache_plugins = wp_cache_get( 'plugins', 'plugins' );
+if ( !empty( $cache_plugins ) ) {
+	$new_plugin = array(
+		'Name' => $plugin_name,
+		'PluginURI' => $plugin_uri,
+		'Version' => $plugin_version,
+		'Description' => $plugin_description,
+		'Author' => $author_name,
+		'AuthorURI' => $author_uri,
+		'TextDomain' => '',
+		'DomainPath' => '',
+		'Network' => '',
+		'Title' => $plugin_name,
+		'AuthorName' => $author_name,
+	);
+	$cache_plugins[''][$plugin_path] = $new_plugin;
+	wp_cache_set( 'plugins', $cache_plugins, 'plugins' );
+}
+</pre>
+
+== Changelog ==
+
+== Source File ==
+
+<tt>activate_plugin()</tt> is located in {{Trac|wp-admin/includes/plugin.php}}.
+
+== Related ==
+
+* [[Function Reference/register activation hook|<code>register_activation_hook()</code>]] 
+* [[Function Reference/is plugin active|<code>is_plugin_active()</code>]] 
+
+{{Tag Footer}}
+
+{{Stub}}
+
+[[Category:Functions]]
+
+[[Category:New page created]]

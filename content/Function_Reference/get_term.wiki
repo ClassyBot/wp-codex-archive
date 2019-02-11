@@ -1,0 +1,79 @@
+{{Languages|
+{{en|Function Reference/get term}}
+{{ja|関数リファレンス/get term}}
+}}
+
+== Description ==
+Get all Term data from database by Term ID. To retrieve term data by name, slug or ID, use [[Function Reference/get_term_by|get_term_by()]] instead
+
+The usage of the get_term function is to apply filters to a term object. It is possible to get a term object from the database before applying the filters.
+
+<tt>$term</tt> ID must be part of <tt>$taxonomy</tt>, to get from the database. Failure, might be able to be captured by the hooks. Failure would be the same value as [[Class Reference/wpdb|<tt>$wpdb</tt>]] returns for the get_row method.
+
+There are two hooks, one is specifically for each term, named '<tt>get_term</tt>', and the second is for the taxonomy name, '<tt>term_$taxonomy</tt>'. Both hooks gets the term object, and the taxonomy name as parameters. Both hooks are expected to return a Term object.
+
+'<tt>get_term</tt>' hook - Takes two parameters the term Object and the taxonomy name. Must return term object. Used in [[Function_Reference/get_term|<tt>get_term()</tt>]] as a catch-all filter for every <tt>$term</tt>.
+
+'<tt>get_$taxonomy</tt>' hook - Takes two parameters the term Object and the taxonomy name. Must return term object. <tt>$taxonomy</tt> will be the taxonomy name, so for example, if '<tt>category</tt>', it would be '<tt>get_category</tt>' as the filter name. Useful for custom taxonomies or plugging into default taxonomies.
+
+== Usage ==
+%%%<?php get_term( $term, $taxonomy, $output, $filter ) ?>%%%
+
+== Parameters ==
+{{Parameter|$term|integer&#124;object|If integer, will get from database. If object will apply filters and return <tt>$term</tt>.}}
+{{Parameter|$taxonomy|string|Taxonomy name that <tt>$term</tt> is part of.|optional|''}}
+{{Parameter|$output|string|Constant OBJECT, ARRAY_A, or ARRAY_N|optional|OBJECT}}
+{{Parameter|$filter|string|default is raw or no WordPress defined filter will applied.|optional|'raw'}}
+
+== Return Values ==
+; (mixed&#124;null&#124;WP_Error) : Term Row from database. Will return null if <tt>$term</tt> is empty. If taxonomy does not exist then <tt>[[Class_Reference/WP_Error | WP_Error]]</tt> will be returned.
+
+The fields returned are:
+* <tt>term_id (int)</tt>
+* <tt>name</tt>
+* <tt>slug</tt>
+* <tt>term_group (int)</tt>
+* <tt>term_taxonomy_id (int)</tt>
+* <tt>taxonomy</tt>
+* <tt>description</tt>
+* <tt>parent (int)</tt>
+* <tt>count (int)</tt>
+'''Warning: string vs integer confusion!''' Note that this function returns numeric fields as integers and not as strings. This is the opposite behavior of the [[Function_Reference/get_terms|get_terms()]] function, which does return numeric fields as strings.
+
+== Examples ==
+<!-- Need creative examples. Feel free to link to external examples. -->
+Get Term offers some handy information, but unfortunately lacks a link value.
+
+<code>$term = get_term( $term_id, $taxonomy );</code> 
+
+Gives you term slug: e.g.: term-slug-example
+
+<code>$slug = $term->slug;</code>
+
+Gives you term name: e.g. Term Name Example
+
+<code>$name = $term->name;</code>
+
+Gives you term description: e.g. This is my new cool custom term.
+
+<code>$desc = $term->description;</code>
+
+== Notes ==
+* See [[Function_Reference/sanitize_term_field|<tt>sanitize_term_field()</tt>]] The <tt>$context</tt> param lists the available values for [[Function_Reference/get_term_by|<tt>get_term_by()</tt>]] <tt>$filter</tt> param.
+* Uses: [[Function_Reference/sanitize_term|<tt>sanitize_term()</tt>]] Cleanses the term based on <tt>$filter</tt> context before returning.
+* Uses global: (<tt>object</tt>) [[Class Reference/wpdb|<tt>$wpdb</tt>]]
+
+== Change Log ==
+Since: 2.3.0
+
+== Source File ==
+<!-- Need links to current source code files -->
+<tt>&get_term()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== Related ==
+{{Term Tags}}, get_objects_in_term()
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

@@ -1,0 +1,131 @@
+{{Languages|
+{{en|Function Reference/wp set object terms}}
+{{de|Funktionsreferenz/wp set object terms}}
+{{it|Riferimento_funzioni/wp set object terms}}
+{{ja|関数リファレンス/wp set object terms}}
+}}
+
+== Description ==
+
+Relates an object (post, link etc) to a term and taxonomy type (tag, category, etc). Creates the term and taxonomy relationship if it doesn't already exist.
+
+A relationship means that the term is grouped in or belongs to the taxonomy. A term has no meaning until it is given context by defining which taxonomy it exists under.
+
+== Usage ==
+
+%%% <?php wp_set_object_terms( $object_id, $terms, $taxonomy, $append ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$object_id|int|The object to relate to, such as post ID.}}
+{{Parameter|$terms|array/int/string|The slug or id of the term (such as category or tag IDs), will replace all existing related terms in this taxonomy. To clear or remove all terms from an object, pass an empty string or NULL. Integers are interpreted as tag IDs. '''Warning:''' some functions may return term_ids as strings which will be interpreted as slugs consisting of numeric characters! }}
+{{Parameter|$taxonomy|array/string|The context in which to relate the term to the object. This can be category, post_tag, or the name of another taxonomy.}}
+{{Parameter|$append|bool|If true, terms will be appended to the object. If false, terms will replace existing terms|optional|False}}
+
+== Returns ==
+
+; (mixed) :
+
+* (array) An array of the terms ( as '''term_taxonomy_ids !''' ) affected if successful
+* (array) An empty array if the $terms argument was NULL or empty - successmessage for the removing of the term
+* ([[Class Reference/WP_Error|WP_Error]]) The WordPress Error object on invalid taxonomy (<tt>'invalid_taxonomy'</tt>).
+* (string) The first offending term if a term given in the $terms parameter is named incorrectly. (Invalid term ids are accepted and inserted).
+
+== Hooks ==
+*Action '''set_object_terms''' in {{Trac|wp-includes/taxonomy.php}}
+
+
+== Examples == 
+
+=== Setting a Post's Categories ===
+
+If you want to set the categories of a post with the ID of 42:
+
+<pre>
+<?php
+
+// An array of IDs of categories we want this post to have.
+$cat_ids = array( 6, 8 );
+
+/*
+ * If this was coming from the database or another source, we would need to make sure
+ * these were integers:
+
+$cat_ids = array_map( 'intval', $cat_ids );
+$cat_ids = array_unique( $cat_ids );
+
+ */
+
+$term_taxonomy_ids = wp_set_object_terms( 42, $cat_ids, 'category' );
+
+if ( is_wp_error( $term_taxonomy_ids ) ) {
+	// There was an error somewhere and the terms couldn't be set.
+} else {
+	// Success! The post's categories were set.
+}
+</pre>
+
+Note that this will set a post's categories to be exactly the array you pass, any categories the post previously had will be removed from the post. See the next example.
+
+=== Adding Categories to a Post ===
+
+If you want to add categories to a post while keeping the categories it has already, you need to pass <tt>true</tt> for the <tt>$append</tt> parameter:
+
+<pre>
+<?php
+
+// An array of IDs of categories we to add to this post.
+$cat_ids = array( 6, 8 );
+
+/*
+ * If this was coming from the database or another source, we would need to make sure
+ * these were integers:
+
+$cat_ids = array_map( 'intval', $cat_ids );
+$cat_ids = array_unique( $cat_ids );
+
+ */
+
+// Add these categories, note the last argument is true.
+$term_taxonomy_ids = wp_set_object_terms( 42, $cat_ids, 'category', true );
+
+if ( is_wp_error( $term_taxonomy_ids ) ) {
+	// There was an error somewhere and the terms couldn't be set.
+} else {
+	// Success! These categories were added to the post.
+}
+</pre>
+
+=== Removing All Categories From a Post ===
+
+If you want to clear/remove all categories from a post, you can pass an empty value for <tt>$terms</tt>:
+
+<pre>
+<?php wp_set_object_terms( 42, null, 'category' ); ?>
+</pre>
+
+== Change Log ==
+* [[Version_3.5|3.5.0]]: Return [[Class Reference/WP_Error|WP_Error]] object upon database insertion failure.
+* Since: [[Version 2.3|2.3.0]]
+
+== Notes ==
+*[[Function_Reference/wp_set_post_terms|wp_set_object_terms()]] '''does not check''' if there is a a relationship between the object (=post type) and the taxonomy (like post_tag, category or a custom taxonomy). Because of that, any existing term will be paired with the object, whether or not there is a connection between the object and the taxonomy (of this particular term)!! ( [http://www.wp-entwickler.at/vorsicht-beim-setzen-von-terms-mit-wp-set-object-terms/  Further information in '''german'''])
+
+*Perhaps the [[Function_Reference/wp_set_post_terms|wp_set_post_terms()]] is a more useful function, since it checks the values​​, converting taxonomies separated by commas and validating hierarchical terms in integers.
+
+*It may be confusing but the returned array consists of '''term_taxonomy_ids''' instead of term_ids.
+
+== Source File ==
+
+<tt>wp_set_object_terms()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== Related ==
+
+{{Term Tags}}
+<!-- To edit this Template go to:
+http://codex.wordpress.org/Template:Term_Tags
+-->
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New page created]]

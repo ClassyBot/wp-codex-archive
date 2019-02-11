@@ -1,0 +1,49 @@
+Standard behaviour of wordpress is to record the IP address of somebody commenting by the server variable:
+
+<pre>
+$commentdata['comment_author_IP'] = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR'] );
+</pre>
+
+With the means of a filter we can change this behavior that it works also behind a reverse proxy server.
+ Most reverse Proxy set a additional header
+ See http://en.wikipedia.org/wiki/X-Forwarded-For
+
+The general format of the header is:
+
+    X-Forwarded-For: client1, proxy1, proxy2
+
+where the value is a comma+space separated list of IP addresses, the left-most being the farthest downstream client, and each successive proxy that passed the request adding the IP address where it received the request from. In this example, the request passed proxy1, proxy2 and proxy3 (proxy3 appears as remote address of the request).
+
+Since it is easy to forge an X-Forwarded-For header the given information should be used with care. The last IP address is always the IP address that connects to the last proxy, which means it is the most reliable source of information. X-Forwarded-For data can be used in a forward or reverse proxy scenario.
+
+ * @uses apply_filters() Calls 'pre_comment_user_ip' hook on comment author's IP
+<pre>
+//    applied to the comment author's IP address prior to saving the comment in the database. 
+add_filter( 'pre_comment_user_ip', 'auto_reverse_proxy_pre_comment_user_ip');
+
+function auto_reverse_proxy_pre_comment_user_ip()
+{    
+	$REMOTE_ADDR = $_SERVER['REMOTE_ADDR'];
+	if (!empty($_SERVER['X_FORWARDED_FOR'])) {
+		$X_FORWARDED_FOR = explode(',', $_SERVER['X_FORWARDED_FOR']);
+		if (!empty($X_FORWARDED_FOR)) {
+			$REMOTE_ADDR = trim($X_FORWARDED_FOR[0]);
+		}
+	}
+	/*
+	* Some php environments will use the $_SERVER['HTTP_X_FORWARDED_FOR'] 
+	* variable to capture visitor address information.
+	*/
+	elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+		$HTTP_X_FORWARDED_FOR= explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+		if (!empty($HTTP_X_FORWARDED_FOR)) {
+			$REMOTE_ADDR = trim($HTTP_X_FORWARDED_FOR[0]);
+		}
+	}
+	return preg_replace('/[^0-9a-f:\., ]/si', '', $REMOTE_ADDR);
+}
+</pre>
+
+[[Category:Filters]]
+[[Category:New page created]]
+{{copyedit}}

@@ -1,0 +1,156 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<a href="https://codex.wordpress.org/WordPress_Coding_Standards" title="WordPress Coding Standards">English</a> • 
+<a href="https://codex.wordpress.org/it:Standard_di_codifica_di_WordPress" title="it:Standard di codifica di WordPress">Italiano</a> • 
+
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/WordPress">コーディング基準 日本語</a> 
+<strong class="selflink">Português do Brasil</strong> • 
+
+<a href="https://codex.wordpress.org/zh-cn:WordPress_%E4%BB%A3%E7%A0%81%E8%A7%84%E8%8C%83" title="zh-cn:WordPress 代码规范">中文(简体)</a> • 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>Algumas partes legadas da estrutura de código do WordPress para marcação de PHP estão despadronizadas. O WordPress está trabalhando para, gradualmente, melhorar isto ajudando os usuários a manter um estilo consistente então o código poderá permanecer limpo e de fácil leitura.
+</p><p>Tenha esses tópicos em mente quando estiver codificando para o WordPress, seja para desenvolvimento pesado, <a href="https://codex.wordpress.org/Writing_a_Plugin" title="Writing a Plugin">Plugins</a>, ou <a href="https://codex.wordpress.org/Theme_Development" title="Theme Development">WordPress Themes</a>. As orientações são similares ao <a rel="nofollow" class="external text" href="http://pear.php.net/manual/en/standards.php">Pear standards</a> de várias formas, mas diferem em alguns aspectos.
+</p><p>Veja também <a rel="nofollow" class="external text" href="http://comox.textdrive.com/pipermail/wp-hackers/2006-July/006930.html">esse post na lista wp-hackers</a>.
+</p><p>Tem também uma página com os padrões propostos para <a href="https://codex.wordpress.org/Inline_Documentation" title="Inline Documentation">Inline Documentation</a>.
+</p>
+<dl><dt>Aspas simples e duplas&#160;</dt>
+<dd>Use aspas simples e duplas quando apropriado. Se você não estiver tratando nada na string, use use aspas simples. Você nunca deve escapar aspas HTML numa string, porque você apenas precisa alternar entre os tipos de aspas, assim:</dd></dl>
+<pre>echo '&lt;a href="/link/estatico" title="Yeah yeah!"&gt;Nome do link&lt;/a&gt;';
+echo "&lt;a href='$link' title='$titulodolink'&gt;$nomedolink&lt;/a&gt;";</pre>
+<dl><dd>A única exceção é no JavaScript, que as vezes reques aspas simples ou duplas. Textos que venham dentro de atributos devem passar pelo <tt>attribute_escape()</tt> assim as aspas simples ou duplas não fecham o atributo e invalidam o XHTML causando um problema de segurança.</dd></dl>
+<dl><dt>Indentação&#160;</dt>
+<dd> Sua indentação deve sempre refletir uma estrutura lógica. Use <b>tabs reais</b> e <b>não espaços</b>, pois isso permite maior flexibilidade entre clientes.</dd></dl>
+<dl><dd>Exceção: se você tem um bloco de código que seja mais legível se estiver alinhado, use espaços:</dd></dl>
+<pre>
+[tab]$foo   = 'algumvalor';
+[tab]$foo2  = 'algumvalor2';
+[tab]$foo34 = 'algumvalor3';
+[tab]$foo5  = 'algumvalor4';
+</pre>
+<dl><dd>Regra de ouro: tabs devem ser usadas no início das linhas e espaços devem ser usados no meio das linhas.</dd></dl>
+<dl><dt>Estilo das Chaves&#160;</dt>
+<dd> Chaves devem ser usadas em multiplos blocos:</dd></dl>
+<pre>
+if ( condicao ) {
+    acao1();
+    acao2();
+} elseif ( condicao2 &amp;&amp; condicao3 ) {
+    acao3();
+    acao4();
+} else {
+   acaopadrao();
+}
+</pre>
+<dl><dd>No mais, se você tiver um bloco muito grande, considere quebrá-lo em dois ou mais blocos ou funções.</dd></dl>
+<p>consider whether it can be broken into two or more shorter blocks or functions. Caso seja realmente necessária a existência desse longo bloco, por favor ponha um pequeno comentário no final para que as pessoas percebam de relance o que aquela chave de fechamento está fechando -- normalmente isso é apropriado para blocos lógicos, maiores que cerca de 35 linhas, mas qualquer código que não seja intuitivamente óbvio pode ser comentado.
+</p>
+<dl><dd>blocos de uma linha apenas pode omitir as chaves para ficarem mais concisos:</dd></dl>
+<pre>
+if ( condicao )
+    acao1();
+elseif ( condicao2 )
+    acao2();
+else
+    acao3();
+</pre>
+<dl><dd>se qualquer um dos blocos relacionados tiver mais de uma linha então todos os blocos relacionados devem possuir chaves&#160;:</dd></dl>
+<pre>
+if ( condicao ) {
+    acao1();
+} elseif ( condicao2 ) {
+    acao2a();
+    acao2b();
+}
+</pre>
+<dl><dd>loops devem sempre conter chaves para melhorar a legibilidade, e permitir poucas linhas de edição para posteriores correções ou adição de novas funcionalidades&#160;:</dd></dl>
+<pre>
+foreach ( $itens as $item ) {
+    processar_item( $item );
+}
+</pre>
+<dl><dt>include_once  vs. require_once&#160;</dt>
+<dd>Aprenda a diferença entre <a rel="nofollow" class="external text" href="http://us3.php.net/manual/en/function.include-once.php"><tt>include_once</tt></a> e <a rel="nofollow" class="external text" href="http://us3.php.net/manual/en/function.require-once.php"><tt>require_once</tt></a>, e use o mais apropriado. Para citar a <a rel="nofollow" class="external text" href="http://us3.php.net/manual/en/function.include.php">php página do manual php sobre o include()</a>: "Os dois construtores são identicos em todos os aspectos exceto em como eles tratam as falhas. include() produz um Alerta (Warning) enquanto o require() resulta num Erro Fatal (Fatal Error)." Erros Fatais interrompem a execução do script.</dd></dl>
+<dl><dt>Expressões regulares</dt>
+<dd> Expressões regulares compatíveis com Perl (PCRE, funções <tt>preg_</tt>) devem ser usadas preferencialmente às homólogas POSIX. Nunca use o alternador <tt>/e</tt>, ao invés dele use <tt>preg_replace_callback</tt>.</dd></dl>
+<dl><dt>Não utilize as abreviações PHP&#160;</dt>
+<dd><b>Nunca use as tags de abertura do PHP abreviadas</b> (<tt>&lt;? ...&#160;?&gt;</tt> ou <tt>&lt;?=$var?&gt;</tt>). Sempre use as tags inteiras (<tt>&lt;?php ...&#160;?&gt;</tt>). <b>Tenha certeza de remover todos os espaços em branco após o fechamento das tags.</b></dd></dl>
+<dl><dt>Uso de espaços&#160;</dt>
+<dd>Sempre ponha espaços após as vírgulas e em ambos os lados das atribuições de operadores lógicos como "<tt>x == 23</tt>", "<tt>foo &amp;&amp; bar</tt>", "<tt>array( 1, 2, 3 )</tt>", assim como em ambos os lados dos parentesis de abertura e fechamento de blocos <tt>if</tt>, <tt>elseif</tt>, <tt>foreach</tt>, <tt>for</tt> e <tt>switch</tt> (ex. <tt>foreach ( $foo as $bar ) { ...</tt>). Quando definindo funções, faça assim: <tt>function minhafuncao( $param1 = 'foo', $param2 = 'bar' ) {</tt> e quando chamando uma funcao, faça assim: <tt>minhafuncao( $param1, funcparam( $param2 ) );</tt></dd></dl>
+<dl><dt>Formatado declarações SQL&#160;</dt>
+<dd>Quando formatando declarações SQL você pode quebrá-la em várias linhas e indentá-la caso ela seja complexa. Apesar de a maioria das declarações funcionarem bem em uma linha. Sempre capitalize as partes das instruções SQL como <tt>UPDATE</tt> ou <tt>WHERE</tt>.</dd></dl>
+<dl><dd>Funções que atualizam o banco de dados devem esperar que seus parâmetros não tenham as barras de escape (\) quando passadas. O escape de ser feito o mais próximo da hora da consulta possível, de preferência usando <tt>$wpdb-&gt;prepare()</tt></dd></dl>
+<dl><dd><tt>$wpdb-&gt;prepare()</tt> é um método que cuida do escape, aspas, e fusão dos inteiros (int-casting) para as consultas SQL. Ela usa um subconjunto de estilo e formação da <tt>sprintf()</tt>. Exemplo&#160;:</dd></dl>
+<pre>
+$var = "perigo'"; // dado cru que precise, ou não, ser escapado
+$id  = algum_numero_foo(); // dado que esperemos que seja inteiro, mas não temos certeza
+
+$wpdb-&gt;query( $wpdb-&gt;prepare( "UPDATE $wpdb-&gt;posts SET post_title =&#160;%s WHERE ID =&#160;%d", $var, $id ) );
+</pre>
+<dl><dd> <tt>%s</tt> é usado para marcadores de texto e&#160;%d é usado para marcadores inteiros. Note que eles não possuem 'aspas'! <tt>$wpdb-&gt;prepare()</tt> irá cuidar do escape e das aspas para nós. O benefício disso é que não precisamos nos lembrar de usar <tt>$wpdb-&gt;escape()</tt> manualmente, e também que fica de fácil leitura quer os dados tenham sido escapados ou não, porque isso acontence logo quando a consulta é feita.</dd></dl>
+<dl><dd> Veja <a href="https://codex.wordpress.org/Data_Validation#Database" title="Data Validation">Validação de Dados para o Banco de Dados</a> para mais informações.</dd></dl>
+<dl><dt>Consulta Banco de Dados&#160;</dt>
+<dd>Evite acessar o banco de dados diretamente. Se existir alguma função que consiga o dado que você precisa, use-a. Abstração do banco de dados (usando funções ao invés de consultas) ajuda a manter seu código sempre compatível e, em casos em que o resultado é guardado na memória (cache), ela pode ser muito mais rápida. Se você precisar tocar no banco de dados, entre em contato com alguns desenvolvedores postando uma mensagem no <a href="https://codex.wordpress.org/Mailing_Lists#Hackers" title="Mailing Lists">wp-hackers mailing list</a>. Eles podem considerar criar uma função para as novas versões do WordPress que atenda essa funcionalidade que você precisa.</dd></dl>
+<dl><dt>Variáveis, funções, nomes de arquivos, e operadores&#160;</dt>
+<dd>Use letras minúsculas em nomes de variáveis e funções (nunca CamelCase). Separe palavras por sublinhados (underscores).</dd></dl>
+<pre>
+function algum_nome( $alguma_variavel ) { [...] }
+</pre>
+<dl><dd>Arquivos devem ser nomeados descritivamente usando letras minúsculas. Hífens devem separar as palavras.</dd></dl>
+<pre>
+nome-do-meu-plugin.php
+</pre>
+<dl><dd>Se você não for usar uma variável mais de uma vez, não a crie. Isso inclui consultas. Sempre use as funções da <a href="https://codex.wordpress.org/Function_Reference/wpdb_Class" title="Function Reference/wpdb Class" class="mw-redirect">wpdb Class</a> quando interagir com o banco de dados.</dd></dl>
+<dl><dd>Tudo bem em usar operadores <a href="http://en.wikipedia.org/wiki/Ternary_operation" class="extiw" title="wikipedia:Ternary operation">ternarios</a>, mas sempre teste se a declaração é verdadeira (true), não false (false). Caso contrário fica confuso.</dd></dl>
+<pre>// BOM exemplo:
+// (se declaracao for verdadeira)&#160;? (faca isso)&#160;: (se for falsa, faca isso);
+$generomusicao = ( 'jazz' == $musica )&#160;? 'legal'&#160;: 'blah';
+
+</pre>
+<dl><dd>Outro ponto importante no exemplo acima, quando fizer comparação lógica sempre ponha a variável do lado direito, como acima. Se você esquecer um igual, um erro será lançado ao invés da avaliação ser verdadeira e a declaração ser executada. Isso não toma nenhum tempo extra para ser feito, então se evitar um erro já vale a pena.</dd></dl>
+<dl><dt>Valores de sinalização de argumentos de função auto-explicativos&#160;</dt>
+<dd>Prefira valores em string a apenas <tt>true</tt> e <tt>false</tt> quando chamar funções.</dd></dl>
+<pre>//RUIM
+function comer( $oque, $devagar = true ) {
+    ...
+}
+comer( 'cogumelos' );
+comer( 'cogumelos', true ); // O que significa true?
+comer( 'comida de cachorro', false ); // O que significa false? O oposto de true?
+</pre>
+<p>Já que o PHP não suporta argumentos em forma de nomes, os valores dos sinalizadores não tem significados e toda vez que aparece uma função como essa nós temos que pesquisar pela definição da função. O código pode ficar mais legível se usarmos textos descritivos, ao invés de boleanos:
+</p>
+<pre>//BOM
+function comer( $oque, $velocidade = 'devagar' ) {
+    ...
+}
+comer( 'cogumelos' );
+comer( 'cogumelos', 'devagar' );
+comer( 'comida de cachorro', 'rapido' );
+
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004430
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.019 seconds
+Preprocessor visited node count: 73/1000000
+Preprocessor generated node count: 538/1000000
+Post‐expand include size: 890/2097152 bytes
+Template argument size: 448/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    7.645      1 - -total
+100.00%    7.645      1 - Template:Languages
+ 16.53%    1.264      1 - Template:ja
+ 16.48%    1.260      1 - Template:zh-hans
+ 15.28%    1.168      1 - Template:pt-br
+ 14.99%    1.146      1 - Template:it
+ 13.67%    1.045      1 - Template:en
+-->

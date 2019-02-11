@@ -1,0 +1,64 @@
+== Description ==
+
+Get extended image metadata, exif or iptc as available.
+
+Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso created_timestamp, focal_length, shutter_speed, and title.
+
+The IPTC metadata that is retrieved is APP13, credit, byline, created date and time, caption, copyright, and title. Also includes FNumber, Model, DateTimeDigitized, FocalLength, ISOSpeedRatings, and ExposureTime.
+
+== Usage ==
+
+%%%<?php wp_read_image_metadata( $file ); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$file|string||required}}
+Must pass in file path to image
+
+== Return Values ==
+
+{{Return||boolean&#124;array|False on failure. Image metadata array on success.}}
+
+The elements returned in the array are:
+
+; <tt>["aperture"]</tt> : (''string'') Set to the EXIF FNumber field.
+; <tt>["credit"]</tt> : (''string'') Set to the first non-empty value found by looking through the following fields:
+# IPTC Credit field (2#110)
+# IPTC Creator field (2#080)
+# EXIF Artist field
+# EXIF Author field
+; <tt>["camera"]</tt> : (''string'') Set to the EXIF Model field.
+; <tt>["caption"]</tt> : (''string'') Set to a non-empty value of one of the following fields (see source code for the precise logic involved):
+# IPTC Description field (2#120)
+# EXIF UserComment field if ["title"] is unset AND EXIF:ImageDescription is less than 80 characters
+# EXIF ImageDescription field if ["title"] is set OR EXIF:ImageDescription is more than 80 characters
+# EXIF Comments field if ["title"] does not equal EXIF:Comments
+; <tt>["created_timestamp"]</tt> : (''string'') Set to the first non-empty value found by looking through the following fields:
+# EXIF field DateTimeDigitized
+# IPTC Date and Time fields (2#055 and 2#060)
+; <tt>["copyright"]</tt> : (''string'') Set to the first non-empty value found by looking through the following fields:
+# IPTC Copyright field (2#116)
+# EXIF Copyright field
+; <tt>["focal_length"]</tt> : (''string'') Set to the EXIF FocalLength field.
+; <tt>["iso"]</tt> : (''string'') Set to the EXIF ISOSpeedRatings field.
+; <tt>["shutter_speed"]</tt> : (''string'') Set to the EXIF ExposureTime field.
+; <tt>["title"]</tt> : (''string'') Set to the first non-empty value found by looking through the following fields:
+# IPTC Headline field (2#105)
+# IPTC Title field (2#005)
+# IPTC Description field (2#120) but only if less than 80 characters
+# EXIF Title field
+# EXIF ImageDescription field but only if less than 80 characters
+
+The (2#nnn) value shown after each IPTC field (above) is the key of the array returned by PHP's iptcparse function for that particular IPTC field.
+
+== Change Log ==
+
+Since: [[Version 2.5|2.5]]
+
+== Source File ==
+
+<tt>wp_read_image_metadata()</tt> is located in {{Trac|wp-admin/includes/image.php}}
+
+[[Category:Functions]]
+
+[[Category:New_page_created]]

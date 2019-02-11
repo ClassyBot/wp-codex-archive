@@ -1,0 +1,160 @@
+{{Languages|
+{{en|Function_Reference/register_activation_hook}}
+{{ja|関数リファレンス/register_activation_hook}}
+}}
+== Description ==
+
+The '''register_activation_hook''' function registers a plugin function to be run [[Managing_Plugins#Installing_Plugins|when the plugin is activated]].
+
+When a plugin is activated, the action <tt>'activate_PLUGINNAME'</tt> hook is called. In the name of this hook, <tt>PLUGINNAME</tt> is replaced with the name of the plugin, including the optional subdirectory. For example, when the plugin is located in <tt>wp-content/plugin/sampleplugin/sample.php</tt>, then the name of this hook will become <tt>'activate_sampleplugin/sample.php'</tt>. When the plugin consists of only one file and is (as by default) located at <tt>wp-content/plugin/sample.php</tt> the name of this hook will be <tt>'activate_sample.php'</tt>.
+
+This function is a wrapper for the <tt>'activate_PLUGINNAME'</tt> action, and is easier to use.
+
+== Usage ==
+%%% <?php register_activation_hook( $file, $function ); ?> %%%
+== Parameters ==
+{{Parameter|$file|string|Path to the [[Writing_a_Plugin#Plugin_Files|main plugin file]] inside the <tt>wp-content/plugins</tt> directory. A full path will work.}}
+{{Parameter|$function|callback|The function to be run when the plugin is activated. Any of [http://us2.php.net/manual/en/language.pseudo-types.php#language.types.callback PHP's callback pseudo-types] will work.}}
+
+== Examples ==
+
+If you have a function called <tt>myplugin_activate()</tt> in the [[Writing_a_Plugin#Plugin_Files|main plugin file]] at either 
+*	<tt>wp-content/plugins/<var>myplugin</var>.php</tt> or
+*	<tt>wp-content/plugins/<var>myplugin</var>/<var>myplugin</var>.php</tt>
+use this code:
+<pre>
+function myplugin_activate() {
+
+    // Activation code here...
+}
+register_activation_hook( __FILE__, 'myplugin_activate' );
+</pre>
+
+This will call the <tt>myplugin_activate()</tt> function on activation of the plugin.
+
+If your plugin uses the singleton class pattern, add the activation hook like so:
+
+ class MyPlugin {
+      static function install() {
+             // do not generate any output here
+      }
+ }
+ register_activation_hook( __FILE__, array( 'MyPlugin', 'install' ) );
+
+If the class that holds your activation function/method is in some additional file, register your activation function like this:
+
+<pre>
+include_once dirname( __FILE__ ) . '/your_additional_file.php';
+register_activation_hook( __FILE__, array( 'YourAdditionalClass', 'on_activate_function' ) );
+</pre>
+
+Or, because the activation hook requires a static function, if you're inside of a <tt>__construct()</tt>:
+
+<pre>register_activation_hook( __FILE__, array( 'MyPlugin', 'YOUR_METHOD_NAME' ) );</pre>
+
+== Notes ==
+
+* Related discussion with another sample of working code: http://wordpress.org/support/topic/312342 
+* <strong>Registering the hook inside the 'plugins_loaded' hook will not work.</strong> You can't call <tt>register_activation_hook()</tt> inside a function hooked to the <tt>[[Plugin_API/Action_Reference/plugins_loaded | 'plugins_loaded']]</tt> or <tt>[[Plugin_API/Action_Reference/init | 'init']]</tt> hooks (or any other hook). These hooks are called ''before'' the plugin is loaded or activated.
+* When a plugin is activated, all active plugins are loaded, then the plugin being activated. The plugin's activation hook is run and then the page is immediately redirected (see [[#Process_Flow|below]]).
+
+=== Process Flow ===
+
+If you are interested in doing something just after a plugin has been activated it is important to note that the hook process performs an instant redirect after it fires.  So it is impossible to use <tt>[[Function_Reference/add_action | add_action()]]</tt> or <tt>[[Function_Reference/add_filter | add_filter()]]</tt> type calls until the redirect has occurred (e.g., only two hooks are fired after the plugin's activation hook: <tt>[[Plugin_API/Action_Reference/activated_plugin | 'activated_plugin']]</tt> and <tt>[[Plugin_API/Action_Reference/shutdown | 'shutdown']]</tt>).  A quick workaround to this quirk is to use <tt>[[Function_Reference/add_option | add_option()]]</tt> like so:
+
+<pre>
+/* Main Plugin File */
+...
+function my_plugin_activate() {
+
+  add_option( 'Activated_Plugin', 'Plugin-Slug' );
+
+  /* activation code here */
+}
+register_activation_hook( __FILE__, 'my_plugin_activate' );
+
+function load_plugin() {
+
+    if ( is_admin() && get_option( 'Activated_Plugin' ) == 'Plugin-Slug' ) {
+
+        delete_option( 'Activated_Plugin' );
+
+        /* do stuff once right after activation */
+        // example: add_action( 'init', 'my_init_function' );
+    }
+}
+add_action( 'admin_init', 'load_plugin' );
+</pre>
+
+You can check out the full post @ http://stackoverflow.com/questions/7738953/is-there-a-way-to-determine-if-a-wordpress-plugin-is-just-installed/13927297#13927297.
+
+However, it '''is''' possible to use <tt>[[Function_Reference/do_action | do_action()]]</tt>, like this:
+
+<pre>
+function my_plugin_activate() {
+
+     do_action( 'my_plugin_activate' );
+}
+register_activation_hook( __FILE__, 'my_plugin_activate' );
+</pre>
+
+Included plugin files and even other plugins ''will'' be able to hook into this action.
+
+=== A Note on Variable Scope ===
+
+If you're using global variables, you may find that the function you pass to <tt>register_activation_hook()</tt> does not have access to global variables at the point when it is called, even though you state their global scope within the function like this:
+
+<pre>
+$myvar = 'whatever';
+
+function myplugin_activate() {
+
+  global $myvar;
+  echo $myvar; // this will NOT be 'whatever'!
+}
+
+register_activation_hook( __FILE__, 'myplugin_activate' );
+</pre>
+
+This is because on that very first include, your plugin is NOT included within the global scope. It's included in the <tt>[[Function_Reference/activate_plugin | activate_plugin()]]</tt> function, and so its "main body" is not automatically in the global scope.
+
+This is why you should ''always'' be explicit. If you want a variable to be global, then you need to declare it as such, and that means anywhere and everywhere you use it. If you use it in the main body of the plugin, then you need to declare it global there too.
+
+When activation occurs, your plugin is included from another function and then your <tt>myplugin_activate()</tt> is called from within that function (specifically, within the <tt>activate_plugin()</tt> function) at the point where your plugin is activated. The main body variables are therefore in the scope of the <tt>activate_plugin()</tt> function and are not global, unless you explicitly declare their global scope:
+
+<pre>
+global $myvar;
+$myvar = 'whatever';
+
+function myplugin_activate() {
+
+   global $myvar;
+   echo $myvar; // this will be 'whatever'
+}
+register_activation_hook( __FILE__, 'myplugin_activate' );
+</pre>
+
+More information on this is available here: http://wordpress.org/support/topic/201309
+
+== Discussions - External Resources ==
+* A good example for a basic activation/deactivation/uninstall class by "kaiser" can be found here on WPSE: http://wordpress.stackexchange.com/questions/25910/uninstall-a-plugin-method-typical-features-how-to/25979#25979
+
+== Changelog ==
+
+* [[Version 3.1|3.1]] : This hook is now fired only when the user activates the plugin and not when an automatic plugin update occurs ([http://core.trac.wordpress.org/ticket/14915 #14915]).
+** [http://wpdevel.wordpress.com/2010/10/27/plugin-activation-hooks-no-longer-fire-for-updates/ Plugin activation hooks no longer fire for updates « WordPress Development Updates] (2010-10-28)
+** [http://wpdevel.wordpress.com/2010/10/27/plugin-activation-hooks/ Plugin activation hooks « WordPress Development Updates] (2010-10-27)
+
+* since [[Version 2.0|2.0]]
+
+== Source File ==
+
+<tt>register_activation_hook()</tt> is located in {{Trac|wp-includes/plugin.php}}
+
+== Related ==
+
+* See also [[Function_Reference/register_deactivation_hook|register_deactivation_hook()]], [[Function_Reference/register_uninstall_hook|register_uninstall_hook()]]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

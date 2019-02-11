@@ -1,0 +1,76 @@
+{{Languages|
+{{en|Migrating Multiple Blogs into WordPress 3.0 Multisite}}
+{{ja|複数のブログをマルチサイトに移行する}}
+{{fr|Migrer de multiples blogs vers Wordpress 3.0 Multisite}}
+}}
+
+Depuis la [[Version 3.0]], Wordpress inclut des nouvelles fonctions multisites, ce qui signifie que vous pouvez gérer plusieurs blogs sur la même installation, même s'ils ont des des noms de domaines différents. Ce tutoriel explique comment migrer de multiples installations de Wordpress vers une installation Wordpress Multisite. Vous pourrez migrer des sites qui utilisent leur propre nom de domaine, tout comme des sites utilisant un sous-domaine sur votre domaine principal.
+
+Ce tutoriel suppose que vous hébergez Wordpress sur un serveur utilisant cPanel. Si vous utilisez une autre solution pour configurer votre serveur, vous devrez adapter ces instructions.
+
+== Étapes à suivre ==
+
+=== Faites une sauvegarde de votre site ===
+Créez une sauvegarde de votre site dans cPanel. C'est aussi une bonne idée de copier tous les fichiers sur le seveur via FTA, afin que vous puissiez accéder facilement aux fichiers des plugins et thèmes, dont vous aurez besoin plus loin dans la manoeuvre.
+
+=== Export depuis vos installation Wordpress existantes ===
+Dans chacune de vos installations Wordpress existantes, allez dans Outils> Export. Téléchargez les fichiers WXR qui contiennent tous vos articles et pages pour chaque site. Plus d'informations à ce sujet dans la page du codex dédiée à [[Tools Export SubPanel]].
+
+Vérifiez que votre fichier export contient bien tous les articles et pages. Vous pouvez vérifier ceci en regardant le dernier article du fichier exporté. Il devrait s'agir de l'article plus récent.
+
+Certains plugins peuvent causer des conflits avec le processus d'export, générant ainsi un fichier vide, ou incomplet. Pour éviter ces problèmes, il est recommandé de désactiver tous les plugins avant de procéder à l'export.
+
+C'est aussi une bonne idée de supprimer tous les spams en quarantaine car ceux-ci seront aussi exportés, rendant le fichier inutilement lourd.
+
+Note : la configuration des widgets, du blog et des plugins ne sont pas exportés dans cette méthode. Si vous effectuez au sein du même hébergeur, notez bien ces paramètres, car ils disparaîtront quand vous supprimerez l'ancien domaine.
+
+=== Installer Wordpress {{CurrentVersion}} ===
+Installez Wordpress. Suivez les instructions pour [[Installing WordPress]] dans le codex.
+
+=== Activez Multisite ===
+Activez Multisite dans votre installation Wordpress {{CurrentVersion}}. Cela implique d'éditer wp-config.php à deux reprises. Il est nécessaire de configurer Multisite pour utiliser des sous-domaines, pas des sous-fichiers. Referez vous aux instructions du codex pour [[Create A Network]].
+
+=== Créez un blog pour chaque site que vous voulez importer ===
+Créez un blog pour chacun des des sites que vous voulez héberger sur des sous-domaines distints. Par exemple, blogimporte.mondomaine.com
+
+Note : choisissez le nom avec avec caution, car le changer peut des problèmes de redirection. Ceci est particulièrement important si vous effectuer une migration au sein du même compte d'hébergement.
+
+=== Importez les fichiers WXR pour chaque blog ===
+Rendez-vous sur l'administration de chaque site, et importez les fichies WXR pour chaque blog. Liez les auteurs aux utilisateurs correspondant, ou créez en des nouveaux. Cochez bien la case qui intégrera les photos et autres éléménts liés. Plus d'informations sur [[Tools Import SubPanel]].
+
+Note : si vous choisissez d'importer des images depuis le site source vers le site cible, vérifiez bien qu'elles ont été uploadées au bon endroit, et qu'elles sont affichées correctement dans la page ou l'article adéquat.
+
+=== Copier les fichiers des thèmes et plugins ===
+Avant de commencer, vérifiez que vos plugins fonctionnent dans la nouvelle installation Multisite. Si un plugin n'est pas compatible, ne l'installez pas. Trouvez une alternative adéquate en cherchant la fonction du plugin, en ajoutant à votre recherche "multisite" ou même "mu". Exemple : "Social bookarking plugin wordpress multisite".
+
+Copiez les fichiers des thèmes et plugins depuis vos anciennes installations Wordpress vers leurs dossiers respectifs dans le nouveau dossier wp-content. Vous pouvez activer des thèmes pour le réseau entier, ou allez sur Mes sites, et cliquer sur le site pour lequel vous souhaitez activer un thème ou plugin, et ainsi activer le thème ou plugin sur un seul site.
+
+Note : si vous utilisez un child thème (thème enfant), copiez autant les fichiers du thème principal que ceux des thèmes enfants, vers le nouveau site.
+
+=== Éditez les paramètres de Wordpress pour chaque site ===
+Éditez les paramètres généraux de Wordpress, des widgets etc, pour chaque site. A la fin de cette étape, chaque site devrait ressembler à ce quoi il ressemblait avant migration, à l'exception du format d'url pour accéder au site.
+
+=== Domain Mapping (ajouter un site avec son propre domaine au réseau Multisite ===
+Ceci est optionnel, mais si vous souhaitez que vos nouveaux sites aient leur propre domaine, vous pouvez utiliser ce plugin : [http://wordpress.org/extend/plugins/wordpress-mu-domain-mapping/ Map Domains]
+
+== Problèmes potentiels ==
+
+=== Limitations dues à la configuration de PHP ===
+Il est possible que vous rencontriez des problèmes liés à la configuration de PHP chez votre hébergeur. Il existe deux problèmes potentiels. Le premier est que la valeur renseignée pour <code>max_upload_size</code> est trop petite pour le fichier WXR. Le second est que la mémoire limite de PHP soit trop petite pour importer tous les posts.
+
+Il existe plusieurs façons de régler ces problèmes. La premiére consiste à demander à votre hébergeur d'augmenter ces limites, même de façon temporaire. Une autre solution est de placer un <code>php.ini</code> à l'intérieur de vos dossiers <code>/wp-admin/</code> et <code>/wp-includes</code>, qui augmente les limites pour vous. (les fichiers de <code>php.ini</code> ne sont pas récursifs, il est donc obligatoire de le placer dans ces dossiers) Quelque chose comme 10MB comme upload limite et 128MB comme limite de mémoire devrait fonctionner, mais vérifiez bien que cela n'est pas à l'encontre des conditions de votre hébergeur.
+
+Chercher les [http://wordpress.org/support/ forums de support Wordpress] pour toute aide relative aux problèmes de configuration de PHP.
+
+=== Conversion des "add-on domains" en "parked domains" ===
+Supprimer les "add-on domains" dans cPanel et les remplacer avec des "parked domains" supprimera aussi toutes les redirections de domaines et d'emails associés avec ces domaines. Soyez bien conscient de ceci, afin que vous puissiez restaurer ces redirections une fois que vous avez fait le basculement.
+
+=== Limitations liées à l'import d'utilisateurs ===
+As there is the above way to import the content into an instance of the Multisite-blog, you are running into massive troubles, when it gets to import multiple users. Users are generated during the import, but you won't get any roles or additional information into the new blog.
+
+=== Perte de paramètres ===
+Si l'ancien site n'est plus disponible et que vous vous apercevez que vous avez oublié de copier certains paramètres, ou si vous voulez être sûr d'avoir tout configuré correctement, faites une recherche Google pour votre site, et cliquez pour voir la version en cache du site. Cette option est disponible jusqu'au prochain passage des crawlers de Google, vous avez donc intérêt à être rapide.
+
+{{Stub}}
+[[Category:Network]]
+[[Category:Advanced_Topics]]

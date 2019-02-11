@@ -1,0 +1,239 @@
+Here's what I did to set up a local mirror of my WordPress blog on Mac OS X.
+
+== Motivation and Assumptions ==
+
+Firstly, why do this? Well I can think of a few reasons:
+
+* keeping an up-to-date and <em>working</em> backup
+* using it for testing changes to the blog before you inflict them on the world. Like formatting, software updates, or anything really.
+* It's fun (except for the MySQL setup, which we'll get to)
+
+The basic idea is to take a snapshot of the database and file system your hosting provider, download it and extract it locally, then be able to view the result.
+
+So I'm assuming that you have a blog at http://example.com (no subdirectory). Substitute your own blog name for this in the instructions below. For the sake of this HOWTO I'm assuming that you are logged in as <code>alastair</code> (MacOS calls this your "short name").
+
+I'm assuming also that you're running Mac OS X 10.3 and for the sake of simplicity want to install the minimum software. Or in other words use the standard OS distribution as much as possible. This takes advantage of patches and other updates, amongst other benefits. Mac OS X 10.3 comes with Apache and PHP pre-installed, all we need is MySQL and WordPress. (This HOWTO was written when 10.3 was current, but the procedure is identical on 10.4, as I have verified personally).
+
+== Configure Apache and PHP ==
+
+First let's make sure that Apache and PHP are configured. Check that Apache is started in the Sharing Preference Pane:
+
+[[Image:pws-capture.png|Personal Web Sharing]]
+
+Then go into <code>/etc/httpd/httpd.conf</code> and uncomment (remove the # at the start of) the following lines:
+
+ LoadModule php4_module        libexec/httpd/libphp4.so
+ ...   
+ AddModule mod_php4.c
+
+You will need to edit this as root. One way to do this is open a terminal session and type <code>sudo pico /etc/httpd/httpd.conf</code>, but I'm sure there are others.
+
+Now let's restart Apache...
+
+ sudo apachectl graceful
+
+...and see if it worked. Create a file in your Sites directory (within your Home directory) named <code>info.php</code>. Edit it to contain the following:
+
+ <?php phpinfo(); ?>
+
+Then open up http://localhost/~alastair/info.php in your browser (remember to substitute for your own name) and marvel at the result. You should get a detailed listing of all information that PHP has to hand. Congrats, now on to...
+
+== Create a example.mirror static site ==
+
+If you're running a blog at the top-level of a host (like http://example.com and not like http://example.com/blog) you probably have your intra-site links set up to use absolute paths. In fact I don't think WordPress gives you a choice in the matter for certain links like stylesheets.
+
+So the problem with creating a local mirror is that you need to create a new hostname for it, so as not to conflict with any other content you're running on your MacOS system. If you don't have this need, feel free to skip to the end of this section, and just mirror your blog's filesysem into <code>/Library/WebServer/Documents</code>.
+
+What we're going to do is create a new, bogus, hostname and have it served locally. The .local top-level domain is taken already (it's used for Rendezvous), so we'll pick .mirror. The local mirror will be at http://example.mirror
+
+The first thing to do is to add this host name to your <code>/etc/hosts</code> file. Just append the following:
+
+ 127.0.0.1 example.mirror
+
+You should be able to ping this address now:
+
+ alastair $ ping example.mirror  
+ PING example.mirror (127.0.0.1): 56 data bytes  
+ 64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.159 ms  
+ 64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=5.078 ms  
+ ^C  
+ --- example.mirror ping statistics ---  
+ 2 packets transmitted, 2 packets received, 0% packet loss  
+ round-trip min/avg/max = 0.159/2.618/5.078 ms
+
+Now go and add this as a VirtualHost in your Apache configuration. What you may want to do is edit <code>/private/etc/httpd/users/alastair.conf</code> (or your username) instead of the main <code>httpd.conf</code> file. This minimises changes to the main Apache configuration file and simplifies upgrades. In any case you need to add something like the following:
+
+ NameVirtualHost *:80
+ <VirtualHost *>
+     DocumentRoot /Users/alastair/Sites/example.com
+     ServerName example.mirror
+     <Directory "/Users/alastair/Sites/example.com">
+         Options FollowSymLinks
+         AllowOverride All   
+     </Directory>
+ </VirtualHost>
+
+This creates a new virtual host at the specified document root. This directory is where we're going to store the mirrored files. 
+
+Restart Apache again: <code>sudo apachectl graceful</code>
+
+Now is as good a time as any to actually copy the files from your hosting provider to this local mirror directory. You can use whatever tool you like. If your provider supports cPanel, you could just get a home directory backup, and extract the relevant files (probably everything in <code>public_html</code>).
+
+I use [http://www.interarchy.com Interarchy], which allows you to do a true mirror (ie only copy the files that need to be copied). If you use Interarchy too, please make sure that it is set to use UNIX line endings and not Mac.
+
+Now you should be able to view the static portion of your blog. A good test for this is the WordPress README file, which you will now find at http://example.mirror/readme.html. If all has gone well so far you should be reading the WordPress readme.
+
+== Install and Configure MySQL ==
+
+Now the un-fun bit. Well it was for me anyway. There are several different flavors of MySQL for Mac OS X, and I tried a few of them, but the standard distribution from MySQL AG seemed fine to me. The question is: which version? The answer depends on the version of MySQL you wish to mirror. In other words: which version does your hosting provider use?
+
+As a general rule, you should probably use the same (ie x.y) version that your hosting provider uses. For version 4.1 and later, we will be using a [http://dev.mysql.com/doc/refman/4.1/en/old-client.html workaround] for a change to the password hashing algorithm that was introduced in 4.1. Not that that should worry you.
+
+All you need to do is download the chosen version (ie [http://dev.mysql.com/downloads/mysql/4.0.html 4.0], or [http://dev.mysql.com/downloads/mysql/4.1.html 4.1] or [http://dev.mysql.com/downloads/ what-have you]) and install it. The instructions for [http://dev.mysql.com/doc/refman/4.1/en/mac-os-x-installation.html installation], [http://dev.mysql.com/doc/refman/4.1/en/unix-post-installation.html post-installation configuration] and [http://dev.mysql.com/doc/refman/4.1/en/default-privileges.html securing the initial accounts] are long and detailed, so here is the PowerPoint Slide version:
+
+* Run the installer for both the mysql software and the startup item
+* (Mac OS X 10.4.4+ <em>only</em>) Update your <code>/etc/my.cnf</code> file to point to the new secure location for the socket. See note below.
+* Start the database server with <code>sudo /Library/StartupItems/MySQLCOM/MySQLCOM start</code>
+* <code>cd /usr/local/mysql</code>
+* <code>sudo scripts/mysql_install_db --user=mysql</code>
+* <code>bin/mysqladmin -u root password</code> <em>a-secure-password</em>
+
+Mac OS X 10.4.4+ users need to set up the MySQL server to listen on a socket other than the default one. To do this, create a <code>/etc/my.cnf</code> file with the following contents:
+
+ [mysqld]
+ socket=/var/mysql/mysql.sock
+
+Then create the directory if it doesn't exist:
+
+ $ sudo mkdir /var/mysql
+ $ sudo chown mysql /var/mysql
+
+This is to match the new location expected by Apple's PHP installation. Again, you only need this stuff for Mac OS X 10.4.4+ (although it probably won't hurt on earlier releases). See [http://docs.info.apple.com/article.html?artnum=302977 here] for (slightly) more information.
+
+Note that the root password set in the last step above doesn't have to match the WordPress password we use later. In fact it's probably a good idea if it doesn't. Pick something you can remember. At this point it's probably a good idea to verify that you can access the database as root using the <code>mysql</code> tool:
+
+ mysql $ bin/mysql -u root -p
+ Enter password: 
+ Welcome to the MySQL monitor.  Commands end with ; or \g.
+ Your MySQL connection id is 3 to server version: 4.1.15-standard
+ 
+ Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+ 
+ mysql> show databases;
+ +----------+
+ | Database |
+ +----------+
+ | mysql    |
+ | test     |
+ +----------+
+ 2 rows in set (0.00 sec)
+ 
+ mysql> \q
+ Bye
+
+Checking that you can access the database with [http://cocoamysql.sourceforge.net/ CocoaMySQL] is probably worthwhile also. Make sure you get the right version for your MySQL installation (support for 4.1+ is available in the [http://cocoamysql.sourceforge.net/beta.php beta releases]).
+
+== Set up the WordPress user and database ==
+
+Almost done! You just have to install a user/password and database for the WordPress blog. This should match the setup in your <code>wp-config.php</code> file! Well, strictly speaking it doesn't <em>have</em> to match, but if you want to download your blog and run it straight away, it helps to use the same details for connection. Let's assume that the username is <code>example_u</code>, the database is called <code>example_db</code> and the password is <code>example_pw</code>.
+
+Firstly connect to the database and add the grant for the WordPress user:
+
+ mysql $ bin/mysql -u root -p
+ Enter password: 
+ Welcome to the MySQL monitor.  Commands end with ; or \g.
+ Your MySQL connection id is 4 to server version: 4.1.15-standard
+ 
+ Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+ 
+ mysql> grant all on example_db.* to 'example_u'@'localhost';
+ Query OK, 0 rows affected (0.00 sec)
+
+The procedure for setting the password differs if you're using MySQL 4.0 instead of a later version. Use this if you're on MySQL 4.0:
+
+ mysql> set password for 'example_u'@'localhost' = password('example_pw');
+ Query OK, 0 rows affected (0.06 sec)
+
+Or this for 4.1+:
+
+ mysql> set password for 'example_u'@'localhost' = old_password('example_pw');
+ Query OK, 0 rows affected (0.05 sec)
+
+[Mac OS X 10.4.4+ update: I <em>think</em> that the <code>password</code> method (ie the first of the two statements above) will also work for Mac OS X 10.4.4 and later, although I haven't verified this myself.]
+
+Now create the database:
+
+ mysql> create database example_db;
+ Query OK, 1 row affected (0.00 sec)
+ 
+ mysql> \q
+
+If all goes well we can import the blog database from our hosting provider. I'm assuming you've downloaded this as a single compressed database dump (as supported by the Backup function of cPanel, for example). If the database dump is called <code>example.gz</code> we might do:
+
+ alastair $ gzcat example.gz | mysql -u example_u -p example_db
+ Enter password: (example_pw)
+
+At this point it might pay to use CocoaMySQL or the mysql command tool to view the database, and check that everything was imported successfully. If it didn't you probably got lots of error messages in the above command output.
+
+== Finishing off ==
+
+And now for the moment of truth. Open up http://example.mirror in your browser. If all goes well your blog should be displayed.
+
+You may notice however that some of the links point back to your original site at example.com. To fix this you will need to update the "WordPress Address" and the "Blog Address" options in the WordPress general options, found at http://example.mirror/wp-admin/options-general.php.
+
+== Automating it ==
+
+There are many different ways to automate updating your local mirror with the contents of your blog. These depend on what tools you have available and what tools your hosting provider has. To provide some inspiration, the AppleScript that I use is listed below. It relies on Interarchy to do the file transfers.
+
+ -- Script to automate updating of a local mirror of a WordPress site
+ --
+ -- Written by alastair@girtby.net
+ --
+ -- Licensed under the Creative Commons Attribution License,
+ -- see http://creativecommons.org/licenses/by/2.0/
+ 
+ -- Set these up to match your wp-config.php
+ property u : "example_u"
+ property db : "example_db"
+ property pw : "example_pw"
+ 
+ -- Update the WordPress options to use this url
+ property newurl : "http://example.mirror"
+ 
+ -- Invoke mysql like this
+ set mysqlcmd to "/usr/local/mysql/bin/mysql -u " & u & " -p" & pw & " " & db
+ 
+ -- Site files live here: 
+ set dest to alias ((path to home folder from user domain as string) & "Sites:example.com:")
+ 
+ -- Download database here:
+ set tempDir to path to "temp" from user domain
+ 
+ tell application "Interarchy"
+ 	-- mirror the static portion of the site
+ 	mirrordownload dest host "ftp.example.com" path "public_html" user "example"
+ 	
+ 	-- download the database (disable post process files preference)
+ 	set ppf to contents of preference "PostProcessFiles"
+ 	set contents of preference "PostProcessFiles" to "false"
+ 	webfetch tempDir url "http://example.com:2082/getsqlbackup/wrdp1.gz" user "example"
+ 	set contents of preference "PostProcessFiles" to ppf
+ end tell
+ 
+ set dbfile to POSIX path of ((tempDir as string) & "wrdp1.gz")
+ 
+ -- Import the database
+ do shell script "gzcat " & dbfile & "| " & mysqlcmd
+ 
+ -- Cleanup: remove database file
+ do shell script "rm " & dbfile
+ 
+ -- Fix up the siteurl and home options in WordPress
+ do shell script "echo 'update wp_options set option_value = \"" & newurl & "\" where option_name = \"home\"; update wp_options set option_value = \"" & newurl & "\" where option_name = \"siteurl\";' | " & mysqlcmd
+
+In order to get this script to work you will need to edit it in the Script Editor to change the various locations, URLs and passwords. Hopefully this will be easy enough to do. In addition you will need to add the passwords to the keychain for downloading your static site and accessing your database dump so that Interarchy can find them. The best way to do this is to access the site interactively in Interarchy and be sure to click the "add password to Keychain" checkbox.
+
+If you don't use Interarchy you may still find this script valuable as it shows how to use SQL queries to update the various "WordPress Address" and "Blog Address" options programattically.
+
+{{Stub}}
+[[Category:Advanced Topics]]

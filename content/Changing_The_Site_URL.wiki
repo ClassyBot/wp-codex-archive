@@ -1,0 +1,273 @@
+{{Languages|
+{{en|Changing The Site URL}}
+{{it|Modificare l'URL del sito}}
+{{ja|サイト URL の変更}}
+{{ko|사이트 URL 변경 방법}}
+}}
+On the Settings->General screen in a single site installation of WordPress, there are two fields named "WordPress Address (URL)" and "Site Address (URL)". They are important settings, since they control where WordPress thinks your site is located. They control the display of the URL in the admin section of your page, as well as the front end, and are used throughout the WordPress code.
+
+* The "Site Address (URL)" setting is the address you want people to type in their browser to reach your WordPress blog.
+* The "WordPress Address (URL)" setting is the address where your WordPress core files reside.
+
+'''Note''': Both settings should include the http:// part and should not have a slash "/" at the end.
+
+Every once in a while, somebody finds a need to manually change (or fix) these settings. Usually this happens when they change one or both and discover that their site no longer works properly. This can leave the user with no easily discoverable way to correct the problem. This article tells you how to change these settings directly.
+
+Additional information is presented here for the case where you are moving WordPress from one site to another, as this will also require changing the site URL. You should not attempt to use this additional information if you're only attempting to correct a "broken" site.
+
+{{Message|
+| background = #FCECAD
+| border = #CCCCCC
+| color = #000000
+| text = <strong>Alert!</strong> These directions are for single installs of WordPress only.  If you are using WordPress MultiSite, you will need to manually edit your database.
+}}
+
+__TOC__
+
+== Changing the Site URL ==
+
+There are four easy methods to change the Site URL manually. Any of these methods will work and perform much the same function.
+
+In the notes below, 'WP_HOME' and 'home' refer to the "Site Address (URL)" or what you want regular visitors to type in their browser.
+'WP_SITEURL' and 'siteurl' refer to the "WordPress Address (URL)" or the address where your WordPress core files reside.
+
+=== Edit wp-config.php ===
+
+It is possible to set the site URL manually in the wp-config.php file.
+
+Add these two lines to your wp-config.php, where "example.com" is the correct location of your site.
+ define( 'WP_HOME', 'http://example.com' );
+ define( 'WP_SITEURL', 'http://example.com' );
+
+This is not necessarily the best fix, it's just hardcoding the values into the site itself. You won't be able to edit them on the General settings page anymore when using this method.
+
+=== Edit functions.php ===
+
+If you have access to the site via [[FTP_Clients|FTP]], then this method will help you quickly get a site back up and running, if you changed those values incorrectly.
+
+1. FTP to the site, and get a copy of the active theme's functions.php file. You're going to edit it in a simple [[Editing_Files#Using_Text_Editors|text editor]] and upload it back to the site.
+
+2. Add these two lines to the file, immediately after the initial "<?php" line.
+ update_option( 'siteurl', 'http://example.com' );
+ update_option( 'home', 'http://example.com' );
+
+Use your own URL instead of example.com, obviously.
+
+3. Upload the file back to your site, in the same location. FileZilla offers a handy "edit file" function to do all of the above rapidly; if you can use that, do so.
+
+4. Load the login or admin page a couple of times. The site should come back up.
+
+{{Message|
+| background = #FCECAD
+| border = #CCCCCC
+| color = #000000
+| text = <strong>Important!</strong> Do not leave those lines in the functions.php file. Remove them after the site is up and running again. 
+}}
+
+
+'''Note''': If your theme doesn't have a functions.php file create a new one with a [[Editing_Files#Using_Text_Editors|text editor]]. Add the php tags and the two lines using your own URL instead of example.com:. 
+
+ <?php
+ update_option( 'siteurl', 'http://example.com' );
+ update_option( 'home', 'http://example.com' );
+
+Upload that to your theme directory. Remove the lines or the remove the file after the site is up and running again.
+
+>>>
+
+Here are some additional details that step you through transfering a LAN-based wordpress site into an externally accessible site as well enabling editing the wordpress site from inside the LAN.
+
+Two important keys are router/firewall modifications and the "wait 10+ minutes" after making the changes at the end.
+
+-using ssh to log into your server (nano is a server preinstalled text editor)<br>
+-$ nano /var/www/books/wp-content/themes/twentyeleven/functions.php<br>
+-add lines just after <?php
+     update_option( 'siteurl', 'http://your.site.url:port/yourblog' );
+     update_option( 'home', 'http://your.site.url:port/yourblog' );
+-refresh your web browser using your external site url
+    http://your.site.url:port/yourblog
+-$ nano /var/www/books/wp-content/themes/twentyeleven/functions.php<br>
+-remove those lines you just added (or comment them out)<br>
+-access your router (these steps are for pfSense, other routers should have similar settings to look for/watch out for)<br>
+-add to firewall/nat table a line like this
+         wan/tcp/port/LAN.server.IP/80
+-add to firewall/rules table a line like this
+         tcp/*/port/LAN.server.IP/port/*
+-uncheck the box at System/advanced/network address translation/Disable NAT Reflection 
+        "Disables the automatic creation of NAT redirect rules for access to your public IP addresses from within your internal networks. Note: Reflection only works on port forward type items and does not work for large ranges > 500 ports."
+
+Then go do something for ten minutes and when you get back see if the external url http://your.site.url:port/yourblog from a LAN browser brings the page up correctly.
+
+=== Relocate method ===
+
+WordPress supports an automatic relocation method intended to be a quick assist to getting a site working when relocating a site from one server to another.
+
+==== Code function ====
+When RELOCATE has been defined as true in wp-config.php (see next chapter), the following code in wp-login.php will take action:
+<code>if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set
+	if ( isset( $_SERVER['PATH_INFO'] ) && ($_SERVER['PATH_INFO'] != $_SERVER['PHP_SELF']) )
+		$_SERVER['PHP_SELF'] = str_replace( $_SERVER['PATH_INFO'], "", $_SERVER['PHP_SELF'] );
+
+	$url = dirname( set_url_scheme( 'http://' .  $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'] ) );
+	if ( $url != get_option( 'siteurl' ) )
+		update_option( 'siteurl', $url );
+}</code>
+
+====Steps====
+
+1. Edit the <tt>wp-config.php</tt> file.
+
+2. After the "define" statements (just ''before'' the comment line that says "That's all, stop editing!"), insert a new line, and type: <code>define( 'RELOCATE', true );</code>
+
+3. Save your wp-config.php file.
+
+4. Open a web browser and manually point it to <tt>wp-login.php</tt> on the new server. For example, if your new site is at <tt>http://www.yourdomainname.com</tt>, then type <tt>http://www.yourdomainname.com/wp-login.php</tt> into your browser's address bar. 
+
+5. Login as per normal.
+
+6. Look in your web browser's address bar to verify that you have, indeed, logged in to the correct server. If this is the case, then in the Admin back-end, navigate to Settings > General and verify that both the address settings are correct. Remember to Save Changes.
+
+7. Once this has been fixed, edit <tt>wp-config.php</tt> and either completely remove the line that you added (delete the whole line), comment it out (with <code>//</code>) or change the <code>true</code> value to <code>false</code> if you think it's likely you will be relocating again.
+
+'''Note:''' When the RELOCATE flag is set to true, the Site URL will be automatically updated to whatever path you are using to access the login screen. This will get the admin section up and running on the new URL, but it will not correct any other part of the setup. Those you will still need to alter manually.
+
+{{Message|
+| background = #FCECAD
+| border = #CCCCCC
+| color = #000000
+| text = <strong>Important!</strong> Leaving the RELOCATE constant in your wp-config.php file is insecure, as it allows an attacker to change your site URL to anything they want in some configurations. Always remove the RELOCATE line from wp-config.php after you're done.
+}}
+
+=== Changing the URL directly in the database ===
+
+If you know how to access phpMyAdmin on your host, then you can edit these values directly to get you up and running again.
+
+# [[Backing Up Your Database|Backup your database]] and save the copy off-site.
+# Login to [[phpMyAdmin]].
+# Click the link to your '''Databases'''.
+# A list of your databases will appear. Choose the one that is your WordPress database.
+# All the tables in your database will appear on the screen.
+# From the list, look for '''<tt>wp_options</tt>'''. '''Note:''' The table prefix of <tt>wp_</tt> may be different if you changed it when installing.
+# Click on the small icon indicated as '''Browse'''.
+# A screen will open with a list of the fields within the '''<tt>wp_options</tt>''' table.
+# Under the field '''<tt>option_name</tt>''', scroll down and look for '''<tt>siteurl</tt>'''. 
+# Click the '''Edit Field''' icon which usually is found at the far left at the beginning of the row.
+# The '''Edit Field''' window will appear.
+# In the input box for '''<tt>option_value</tt>''', carefully change the URL information to the new address.
+# Verify this is correct and click '''Go''' to save the information.
+# You should be returned to your '''<tt>wp_options</tt>''' table.
+# Look for the '''<tt>home</tt>''' field in the table and click '''Edit Field'''. '''Note''' There are several pages of tables inside <tt>wp_options</tt>. Look for the <tt>&gt;</tt> symbol to page through them.
+# In the input box for '''<tt>option_value</tt>''', carefully change the URL information to the new address.
+# Verify this is correct and click '''Go''' to save the information.
+
+== Moving Sites ==
+
+When moving sites from one location to another, it is sometimes necessary to manually modify data in the database to make the new site URL information to be recognized properly. Many tools exist to assist with this, and those should generally be used instead of manual modifications.
+
+This is presented here as information only. This data may not be complete or accurate.
+
+You should read the [[Moving WordPress]] article first, if attempting to move WordPress from one system to another.
+
+=== Altering Table Prefixes ===
+
+Like many WordPress administrators, you may be running several WordPress installations off of one database using various <tt>wp-config.php</tt> hacks. Many of these hacks involve dynamically setting table prefixes, and if you do end up altering your table prefix, you ''must'' update several entries within the ''prefix_''usermeta table as well.
+
+As in the above section, remember that SQL changes are permanent and so you should back up your database first:
+
+If you are changing table prefixes for a site, then remember to alter the table prefix in the usermeta tables as well. This will allow the new site to properly recognize user permissions from the old site.
+
+<pre>UPDATE `newprefix_usermeta` SET `meta_key` = REPLACE( `meta_key` , 'oldprefix_', 'newprefix_' );</pre>
+
+=== Changing Template Files ===
+
+In your [[Using Themes|WordPress Theme]], open each template file and search for any manually entered references to your old domain name and replace it with the new one. Look for specific hand coded links you may have entered on the various template files such as the <tt>sidebar.php</tt> and <tt>footer.php</tt>.
+
+WordPress uses a template tag called <tt>[[Template Tags/bloginfo|bloginfo()]]</tt> to automatically generate your site address from information entered in your [[Administration_Panels|Administration]] > [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]]  panel. The tag in your template files will not have to be modified.  
+
+=== Changing the Config file ===
+
+You will need to update your WordPress configuration file if your database has moved or changed in certain ways.
+# You will only need to modify the config file if: 
+## your database has moved to another server and is not running on your <tt>localhost</tt>
+## you have renamed your database
+## you have changed the database user name
+# "'Make a backup copy of your <tt>wp-config.php</tt> file.'" 
+# Open the <tt>wp-config.php</tt> file in a [[Glossary#Text editor|text editor]].
+# Review its contents. In particular, you are looking for the [http://codex.wordpress.org/Editing_wp-config.php#Database_host database host entry]. 
+# Save the file.
+At this point, your WordPress blog should be working.
+
+=== Verify the Profile ===
+
+# In your [[Administration Panels]] go to [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]] . Here you will verify that the changes you made in [http://codex.wordpress.org/Changing_The_Site_URL#Changing_the_URL Changing the URL] above, are correct.
+# Verify that the reference in your '''WordPress Address (URL)''' contains the new address.
+# Verify that the reference in your '''Site Address (URL)''' contains the new address.
+# If you have made changes, click '''Save Changes'''.
+
+=== Changing the .htaccess file ===
+
+After changing the information in your [[Administration_Panels|Administration]] > [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]] panel, you will need to update your <tt>.htaccess</tt> file if you are using [[Using Permalinks|Permalinks]] or any rewrites or redirects. 
+
+# '''Make a backup copy of your <tt>.htaccess</tt> file.''' This is not a recommendation but a requirement. 
+# Open the <tt>.htaccess</tt> file in a [[Glossary#Text editor|text editor]].
+# Review its contents, looking for any custom rewrites or redirects you entered. '''Copy''' these to another text file for safe keeping.
+# Close the file.
+# Follow the instructions on the Permalinks SubPanel for updating your Permalinks to the <tt>.htaccess</tt> file.
+# Open the new <tt>.htaccess</tt> file and check to see if your custom rewrites and redirects are still there.  If not, copy them from the saved file and paste them into the new <tt>.htaccess</tt> file.
+# Make any changes necessary in those custom rewrites and redirects to reflect the new site address.
+# Save the file.
+# Test those redirects to ensure they are working.
+
+If you make a mistake, you can [[Restoring Your Database From Backup]] from your backup and try this again. So make sure it is right the first time.
+
+=== Additional items of note ===
+
+There are other things you may wish to change in order to correct URLs when moving sites.
+
+# Images link: image links are stored in "post_content" in the wp_posts table.  You can use the similar code above to update image links.
+# wp_options: Besides the "siteurl" and "home" items mentioned above, there are other option_value which also need revision, such as "upload path", and some plugin items (depends on what you've installed, such as widgets, stats, DMSGuestbook, sitemap, etc.)
+# To fix widgets that contain outdated URL's, you may edit them in Dashboard / Appearance / Widgets.
+# Do a FULL database search for any items left. MAKE SURE you know what you are changing. and go through each item for possible improper replacement. 
+# If you a running a network / have multiple sites, you will need to replace instances of the URL in the database. They are stored in many tables, including each one of the sites (blogs). Be careful in what you replace and be sure you know the meaning of the field before changing it. See the Important GUID note below for an example of what ''not'' to change.
+# Note, if you find your old url in the database options table under 'dashboard_incoming_links', you can ignore or delete that option. It's unused since WP 3.8.
+
+[http://wphacks.com/how-to-move-wordpress-blog-new-domain-name/ How To: Move Your WordPress Blog to a New Domain] - Using the Export/Import feature to move a blog to a new domain
+
+==== Important GUID Note ====
+
+When doing the above and changing the URLs directly in the database, you will come across instances of the URL being located in the "guid" column in the wp_posts tables.
+
+'''It is critical that you do ''NOT'' change the contents of this field.'''
+
+The term "GUID" stands for "Globally Unique Identifier". It is a field that is intended to hold an identifier for the post which a) is unique across the whole of space and time and b) never, ever changes. The GUID field is primarily used to create the WordPress feeds.
+
+When a feed-reader is reading feeds, it uses the contents of the GUID field to know whether or not it has displayed a particular item before. It does this in one of various ways, but the most common method is simply to store a list of GUID's that it has already displayed and "marked as read" or similar.
+
+Thus, changing the GUID will mean that many feedreaders will suddenly display your content in the user's reader again as if it was new content, possibly annoying your users.
+
+In order for the GUID field to be "globally" unique, it is an accepted convention that the URL or some representation of the URL is used. Thus, if you own example.com, then you're the only one using example.com and thus it's unique to you and your site. This is why WordPress uses the permalink, or some form thereof, for the GUID.
+
+However, the second part of that is that the GUID must ''never'' change. Even if you shift domains around, the post is still the same post, even in a new location. Feed readers being shifted to your new feeds when you change URLs should still know that they've read some of your posts before, and thus the GUID '''must''' remain unchanged.
+
+'''Never, ever, change the contents of the GUID column, under any circumstances.'''
+
+NB: If the default uploads folder needs to be changed to a different location, then any media URLs will need to be changed in the '''post_content''' column of the posts table. For example, if the default uploads folder is changing from '''wp-content/uploads''' to '''images''':
+
+<pre>UPDATE wp_posts SET post_content = REPLACE(post_content,'www.domain.com/wp-content/uploads','www.domain.com/images');</pre>
+
+=== Multi-site notes ===
+
+See [[Moving_WordPress#Moving_WordPress_Multisite|Moving WordPress Multisite]]
+
+[[Category:Advanced Topics]]
+
+=== wp-cli ===
+
+[http://wp-cli.org/ wp-cli] is a super useful shell tool.
+
+ wp search-replace 'example.dev' 'example.com' --skip-columns=guid
+
+Or, if you only want to change the option, you can do:
+
+ wp option update home 'http://example.com'
+ wp option update siteurl 'http://example.com'

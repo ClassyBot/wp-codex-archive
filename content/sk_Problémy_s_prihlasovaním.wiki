@@ -1,0 +1,105 @@
+{{Languages|
+{{en|Login Trouble}}
+{{ja|Login Trouble}}
+{{sk|Problémy s prihlasovaním}}
+}}
+Ak máte problémy s prihlásením sa na vaše WordPress stránky [http://codex.wordpress.org/Administration_Panels Administračných panelov], ponúkame vám možné riešenia. 
+
+== Povoľte cookies ==
+
+Uistite sa že máte vo vašom prehliadači povolené cookies. 
+
+* Vyčistite cookies prehliadača.
+* Vyčistite cache prehliadača.
+
+== Deaktivujte moduly ==
+
+Niektoré [[Plugins|WordPress moduly]] môžu prekážať procesu prihlasovania. Deaktivujte všetky vaše WordPress moduly, buď cez administrátorský panel, alebo ich odstránením z  <tt>/wp-content/plugins/</tt> zložky, aby neboli programom rozpoznané.
+
+== Nový prihlasovací súbor ==
+
+Niekedy sa súbor <tt>wp-login.php</tt> môže poškodiť alebo zle nahrať.
+
+* Vymažte <tt>wp-login.php</tt> z vášho serveru a nahrajte novú kópiu z nového stiahnutia.  Zapamätajte si, že prepisovanie súboru cez [[FTP Clients|FTP]] môže viesť k neúplným presunom.
+* Upravte  <tt>wp-login.php</tt> nasledovne:
+** Choďte do <tt>obnovahesla</tt> sekcie, zobrazenej pod týmto komentom: 
+ // predefinovanie user_login zaistí že v emaili vrátime správny prípad
+::Zameňte:
+ $user_login = $user_data["user_login"];
+::S:
+ $user_login = $user_data->user_login;
+
+== Upravte tabuľku užívateľov ==
+
+[[WordPress_Backups#Accessing_phpMyAdmin|Vstúpte do  phpMyAdmin vašej stránky]] a starostlivo upravte databázu.
+
+* Otvorte WordPress databázu.
+* Kliknite na tabuľku užívateľov v ľavom menu (prednastavené je <tt>wp_users</tt>, alebo <tt>''vašapredpona''_users </tt> ak ste zadefinovali inú predponu tabuľky.)
+* Kliknite na '''PREHĽADÁVAŤ''' .
+* Kliknite na tlačidlo '''UPRAVIŤ'''  hneď pri administrátorovi.
+* Vymažte čokoľvek čo je v poli heslo. 
+* Vpíšte vaše želané heslo.
+* Z roletového menu  '''Funkcie''', vyberte MD5.
+* Uložte informácie do databázy
+* Prihláste sa do WordPress s použitím „admin“ a nového hesla. 
+* V prípade že požívate novšiu verziu WordPress, heslo je dvojito hašované, ale pokiaľ  použijete na heslo md5 , skompletizuje to hash  (a aktualizuje vaše heslo).
+
+== Problémy s Heslom ==
+
+Pre informácie o problémoch s prihlasovaním zapríčinených nesprávnym alebo strateným heslom, pozrite [http://codex.wordpress.org/Resetting_Your_Password Zmena vášho hesla].
+
+Prosím pamätajte že Užívateľské meno a Heslo sú case-sensitive (rozlišujú veľké a malé písmená)!
+
+== Presmerovanie URL Stránky ==
+V niektorých prípadoch sa mohla zmeniť URI vašej WordPress adresy.  
+
+*Skontrolujte  '''siteurl''' hodnotu vo ''wp-options'' tabuľke vašej WordPress databázy.  Pokyny sú dostupné  [http://www.tamba2.org.uk/wordpress/site-url/ tu].
+*Je nastavené ako <tt><nowiki>http:/</nowiki></tt>?
+*Ak je, zmeňte '''site_url''' na správnu hodnotu.
+*Otvorte ''wp-login.php'' v textovom editore a upravte alebo vymažte nasledujúce riadky:
+
+<pre>// Ak niekto presunul WordPress, skúsme ho nájsť
+//if ( dirname('<nowiki>http://</nowiki>' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) != get_settings('siteurl') )
+ // update_option('siteurl', dirname('<nowiki>http://</nowiki>' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) );</pre>
+
+
+Zmenili ste vaše WordPress URI  a nemôžete sa prihlásiť ani vstúpiť do databázy (ale stále máte prístup na prihlasovaciu stránku) ?
+
+<tt>wp-login.php</tt> môže byť použité na obnovenie adresy:
+<pre>
+//FIXME: do comment/remove these hack lines. (once the database is updated)
+update_option('siteurl', 'http://your.domain.name/the/path' );
+update_option('home', 'http://your.domain.name/the/path' );
+</pre>
+
+== HTTPS ==
+
+Ak máte problémy s  HTTPS, zmeňte nasledujúci riadok v  <tt>wp-includes/vars.php</tt> z: 
+
+<pre><nowiki>define('COOKIEPATH', preg_replace('|http://[^/]+|i', '', get_settings('home') . '/' ) );</nowiki></pre>
+
+Na:
+
+<pre><nowiki>define('COOKIEPATH', preg_replace('|https?://[^/]+|i', '', get_settings('home') . '/' ) );</nowiki></pre>
+
+Určite tiež zmeňte URL v MOŽNOSTI na <nowiki>https://</nowiki>.
+
+== Chyba: Headers Already Sent ==
+
+Ak ste dostali chybové hlásenie o '''headers already sent''', pozrite [[FAQ_Troubleshooting#How_do_I_solve_the_Headers_already_sent_warning_problem.3F|Riešenie Headers Already Being Sent problému]] vo [[FAQ]].
+== Skontrolujte nastavenia vašej URL ==
+ V niektorých situáciách je možné zobraziť váš blog z vnútra vašej domény, ale nie z vonku. Dodržanie vyššie uvedených inštrukcií o zmene  ''wp-options'' [[Glossary|MySQL]] tabuľky môžu stále viesť k zlyhaniu prihlasovania.  
+
+V takomto prípade , skontrulujte hodnoty  ''wp-options'' tabuľky,  <b>siteurl</b> ( URL WordPress adresa) a <b>home</b> (URL adresa blogu) aby ste sa uistili že odkazujú na „rovnakú“  základnú externe dostupnú adresu; napr., http://blog.vasadomena.com. Štandardná inštalácia ich mohla nastaviť pre vaše lokálne (interné) hostname (meno počítača), http://menoservera
+
+== Skontrolujte váš firewall ==
+Niektoré  firewally (napr., eTrust Personal Firewall) vás môžu blokovať pri prihlasovaní sa do  WordPress. Deaktivujte váš firewall a skúste sa prihlásiť znova. 
+
+== Ak všetko iné zlyhá ==
+Ak tieto kroky zlyhajú, prosím oznámte že ste použili všetky dostupné možnosti pri prispievaní do  [http://wordpress.org/support Podporného WordPress Fóra]. Určite napíšte  [[Finding_Server_Info|detaily nastavenia vášho serveru]], ak ich poznáte, vrátane verzií mySQL a PHP, ako tiež váš operačný systém (OS), prehliadač, s verziu WordPress pri ktorej sa vyskytli tieto problémy.
+
+
+{{Copyedit}}
+[[Category:Troubleshooting]]
+[[Category:WordPress Help]]
+[[Category:Installation]]

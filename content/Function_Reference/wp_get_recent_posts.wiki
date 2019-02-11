@@ -1,0 +1,132 @@
+{{Languages|
+{{en|Function Reference/wp get recent posts}}
+{{ja|????????/wp get recent posts}}
+{{ru|Справочник_по_функциям/wp get recent posts}}
+}}
+== Description ==
+
+Retrieve the most recent posts.
+
+== Usage ==
+
+%%%<?php wp_get_recent_posts( $args, $output ) ?>%%%
+
+=== Default Usage ===
+
+<pre>
+<?php
+$args = array(
+	'numberposts' => 10,
+	'offset' => 0,
+	'category' => 0,
+	'orderby' => 'post_date',
+	'order' => 'DESC',
+	'include' => '',
+	'exclude' => '',
+	'meta_key' => '',
+	'meta_value' =>'',
+	'post_type' => 'post',
+	'post_status' => 'draft, publish, future, pending, private',
+	'suppress_filters' => true
+);
+
+$recent_posts = wp_get_recent_posts( $args, ARRAY_A );
+?>
+</pre>
+For a full explanation of the arguments, see <tt>[[Function_Reference/get_posts | get_posts()]]</tt> and the <tt>[[Class_Reference/WP_Query | WP_Query]]</tt> object.
+
+== Return Value ==
+
+{{Return|$results|array|List of post arrays (default) or objects depending on '''$output'''}}.
+{{Return|FALSE|boolean|There are no results and '''$output''' is '''OBJECT'''.}}
+
+== Parameters ==
+
+{{Parameter|$args|array||optional|array}}
+{{Parameter|$output|string|Constant OBJECT, ARRAY_A|optional|ARRAY_A}}
+
+== Examples ==
+
+This is an example that shows how to use the wp_get_recent_posts() function to list the recent 10 posts.
+
+<pre>
+<h2>Recent Posts</h2>
+<ul>
+<?php
+	$recent_posts = wp_get_recent_posts();
+	foreach( $recent_posts as $recent ){
+		echo '<li><a href=&quot;' . get_permalink($recent[&quot;ID&quot;]) . '&quot;>' .   $recent[&quot;post_title&quot;].'</a> </li> ';
+	}
+	wp_reset_query();
+?>
+</ul>
+</pre>
+
+If you want to delimit more or less recent posts you have to put the number in the function parameter like this example below:
+
+<pre>
+<h2>Recent Posts</h2>
+<ul>
+<?php
+	$args = array( 'numberposts' => '5' );
+	$recent_posts = wp_get_recent_posts( $args );
+	foreach( $recent_posts as $recent ){
+		echo '<li><a href=&quot;' . get_permalink($recent[&quot;ID&quot;]) . '&quot;>' .   $recent[&quot;post_title&quot;].'</a> </li> ';
+	}
+	wp_reset_query();
+?>
+</ul>
+</pre>
+
+To exclude posts with a certain post format, you can use [[Class_Reference/WP_Query#Taxonomy_Parameters]] like this next example, which excludes all posts with the 'aside' and 'image' formats:
+
+<pre>
+<h2>Recent Posts</h2>
+<ul>
+<?php
+	$args = array( 'numberposts' => '5', 'tax_query' => array(
+			array(
+				'taxonomy' => 'post_format',
+				'field' => 'slug',
+				'terms' => 'post-format-aside',
+				'operator' => 'NOT IN'
+			), 
+			array(
+				'taxonomy' => 'post_format',
+				'field' => 'slug',
+				'terms' => 'post-format-image',
+ 				'operator' => 'NOT IN'
+			)
+	) );
+	$recent_posts = wp_get_recent_posts( $args );
+	foreach( $recent_posts as $recent ){
+		echo '<li><a href=&quot;' . get_permalink($recent[&quot;ID&quot;]) . '&quot;>' .   ( __($recent[&quot;post_title&quot;])).'</a> </li> ';
+	}
+	wp_reset_query();
+?>
+</ul>
+</pre>
+In the last example you can see the post_title wrapped in a __() function reference,
+this is used for internationalization (it's important in case you're dealing with multilanguage site).
+
+== Notes ==
+
+* Uses: [[Function_Reference/wp_parse_args|wp_parse_args()]]
+* Uses: [[Function_Reference/get_posts|get_posts()]]
+* Only the value of <tt>ARRAY_A</tt> is checked for $output. Any other value or constant passed will return an array of objects.
+* This function returns posts in an associative array (<tt>ARRAY_A</tt>) format which is compatible with WordPress versions below 3.1. To get output similar to <tt>get_posts()</tt>, use <tt>OBJECT</tt> as the second parameter: <tt>wp_get_recent_posts( $args, OBJECT );</tt>
+
+== Change Log ==
+
+* Since: [[Version 1.0|1.0.0]]
+* [[Version 3.1|3.1.0]]: The <tt>$num</tt> parameter deprecated in favor of <tt>$args</tt>.
+
+== Source File ==
+
+<tt>wp_get_recent_posts()</tt> is located in {{Trac|wp-includes/post.php}}.
+
+== Related ==
+
+{{Tag Footer}}
+
+[[Category:Functions]]

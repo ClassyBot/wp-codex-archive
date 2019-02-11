@@ -1,0 +1,99 @@
+==Descripción==
+Lo siguiente es un ejemplo detallado para el uso de las funciones [[Referencia_de_Funciones/add post meta|add_post_meta]], [[Referencia_de_Funciones/delete post meta|delete_post_meta]], [[Referencia_de_Funciones/update post meta|update_post_meta]], y [[Referencia_de_Funciones/get post meta|get_post_meta]].
+
+==Ejemplo==
+<div style="padding: 1em; border: 1px dashed #2f6fab; color: Black; background-color: #fafafa; line-height: 1.1em">
+%%%<?php 
+/*******************
+Esta función maneja los meta tags mood y listening.
+Puede llamarse con una acción de actualización, borrado y recuperación (por defecto)
+Cuando la acción es update (actualización), hay que proveer o $mood o $listening,
+p.ej. mood_music( $post->ID, 'update', 'Happy', 'Bon Jovi - It's My Life' );
+*******************/
+function mood_music( $post_id, $action = 'get', $mood = 0, $listening_to = 0 ) {
+  
+  //El switch maneja los tres posibles valores de 'Action'
+  switch ($action) {
+    case 'update' :
+      if( ! $mood && ! $listening_to )
+        //Si no se provee nada para actualizar terminamos aquí.
+        return false;
+      
+      //Uso de add_post_meta:
+      //add_post_meta( $post_id, $meta_key, $meta_value, $unique = false )
+      
+      //Si se ha suministrado la variable $mood,
+      //se añade una nueva clave llamada 'mood', que contenga ese valor.
+      //Si la clave 'mood' ya existe en este post,
+      //este comando, simplemente añadirá otra nuevo.
+      if( $mood ) {
+        add_post_meta( $post_id, 'mood', $mood );
+        return true;
+        }
+      //Uso de update_post_meta:
+      //update_post_meta( $post_id, $meta_key, $meta_value )
+      
+      //Si se ha suministrado la variable $listening_to,
+      //se añade una clave llamada 'listening_to', conteniendo ese valor.
+      //Si la clave 'listening_to' ya existe en este post,
+      //este comando lo actualizará con el nuevo valor
+      if( $listening_to ) {
+        add_post_meta( $post_id, 'listening_to', $listening_to, true ) or
+          update_post_meta( $post_id, 'listening_to', $listening_to );
+        return true;
+      }
+    case 'delete' :
+      //uso de delete_post_meta:
+      //delete_post_meta( $post_id, $meta_key, $prev_value = ' ' )
+    
+      //Esto borrará todas las instancias de las siguientes claves de un post dado.
+      delete_post_meta( $post_id, 'mood' );
+      delete_post_meta( $post_id, 'listening_to' );
+      
+      //Para borrar solo 'mood' si su valor es 'sad':
+      //delete_post_meta( $post_id, 'mood', 'sad' );
+    break;
+    case 'get' :
+      //uso de get_post_custom:
+      //get_post_meta( $post_id, $meta_key, $single value = false )
+  
+      //$stored_moods es un array que contendrá todos los valores de la clave meta 'mood'
+      $stored_moods = get_post_meta( $post_id, 'mood' );
+      //$stored_listening_to será el primer valor de la clave 'listening_to'
+      $stored_listening_to = get_post_meta( $post_id, 'listening_to', 'true' );
+
+      //Ahora necesitamos un bonito formato de salida, de forma 
+      //que el usuario pueda implementarlo como el/ella quiera:
+      //p.ej. echo mood_music( $post->ID, 'get' );
+      
+      $return = '<div class='mood-music'>';
+      if ( ! empty( $stored_moods ) )
+        $return .= '<strong>Current Mood</strong>: ';
+      foreach( $stored_moods as $mood )
+        $return .= $mood . ', ';
+      $return .= '<br/>';
+
+      if ( ! empty( $stored_listening_to ) ) {
+        $return .= '<strong>Currently Listening To</strong>: ';
+        $return .= $stored_listening_to;
+        }
+      $return .= '</div>';
+      
+      return $return;
+    default :
+      return false;
+    break;
+  } //end switch
+} //end function
+?>%%%</div>
+
+==Recursos==
+*
+
+==Relacionados==
+
+{{Post Meta Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

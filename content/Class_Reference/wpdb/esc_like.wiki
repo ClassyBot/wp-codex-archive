@@ -1,0 +1,83 @@
+{{Languages|
+{{en|Class_Reference/wpdb/esc_like}}
+{{ja|クラスリファレンス/wpdb/esc_like}}
+}}
+
+wpdb::esc_like() is a member of [[Class_Reference/wpdb | The wpdb Class]].
+
+== Description ==
+
+Sanitizes <tt>'''$text'''</tt> for use in a LIKE expression of an SQL query.
+
+Note that the string still needs to be SQL escaped with <tt>$wpdb->prepare()</tt> or <tt>esc_sql()</tt>. This needs to be done after using <tt>$wpdb->esc_like()</tt>, to ensure correct and secure slashing of the string.
+
+== Usage ==
+
+%%% <?php $like = $wpdb->esc_like( $text ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$text|string|The LIKE argument portion of the SQL query.}}
+
+== Return Value ==
+
+{{Return||string|Escaped value appropriate as a LIKE argument in a SQL query.}}
+
+== Example ==
+Try to match a suspicious link to links in comments marked as spam.
+<pre>
+// Parse a suspicious URL so we can just get the main parts.
+$url = parse_url( $suspicious_link );
+
+// Strip out "http://" and any url parameters.
+if ( isset( $url['path'] ) ) {
+	$link = $url['host'] . $url['path'];
+} else {
+	$link = $url['host'];
+}
+
+global $wpdb;
+
+// First, escape the link for use in a LIKE statement.
+$link = $wpdb->esc_like( $link );
+
+// Add wildcards, since we are searching within comment text.
+$link = '%' . $link . '%';
+
+// Create a SQL statement with placeholders for the string input.
+$sql = 	"
+	SELECT COUNT(*)
+	FROM $wpdb->comments 
+	WHERE (comment_content LIKE %s OR comment_author_url LIKE %s)
+		AND comment_approved = 'spam' 
+	";
+
+// Prepare the SQL statement so the string input gets escaped for security.
+$sql = $wpdb->prepare( $sql, $link, $link );
+
+// Search local spam for comments or author url containing this link.
+$matching_comments = $wpdb->get_var( $sql );
+
+echo $matching_comments . ' spam comments found with this link.';
+</pre>
+
+== Notes ==
+Escapes % (percent) and _ (underscore) and \ (backslash) characters, as they have special meaning in LIKE arguments.
+== Change Log ==
+
+* Since: [[Version_4.0|4.0.0]]
+
+== Source File ==
+
+<tt>wpdb::esc_like()</tt> is located in {{Trac|wp-includes/wp-db.php}}.
+
+== Related ==
+
+{{Esc Tags}}
+
+
+* Article: [http://make.wordpress.org/core/2014/06/20/like_escape-is-deprecated-in-wordpress-4-0/ | like_escape() is Deprecated in WordPress 4.0 ]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

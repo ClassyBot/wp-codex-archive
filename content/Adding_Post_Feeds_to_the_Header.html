@@ -1,0 +1,95 @@
+<p>As of <a href="https://codex.wordpress.org/Version_3.0" title="Version 3.0">Version 3.0</a>, you can enable post and comment RSS feed links with:
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_theme_support</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'automatic-feed-links'&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+See more at <a href="https://codex.wordpress.org/Function_Reference/add_theme_support#Feed_Links" title="Function Reference/add theme support">Function_Reference/add_theme_support#Feed_Links</a>.
+</p>
+<div style="background-color:#FFFFFF; border:1px solid #FFFFFF; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;"><span style="float:left; margin:4px"><div class="floatleft"><a href="https://codex.wordpress.org/File:wp-alert.png" class="image"><img alt="wp-alert.png" src="/images/9/9c/wp-alert.png" width="58" height="69" /></a></div></span><b>This article, written to accord with WordPress pre 3.0, is now obsolete. Please take caution when following its contents, as many things may have changed.</b></div>
+<p>WordPress generates a unique RSS feed for each post on your blog, which can by default be accessed in the post metadata section below the post itself. However, in order to make the most of your feed you need a <a rel="nofollow" class="external text" href="http://www.w3.org/TR/REC-html40/struct/links.html#h-12.3"><tt>link</tt></a> element pointing to it, telling browsers, bots, and whatever and whoever else might be accessing your page that this is a feed, not just any old XML file.
+</p><p>Unfortunately WordPress doesn't provide a dedicated option for doing this yet, so we're going to have to make one ourselves. This tutorial will provide code you can add to your header, and explain how the different parts work. <b>If you aren't interested in what's going on and just want the solution, skip down to the <a href="#The_final_code">The final code</a> section!</b>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#The_problem"><span class="tocnumber">1</span> <span class="toctext">The problem</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Link_elements"><span class="tocnumber">2</span> <span class="toctext">Link elements</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#The_variables"><span class="tocnumber">3</span> <span class="toctext">The variables</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#The_Loop"><span class="tocnumber">4</span> <span class="toctext">The Loop</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Conditional_Tags_.28.27if_statements.27.29"><span class="tocnumber">5</span> <span class="toctext">Conditional Tags ('if statements')</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#The_final_code"><span class="tocnumber">6</span> <span class="toctext">The final code</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="The_problem">The problem</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Adding_Post_Feeds_to_the_Header&amp;action=edit&amp;section=1" title="Edit section: The problem">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>We must create a <tt>Link</tt> element in our header that points readers to our feed. It must change to reflect the page being viewed, and must not be generated if the page is not a post. To hook into the post system we must make use of <a href="https://codex.wordpress.org/The_Loop" title="The Loop">The Loop</a> to get the relevant data from the database.
+</p><p>The logical solution to the problem would be to examine the post metadata code and copy over the command it uses to generate its link. Unfortunately, the output of <tt>comments_rss_link()</tt> is an HTML 'anchor' link (<tt>a href</tt>), which isn't what we want at all. It is designed for linking page elements, but we want to add information that isn't tied to any particular part of the page.
+</p>
+<h2><span class="mw-headline" id="Link_elements">Link elements</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Adding_Post_Feeds_to_the_Header&amp;action=edit&amp;section=2" title="Edit section: Link elements">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A <tt>Link</tt> element is included in a page header, and links to some form of off-page resource. Have a look at your existing header for some examples. For RSS feeds, they take the following basic format:
+</p><p><tt>&lt;link rel="alternate" type="application/rss+xml" title="Feed Title" href="Feed Location" /&gt;</tt>
+</p><p>The <tt>rel</tt> element tells the reader what this link is providing. There are many values accepted by <tt>rel</tt>: ours, <tt>alternate</tt>, indicates that the <tt>link</tt> points to an alternative form of the current page, its feed. We might also use alternate to signify a version of the page in a different language, or many other things. The type of alternate page being provided is of course defined in <tt>type</tt>, which should be self explanatory. Next is the title, which performs the same function as <tt>title</tt> elsewhere on the web; displaying a friendly name instead of the resource's location. Finally, <tt>href</tt> is the location of the <tt>link</tt>'s target on the internet, its URL. We then close the tag.
+</p>
+<h2><span class="mw-headline" id="The_variables">The variables</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Adding_Post_Feeds_to_the_Header&amp;action=edit&amp;section=3" title="Edit section: The variables">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>We can't just paste the above XHTML code in of course, unless you only ever have one post on your entire blog. We must make the values reflect the page they are being placed on, and in PHP this is done through a system of substitution. We enter PHP code in and when the page is generated WordPress replaces it with the data we asked for.
+</p><p>We will need to substitute three pieces of data:
+</p>
+<ul><li>The feed title</li>
+<li>The location of the blog</li>
+<li>The ID of the current post</li></ul>
+<p>And to do this we need the following variables:
+</p>
+<ul><li><tt>the_title()</tt></li>
+<li><tt>bloginfo('url')</tt></li>
+<li><tt>the_ID()</tt></li></ul>
+<p>We add the variables where we want their result to be inserted, and WordPress does the rest. It isn't quite that simple though, as we have to tell WordPress that we want the commands interpreted as such and not simply printed out as text. We do this by wrapping <tt>&lt;?php</tt> and <tt>?&gt;</tt> around the variables. We must also, with a few exceptions, add a semicolon after each line for programming reasons that I won't go into.
+</p><p>Substituting those variables results in:
+</p><p><tt>&lt;link rel="alternate" type="application/rss+xml" title="<b>&lt;?php the_title();&#160;?&gt;</b> Comments" href="<b>&lt;?php bloginfo('url');&#160;?&gt;</b>/?feed=rss2&amp;amp;p=<b>&lt;?php the_ID();&#160;?&gt;</b>" /&gt;</tt>
+</p><p>Note that we have replaced the <tt>href</tt>'s '&amp;' with <tt>&amp;amp;</tt>. The ampersand is not a legal character in XHTML, and <tt>&amp;amp;</tt> is the 'encoded' version that has the same effect but does not cause browsers trouble.
+</p>
+<h2><span class="mw-headline" id="The_Loop">The Loop</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Adding_Post_Feeds_to_the_Header&amp;action=edit&amp;section=4" title="Edit section: The Loop">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>So we've got our link, and it has the key fields replaced with code that will fill them automatically. But we can't just use the variables anywhere. They must be within '<a href="https://codex.wordpress.org/The_Loop" title="The Loop">The Loop</a>'. Read more about The Loop at <a href="https://codex.wordpress.org/The_Loop" title="The Loop">this link</a>. If you've come back completely blasted - don't worry. It isn't nearly as complex as the article might make out.
+</p><p>Ideally we would add our code to the existing Loop, the one that already provides our posts, comments, and whatnot. While that would work in some browsers, it is completely the wrong place for what we are trying to do. The default Loop is entirely within the body of the page, and <tt>link</tt> elements belong in the head. It would be very bad practice to add the code to the body, and cause all sorts of problems.
+</p><p>So we need a new Loop. Fret not, it's easy.
+</p><p><tt>&lt;?php while (have_posts())&#160;: the_post();&#160;?&gt;
+</p><p>&lt;?php endwhile;&#160;?&gt;</tt>
+</p><p>There you have it, a secondary Loop. Stick our code between those two lines and it will work just fine.
+</p><p>There's only one problem. Because of the way The Loop works, if we leave it at that we will have the right feed in the document head, but the post displayed in the body of the page, the thing you actually read, will be the next one in the database. This won't do at all. Luckily the fix is once again simple:
+</p><p><tt>&lt;?php rewind_posts();&#160;?&gt;</tt>
+</p><p>Our loop is now complete.
+</p>
+<h2><span class="mw-headline" id="Conditional_Tags_.28.27if_statements.27.29">Conditional Tags ('if statements')</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Adding_Post_Feeds_to_the_Header&amp;action=edit&amp;section=5" title="Edit section: Conditional Tags ('if statements')">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>We are almost done. We have our link element, we are substituting data in to it, and it is able to hook into the database without messing anything up. But if you add the code in its current state, it will be executed on every page on the blog, even when there isn't a post present. This probably won't do any harm per se, but it will be very confusing for users. We need to tell WordPress that we only want our <tt>link</tt> to be added under a certain circumstance: the page being a post. This is done with a 'Conditional Tag', or as a programmer might know it an 'if statement'.
+</p><p><tt>&lt;?php if (is_single()) {&#160;?&gt;
+</p><p>&lt;?php }&#160;?&gt;</tt>
+</p><p>Anything between those two lines will only execute is <tt>is_single()</tt> is true; if the page is a post. Now we are all set!
+</p>
+<h2><span class="mw-headline" id="The_final_code">The final code</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Adding_Post_Feeds_to_the_Header&amp;action=edit&amp;section=6" title="Edit section: The final code">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>&lt;?php if (is_single()) {&#160;?&gt;
+</p><p>&lt;?php while (have_posts())&#160;: the_post();&#160;?&gt;
+</p><p>&lt;link rel="alternate" type="application/rss+xml" title="&lt;?php the_title();&#160;?&gt; Comments" href="&lt;?php bloginfo('url');&#160;?&gt;/?feed=rss2&amp;amp;p=&lt;?php the_ID();&#160;?&gt;" /&gt;
+</p><p>&lt;?php endwhile;&#160;?&gt;
+</p><p>&lt;?php rewind_posts();&#160;?&gt;
+</p><p>&lt;?php }&#160;?&gt;</tt>
+</p><p>Congratulations! Paste this code into <tt>header.php</tt> (preferably next to the existing site feed, for readability) and each post on your blog will properly notify browsers, bots and users of its RSS feed. Certainly better than an obscure little link in the metadata. For a quick demo, view a post in Firefox and you will get two options whenever you click the Live Bookmark icon in the Address Bar. If you don't, you've made a mistake somewhere and need to try again. Viewing your page source might make the error easier to find.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211003724
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.025 seconds
+Preprocessor visited node count: 52/1000000
+Preprocessor generated node count: 142/1000000
+Post‐expand include size: 823/2097152 bytes
+Template argument size: 259/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.899      1 - -total
+100.00%    2.899      1 - Template:Oldpage
+ 39.46%    1.144      1 - Template:Message
+-->

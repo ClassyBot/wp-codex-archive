@@ -1,0 +1,98 @@
+<p>Um tema filho é um tema que herda as funcionalidades e estilos de outro tema, chamado de tema pai. Os temas filhos são a forma recomendada de modificar um tema existente.
+</p>
+<h2><span class="mw-headline" id="Por_que_usar_temas_filhos.3F">Por que usar temas filhos?</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Temas_Filhos&amp;action=edit&amp;section=1" title="Edit section: Por que usar temas filhos?">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Há muitos motivos do porquê que você deve usar um tema filho:
+</p>
+<ul><li> Se você modificar um tema diretamente e o tema for atualizado, suas modificações podem se perder. Ao usar um tema filho você se certifica de que suas modificações são preservadas.</li>
+<li> Usar um tema filho agiliza o desenvolvimento.</li>
+<li> Usar um tema filho é uma ótima maneira de aprender sobre o desenvolvimento de temas WordPress.</li></ul>
+<h2><span class="mw-headline" id="Como_criar_um_tema_filho">Como criar um tema filho</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Temas_Filhos&amp;action=edit&amp;section=2" title="Edit section: Como criar um tema filho">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div class="floatright"><a href="https://codex.wordpress.org/File:child-theme-items.jpeg" class="image" title="Estrutura de diretório de um tema filho"><img alt="Estrutura de diretório de um tema filho" src="/images/3/3d/child-theme-items.jpeg" width="200" height="192" /></a></div>
+<p>Um tema filho consiste de ao menos um diretório (a pasta onde fica o tema) e dois arquivos (style.css e functions.php), que você precisa criar, então temos:
+</p>
+<ul><li> a pasta ou diretório do tema filho</li>
+<li> o arquivo style.css</li>
+<li> o arquivo functions.php</li></ul>
+<p><b>1.</b> Crie a pasta ou diretório para o tema filho que será colocada em <tt>wp-content/themes</tt>. É recomendado (embora não obrigatório, especialmente se você estiver criando um tema para uso público) que o nome do diretório de seu tema seja sucedido do sufixo '-child'. Você também deve se certificar de que não há espaços no nome da pasta do tema filho o que ocasionará erros. Na imagem de tela acima, o tema filho se chama 'twentyfifteen-child' indicando que o tema pai é o tema Twenty Fifteen.
+<b>2.</b> Crie a folha de estilos (style.css). A folha de estilos deve começar com o seguinte (the <a href="https://codex.wordpress.org/Theme_Development#Theme_Stylesheet" title="Theme Development">stylesheet header</a> (em inglês)):
+</p>
+<pre>
+/*
+ Theme Name:   Twenty Fifteen Child
+ Theme URI:    http://example.com/twenty-fifteen-child/
+ Description:  Twenty Fifteen Child Theme
+ Author:       John Doe
+ Author URI:   http://example.com
+ Template:     twentyfifteen
+ Version:      1.0.0
+ License:      GNU General Public License v2 or later
+ License URI:  http://www.gnu.org/licenses/gpl-2.0.html
+ Tags:         light, dark, two-columns, right-sidebar, responsive-layout, accessibility-ready
+ Text Domain:  twenty-fifteen-child
+*/
+</pre>
+<p>Algumas coisas a observar:
+</p>
+<ul><li> Substitua o texto de exemplo pelos detalhes relevantes ao seu tema.</li></ul>
+<ul><li> A linha <tt>Template</tt> corresponde ao nome do diretório ou pasta do tema pai. O tema pai de nosso exemplo é o tema Twenty Fifteen, então <tt>Template</tt> deve ser <tt>twentyfifteen</tt>. Se está trabalhando com um tema diferente, você deve modificar isso para o nome do tema que estiver usando.</li></ul>
+<ul><li> O arquivo style.css é o único é obrigatório, mas functions.php é necessário para enfileirar os arquivos corretamente.</li></ul>
+<p><b>3.</b> O passo final é enfileirar as folhas de estilo do tema pai e do tema filho. Observe que o método anterior de criação de temas filhos usava @import:, este método não é considerado uma boa prática. Atualmente a prática adequada é enfileirar as folhas de estilo usando <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_enqueue_scripts" title="Plugin API/Action Reference/wp enqueue scripts">wp_enqueue_scripts action</a></tt> e <tt><a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_style" title="Function Reference/wp enqueue style">wp_enqueue_style()</a></tt> no arquivo functions.php de seu tema filho. 
+</p>
+<pre>
+&lt;?php
+add_action( 'wp_enqueue_scripts', 'theme_enqueue_styles' );
+function theme_enqueue_styles() {
+    wp_enqueue_style( 'parent-style', get_template_directory_uri() . '/style.css' );
+
+}
+?&gt;
+</pre>
+<p>A folha de estilo do seu tema filho geralmente será carregada automaticamente. Se não, você vai precisar enfileirá-la também. Definir 'parent-style' como uma dependência irá garantir que a folha de estilo do tema filho seja carregado logo após. <a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/questions/163301/versioning-import-of-parent-themes-style-css">Mais sobre isso (em inglês)</a>&#160;:
+</p>
+<pre>
+&lt;?php
+function theme_enqueue_styles() {
+
+    $parent_style = 'parent-style';
+
+    wp_enqueue_style( $parent_style, get_template_directory_uri() . '/style.css' );
+    wp_enqueue_style( 'child-style',
+        get_stylesheet_directory_uri() . '/style.css',
+        array( $parent_style )
+    );
+}
+add_action( 'wp_enqueue_scripts', 'theme_enqueue_styles' );
+?&gt;
+</pre>
+<p><br />
+</p>
+<h2><span class="mw-headline" id="Recursos">Recursos</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Temas_Filhos&amp;action=edit&amp;section=3" title="Edit section: Recursos">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://wp-brasil.org/temas-e-plugins/temas/na-duvida-va-de-thematic">Thematic</a> - Sobre o tema Thematic no site da Comunidade WordPress Brasil.</li></ul>
+<table style="border:1px solid #ccc;width:100%;border-collapse:collapse;margin:5px 0">
+
+<tr>
+<td style="width:60px;padding:5px;border-left:5px solid #ccc"><img alt="brasil-1.png" src="/images/thumb/3/3d/brasil-1.png/60px-brasil-1.png" width="60" height="60" srcset="/images/thumb/3/3d/brasil-1.png/90px-brasil-1.png 1.5x, /images/thumb/3/3d/brasil-1.png/120px-brasil-1.png 2x" /></td>
+<td style="vertical-align:top;padding:5px"> <div style="display:block;margin-bottom:5px;letter-spacing:0px"><span style="font:normal 20px arial;color:#2F5D91"><a href="https://codex.wordpress.org/pt-br:P%C3%A1gina_Inicial" title="pt-br:Página Inicial" class="mw-redirect">Codex WordPress Brasil</a></span></div><div style="font-size:11px;line-height:18px"><b><span style="color:#444">A documentação do WordPress em Português do Brasil. </b><br /><i><small>Todas as comunidades lusófonas também são bem-vindas! Adicione {{Codex-pt}} em seus artigos.</small></i></span></div>
+</td></tr></table>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004445
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.014 seconds
+Preprocessor visited node count: 64/1000000
+Preprocessor generated node count: 186/1000000
+Post‐expand include size: 1396/2097152 bytes
+Template argument size: 351/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.376      1 - -total
+100.00%    2.376      1 - Template:Codex-pt
+ 51.77%    1.230      1 - Template:Category_Box
+-->

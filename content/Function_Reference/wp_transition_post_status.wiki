@@ -1,0 +1,58 @@
+== Description ==
+
+Performs post status transition actions.
+
+This function contains [[Function_Reference/do_action|do_action()]] calls for [[Post Status Transitions | post status transition]] action hooks. The order of the words in the function name might be confusing – it does not change the status of posts, it only calls actions that can be hooked into by plugin developers. Although this function is already called where needed by core functions, it may be useful when a plugin updates a post by directly interacting with the database, thereby bypassing the usual post status transition actions. For the actions to be effective, the new status, old status and post object must be passed.
+
+To transition the status of a post, rather than perform actions when a post status is transitioned, use <tt>[[Function_Reference/wp_update_post|wp_update_post()]]</tt> or <tt>[[Function_Reference/wp_publish_post|wp_publish_post()]]</tt>.
+
+== Usage ==
+
+%%%<?php wp_transition_post_status( $new_status, $old_status, $post ) ?>%%%
+
+== Parameters ==
+
+{{Parameter|$new_status|string|New post status after an update.}}
+{{Parameter|$old_status|string|Previous post status.}}
+{{Parameter|$post|object|Post object.}}
+
+== Return Values ==
+
+{{Return||void|This function does not return a value.}}
+
+== Examples ==
+
+The following example is based on <tt>[[Function Reference/wp_publish post|wp_publish_post()]]</tt>.
+
+<pre>global $wpdb;
+
+if ( ! $post = get_post( $post ) ) return;
+
+if ( 'publish' == $post->post_status ) return;
+	
+$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
+
+clean_post_cache( $post->ID );
+	
+$old_status = $post->post_status;
+$post->post_status = 'publish';
+wp_transition_post_status( 'publish', $old_status, $post );</pre>
+
+== Notes ==
+
+* This function is already called where needed in core functions. You do not need to call this function when changing a post’s status with <tt>[[Function Reference/wp update post | wp_update_post()]]</tt>, for example. You ''do'' need to call this function in your plugin or theme when manually updating the status of a post, as shown in the example above.
+
+== Source Code ==
+
+<tt>wp_transition_post_status()</tt> is located in {{Trac|wp-includes/post.php}}
+
+== Change Log ==
+
+* Since [[Version_2.3 | 2.3.0]]
+ 
+== Related ==
+
+[[Post Status Transitions]] - More information on how to hook into the actions called by this function.
+
+[[Category:New_page_created]]
+[[Category:Functions]]

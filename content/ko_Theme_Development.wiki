@@ -1,0 +1,477 @@
+{{Languages|
+{{bn|থিম ডেভলপমেন্ট}}
+{{en|Theme Development}}
+{{es|Desarrollo de Temas}}
+{{ja|テーマの作成}}
+{{ko|Theme Development}}
+{{pt-br|Desenvolvimento de Temas}}
+{{ru|Создание тем}}
+{{th|Theme Development}}
+{{zh-cn|主题开发}}
+{{zh-tw|主題開發}}
+}}
+
+__TOC__
+
+이 문서는 워드프레스 테마 개발에 관한 문서입니다. 어떻게 설치하고 테마를 사용하는지 자세히 알고 싶다면 [[Using Themes | 테마 사용법]] 을 살펴보세요. 이 글에서는 [[Using Themes | 테마 사용법]]에 대해 다루지 않습니다. 왜냐하면 이 항목은 오히려 새로운 테마를 찾고 테마를 활성화하는 방법보다 나만의 테마를 구축하기 위해 코드를 작성하는 기술적인 측면을 설명하고 있습니다.
+
+== 왜 워드프레스 테마인가요 ==
+
+워드프레스 테마는 워드프레스 사이트의 디자인과 기능을 묶어 만든 파일입니다. 각 테마는 곧바로 자신의 웹사이트 모양을 변경할 수 있도록 사이트 소유자를 위해 많은 선택권을 제공합니다.
+
+당신은 클라이언트 프로젝트나 [[Theme_Review|워드프레스 테마 디렉토리에 제출]]하기 위해, 자신이 사용하는 워드프레스의 테마를 만들 수 있습니다. 그럼 왜 워드프레스 테마를 만들려고 할까요?
+
+* 당신의 워드프레스 사이트를 희소성있고 가치있게 보이게 만듭니다.
+* 템플릿을 잘 활용하기 위해, 템플릿 태그와 워드프레스 루프로 웹사이트의 결과를 생성해 보입니다
+* 사이트의 특정 기능에 대한 대체 템플릿을 제공합니다. 예를들면 카테고리 페이지와 검색 결과 페이지 같은 
+재빠르게 여러 사이트의 레이아웃을 바꾸거나 활용하기 위해, 스타일 스위처를 통해 사이트 소유자는 사이트의 모양을 변경할 수 있습니다.
+
+그밖에도, 워드프레스 테마에는 많은 장점이 있습니다.
+
+* 프레젠테이션 스타일과 [[Stepping Into Templates|템플릿 파일]]을 분리하여 사이트의 시각적인 표현에 큰 영향없이 업그레이드할 수 있습니다.
+* 테마의 고유한 기능인 사용자 정의 페이지를 사이트에 만들 수 있습니다.
+* 워드프레스 사이트의 시각적인 디자인과 레이아웃의 발빠른 변경이 가능합니다.
+* 멋진 웹사이트를 운영하기 위해 CSS, HTML 그리고 PHP 를 반드시 배워야만 한다는 틀에박힌 고정관념을 제거합니다.
+
+왜 자신만의 워드프레스 테마를 구축해야만 하는가? 그것이 정말 알고싶습니다.
+
+* 그것은 바로 CSS, HTML 및 PHP 에 대해 자세히 배울수 있는 기회입니다.
+* 그것이 바르게 작동하도록 하는것은 CSS, HTML 및 PHP 와 같은 귀하의 전문 지식을 시험할 기회이기도 합니다.
+* 창조적입니다.
+* 재밌습니다. (시간이 좀 걸리지만)
+* 만일 당신이 [[Theme_Review|공식 릴리즈]]하였고, 스스로 만족을 느낀다면 [[Contributing_to_WordPress|워드프레스 커뮤니티]]에 그것을 공유하고 들려 주세요 (ㅋ, 자랑해도 됩니다)
+
+== 테마 개발 표준 ==
+
+워드프레스 테마는 다음과 같은 기준을 사용하여 코딩해야 합니다:
+
+* 좋은 구성, 에러 없는 PHP 그리고 웹표준 HTML 을 사용합니다. [[WordPress_Coding_Standards|워드프레스 코딩 표준]]을 보십시오.
+* 깨끗한 웹표준 CSS 를 사용합니다. [[CSS_Coding_Standards|CSS 코딩 표준]]을 보십시오.
+* [[ko:블로그_디자인과_레이아웃|사이트 디자인과 레이아웃]]의 디자인 지침서를 따릅니다.
+
+=== 테마의 골격 ===
+
+워드프레스 테마는 <tt>wp-content/themes/</tt> 디렉토리의 서브(하위)디렉토리에 있습니다. 테마 서브디렉토리에는 테마 스타일시트 파일, [[Stepping Into Templates|템플릿 파일]], 옵션 기능 파일 (<tt>functions.php</tt>), 자바스크립트 파일, 그리고 이미지 같은 것들이 모두 포함되어 있습니다. 예를 들어, "test" 라는 이름의 테마는  <tt>wp-content/themes/test/</tt> 디렉토리에 있습니다. 테마 이름에 숫자를 사용하지 마세요, 이것은 사용 가능한 테마 목록에 표시되지 않는것을 방지하기 위함입니다.
+
+새롭게 설치한 워드프레스에는 각각의 기본 테마가 포함되어 있습니다. 자신만의 테마 파일을 빌드하는 가장 좋은 방법은 기본 테마의 파일을 훑어보는 것입니다.
+
+비주얼 가이드의 경우, infographic 참조: http://yoast.com/wordpress-theme-anatomy/
+
+워드프레스 테마는 보통 이미지와 자바스크립트 파일 이외에도, 세가지 종류의 주요 파일로 이루어져 있습니다. 첫번째는 <tt>style.css</tt> 라는 파일입니다, 웹사이트 페이지의 프리젠테이션(비주얼 디자인과 레이아웃)을 제어합니다. 두번째는 (<tt>functions.php</tt>) 라는 옵션 기능 파일 입니다. 끝으로 사이트에 페이지를 나타내기 위해 워드프레스 데이터베이스에서 정보를 만들고 제어하는 [[Stepping Into Templates|템플릿 파일]]입니다. 각각 살펴보도록 합시다.
+
+==== Child 테마 ====
+
+Child 테마는 오로지 <tt>style.css</tt> 파일과 몇개의 이미지만 포함하는 간단한 테마입니다. Parent 역할을 하는 테마의 ''Child''이기 때문에 가능합니다.
+
+Child 테마를 위한 자세한 안내는, [[ko:Child_Themes | Child 테마]] 또는 [http://op111.net/53 이 훌륭한 강의의 저자는 op111]을 보세요.
+
+=== 테마 스타일시트 ===
+
+테마에 대한 CSS 스타일 정보 이외에, <tt>style.css</tt> 는 주석의 형태로 테마에 대한 세부 사항을 제공합니다. 스타일시트는 '''''반드시''''' 주석의 형태로 테마에 대한 세부 사항을 제공해야합니다. '''''두개의 테마는 동일한 내용으로 사용할 수 없습니다''''' 자신의 [[File Header|헤더]]에 주석을 남겨야 합니다, 이처럼[[Administration_Panels#Design_-_Change_the_Look_of_your_Blog|테마 선택 대화상자]]에서 부터 문제가 발생할 수 있습니다. 만일 기존의 것을 복사하여 자신만의 테마를 만들 경우, 먼저 이 정보부터 변경해야 합니다.
+
+다음은 스타일시트의 첫 몇줄의 예입니다, "Twenty Ten" 테마에 대한 스타일시트 헤더를 불러옵니다:
+<pre>
+/*
+Theme Name: Twenty Ten
+Theme URI: http://wordpress.org/
+Description: The 2010 default theme for WordPress.
+Author: wordpressdotorg
+Author URI: http://wordpress.org/
+Version: 1.0
+Tags: black, blue, white, two-columns, fixed-width, custom-header, custom-background, threaded-comments, sticky-post, translation-ready, microformats, rtl-language-support, editor-style, custom-menu (optional)
+
+License:
+License URI:
+
+General comments (optional).
+*/
+</pre>
+
+''주의: 제작자로 사용되는 이름은 wordpress.org 의 Theme Author 와 같은 사용자 이름으로 하는것을 추천합니다. 비록 제작자의 실제 이름을 할 수도 있겠지만, 선택은 Theme Author 입니다.''
+
+<tt>style.css</tt> 의 주석 헤더 부분을 읽어들여 워드프레스의 모든 설치된 다른 테마와 함께 사용가능한 테마 옵션으로 [[Administration_Panels|관리자 패널]] 아래 [[Administration_Panels#Design_-_Change_the_Look_of_your_Blog|디자인]] > [[Administration_Panels#Themes|테마]]에 표시 할 수 있게 합니다.
+
+==== 스타일시트 지침 ====
+
+* 당신이 CSS 제작시 [[CSS_Coding_Standards|CSS 코딩 표준]] 을 따르도록 합니다.
+* 가능하면 표준 CSS를 사용합니다. 예외로, CSS3 기능을 활용시 벤더 고유의 접두사를 사용합니다.
+* CSS 핵을 최소화합니다. 명백한 예외는 브라우저에서 지원합니다, 보통 IE 에서 그럽니다. 만일 가능하다면, CSS 핵은 별도의 섹션이나 별도의 파일로 해야합니다.
+* 포스트/페이지, 내용 그리고 댓글 등 가능한한 모든 HTML 요소는 모두 테마 스타일로 정의해야 합니다.
+** 테이블, 자막, 이미지, 목록, 블록, 따옴표, 등등도 마찬가지.
+* 인쇄 친화적인 스타일을 추가하는 것을 적극 권장합니다.
+** 기본 스타일 시트의 인쇄 매체 블록에 추가하거나 인쇄 스타일시트 <tt>media="print"</tt> 를 포함할 수 있습니다.
+
+=== 함수 파일 ===
+
+테마는 선택적으로 하위 디렉토리 테마에 있는 함수 파일인 <tt>functions.php</tt> 를 사용할 수 있습니다. 이 파일은 기본적으로 [[Plugins|플러그인]] 과 같은 역할을 합니다. 그리고 사용중인 테마가 있을 경우, 그것은 자동으로 워드프레스를 초기화하는 동안 로딩 됩니다(관리자 페이지 및 외부 페이지 모두에). 이 파일을 사용할것을 제안합니다:
+
+* [[Theme Features|테마 기능]] 을 사용합니다. 이를테면 [[Widgets API|사이드바]], [[Navigation_Menus|네비게이션 메뉴]], [[Post Thumbnails|포스트 이미지]], [[Post Formats|포스트 형식]], [[Custom Headers|사용자정의 헤더]], [[Custom Backgrounds|사용자정의 배경]] 및 기타 등등.
+* 테마의 여러 템플릿 파일에서 사용되는 함수를 정의합니다.
+* 색상, 스타일 및 테마의 또다른 측면을 위한 사이트 소유자 옵션을 제공, 옵션 메뉴를 설정합니다.
+
+기본적으로 워드프레스 테마는 이러한 기능의 대부분을 정의하는 <tt>functions.php</tt> 파일이 포함되어 있기 때문에 당신은 그것을 그대로 사용하는 것이 좋습니다. 원래 <tt>functions.php</tt> 는 기본적으로 플러그인 기능을 합니다. 이 파일과 함께 할 수 있는 일에 대한 자세한 내용은 [[Function_Reference]] 목록을 보는것이 가장 좋습니다.
+
+=== 템플릿 파일 ===
+
+[[Templates|템플릿]]은 방문자가 요청한 페이지를 생성하는 데 사용되는 PHP 소스 파일이며, HTML로 출력됩니다. 테마의 일부로 정의할 수있는 다양한 템플릿을 살펴 봅시다.
+
+워드프레스는 사이트의 다양한 측면에 대해 별도의 템플릿을 정의할 수 있습니다. 그것이 완벽하게 작동하려면 귀하의 사이트에 대한 모든 다른 템플릿 파일을 가지고 있어야 하지만, 필수는 아닙니다. 템플릿은 [[템플릿 계층 구조]]를 기반으로 특정 테마에 따라 선택하고 생성됩니다.
+
+테마 개발자는, 템플릿을 사용하여 구현하려는 사용자 정의 부분을 선택할 수 있습니다. 예를 들어, 극단적인 경우, 당신은 사이트에 표시되는 ''모든'' 생성된 페이지에 대한 템플릿으로 <tt>index.php</tt>라는 하나의 템플릿 파일을 사용할 수 있습니다. 보다 일반적인 사용은 최대한 사용자 정의를 허용하도록 다른 템플릿 파일이 다른 결과를 생성하는 것입니다.
+
+==== 템플릿 파일 종류 ====
+
+다음은 워드프레스에서 허용하는 테마 파일의 목록입니다. 물론, 당신의 테마는 다른 스타일 시트, 이미지 또는 파일을 포함할 수 있습니다. 단지, 아래의 내용은 워드프레스에 특별한 의미를 가지고 있다는 것만 명심하세요 - [[Template_Hierarchy|템플릿 계층 구조]] 에서 자세한 내용을 참조하십시오.
+
+;<tt>style.css</tt>: 기본 스타일 시트. 이것은 '''반드시''' 당신의 테마에 포함되어야 합니다. 그리고 당신의 테마에 대한 헤더 정보를 포함하고 있어야 합니다.
+;<tt>rtl.css</tt>: RTL 스타일 시트. 이것은 '''자동으로''' 포함됩니다. 웹사이트의 텍스트 방향이 오른쪽에서 왼쪽으로 되어 있다면. 그것은 [http://wordpress.org/extend/plugins/rtler/ RTLer] 플러그인을 사용하여 생성한것 일 수 있습니다.
+;<tt>index.php</tt>: 메인 템플릿. 테마에서 자체 템플릿을 제공하는 경우 <tt>index.php</tt>는 반드시 존재해야합니다.
+;<tt>comments.php</tt>: 댓글 템플릿.
+;<tt>front-page.php</tt>: 프론트 페이지 템플릿, 이것은 [[Creating a Static Front Page|정적 프론트 페이지]] 를 사용할 경우에만 사용됩니다.
+;<tt>home.php</tt>: 홈 페이지 템플릿, 기본적인 첫페이지 입니다. 만일 당신이 [[Creating a Static Front Page|정적 프론트 페이지]] 를 사용하는 경우, 이것은 최신 게시물이 있는 페이지에 대한 템플릿 입니다.
+;<tt>single.php</tt>: 싱글 포스트 템플릿. 하나의 게시물을 쿼리할때 사용합니다. 이것 그리고 다른 모든 쿼리 템플릿에 사용되나, 쿼리 템플릿이 존재하지 않는 경우 <tt>index.php</tt> 를 사용합니다.
+;<tt>single-<post-type>.php</tt>: 싱글 포스트 템플릿은 사용자 정의 포스트 유형에서 하나의 게시물을 쿼리할 때 사용됩니다. 예를 들어, <tt>single-books.php</tt> 는 <tt>books</tt> 사용자 지정 포스트 형식에서 하나의 게시물을 표시하기 위해 사용됩니다. <tt>index.php</tt> 는 사용자 정의 포스트 유형에 대한 쿼리 템플릿이 존재하지 않는 경우 사용됩니다.
+;<tt>page.php</tt>: 페이지 템플릿. 각각의 [[Pages|페이지]] 를 쿼리할 때 사용됩니다.
+;<tt>category.php</tt>: [[Category Templates|카테고리 템플릿]]. 카테고리를 쿼리할 때 사용됩니다.
+;<tt>tag.php</tt>: The [[Tag Templates|태그 템플릿]]. 태그를 쿼리할 때 사용됩니다.
+;<tt>taxonomy.php</tt>: [[Taxonomy Templates|용어 템플릿]]. 사용자 정의 분류 체계의 용어를 쿼리할 때 사용됩니다.
+;<tt>author.php</tt>: [[Author Templates|작성자 템플릿]]. 작성자를 쿼리할 때 사용됩니다.
+;<tt>date.php</tt>: 일/시 템플릿. 날짜 또는 시간을 쿼리할 때 사용됩니다. 년, 월, 일, 시, 분, 초.
+;<tt>archive.php</tt>: 아카이브(순서 목록) 템플릿. 카테고리, 저자, 또는 날짜를 쿼리할 때 사용됩니다. 참고사항. 이 템플릿은 <tt>category.php</tt>, <tt>author.php</tt>, 및 <tt>date.php</tt>  각각의 쿼리유형에 대해 오버라이든 됩니다.
+;<tt>search.php</tt>: 검색 결과 템플릿. 검색을 수행할 때 사용됩니다.
+;<tt>attachment.php</tt>: 첨부 파일 템플릿. 하나의 첨부 파일을 볼 때 사용합니다.
+;<tt>image.php</tt>: 이미지 첨부 파일 템플릿. 하나의 이미지 첨부 파일을 볼 때 사용합니다. 존재하지 않는 경우, attachment.php 가 사용됩니다.
+;<tt>404.php</tt>: '''[[Creating_an_Error_404_Page|404 찾을 수 없음]]''' 템플릿. 워드프레스가 쿼리와 일치하는 게시물이나 페이지를 찾을 수 없을 때 사용됩니다.
+
+이러한 파일들은 워드프레스에서 특별한 의미를 가지고 있습니다. 왜냐하면 그것들은 가능한한 경우에 따라서는 [[템플릿 계층구조]] 및 true 를 반환하는 [[Conditional Tags|조건부 태그]] 에 대응하여 <tt>index.php</tt> 를 대신해 사용되기 때문입니다. 예를 들면, 만일 하나의 게시물이 표시되는 경우, <tt>[[Conditional Tags#A Single Post Page|is_single()]]</tt> 함수는 'true' 를 반환, 그리고, 만일 그것이 활성화된 테마 안에서 <tt>single.php</tt> 파일이 있다면, 템플릿은 페이지를 생성합니다.
+
+==== 템플릿의 기본 ====
+
+아주 최소한으로, 워드프레스 테마는 두 개의 파일로 구성되어 있습니다 :
+
+* <tt>style.css</tt>
+* <tt>index.php</tt>
+
+위 두 파일이 있는 테마 디렉토리로 이동하세요. <tt>index.php</tt> [[Stepping Into Templates|템플릿 파일]] 은 매우 유연하게 동작합니다. 이것은 헤더, 사이드바, 풋터, 콘텐츠, 카테고리, 아카이브, 검색, 오류, 그리고 워드프레스에서 만든 다른 페이지에 대한 모든 참조를 포함하는데 사용할 수 있습니다.
+
+또는, 템플릿 파일들로 모듈화(분리)하여 일련의 작업들을 각각 분담시킬 수도 있습니다. 만약 당신이 다른 템플릿 파일들을 제공하지 않는다면, 워드프레스는 기본 버전을 사용할 것입니다. 예를 들어, 만약 당신이 <tt>comments.php</tt> 템플릿 파일이 없어도 워드프레스는 자동으로 [[Template Hierarchy]]에 의해 <tt>wp-comments.php</tt> 템플릿 파일을 사용할 것입니다. (Note: As of version 3.0, the default files aren't guaranteed to be present or to be the same as they have been. It's much safer to supply your own template files.)
+
+일반적인 템플릿 파일은 다음과 같습니다 :
+
+* <tt>comments.php</tt>
+* <tt>footer.php</tt>
+* <tt>header.php</tt>
+* <tt>sidebar.php</tt>
+
+템플릿 파일을 사용할 때, 당신은 <tt>index.php</tt> 마스터 파일에 템플릿 태그를 넣어서 최종적으로 생성된 페이지에 나타내게 하고 싶은 장소에 인클루드 할 수 있습니다.
+
+* 헤더를 포함시키려면, <tt>[[Function Reference/get header|get_header()]]</tt>를 사용하십시오.
+* 사이드바를 포함시키려면, <tt>[[Function Reference/get sidebar|get_sidebar()]]</tt>를 사용하십시오.
+* 풋터를 포함시키려면, <tt>[[Function Reference/get footer|get_footer()]]</tt>를 사용하십시오.
+* 검색 폼을 포함시키려면, <tt>[[Function Reference/get_search_form|get_search_form()]]</tt>를 사용하십시오.
+
+여기 ''include'' 가 사용된 예 :
+
+<pre>
+<?php get_sidebar(); ?>
+
+<?php get_footer(); ?>
+</pre>
+
+이러한 다양한 템플릿이 작동하는 방법에 대한 방법과 이들 안에 서로 다른 정보를 생성하기 위한 더 많은 정보는 [[템플릿]] 문서를 읽어보십시오.
+
+====템플릿 사용자 정의 페이지====
+
+각각의 페이지 템플릿 파일들은 당신의 [[Using Themes|테마]]디렉토리에서 찾을 수 있습니다. 페이지를 위한 사용자 정의 템플릿을 만드려면 파일을 생성해야만 합니다. 우리들의 페이지를 위한 첫번째 페이지 템플릿 파일을 <tt>snarfer.php</tt> 라고 하겠습니다. <tt>snarfer.php</tt> 파일의 최상단에 아래 문장을 붙여 넣으세요 :
+
+ <?php
+ /*
+ Template Name: Snarfer
+ */
+ ?>
+
+위 코드는 <tt>snarfer.php</tt> 파일을 "Snarfer" 라는 이름의 템플릿이라고 정의한 것입니다. 자연연히 "Snarfer" 자리에는 페이지 템플릿 이름을 바꾸기 위해서는 다른 문자들로 바꿔야 하겠죠. 이 템플릿의 이름은 테마 편집기에서 이 파일을 편집하기 위한 링크로 나타나게 됩니다.
+
+파일명은 <tt>.php</tt> 확장자와 함께 ''대부분의 경우에'' 어떤 이름으로 지어도 무방합니다. ( [[Theme Development#Template Files List|예약된 테마 파일명]]에 나와있는 이름들은 사용하지 마세요. 왜냐하면 이 이름들은 특수한 목적을 위해 워드프레스에서 사용하는 파일명이기 때문입니다).
+
+What follows the above five lines of code is up to you. 
+그외에 당신이 작성한 코드들은 Snarfer 페이지 템플릿을 사용하는 페이지를 어떻게 표시(표현)할 것인지를 제어할 것입니다. 이를 위해 당신이 사용할 수 있는 다양한 워드프레스 템플릿 함수들의 설명을 보려면 [[Template Tags]] 을 보세요.
+
+다른 템플릿(아마도 <tt>page.php</tt> 혹은 <tt>index.php</tt>)의 일부를 <tt>snarfer.php</tt> 에 복사하는 것이 좀 더 편리할 수 있습니다. 그리고 난 뒤 위의 5줄 코드를 파일의 시작점에 추가하세요. 그 상태에서 당신은 HTML과 PHP 코드를 수정하기만 하면 됩니다. 이 방법이 처음부터 새로 작성하는 것 보다 편리할 것입니다. 예제는 [[#Examples|아래]]에 있습니다. 
+
+페이지 템플릿을 작성하고, 테마 디렉토리에 위치시켜 놓으면 페이지를 생성/편집 할 때 그 템플릿을 선택할 수 있게 됩니다. ('''참고''': 페이지를 생성/편집할 때 페이지 템플릿 옵션은 위 방법과 같이 최소 하나 이상 템플릿을 정의해 놓지 않으면 나타나지 않습니다).
+
+==== 쿼리 기반의 템플릿 파일 ====
+
+워드프레스는 다른 ''쿼리'' 타입에 따라 다른 [[Stepping Into Templates|템플릿]]을 불러올 수 있습니다. 이걸 하는 방법은 두 가지가 있습니다 : [[Template Hierarchy|템플릿 계층 구조]]의 한 부분으로 만드는 것과,템플릿 파일의 [[The Loop|루프]] 안에 [[Conditional Tags]] 를 사용하는 방법이 있습니다.
+[[Template Hierarchy|템플릿 계층 구조]]을 이용하기 위해서는 기본적으로 특수 목적 템플릿 파일을 제공해야 합니다. 이것은 자동적으로 <tt>index.php</tt> 를 오버라이드합니다. 예를 들어, 만약 당신의 테마가 <tt>category.php</tt> 라고 부르는 템플릿 파일을 제공할 때, 카테고리가 쿼리되면 <tt>index.php</tt> 대신 <tt>category.php</tt> 를 불러올 것입니다. 만약 <tt>category.php</tt> 파일이 존재하지 않다면, <tt>index.php</tt> 를 사용하게 됩니다.
+
+You can get even more specific in the Template Hierarchy by providing a file called, for instance, <tt>category-6.php</tt> -- this file will be used rather than <tt>category.php</tt> when generating the page for the category whose ID number is 6. (You can find category ID numbers in [[Administration_Panels#Manage_-_Change_your_content|Manage]] > [[Administration_Panels#Categories|Categories]] if you are logged in as the site administrator in WordPress version 2.3 and below. In WordPress 2.5 the ID column was removed from the Admin panels. You can locate the category id by clicking 'Edit Category' and looking on the URL address bar for the cat_ID value. It will look '...categories.php?action=edit&cat_ID=3' where '3' is the category id). For a more detailed look at how this process works, see [[Category Templates]].
+
+If your Theme needs to have even more control over which Template files are used than what is provided in the [[Template Hierarchy]], you can use [[Conditional Tags]]. The Conditional Tag basically checks to see if some particular condition is true, within the [[The_Loop_in_Action|WordPress Loop]], and then you can load a particular template, or put some particular text on the screen, based on that condition.
+
+For example, to generate a distinctive stylesheet in a post only found within a specific category, the code might look like this:
+
+<pre>
+<?php
+if ( is_category( '9' ) ) {
+    get_template_part( 'single2' ); // looking for posts in category with ID of '9'
+} else {
+    get_template_part( 'single1' ); // put this on every other category post
+}
+?>
+</pre>
+
+Or, using a query, it might look like this:
+
+<pre>
+<?php
+$post = $wp_query->post;
+if ( in_category( '9' ) ) {
+    get_template_part( 'single2' );
+} else {
+    get_template_part( 'single1' );
+}
+?>
+</pre>
+
+In either case, this example code will cause different templates to be used depending on the category of the particular post being displayed. Query conditions are not limited to categories, however, see the [[Conditional Tags]] article to look at all the options.
+
+==== 사용자 지정 템플릿의 정의 ====
+
+It is possible to use the WordPress plugin system to define additional templates that are shown based on your own custom criteria. This advanced feature can be accomplished using the <tt>template_redirect</tt> [[Plugin API#Current Hooks For Actions|action hook]]. More information about creating plugins can be found in the [[Plugin API]] reference.
+
+==== 템플릿 파일의 삽입 ====
+
+To load another template (other than header, sidebar, footer, which have predefined included commands like <tt>[[Function Reference/get header|get_header()]]</tt>) into a template, you can use <tt>[[Function_Reference/get_template_part|get_template_part()]]</tt>. This makes it easy for a Theme to reuse sections of code.
+
+==== 템플릿에서 참조하는 파일 ====
+
+When referencing other files within the same Theme, avoid hard-coded URIs and file paths. Instead reference the URIs and file paths with <tt>[[Function_Reference/bloginfo|bloginfo()]]</tt>: see [[Theme_Development#Referencing_Files_From_a_Template|Referencing Files From a Template]].
+
+Note that URIs that are used in the stylesheet are relative to the stylesheet, not the page that references the stylesheet. For example, if you include an <tt>images/</tt> directory in your Theme, you need only specify this relative directory in the CSS, like so: 
+
+<pre>
+h1 {
+    background-image: url(images/my-background.jpg);
+}
+</pre>
+
+==== 플러그인 API Hooks ====
+
+테마를 개발할 때, it's good to keep in mind that your Theme should be set up so that it can work well with any WordPress plugins users might decide to install. Plugins add functionality to WordPress via "Action Hooks" (see [[Plugin API]] for more information).
+
+Most Action Hooks are within the core PHP code of WordPress, so your Theme does not have to have any special tags for them to work. But a few Action Hooks do need to be present in your Theme, in order for Plugins to display information directly in your header, footer, sidebar, or in the page body. Here is a list of the special Action Hook Template Tags you need to include:
+
+; [[Function Reference/wp head|wp_head()]]
+: Goes in the <tt>&lt;head&gt;</tt> element of a theme, in <tt>header.php</tt>. Example plugin use: add JavaScript code. 
+
+; [[Function Reference/wp footer|wp_footer()]]
+: Goes in <tt>footer.php</tt>, just before the closing <tt></body></tt> tag. Example plugin use: insert PHP code that needs to run after everything else, at the bottom of the footer. Very commonly used to insert web statistics code, such as Google Analytics.
+
+; [[Function Reference/wp meta|wp_meta()]]
+: Typically goes in the <tt><nowiki><li>Meta</li></nowiki></tt> section of a Theme's menu or sidebar; <tt>sidebar.php</tt> template. Example plugin use: include a rotating advertisement or a tag cloud.
+
+; [[Function Reference/comment form|comment_form()]]
+: Goes in <tt>comments.php</tt> directly before the comment form's closing tag (<tt></form></tt>). Example plugin use: display a comment preview. As of [[Version_3.0|WordPress 3.0]], you should use the default comment form instead, see [[Function_Reference/comment_form|comment_form()]].
+
+실제 사용의 예를 보면, 이러한 플러그인이 기본 테마의 템플릿에 플러그인 hooks 를 찾을 수 있습니다.
+
+==== 신뢰할 수 없는 데이터 ====
+
+You should escape dynamically generated content in your Theme, especially content that is output in HTML attributes. As noted in [[WordPress_Coding_Standards|워드프레스 코딩 표준]], text that goes into attributes should be run through <tt>[[Function Reference/esc_attr|esc_attr]]</tt> so that single or double quotes do not end the attribute value and invalidate the XHTML and cause a security issue. Common places to check are <tt>title</tt>, <tt>alt</tt>, and <tt>value</tt> attributes.
+
+In a few cases there might already be a template tag for common cases where safe output is needed. One such case involves the "title" attribute when used with <tt>the_title()</tt> for post and page titles. To avoid a security vulnerability, use <tt>the_title_attribute()</tt> instead. Here's an example of correct escaping for the <tt>title</tt> attribute in a post title link when using translatable text:
+<pre><?php echo esc_attr( sprintf( __( 'Permanent Link to %s', 'theme-name' ), the_title_attribute( 'echo=0' ) ) ); ?></pre>
+
+Replace deprecated escape calls with the correct calls: <tt>wp_specialchars</tt>, <tt>htmlspecialchar</tt> with <tt>esc_html</tt>, <tt>clean_url</tt> with <tt>esc_url</tt>, and <tt>attribute_escape</tt> with <tt>esc_attr</tt>. See [[Data_Validation#Attribute_Nodes|Data_Validation]] for more.
+
+==== 번역 / i18n 지원 ====
+
+To ensure smooth transition for language localization, use the <tt>[[I18n_for_WordPress_Developers|gettext]]</tt> functions for wrapping all translatable text within the template files. This makes it easier for the translation files to hook in and translate the titles into the site's language. See more at [[WordPress_Localization]] and [[I18n_for_WordPress_Developers|i18n for WordPress Developers]].
+
+==== 테마 클래스 ====
+
+본문, 포스트 및 댓글 요소에 워드프레스에서 생성된 클래스 속성을 추가하려면 다음 템플릿 태그를 구현합니다. 게시물 클래스의 내용은 [[The_Loop|루프]] 내의 요소에만 적용됩니다.
+
+* [[Function Reference/body class|body_class()]]
+* [[Function Reference/post class|post_class()]]
+* [[Function Reference/comment class|comment_class()]]
+
+=== 템플릿 파일 체크항목 ===
+
+테마를 개발할때, 다음과 같은 템플릿 파일 표준을 지키고 있는지 확인하십시오.
+
+==== 문서 헤더 (header.php) ====
+
+* 적절한 DOCTYPE 을 사용합니다.
+* 오프닝 <tt><html></tt> 태그는 <tt>[[Function_Reference/language_attributes|language_attributes()]]</tt> 를 포함해야 합니다.
+* "content-type" 메타 요소는 제목 요소를 포함한 다른 모든 것들 앞에 배치해야 합니다.
+* 제목과 설명을 가져오는 <tt>[[Function_Reference/bloginfo|bloginfo()]]</tt> 를 사용합니다.
+* 피드링크를 추가하는 [[Function_Reference/add_theme_support#Feed_Links|자동 피드 링크]] 를 사용합니다.
+* <tt>[[Function_Reference/wp_head|wp_head()]]</tt> 호출을 추가합니다. 플러그인은 자신의 스크립트, 스타일 시트 및 기타 기능을 추가하기 위해이 Action Hook 를 사용합니다.
+
+다음은 올바른 형식의 HTML5 호환 헤더 영역의 예 입니다 :
+
+<pre>
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>" />
+<title><?php wp_title(); ?> <?php bloginfo( 'name' ); ?></title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="stylesheet" href="<?php bloginfo( 'stylesheet_url' ); ?>" type="text/css" media="screen" />
+<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>" />
+<?php if ( is_singular() && get_option( 'thread_comments' ) ) wp_enqueue_script( 'comment-reply' ); ?>
+<?php wp_head(); ?>
+</head>
+</pre>
+
+==== 네비게이션 메뉴 (header.php) ====
+
+* The Theme's main navigation should support a custom menu with <tt>[[Function_Reference/wp_nav_menu|wp_nav_menu()]]</tt>.
+** Menus should support long link titles and a large amount of list items. These items should not break the design or layout.
+** Submenu items should display correctly. If possible, support drop-down menu styles for submenu items. Drop-downs allowing showing menu depth instead of just showing the top level.
+
+==== 위젯 (sidebar.php) ====
+
+* The Theme should be widgetized as fully as possible. Any area in the layout that works like a widget (태그 구름, blogroll, 카테고리 목록) or could accept widgets (사이드바) should allow widgets.
+* Content that appears in widgetized areas by default (hard-coded into the sidebar, for example) should disappear when widgets are enabled from Appearance > Widgets.
+
+==== 풋터 (footer.php) ====
+
+* <tt>body</tt> 태그를 닫기 전에, <tt>wp_footer()</tt> 를 불러 사용하십시오.
+
+<pre>
+<?php wp_footer(); ?>
+</body>
+</html>
+</pre>
+
+==== 인덱스 (index.php) ====
+
+* 일부 또는 전체 형태의 게시물 목록을 표시합니다. 하나 또는 적절한 대상을 선택합니다.
+* <tt>[[Function_Reference/wp_link_pages|wp_link_pages()]]</tt> 포함. 게시물의 탐색 링크를 지원합니다.
+
+==== 목록 (archive.php) ====
+
+* Display archive title (tag, category, date-based, or author archives).
+* Display a list of posts in excerpt or full-length form. Choose one or the other as appropriate.
+* Include <tt>[[Function_Reference/wp_link_pages|wp_link_pages()]]</tt> to support navigation links within posts.
+
+==== 페이지 (page.php) ====
+
+* 페이지 제목과 페이지 내용을 표시합니다.
+* 댓글 목록 및 댓글 폼을 표시 (폼 끄기가 아닌 경우).
+* 페이지에 탐색 링크를 지원하기 위해 <tt>[[Function_Reference/wp_link_pages|wp_link_pages()]]</tt> 를 포함합니다.
+* 같은 태그, 카테고리, 날짜, 저자 등 메타 데이터는 표시되지 않습니다.
+* 로그인 된 편집 권한을 가진 사용자를 위해 "수정" 링크를 표시합니다.
+
+==== 단독 게시글 (single.php) ====
+
+* Include <tt>[[Function_Reference/wp_link_pages|wp_link_pages()]]</tt> to support navigation links within a post.
+* Display post title and post content.
+** The title should be plain text instead of a link pointing to itself.
+* Display the post date.
+** Respect date and time format settings unless it's important to the design. (User settings for date and time format are in Settings > General.)
+** For output based on the user setting, use <tt>the_time( get_option( 'date_format' ) )</tt>.
+* Display the author name (if appropriate).
+* Display post categories and post tags.
+* Display an "Edit" link for logged-in users with edit permissions.
+* Display comment list and comment form.
+* Show navigation links to next and previous post using <tt>previous_post_link()</tt> and <tt>next_post_link()</tt>.
+
+==== 댓글 (comments.php) ====
+
+* 본문 작성자의 댓글은 특별히 강조 합니다.
+* gravatars(사용자 아바타)를 사용할 경우 표시 합니다.
+* 실시간 댓글을 지원합니다.
+* 트랙백/핑백 을 표시합니다.
+* 이 파일은 함수의 재 선언 오류를 피하기 위해 <tt>function_exist()</tt> 함수에서 체크인 하지 않는한 함수에 정의가 없어야 합니다. 이상적으로는 모든 기능은 functions.php 에 있어야 합니다.
+
+==== 검색 결과 (search.php) ====
+
+* 일부 또는 전체 형태 게시물 목록을 표시합니다. 하나 또는 적절한 대상을 선택합니다.
+* 검색결과 페이지에 이전 검색어를 보여줍니다. 그것은 누군가가 방금 검색한 단어가 무엇인지 알 수 있도록 하는  단순하지만 유용한 방법입니다. 특별히 검색결과가 없을 때 더욱 유용합니다. <tt>the_search_query</tt> 나 <tt>get_search_query</tt>(echo 나 결과값 return)를 사용합니다. 사용예:<pre><h2><?php printf( __( 'Search Results for: %s' ), '<span>' . get_search_query() . '</span>'); ?></h2></pre>
+* 결과 페이지에 검색창을 다시 포함시키는 것은 좋은 습관입니다. <tt>get_search_form()</tt>을 사용하여 포함시킵니다.
+
+=== 자바스크립트 ===
+
+* JavaScript 코드는 가능하면 외부 파일에 배치해야 합니다.
+* 스크립트 로드를 위해 [[Function_Reference/wp_enqueue_script | wp_enqueue_script]] 를 사용합니다.
+* JavaScript 는 HTML 문서(템플릿 파일)에 직접 로드하므로, 이전 버전의 브라우저에서의 오류를 방지하기 위해 CDATA 로 인코딩 되어 있어야 합니다.
+<pre>
+<script type="text/javascript">
+/* <![CDATA[ */
+// content of your Javascript goes here
+/* ]]> */
+</script>
+</pre>
+
+=== 스크린샷 ===
+
+테마에 대한 스크린샷을 만듭니다. 스크린샷은 <tt>screenshot.png</tt> 라고 해야 하고, 최상위 디렉토리에 배치해야합니다. 스크린샷은 정확히 테마 디자인을 표시해야 하며 PNG, JPEG 또는 GIF 형식으로 저장할 수 있습니다. 권장하는 이미지 크기는 300x225 입니다.
+
+=== 테마 옵션 ===
+
+테마 선택 옵션 페이지를 포함할 수 있습니다. 예제 코드는, [http://themeshaper.com/sample-theme-options/ 워드프레스 테마 옵션 페이지]를 참조하세요.
+
+옵션 페이지를 사용할 경우, 사용자가 실제로 옵션 패널을 사용할 수 있게 테마를 전환하지 않는 한, 옵션 패널 대신 <tt>switch_themes</tt> 의 <tt>edit_theme_options</tt> 기능을 사용합니다. 워드프레스 자체의 메뉴, 배경, 헤더, 위젯 등등을 위해 <tt>edit_theme_options</tt> 기능을 사용합니다. [[Roles_and_Capabilities#Capabilities|역할 및 기능 추가]] 그리고 [[Adding_Administration_Menus|관리자 메뉴에서 추가]]를 참조하십시오.
+
+네트워크 모드와 테마 옵션에 대한 메모 : 
+
+당신의 테마 안 어디서든 <tt>edit_themes</tt> 기능을 사용하는 경우, 그리고 테마가 네트워크에 연결되어 워드프레스 설치(이전 워드 프레스 MU) 기능 아래서 실행된다면, 테마 옵션 페이지에 접근하여 사용하는 <tt>edit_themes</tt> 기능은 옵션 메뉴를 볼때 네트워크에 연결된 사이트 관리자가 수정하지 않도록 주의하십시오. 대신 <tt>edit_theme_options</tt> 를 사용합니다.
+
+== 테마 테스트 프로세스 ==
+
+# PHP 와 워드프레스 오류를 수정합니다. 사용중지된 함수 호출 및 기타 워드프레스 관련 오류를 확인하기 위해서는 <tt>wp-config.php</tt> 파일에 다음 디버그 설정을 추가: <tt>('WP_DEBUG', true);</tt>정의. [[WordPress_Deprecated_Functions_Hook|Hook 함수 배제]]에서 자세한 정보를 참조하세요. 
+# [[Theme_Development#Template_File_Checklist|템플릿 파일 체크리스트]]에서 템플릿 파일을 확인하세요. (위를 참조).
+# [[Theme_Unit_Test|테마 단위 테스트]]를 사용하여 런타임을 수행하세요.
+# HTML과 CSS를 확인합니다. [[Validating_a_Website|웹사이트 유효성 검사]]를 확인하세요.
+# 자바스크립트 에러를 확인하세요.
+# 모든 브라우저에서 테스트합니다. 예를 들면, IE7, IE8, IE9, Safari, Chrome, Opera, 그리고 Firefox.
+# 아무 관계없는 댓글, 디버그 설정 또는 TODO 항목을 정리합니다.
+# 당신이 공개 테마 디렉토리에 제출하여, 테마를 공개하는 경우. [[Theme_Review|테마 리뷰]]를 확인하세요.
+
+== 리소스와 레퍼런스 ==
+
+=== 코드 표준 === 
+* [[Know Your Sources]]
+* [[WordPress Coding Standards]]
+* [[CSS Coding Standards]]
+
+=== 테마 디자인 ===
+* [[Site Design and Layout]]
+
+=== CSS ===
+* [[CSS]]
+* [[CSS Shorthand]]
+* [[CSS#WordPress_Generated_Classes|WordPress Generated Classes]]
+
+=== 템플릿 ===
+* [[Stepping Into Templates]]
+* [[Templates]]
+* [[Template Hierarchy]]
+* [[Template Tags]]
+* [[The Loop]]
+* [[Conditional Tags]]
+* [[Function Reference]]
+* [[I18n for WordPress Developers]]
+* [[Data Validation]]
+
+=== 유닛테스트와 품질테스트 ===
+* [[Theme Unit Test]]
+* [[Validating a Website]]
+* [[CSS Fixing Browser Bugs]]
+* [[CSS Troubleshooting]]
+
+=== 출시 & 프로모션 ===
+* [[Theme Review|Theme Review Process]]
+
+[[Category:ko:Design and Layout]]
+[[Category:ko:WordPress Development]]
+[[Category:ko:UI Link]]
+
+=== 외부 리소스 & 강좌 ===
+* [http://www.chipbennett.net/2011/02/17/incorporating-the-settings-api-in-wordpress-themes/ Incorporating the Settings API in WordPress Themes]
+* [http://theme.fm/2011/08/providing-typography-options-in-your-wordpress-themes-1576/ Providing Typography Options in Your WordPress Themes]

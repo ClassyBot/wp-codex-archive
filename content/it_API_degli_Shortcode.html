@@ -1,0 +1,389 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<a href="https://codex.wordpress.org/Shortcode_API" title="Shortcode API">English</a> • 
+<strong class="selflink">Italiano</strong> • 
+
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/ショートコード">API 日本語</a> 
+<a href="https://codex.wordpress.org/pt-br:Shortcode_API" title="pt-br:Shortcode API">Português do Brasil</a> • 
+
+<a href="https://codex.wordpress.org/ru:Shortcode_API" title="ru:Shortcode API">Русский</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#API_degli_Shortcode"><span class="tocnumber">1</span> <span class="toctext">API degli Shortcode</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Panoramica"><span class="tocnumber">1.1</span> <span class="toctext">Panoramica</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Attributi"><span class="tocnumber">1.2</span> <span class="toctext">Attributi</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Output"><span class="tocnumber">1.3</span> <span class="toctext">Output</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Shortcodes_con_contenuto_vs_senza_contenuto"><span class="tocnumber">1.4</span> <span class="toctext">Shortcodes con contenuto vs senza contenuto</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Altre_caratteristiche_in_breve"><span class="tocnumber">1.5</span> <span class="toctext">Altre caratteristiche in breve</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Riferimento_funzioni"><span class="tocnumber">1.6</span> <span class="toctext">Riferimento funzioni</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Limitazioni"><span class="tocnumber">1.7</span> <span class="toctext">Limitazioni</span></a>
+<ul>
+<li class="toclevel-3 tocsection-9"><a href="#Shortcode_annidati"><span class="tocnumber">1.7.1</span> <span class="toctext">Shortcode annidati</span></a></li>
+<li class="toclevel-3 tocsection-10"><a href="#Shortcode_non_chiusi"><span class="tocnumber">1.7.2</span> <span class="toctext">Shortcode non chiusi</span></a></li>
+<li class="toclevel-3 tocsection-11"><a href="#Trattini"><span class="tocnumber">1.7.3</span> <span class="toctext">Trattini</span></a></li>
+<li class="toclevel-3 tocsection-12"><a href="#Parentesi_quadre"><span class="tocnumber">1.7.4</span> <span class="toctext">Parentesi quadre</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-13"><a href="#Risorse_esterne"><span class="tocnumber">1.8</span> <span class="toctext">Risorse esterne</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-14"><a href="#Shortcode_predefiniti"><span class="tocnumber">2</span> <span class="toctext">Shortcode predefiniti</span></a></li>
+<li class="toclevel-1 tocsection-15"><a href="#Correlati"><span class="tocnumber">3</span> <span class="toctext">Correlati</span></a>
+<ul>
+<li class="toclevel-2"><a href="#API_degli_Shortcode_2"><span class="tocnumber">3.1</span> <span class="toctext"><b>API degli Shortcode</b></span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="API_degli_Shortcode">API degli Shortcode</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=1" title="Edit section: API degli Shortcode">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Introdotte in WordPress 2.5, le API degli Shortcode sono un semplice insieme di funzioni per creare macro da usare nel contenuto dei post. Ad esempio, il seguente shortcode, inserito nel contenuto dell'articolo o della pagina, aggiunge una galleria fotografica:
+</p>
+<pre>[gallery]
+</pre>
+<p>Attraverso di esse, gli sviluppatori di plugin possono creare tipi speciali di contenuti (es. moduli, generatori di contenuto) che gli utenti possono inserire nelle pagine aggiungendo lo shortcode apposito direttamente nel testo della pagina. 
+</p><p>Con le API degli Shortcode è semplice creare shortcode che supportano attributi in questo modo:
+</p>
+<pre>[gallery id="123" size="medium"]
+</pre>
+<p>Le API si preoccupano di gestire il parsing, eliminando la necessità di scrivere un'espressione regolare apposita per ogni shortcode. Sono disponibili funzioni dedicate per impostare e recuperare gli attributi predefiniti. Le API supportano sia shortcode con contenuto sia senza contenuto.
+</p><p>Per coloro che hanno fretta, ecco un esempio minimo del codice PHP richiesto per creare uno shortcode:
+</p>
+<pre>
+//[foobar]
+function foobar_func( $atts ){
+	return "foo and bar";
+}
+add_shortcode( 'foobar', 'foobar_func' );
+</pre>
+<p>Questo crea lo shortcode [foobar] che restituisce: foo and bar
+</p><p>Esempio che fa uso di attributi:
+</p>
+<pre>
+// [bartag foo="foo-value"]
+function bartag_func( $atts ) {
+	extract( shortcode_atts( array(
+		'foo' =&gt; 'something',
+		'bar' =&gt; 'something else',
+	), $atts ) );
+
+	return "foo = {$foo}";
+}
+add_shortcode( 'bartag', 'bartag_func' );
+</pre>
+<p>Questo crea uno shortcode [bartag] che supporta due attributi: ["foo" e "bar"]. Entrambi gli attributi sono opzionali e assumono valori predefiniti [foo="something" bar="something else"] se non vengono indicati valori espliciti. Lo shortcode restituisce foo = {il valore dell'attributo foo}
+</p>
+<h3><span class="mw-headline" id="Panoramica">Panoramica</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=2" title="Edit section: Panoramica">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Ogni shortcode deve essere accompagnato da un'apposita funzione per gestirlo. Tali funzioni sono simili ai filtri di WordPress: accettano parametri (attributi) e restituiscono un risultato (l'output dello shortcode).
+</p><p>I nomi degli shortcode devono essere scritti usando solo lettere minuscole, ma anche i numeri e i trattini bassi vanno bene. Si faccia attenzione all'<a href="https://codex.wordpress.org/it:Le_API_degli_Shortcode#Trattini" title="it:Le API degli Shortcode" class="mw-redirect">uso dei trattini</a>, in quanto è meglio non usarli.
+</p><p>La funzione `add_shortcode()` si usa per registrare una funzione per gestire lo shortcode. Essa accetta due parametri: il nome dello shortcode (la stringa usata nel testo di un post), e il nome della funzione da richiamare.
+</p><p>Tre parametri sono passati alla funzione dello shortcode. &#200; possibile usare solo quelli che servono, anche nessuno.
+</p>
+<ul><li> <b>$atts</b> - un array associativo contenente gli attributi, o una stringa vuota se non ci sono attributi</li>
+<li> <b>$content</b> - il contenuto racchiuso dallo shortcode (se questo viene usato nella forma con contenuto)</li>
+<li> <b>$tag</b> - il tag dello shortcode, utile per funzioni di callback condivise</li></ul>
+<p>La chiamata alla funzione per registrare il gestore dello shortcode deve essere simile alla seguente:
+</p>
+<pre>add_shortcode( 'myshortcode', 'my_shortcode_handler' );
+</pre>
+<p>Quando il <a href="https://codex.wordpress.org/Template_Tags/the_content" title="Template Tags/the content" class="mw-redirect">contenuto</a> viene mostrato, le API dello shortcode si preoccuperanno di parsificare ogni shortcode registrato come [myshortcode], separare e parsificare attributi e contenuto, se ci sono, e passare il tutto alla corrispondente funzione di gestione dello shortcode. Ogni stringa <i>restituita</i> (non stampata a video) dal gestore dello shortcode sarà inserita nel corpo del post nel punto in cui si trova lo shortcode stesso.
+</p><p>Gli attributi dello shortcode vengono inseriti in questo modo:
+</p>
+<pre>[myshortcode foo="bar" bar="bing"]
+</pre>
+<p>Questi attributi vengono convertiti in un array associativo come il seguente, e passati alla funzione di gestione come valore del parametro $atts:
+</p>
+<pre>array( 'foo' =&gt; 'bar', 'bar' =&gt; 'bing' )
+</pre>
+<p>Le chiavi dell'array sono i nomi degli attributi; i valori dell'array sono i corrispondenti valori degli attributi. Inoltre, l'elemento con indice zero (<b>$atts[0]</b>) conterrà la stringa che ha soddisfatto l'espressione regolare dello shortcode, ma SOLO SE essa è diversa dal nome della funzione di callback. Si veda a tal proposito la discussione sugli attributi qui sotto.
+</p>
+<h3><span class="mw-headline" id="Attributi">Attributi</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=3" title="Edit section: Attributi">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>L'array <b>$atts</b> può includere ogni attributo arbitrario specificato dall'utente. (Inoltre, l'elemento dell'array con indice zero può contenere la stringa riconosciuta dall'espressione regolare; si veda la nota sotto.)
+</p><p>Al fine di aiutare ad impostare valori predefiniti per gli attributi mancanti, ed eliminare ogni attributo che non viene riconosciuto dallo shortcode, le API forniscono una funzione shortcode_atts().
+</p><p>shortcode_atts() somiglia alla funzione wp_parse_args(), ma con alcune importanti differenze. I suoi parametri sono:
+</p>
+<pre>shortcode_atts( $defaults_array, $atts );
+</pre>
+<p>Entrambi i parametri sono obbligatori. $defaults_array è un array associativo che specifica i nomi degli attributi riconosciuti e i loro valori di default. $atts è l'array di attributi così come passato nella funzione di gestione dello shortcode. shortcode_atts() restituisce un array normalizzato contenente tutte le chiavi prese da $defaults_array, riempite con i valori dall'array $atts se presente. Per esempio:
+</p>
+<pre>
+$a = shortcode_atts( array(
+	'title' =&gt; 'Il mio titolo',
+	'foo' =&gt; 123,
+), $atts );
+</pre>
+<p>Se $atts contiene array( 'foo' =&gt; 456, 'bar' =&gt; 'something' ), il risultante $a è array( 'title' =&gt; 'My Title', 'foo' =&gt; 456 ). Il valore di $atts['foo'] sovrascrive il valore predefinito di 123. $atts['title'] non è impostato, quindi viene usato il valore predefinito 'Il mio titolo'. L'elemento 'bar' non esiste nell'array dei valori predefiniti, quindi non viene incluso nel risultato.
+</p><p>I nomi degli attributi sono sempre convertiti in minuscolo prima di essere passati alla funzione di gestione. I valori rimangono immutati. [myshortcode FOO="BAR"] produce $atts = array( 'foo' =&gt; 'BAR' ).
+</p><p>Un modo suggerito per dichiarare valori predefiniti e parsificare gli attributi in una funzione di gestione di uno shortcode è il seguente:
+</p>
+<pre>
+function my_shortcode_handler( $atts, $content = null ) {
+	extract( shortcode_atts( array(
+		'attr_1' =&gt; 'attribute 1 default',
+		'attr_2' =&gt; 'attribute 2 default',
+	// ...etc
+	), $atts ) );
+}
+</pre>
+<p>Il codice precedente parsifica gli attributi, imposta i valori predefiniti, elimina ogni attributo non supportato e (usando la funzione <a rel="nofollow" class="external text" href="http://www.php.net/extract">extract()</a>) memorizza i risultati in variabili locali il cui nome corrisponde a quello delle chiavi degli attributi - $attr_1, $attr_2 e così via. In altre parole, l'array dei valori predefiniti approssima una lista di dichiarazioni di variabili locali. (extract() è sicuro da usare in questo contesto senza parametri speciali per la gestione delle collisioni in quanto shortcode_atts() elimina ogni chiave non inclusa nell'array dei valori predefiniti).
+</p>
+<hr />
+<dl><dt> SUGGERIMENTO IMPORTANTE - Non usare notazioni a cammello (es. MioAttributo) o LETTERE MAIUSCOLE per i nomi degli attributi <tt>$atts</tt></dt>
+<dd> i valori di <tt>$atts</tt> vengono <i><b>convertiti in minuscolo</b></i> durante l'esecuzione di <tt>shortcode_atts( array( 'attr_1' =&gt; 'attr_1 default', // ...etc ), $atts )</tt>, per cui è meglio <i>usare solo lettere minuscole</i>.</dd></dl>
+<hr />
+<hr />
+<dl><dt> NOTA sul confondere il riferimento al nome della funzione di callback con la stringa riconosciuta dall'espressione regolare</dt>
+<dd> l'elemento con indice zero dell'array di attributi (<b>$atts[0]</b>) contiene la stringa che soddisfa l'espressione regolare dello shortcode, ma SOLO se essa differisce dal nome della funzione di callback, che altrimenti compare come terzo argomento della funzione di callback.</dd>
+<dt> (Appare sempre come terzo argomento a partire da 2.9.2.)</dt></dl>
+<pre> add_shortcode('foo','foo'); // due shortcode che fanno riferimento alla medesima funzione di callback
+ add_shortcode('bar','foo');
+    produce questo comportamento:
+ [foo a='b'] ==&gt; chiamata a: foo(array('a'=&gt;'b'), NULL, "foo");
+ [bar a='c'] ==&gt; chiamata a: foo(array(0 =&gt; 'bar', 'a'=&gt;'c'), NULL, "");
+</pre>
+<p>Tutto ciò può confondere e forse riflette un bug sottostante, ma se si fa l'overloading della funzione di callback è possibile determinare correttamente quale shortcode è stato usato per chiamarla, controllando sia il terzo argomento della funzione sia l'attributo in posizione zero. (Non è un errore avere due shortcode che fanno riferimento alla medesima funzione di callback che si occupa di eseguire codice comune.)
+</p>
+<h3><span class="mw-headline" id="Output">Output</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=4" title="Edit section: Output">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Il valore restituito da una funzione di gestione di uno shortcode viene inserito nel contenuto del post in luogo dello shortocde stesso. &#200; bene ricordare di usare return e non echo - usando echo il valore verrà inviato al browser ma non apparirà nel posto corretto della pagina.
+</p><p>Gli shortcode sono parsificati dopo che le funzioni di formattazione del contentuto <a href="https://codex.wordpress.org/it:Riferimento_funzioni/wpautop" title="it:Riferimento funzioni/wpautop">wpautop</a> e <a href="https://codex.wordpress.org/it:Riferimento_funzioni/wptexturize" title="it:Riferimento funzioni/wptexturize">wptexturize</a> sono state applicate (ma si legga la nota sotto per quanto riguarda le differenze tra 2.5.0 e 2.5.1). Questo significa che il codice HTML prodotto dall'output dello shortcode non avrà automaticamente virgolette tipografiche applicate, tag p e br aggiunti e così via. Se si vuole che l'output dello shortcode sia formattato, è necessario chiamare wpautop() o wptexturize() direttamente quando si restituisce l'output.
+</p><p>wpautop riconosce la sintassi dello shortcode e non mette i tag p o br intorno agli shortcode che si trovano da soli in una riga. Gli shortcode che si intendono usare in questo modo devono produrre output racchiuso in un tag di tipo blocco come &lt;p&gt; o &lt;div&gt;.
+</p><p>Nota: in WordPress 2.5.0, gli shortcode venivano parsificati prima che la formattazione del contenuto del post venisse applicata, in questo modo il codice HTML dell'output dello shortcode era a volte racchiuso in tag p o br. Questo era un comportamento errato che è stato corretto in 2.5.1.
+</p><p>Se lo shortcode produce molto HTML allora la funzione ob_start può essere usata per catturare l'output e convertirlo in una stringa nel modo seguente:
+</p>
+<pre>
+function myShortCode() {
+	ob_start();
+	?&gt; &lt;HTML&gt; &lt;qui&gt; ... &lt;?php
+	return ob_get_clean();
+}
+</pre>
+<h3><span class="mw-headline" id="Shortcodes_con_contenuto_vs_senza_contenuto">Shortcodes con contenuto vs senza contenuto</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=5" title="Edit section: Shortcodes con contenuto vs senza contenuto">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Gli esempi appena esposti mostrano shortcode senza contenuto come [myshortcode]. Le API supportano anche shortcode con contenuto come [myshortcode]contenuto[/myshortcode].
+</p><p>Se uno shortcode è usato per racchiudere del contenuto, la sua funzione di gestione riceverà un secondo parametro con tale contenuto. Gli utenti possono scrivere shortcode in entrambe le forme, per cui è necessario permettere entrambi i casi fornendo alla funzione di gestione un valore predefinito per il secondo parametro:
+</p>
+<pre>function my_shortcode_handler( $atts, $content = null )
+</pre>
+<p>is_null( $content ) può essere usato per distinguere tra i due casi.
+</p><p>Quando vi è del contenuto, l'intero pezzo di codice dello shortcode, compreso il contenuto, sarà rimpiazzato dall'output della funzione di gestione. &#200; responsabilità di tale funzione preoccuparsi di codificare o trattare la stringa grezza e includerla nell'output.
+</p><p>Ecco un semplice esempio di uno shortcode con contenuto:
+</p>
+<pre>
+function caption_shortcode( $atts, $content = null ) {
+	return '&lt;span class="caption"&gt;' . $content . '&lt;/span&gt;';
+}
+add_shortcode( 'caption', 'caption_shortcode' );
+</pre>
+<p>Quando usato così:
+</p>
+<pre>[caption]La mia didascalia[/caption]
+</pre>
+<p>l'output sarà:
+</p>
+<pre>&lt;span class="caption"&gt;La mia didascalia&lt;/span&gt;
+</pre>
+<p>Poiché $content è incluso nel valore restituito senza nessun trattamento o codifica, l'utente può includere HTML grezzo:
+</p>
+<pre>[caption]&lt;a href="<a rel="nofollow" class="external free" href="http://example.com/">http://example.com/</a>"&gt;La mia didascalia&lt;/a&gt;[/caption]
+</pre>
+<p>che produrrebbe:
+</p>
+<pre>&lt;span class="caption"&gt;&lt;a href="<a rel="nofollow" class="external free" href="http://example.com/">http://example.com/</a>"&gt;La mia didascalia&lt;/a&gt;&lt;/span&gt;
+</pre>
+<p>Questo può o meno essere il comportamento richiesto - se lo shortcode non deve permettere l'inclusione di HTML grezzo nel suo output, bisogna usare una funzione per applicare filtri prima di restituire il risultato.
+</p><p>Il parser dello shortcode effettua un singolo passo sul contenuto del post. Ciò significa che se nel contenuto di uno shortcode vi è un altro shortcode, quest'ultimo non verrà parsificato:
+</p>
+<pre>[caption]Didascalia: [myshortcode][/caption]
+</pre>
+<p>Questo produce:
+</p>
+<pre>&lt;span class="caption"&gt;Didascalia: [myshortcode]&lt;/span&gt;
+</pre>
+<p>Se si vogliono permettere altri shortcode nell'output dello shortcode con contenuto, la funzione di gestione può chiamare <a href="https://codex.wordpress.org/it:Riferimento_funzioni/do_shortcode" title="it:Riferimento funzioni/do shortcode">do_shortcode()</a> in modo ricorsivo:
+</p>
+<pre>function caption_shortcode( $atts, $content = null ) {
+   return '&lt;span class="caption"&gt;' . do_shortcode($content) . '&lt;/span&gt;';
+}
+</pre>
+<p>Nell'esempio precedente, questo farebbe in modo di includere nel risultato finale anche l'output prodotto dallo shortcode [myshortcode]:
+</p>
+<pre>&lt;span class="caption"&gt;Didascalia: Il risultato della funzione di gestione di myshortcode&lt;/span&gt;
+</pre>
+<p>Il parser non gestisce il misto di forme con contenuto e senza contenuto dello stesso shortcode come ci si aspetterebbe. Per esempio, nel seguente caso:
+</p>
+<pre>[myshortcode esempio='non-incluso' /] contenuto non incluso [myshortcode] contenuto incluso [/myshortcode]
+</pre>
+<p>invece di essere trattati come due shortcode separati dal testo " contenuto non incluso ", il parser tratta tutto come un singolo shortcode che include " contenuto non incluso [myshortcode] contenuto incluso ".
+</p><p>Gli shortcode con contenuto supportano gli attributi nello stesso modo di quelli senza contenuto. Ecco un esempio di caption_shortcode() migliorata per supportare un attributo 'class':
+</p>
+<pre>
+function caption_shortcode( $atts, $content = null ) {
+	extract( shortcode_atts( array(
+		'class' =&gt; 'caption',
+	), $atts ) );
+
+	return '&lt;span class="' . esc_attr($class) . '"&gt;' . $content . '&lt;/span&gt;';
+}
+</pre>
+<pre>[caption class="headline"]La mia didascalia[/caption]
+</pre>
+<pre>&lt;span class="headline"&gt;La mia didascalia&lt;/span&gt;
+</pre>
+<h3><span class="mw-headline" id="Altre_caratteristiche_in_breve">Altre caratteristiche in breve</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=6" title="Edit section: Altre caratteristiche in breve">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Il parser supporta shortcode senza contenuto nello stile XHTML come "[myshortcode /]", ma questo è opzionale.</li></ul>
+<ul><li> Le macro degli shortcode possono usare apici singoli o doppi per i valori degli attributi, oppure ometterli se il valore dell'attributo non contiene spazi. [myshortcode foo='123' bar=456] è equivalente a [myshortcode foo="123" bar="456"].</li></ul>
+<ul><li> Per retrocompatibilità con shortcode più vecchi creati ad-hoc, i nomi degli attributi possono essere omessi. Se un attributo non ha nome assumerà una chiave posizionale numerica nell'array $atts. Per esempio, [myshortcode 123] produce $atts = array( 0 =&gt; 123 ). Gli attributi posizionali possono essere combinati con gli attributi che hanno nome, e le virgolette possono essere usate se i valori contengono spazi o altri caratteri significativi.</li></ul>
+<ul><li> Le API degli shortcode hanno casi di test. I test -- che contengono un certo numero di esempi di casi di errore e sintassi insolita -- possono essere trovati qui <a rel="nofollow" class="external free" href="http://svn.automattic.com/wordpress-tests/trunk/tests/shortcode.php">http://svn.automattic.com/wordpress-tests/trunk/tests/shortcode.php</a></li></ul>
+<h3><span class="mw-headline" id="Riferimento_funzioni">Riferimento funzioni</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=7" title="Edit section: Riferimento funzioni">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Per gli shortcode sono disponibili le seguenti funzioni:
+</p>
+<pre>function add_shortcode( $tag, $func )
+</pre>
+<p>Registra una nuova funzione di gestione per uno shortcode. $tag è il nome dello shortcode così come scritta dall'utente (senza parentesi), ad esempio "myshortcode". $func è il nome della funzione di gestione.
+</p><p>Solo una funzione di gestione può esistere per un dato shortcode. Chiamare add_shortcode() di nuovo con lo stesso nome di $tag sovrascrive la precedente chiamata.
+</p>
+<pre>function remove_shortcode( $tag )
+</pre>
+<p>Deregistra uno shortcode esistente. $tag è il nome dello shortcode come usato in add_shortcode().
+</p>
+<pre>function remove_all_shortcodes()
+</pre>
+<p>Deregistra tutti gli shortcode.
+</p>
+<pre>function shortcode_atts( $pairs, $atts )
+</pre>
+<p>Elabora un array di attributi grezzo, $atts, confrontandolo con l'insieme di valori predefiniti specificati in $pairs. Restituisce un array contenente ogni chiave da $pairs combinata con i valori da $atts. Ogni chiave che non esiste in $pairs viene ignorata.
+</p>
+<pre>function do_shortcode( $content )
+</pre>
+<p>Parsifica ogni shortcode noto presente nella stringa $content. Restituisce una stringa dove nel contenuto originale gli shortcode sono sostituiti dall'output delle loro funzioni di gestione.
+</p><p><a href="https://codex.wordpress.org/it:Riferimento_funzioni/do_shortcode" title="it:Riferimento funzioni/do shortcode">do_shortcode()</a> è registrata come un filtro predefinito in 'the_content' con una priorità pari a 11.
+</p>
+<h3><span class="mw-headline" id="Limitazioni">Limitazioni</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=8" title="Edit section: Limitazioni">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<h4><span class="mw-headline" id="Shortcode_annidati">Shortcode annidati</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=9" title="Edit section: Shortcode annidati">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Il parser degli shortcode gestisce correttamente gli shortcode annidati, a condizione che le loro funzioni di gestione li supportino chiamando ricorsivamente <a href="https://codex.wordpress.org/it:Riferimento_funzioni/do_shortcode" title="it:Riferimento funzioni/do shortcode">do_shortcode()</a>:
+</p>
+<pre>[tag-a]
+   [tab-b]
+      [tag-c]
+   [/tag-b]
+[/tag-a]
+</pre>
+<p>Tuttavia il parser fallisce che uno shortcode è usato per includerne un altro con lo stesso nome:
+</p>
+<pre>[tag-a]
+   [tag-a]
+   [/tag-a]
+[/tag-a]
+</pre>
+<p>Questo è un limite del parser  usato da <a href="https://codex.wordpress.org/it:Riferimento_funzioni/do_shortcode" title="it:Riferimento funzioni/do shortcode">do_shortcode()</a> che adopera un'espressione regolare libera dal contesto - è molto veloce ma non conteggia i livelli di annidamento, quindi non riesce ad abbinare un tag di apertura con il suo corrispondente tag di chiusura in questi casi.
+</p>
+<h4><span class="mw-headline" id="Shortcode_non_chiusi">Shortcode non chiusi</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=10" title="Edit section: Shortcode non chiusi">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>In certi casi il parser dello shortcode non riesce a trattare direttamente l'uso simultaneo di shortcode chiusi e non chiusi. Per esempio in questo caso il parser identificherà correttamente solo la seconda istanza dello shortcode:
+</p>
+<pre>[tag]
+[tag]
+   CONTENUTO
+[/tag]
+</pre>
+<p>Tuttavia nel seguente caso il parser li identificherà entrambi:
+</p>
+<pre>[tag]
+   CONTENUTO
+[/tag]
+[tag]
+</pre>
+<h4><span class="mw-headline" id="Trattini">Trattini</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=11" title="Edit section: Trattini">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p><b>Nota:</b> Il comportamento descritto qui sotto che riguarda gli shortcode con i trattini ('-') vale ancora in WordPress 3+. Questo potrebbe essere dovuto ad un bug in <a href="https://codex.wordpress.org/it:Riferimento_funzioni/do_shortcode" title="it:Riferimento funzioni/do shortcode">do_shortcode()</a> o in <a href="https://codex.wordpress.org/it:Riferimento_funzioni/get_shortcode_regex" title="it:Riferimento funzioni/get shortcode regex">get_shortcode_regex()</a>.
+</p><p>Bisogna prestare attenzione quando si usano i trattini nei nomi degli shortcode. Nel seguente esempio WordPress potrebbe considerare il secondo shortcode equivalente al primo (in pratica WordPress vede la prima parte che precede il trattino):
+</p>
+<pre>[tag]
+[tag-a]
+</pre>
+<p>Dipende tutto da quale shortcode è definito per primo. Se si intendono usare i trattini allora bisogna definire per primo lo shortcode più corto.
+</p><p>Per evitare ciò, è meglio usare un trattino basso (underscore) o nessun separatore:
+</p>
+<pre>[tag]
+[tag_a]
+
+[tag]
+[taga]
+</pre>
+<p>Se la prima parte dello shortcode è diversa tra i due, allora si possono usare i trattini tranquillamente:
+</p>
+<pre>[tag]
+[tagfoo-a]
+</pre>
+<p><b>Importante:</b> Usare i trattini può avere implicazioni di cui si potrebbe non essere consapevoli; ad esempio se anche altri shortcode installati usano i trattini, l'uso di parole generiche con trattini può provocare collisioni (se gli shortcode sono usati insieme nella stessa richiesta):
+</p>
+<pre>// plugin-A
+[is-logged-in]
+
+// plugin-B
+[is-admin]
+</pre>
+<h4><span class="mw-headline" id="Parentesi_quadre">Parentesi quadre</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=12" title="Edit section: Parentesi quadre">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Il parser degli shortcode non accetta parentesi quadre all'interno degli attributi, perciò il codice seguente fallirà:
+</p>
+<pre>[tag attribute="[Un valore]"]
+</pre>
+<p><b>Nota:</b> queste limitazioni potrebbero cambiare in future versioni di WordPress, quindi è necessario verificare sempre per essere assolutamente certi.
+</p>
+<h3><span class="mw-headline" id="Risorse_esterne">Risorse esterne</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=13" title="Edit section: Risorse esterne">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a rel="nofollow" class="external text" href="http://generatewp.com/shortcodes/">WordPress Shortcodes Generator</a></li>
+<li> <a rel="nofollow" class="external text" href="http://ran.ge/2008/04/15/wordpress-25-shortcodes/">Shortcode summary by Aaron D. Campbell</a> - spiega gli shortcode e fornisce esempi che includono come incorporarli in un meta box per inviarli all'editor usando JavaScript (in inglese)</li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/iblocks/">Innovative WordPress Shortcodes In Action</a> - un plugin che mostra come usare efficacemente gli shortcode per cambiare la progettazione del contenuto dei post</li>
+<li> <a rel="nofollow" class="external text" href="http://planetozh.com/blog/2008/03/wordpress-25-shortcodes-api-overview/">WordPress Shortcode API Overview</a> - spiegazioni sull'uso ed esempio di un plugin che usa gli shortcode (in inglese)</li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/bbcode/">Simple shortcode-powered BBCode plugin</a> - un semplice plugin che aggiunge supporto per il BBCode attraverso uno shortcode. Un buon modo per vedere gli shortcode in azione</li>
+<li> <a rel="nofollow" class="external text" href="http://themocracy.com/2010/03/a-flickr-badge-using-wordpress-shortcodes/">A Flickr Badge using WordPress Shortcodes</a> - una dimostrazione di come passare variabili alla funzione che gestisce uno shortcode (in inglese)</li>
+<li> <a rel="nofollow" class="external text" href="http://aaron.jorb.in/2010/wordpress-shortcodes-a-how-to-by-example/">Three Simple Sample Shortcodes</a> - tre shortcode di esempio e una spiegazione su come funzionano, di Aaron Jorbin (in inglese)</li>
+<li> <a rel="nofollow" class="external text" href="http://wptricks.net/added-permalinks-shortcode-on-wordpress/">Added Permalinks Shortcode</a> - semplice tutorial su come aggiungere shortcode per i permalinks in WordPress (in inglese)</li></ul>
+<h2><span class="mw-headline" id="Shortcode_predefiniti">Shortcode predefiniti</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=14" title="Edit section: Shortcode predefiniti">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <code><a href="https://codex.wordpress.org/it:Shortcode_Audio" title="it:Shortcode Audio">[audio]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/it:Shortcode_Caption" title="it:Shortcode Caption">[caption]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/it:Embed" title="it:Embed">[embed]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/it:Shortcode_Gallery" title="it:Shortcode Gallery">[gallery]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/it:Shortcode_Video" title="it:Shortcode Video">[video]</a></code></li></ul>
+<h2><span class="mw-headline" id="Correlati">Correlati</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:API_degli_Shortcode&amp;action=edit&amp;section=15" title="Edit section: Correlati">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h4><span class="mw-headline" id="API_degli_Shortcode_2"><strong class="selflink"><b>API degli Shortcode</b></strong></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:it:Shortcode_Tags&amp;action=edit&amp;section=T-1" title="Template:it:Shortcode Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/do_shortcode" title="it:Riferimento funzioni/do shortcode"> do_shortcode()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/add_shortcode" title="it:Riferimento funzioni/add shortcode"> add_shortcode()</a> </li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/remove_shortcode" title="it:Riferimento funzioni/remove shortcode"> remove_shortcode()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/remove_all_shortcodes" title="it:Riferimento funzioni/remove all shortcodes"> remove_all_shortcodes()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/shortcode_atts" title="it:Riferimento funzioni/shortcode atts"> shortcode_atts()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/strip_shortcodes" title="it:Riferimento funzioni/strip shortcodes"> strip_shortcodes()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/shortcode_exists" title="it:Riferimento funzioni/shortcode exists">shortcode_exists()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/has_shortcode" title="it:Riferimento funzioni/has shortcode">has_shortcode()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/get_shortcode_regex" title="it:Riferimento funzioni/get shortcode regex"> get_shortcode_regex()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/wp_audio_shortcode" title="it:Riferimento funzioni/wp audio shortcode">wp_audio_shortcode()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/wp_video_shortcode" title="it:Riferimento funzioni/wp video shortcode">wp_video_shortcode()</a></li>
+<li> Filtro: <a href="https://codex.wordpress.org/it:Le_API_dei_Plugin/Riferimento_filtri/no_texturize_shortcodes" title="it:Le API dei Plugin/Riferimento filtri/no texturize shortcodes">no_texturize_shortcodes</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004340
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.032 seconds
+Real time usage: 0.036 seconds
+Preprocessor visited node count: 162/1000000
+Preprocessor generated node count: 512/1000000
+Post‐expand include size: 1790/2097152 bytes
+Template argument size: 315/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   10.586      1 - -total
+ 76.04%    8.050      1 - Template:Languages
+ 16.57%    1.754      1 - Template:it:Shortcode_Tags
+ 12.29%    1.301      1 - Template:ru
+ 11.44%    1.211      1 - Template:it
+ 11.29%    1.195      1 - Template:ja
+ 10.67%    1.130      1 - Template:pt-br
+ 10.60%    1.122      1 - Template:en
+-->

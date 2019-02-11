@@ -1,0 +1,44 @@
+{{Languages|
+{{en|Function Reference/wp_unique_term_slug}}
+{{ja|関数リファレンス/wp_unique_term_slug}}
+}}
+
+This function exists. The documentation of it in the code is flawed. From http://core.trac.wordpress.org/browser/tags/3.2.1/wp-includes/taxonomy.php#L2168 &ff: 
+
+ 2168	/** 
+ 2169	 * Will make slug unique, if it isn't already.
+ 2170	 *
+ 2171	 * The $slug has to be unique global to every taxonomy, meaning that one
+ 2172	 * taxonomy term can't have a matching slug with another taxonomy term. Each
+ 2173	 * slug has to be globally unique for every taxonomy.
+ 2174	 *
+ 2175	 * The way this works is that if the taxonomy that the term belongs to is
+ 2176	 * hierarchical and has a parent, it will append that parent to the $slug.
+ 2177	 *
+ 2178	 * If that still doesn't return an unique slug, then it try to append a number
+ 2179	 * until it finds a number that is truely unique.
+ 2180	 *
+ 2181	 * The only purpose for $term is for appending a parent, if one exists.
+ 2182	 *
+ 2183	 * @package WordPress
+ 2184	 * @subpackage Taxonomy
+ 2185	 * @since 2.3.0
+ 2186	 * @uses $wpdb
+ 2187	 *
+ 2188	 * @param string $slug The string that will be tried for a unique slug
+ 2189	 * @param object $term The term object that the $slug will belong too
+ 2190	 * @return string Will return a true unique slug.
+ 2191	 */
+
+Unfortunately, of course, this is false; the same term can exist with the same slug in multiple different taxonomies. But once you call this function, you are asking for a new unique slug, and this will unique it across every taxonomy. 
+
+Note that while the documentation only mentions appending a single parent's slug, it will actually recursively add parents' slugs until it either comes across a unique slug or runs out of parents.
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+
+
+Note that because this does not call all the filters for term creation, it is prone to error if you have filters that change slugs during term creation.
+
+If you are attempting to understand the function by ignoring the documentation and reading the function instead, note that lines 2217 through 2219 have no effect because there is no variable called $args. These lines are only here to discourage you from running WordPress with verbose warnings on.

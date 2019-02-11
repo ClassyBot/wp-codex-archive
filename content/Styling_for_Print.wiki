@@ -1,0 +1,198 @@
+__TOC__
+WordPress makes it easy to style your WordPress site with [[Using Themes|Themes]], many of which are tested thoroughly on different computers and browsers before [[Theme_Review|being released]].  These are designed for the '''screen'''.  But what about having your WordPress site designed for '''print'''?  Some people still like to print out web pages and read them at their leisure, so consider designing your WordPress site for print.
+
+By default, when a user prints a WordPress web page that is not designed with printing in mind, the style sheet is stripped away and the page prints as if there is no style sheet.  It tends to look like a long line of information beginning with your header, the content, then the long list that is your sidebar, then footer.  Not very pretty.
+
+To see what your WordPress site looks like for printing, print out a page or, from your browser's menu, choose '''Print > Print Preview'''.  Not very pretty, is it?  And fairly wasteful of paper having that long list of sidebar blogroll links printing out over two pages.
+
+=Pretty to Print=
+To make your site pretty to print, we need to focus on the architecture of the site, the structure that holds the content within each section.  Luckily, WordPress Themes' modular file system tends to make this process much easier, since major structural areas are clearly designated.
+
+The core structure for most WordPress sites is as follows, though the names may be different on your Theme.
+
+<pre>#header
+#content
+#comments
+#sidebar (or #menu)
+#footer</pre>
+
+You will find the styles for these sections in your <tt>style.css</tt> style sheet in your WordPress Theme folder.  
+
+How you change these sections in preparation for printing is up to you. You can still print the sidebar but not the footer, or include the footer but not the sidebar, change font styles and sizes, or even tell it to print images or not.  We will give you some examples and the rest you can figure out on your own by experimenting.
+
+==Creating Print Styles==
+Styles associated with printing can be set in two different ways.  If you want very simple changes to the site for easy printing, you can use the first method and add them directly to the style sheet.  If you want to control the end result of your site when printed, it is best to keep these in their own <tt>print.css</tt> style sheet.
+
+'''Note:'''  Some WordPress Theme authors may have already thought ahead and included print styles for their Theme.  Check the Theme folder for a <tt>print.css</tt> style sheet file and in the <tt>style.css</tt> for references to '''print''' before proceeding.
+
+===Inside the Style Sheet===
+Styles for printing can be set within the style sheet itself.  The browser must be "instructed" to look for the print styles in the style sheet, and they must be in their own section.
+
+To instruct the browser to look for the print styles within the style sheet, change your style sheet link in the <tt>head</tt> section of your <tt>header.php</tt> template file from this:
+
+<pre><link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" 
+type="text/css" media="screen" /></pre>
+
+to this, instructing the browser to look for print styles in the style sheet:
+
+<pre><link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" 
+type="text/css" media="screen, print" /></pre>
+
+In your style sheet, usually at the very bottom, add the following to start your print styles:
+
+<pre>/* Print Styles */
+@media print {
+body { background:white; color:black; margin:0; }
+}</pre>
+
+===Creating a Print Style Sheet===
+To create an independent style sheet featuring all of your print styles:
+
+# Create a text file called <tt>print.css</tt>.
+# Save it to your WordPress Theme folder.
+# Type (or paste) in the following to get the print styles started and save the file:
+<pre>/* Print Style Sheet */
+@media print {
+body { background:white; color:black; margin:0; }
+}</pre>
+:4. Create a link in the <tt>head</tt> section of your <tt>header.php</tt> template file as follows:
+<pre><link rel="stylesheet" type="text/css" media="print" 
+href="<?php bloginfo('stylesheet_directory'); ?>/print.css" /></pre>
+
+=Defining Print Styles=
+Within the '''Print Styles''' section on your style sheet or in your print style sheet, add your site's structure selectors (names) like this (yours may be different):
+
+<pre>/* Print Style Sheet */
+@media print {
+body { background:white; color:black; margin:0; }
+#header { }
+#content { }
+#comments { }
+#sidebar { }
+#footer { }
+}</pre>
+
+To include each section, simply add <tt>display:block</tt> to the selector's ''declarations'' or attributes.
+
+<pre>#content { display:block; }</pre>
+
+To not include a section, so it will not print, add <tt>display:none</tt> to the selector's declarations.
+
+<pre>#footer { display:none; }</pre>
+
+Using <tt>display:none</tt>, any element on your web page can disappear when printed.  If you have advertising or other elements you do not want to appear when printed, then add the <tt>display:none</tt> to their selector under the print section.
+
+==Structural Changes==
+Just because you have set part of the structure of your site to "disappear" when printed does not mean that the ''structure'' moves around to accommodate it.  Many Themes feature a corner of their <tt>content</tt> container anchored to a specific spot, like 150 pixels from the left of the screen.  Even though the sidebar may be set to <tt>display:none</tt>, unless the positions and margins are changed in the content, it may bring with a 150 pixel gap on the left. You will also need to change the positioning of the content section to accommodate the loss of the sidebar.
+
+Since, most users want to drop the sidebar and position the content so it stretches across the page in a comfortable reading layout, use this example:
+
+<pre>#sidebar { display:none; }
+#content{ margin-left:0; 
+     float:none; 
+     width:auto; }</pre>
+
+This makes the sidebar disappear and instructs the browser to use whatever the margin settings are by default for the printer.
+
+==Printing Print Sizes==
+You can control the printed font sizes by using '''points''' instead of pixels or ''em'' as these related to information the printer can understand.
+
+<pre>#header { height:75px; 
+     font-size: 24pt; 
+     color:black; }
+#content { margin-left:0; 
+     float:none; 
+     width:auto; 
+     color:black; 
+     font-size:12pt; }</pre>
+
+==Printing Comments==
+In general, most people want to read the comments, but they certainly do not want to see the comment form when a page is printed. The comment form is for use on the screen and can take up most of a sheet of paper when printed.
+
+Look inside your WordPress Theme's folder for the <tt>comments.php</tt> or <tt>comments-popup.php</tt> template files and open whichever one you use.  Look through the template for the start of the comment form and find the ID selector or name. It might look like this:
+
+<pre><form action="<?php echo get_option('siteurl'); ?>/wp-comments-post.php" 
+method="post" id="commentform"></pre>
+
+The CSS ID for the form is <tt>commentform</tt>.  To not display the comment form when printing, add this to the printing style section of your style sheet.
+
+<pre>#commentform { display:none }</pre>
+
+==Page Breaks==
+While these do not work for every browser or printer, you can instruct them not to "break" your photographs or graphics in two pieces, or break apart blockquotes, or not to have a page break after a heading but to force it to break before the heading.  This is not a perfect science, but if you are really particular about how your printed web page looks, you might want to use these.
+
+<pre>h1, h2, h3, h4, h5, h6 { page-break-after:avoid; 
+     page-break-inside:avoid; }
+img { page-break-inside:avoid; 
+     page-break-after:avoid; }
+blockquote, table, pre { page-break-inside:avoid; }
+ul, ol, dl  { page-break-before:avoid; }
+</pre>
+
+=Print Style Example=
+There are many aspects of your web page design you can control when printing, including the size, colors, and looks of links, headings, titles, author information, the post meta data, any part of your web page.  Here is an example of one usage that you can use as a reference.
+
+<pre>@media print {
+body {background:white; 
+     font-size:10pt; 
+     margin:0; }
+#sidebar { display:none; }
+#header { height:75px; }
+#content{ margin-left:0; 
+     float:none; 
+     width:auto; }
+.demo .red { color:black; 
+     font-weight:bold; }
+#content a { font-weight:bold; 
+     color:#000066; 
+     text-decoration:underline; }
+#content{ margin-left:0; 
+     float:none; 
+     width:auto; }
+#footer, .ad { display:none; }
+h1, h2, h3, h4, h5, h6 { page-break-after:avoid; 
+     page-break-inside:avoid; }
+h3 { margin-left:10px; 
+     margin-bottom:0px; 
+     padding-bottom:0px; }
+blockquote, table, pre { page-break-inside:avoid; }
+ul, ol, dl  { page-break-before:avoid; }
+img.centered { display: block; 
+     margin-left: auto; 
+     margin-right: auto; }
+img.right { padding: 4px; 
+     margin: 0 0 2px 7px; 
+     display: inline; }
+img.left { padding: 4px; 
+     margin: 0 7px 2px 0; 
+     display: inline; }
+.right { float: right; }
+.left { float: left; }
+img { page-break-inside:avoid; 
+     page-break-after:avoid; }
+}
+</pre>
+
+=Resources=
+
+* [http://www.w3.org/TR/CSS21/page.html W3's CSS 2.1 Paged Media Information]
+* [http://www.w3.org/TR/REC-CSS2/media.html W3.org's CSS-2 Media Reference]
+* [http://www.zeldman.com/essentials/print/ Zeldman.com's Essentials: Printer Friendly]
+* [http://www.alistapart.com/articles/goingtoprint/ A List Apart's, CSS Design: Going to Print]
+* [http://www.killersites.com/articles/newsletterArchive/Newsletter_Nov3_2003.htm Killersites.com's Making Web Pages Printable Using CSS]
+
+=Translations=
+
+If you have translated this article, or have a similar one on your blog, post a link here.  Please mark fully translated articles with ''(t)'' and similar ones with ''(s)''.
+
+* [http://inkulal.com/print-yemadregiya-mengedoch/ Print yemadregiya mengedoch] in Amharic. ''(t)''
+* [http://weblog.corelist.net/archives/1384/02/15/printable-version-with-css/ Printable version with CSS - نسخه قابل چاپ با سی اس اس] in Persian(فارسی). ''(s)''
+* [http://300350.org/pages/wordpressprint/ Criando Estilos para Impressão] in Portuguese. ''(t)''
+* [http://bestpracticemarketing.com/opsætning-af-wordpress-til-udskrivning/ Opsætning af WordPress til udskrivning] in Danish. ''(t)''
+* [http://www.wordpress.la/codex-%E8%AE%BE%E8%AE%A1WordPress%E6%89%93%E5%8D%B0%E6%A0%B7%E5%BC%8F.html 设计WordPress打印样式] in Chinese. ''(t)''
+* [http://eseoradar.com/stilizovanje-wordpress-za-stampanje/ Stilizovanje WP za štampanje] na Srpskom ''(t)''
+
+{{Copyedit}}
+
+[[Category:WordPress Lessons]]
+[[Category:Design and Layout]]

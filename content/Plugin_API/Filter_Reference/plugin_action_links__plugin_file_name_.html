@@ -1,0 +1,105 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Basic_Example"><span class="tocnumber">2</span> <span class="toctext">Basic Example</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Example"><span class="tocnumber">3</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Source_File"><span class="tocnumber">4</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Related"><span class="tocnumber">5</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Filters"><span class="tocnumber">5.1</span> <span class="toctext">Filters</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Applied to the list of links to display on the plugins page (beside the activate/deactivate links). 
+</p>
+<h2><span class="mw-headline" id="Basic_Example">Basic Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)&amp;action=edit&amp;section=2" title="Edit section: Basic Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>add_filter accepts two parameters, one for the name of the filter (plugin_action_links) and one for the function to callback (add_action_links).
+</p>
+<pre>
+add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'add_action_links' );
+
+function add_action_links ( $links ) {
+ $mylinks = array(
+ '&lt;a href="' . admin_url( 'options-general.php?page=myplugin' ) . '"&gt;Settings&lt;/a&gt;',
+ );
+return array_merge( $links, $mylinks );
+}
+
+</pre>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)&amp;action=edit&amp;section=3" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>When the 'plugin_action_links_(plugin file name)' filter is called, it is passed one parameter: the links to show on the plugins overview page in an array.
+</p><p>The (plugin file name) placeholder stands for the plugin name that you can normally get from the magic constant __FILE__.
+</p>
+<pre>
+add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'my_plugin_action_links' );
+
+function my_plugin_action_links( $links ) {
+   $links[] = '&lt;a href="'. esc_url( get_admin_url(null, 'options-general.php?page=gpaisr') ) .'"&gt;Settings&lt;/a&gt;';
+   $links[] = '&lt;a href="http://wp-buddy.com" target="_blank"&gt;More plugins by WP-Buddy&lt;/a&gt;';
+   return $links;
+}
+</pre>
+<p>Will result in something like this:
+<a href="https://codex.wordpress.org/File:plugin-action-links-filter-example.png" class="image" title="Plugin Action Links Filter Example"><img alt="Plugin Action Links Filter Example" src="/images/b/b5/plugin-action-links-filter-example.png" width="600" height="70" /></a>
+</p><p>We can also edit the link to put them in front of the deactivate and edit link. Here is an example:
+</p>
+<pre>
+add_filter( 'plugin_action_links', 'ttt_wpmdr_add_action_plugin', 10, 5 );
+function ttt_wpmdr_add_action_plugin( $actions, $plugin_file ) 
+{
+	static $plugin;
+
+	if (!isset($plugin))
+		$plugin = plugin_basename(__FILE__);
+	if ($plugin == $plugin_file) {
+
+			$settings = array('settings' =&gt; '&lt;a href="options-general.php#redirecthere"&gt;' . __('Settings', 'General') . '&lt;/a&gt;');
+			$site_link = array('support' =&gt; '&lt;a href="http://thetechterminus.com" target="_blank"&gt;Support&lt;/a&gt;');
+		
+    			$actions = array_merge($settings, $actions);
+				$actions = array_merge($site_link, $actions);
+			
+		}
+		
+		return $actions;
+}
+</pre>
+<p>This will work with both single file plugin and a folder plugin.
+<a href="https://codex.wordpress.org/File:plugin-action-links-filter-example-1.png" class="image" title="Plugin Action Links Filter Example - 1"><img alt="Plugin Action Links Filter Example - 1" src="/images/3/3e/plugin-action-links-filter-example-1.png" width="600" height="100" /></a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)&amp;action=edit&amp;section=4" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Triggered in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-admin/includes/class-wp-plugins-list-table.php#L0">wp-admin/includes/class-wp-plugins-list-table.php</a></code>
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)&amp;action=edit&amp;section=5" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Filters">Filters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)&amp;action=edit&amp;section=6" title="Edit section: Filters">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li><a href="/index.php?title=Plugin_API/Filter_Reference/plugin_action_links&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/plugin action links (page does not exist)">plugin_action_links</a></li>
+<li><a href="/index.php?title=Plugin_API/Filter_Reference/network_admin_plugin_action_links&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/network admin plugin action links (page does not exist)">network_admin_plugin_action_links</a></li>
+<li><a href="/index.php?title=Plugin_API/Filter_Reference/network_admin_plugin_action_links_(plugin_file_name)&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/network admin plugin action links (plugin file name) (page does not exist)">network_admin_plugin_action_links_(plugin file name)</a></li></ul>
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Filter_Reference/plugin_action_links_(plugin_file_name)&amp;action=edit">expanding it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004103
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.020 seconds
+Preprocessor visited node count: 82/1000000
+Preprocessor generated node count: 252/1000000
+Post‐expand include size: 1210/2097152 bytes
+Template argument size: 363/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    4.846      1 - -total
+ 50.85%    2.464      1 - Template:Stub
+ 46.78%    2.267      1 - Template:Trac
+ 29.22%    1.416      1 - Template:Message
+ 17.66%    0.856      1 - Template:CurrentVersion
+-->

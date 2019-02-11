@@ -1,0 +1,82 @@
+== Description ==
+
+A filter hook called by the WordPress [[Class Reference/Walker_Nav_Menu | Walker_Nav_Menu]] class.
+
+== Usage ==
+
+%%%<?php 
+/* WP 3.0+ */
+function filter_handler( $classes , $item ) { ...... }
+
+add_filter( 'nav_menu_css_class', 'filter_handler', 10, 2 ); 
+
+/* WP 3.1+ */
+function filter_handler( $classes , $item, $args ) { ...... }
+
+add_filter( 'nav_menu_css_class', 'filter_handler', 10, 3 ); 
+
+/* WP 4.1+ */
+function filter_handler( $classes, $item, $args, $depth ) { ...... }
+
+add_filter( 'nav_menu_css_class', 'filter_handler', 10, 4 ); 
+?>%%%
+
+== Parameters ==
+
+{{Parameter|$classes|array|Nav menu item classes.}}
+{{Parameter|$item|object|[[Function_Reference/wp_get_nav_menu_items#Return_Values | Nav menu item data object.]]}}
+{{Parameter|$args|array|[[Function_Reference/wp_nav_menu | Nav menu arguments.]] Added in 3.1|optional}}
+{{Parameter|$depth|int|Depth of menu item. Used for padding. Added in 4.1|optional}}
+
+== Examples ==
+
+The following example adds a unique CSS class to a single, specific nav menu item.
+
+<pre>
+function my_special_nav_class( $classes, $item ) {
+
+    if ( is_single() && $item->title == 'Blog' ) {
+        $classes[] = 'special-class';
+    }
+
+    return $classes;
+
+}
+
+add_filter( 'nav_menu_css_class', 'my_special_nav_class', 10, 2 );
+</pre>
+
+You can use information from the <tt>$args</tt> parameter to conditionally filter classes based on properties of the menu that contains the items.
+
+<pre>
+function my_secondary_menu_classes( $classes, $item, $args ) {
+    // Only affect the menu placed in the 'secondary' wp_nav_bar() theme location
+    if ( 'secondary' === $args->theme_location ) {
+        // Make these items 3-columns wide in Bootstrap
+        $classes[] = 'col-md-3';
+    }
+
+    return $classes;
+}
+
+add_filter( 'nav_menu_css_class', 'my_secondary_menu_classes', 10, 3 ); 
+</pre>
+
+== Source Code ==
+
+<tt>nav_menu_css_class()</tt> is located in {{Trac|wp-includes/nav-menu-template.php}}.
+
+== Changelog ==
+
+* Since: [[Version 3.0|3.0.0]]
+
+== Related ==
+
+{{Navigation Menu Tags}}
+
+== See Also ==
+
+[[Plugin_API/Filter_Reference]]
+
+[[Category:Filters]]
+[[Category:New_page_created]]

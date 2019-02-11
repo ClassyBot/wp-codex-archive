@@ -1,0 +1,85 @@
+{{Languages|
+{{en|Function Reference/get_next_posts_link}}
+{{ja|関数リファレンス/get_next_posts_link}}
+}}
+
+==Description==
+Gets a link to the previous set of posts within the current query.
+
+Because post queries are usually sorted in reverse chronological order, <tt>get_next_posts_link()</tt> usually points to older entries (toward the end of the set) and <tt>get_previous_posts_link()</tt> usually points to newer entries (toward the beginning of the set). 
+
+'''Note''': See [[Pagination#Troubleshooting_Broken_Pagination|Troubleshooting Broken Pagination]] if you have pagination issues.
+
+==Usage==
+
+%%% <?php echo get_next_posts_link( $label, $max_page ); ?> %%%
+
+==Parameters==
+
+{{Parameter|$label|string|The content for the link text|optional|Next Page &raquo;}}
+
+{{Parameter|$max_page|int|Limit the number of pages on which the link is displayed. The default value "0" means "no limit".|optional|0}}
+
+==Return Values==
+Link to next page if successful, otherwise null.
+
+==Examples==
+===Default Usage===
+
+ <?php echo get_next_posts_link(); ?>
+
+===Custom Label===
+
+ <?php echo get_next_posts_link('Go to next page'); ?>
+
+===Custom Label and Custom number of post pages===
+
+ <?php echo get_next_posts_link('Go to next page',4); ?>
+
+===Usage when querying the loop with WP_Query===
+Add the $max_pages parameter to the get_next_posts_link() function when querying the loop with [[Function_Reference/WP_Query|WP_Query]]. To get the total amount of pages you can use the 'max_num_pages' property of the custom WP_Query object.
+<pre><?php
+// set the "paged" parameter (use 'page' if the query is on a static front page)
+$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+
+// the query
+$the_query = new WP_Query( 'cat=1&paged=' . $paged ); 
+?>
+
+<?php if ( $the_query->have_posts() ) : ?>
+
+<?php
+// the loop
+while ( $the_query->have_posts() ) : $the_query->the_post(); 
+?>
+<?php the_title(); ?>
+<?php endwhile; ?>
+
+<?php
+
+// get_next_posts_link() usage with max_num_pages
+echo get_next_posts_link( 'Older Entries', $the_query->max_num_pages );
+echo get_previous_posts_link( 'Newer Entries' );
+?>
+
+<?php 
+// clean up after our query
+wp_reset_postdata(); 
+?>
+
+<?php else:  ?>
+<p><?php _e( 'Sorry, no posts matched your criteria.' ); ?></p>
+<?php endif; ?></pre>
+
+==Change Log==
+Since 2.7.0
+
+==Source File==
+
+<tt>get_next_posts_link()</tt> is located in {{Trac|wp-includes/link-template.php|tags/{{CurrentVersion}}|2073}}.
+
+== Related ==
+
+{{Pagination}}
+
+[[Category:Functions]]

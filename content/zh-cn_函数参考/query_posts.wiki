@@ -1,0 +1,553 @@
+{{Languages|
+{{en|Function Reference/query posts}}
+{{it|Riferimento funzioni/query posts}}
+{{ja|テンプレートタグ/query_posts}}
+{{zh-hans|函数参考/query posts}}
+{{pt-br|Referência de Função/query posts}}
+}}
+==描述==
+<tt>Query_posts</tt> 可以用来控制在循环[[The Loop]]中显示哪些文章。它可以接受各种参数，就像你的URL中使用的参数(例如：参数p，<tt>p=4</tt>表示只显示ID为4的文章).
+
+
+通常的用法：
+*  在你的首页只显示一篇文章(若只想显示一个独立的页面page，可以通过WordPress管理后台，设置 -> 阅读，在那里修改).
+*  显示一个特定的时间段内的所有文章.
+*  在首页只显示最新的文章.
+*  改变文章的显示顺序.
+*  只显示某个特定分类下的文章.
+*  不显示某个或多个分类下的文章.
+
+==重要提示==
+The query_posts function is intended to be used to modify the main page Loop ''only''. It is not intended as a means to create secondary Loops on the page. If you want to create separate Loops outside of the main one, you should create separate [[Function Reference/WP Query|WP_Query]] objects and use those instead. Use of query_posts on Loops other than the main one can result in your main Loop becoming incorrect and possibly displaying things that you were not expecting.
+
+The query_posts function overrides and replaces the main query for the page. To save your sanity, do not use it for any other purpose.
+
+==用法==
+
+<pre>
+<?php
+
+//The Query
+query_posts('posts_per_page=5');
+
+//The Loop
+if ( have_posts() ) : while ( have_posts() ) : the_post();
+ ..
+endwhile; else:
+ ..
+endif;
+
+//Reset Query
+wp_reset_query();
+
+?>
+</pre>
+
+===Usage Note===
+
+Place a call to <tt>query_posts()</tt> in one of your [[Templates|Template]] files before [[The Loop]] begins. The <tt>wp_query</tt> object will generate a new SQL query using your parameters. When you do this, WordPress ignores the other parameters it receives via the URL (such as page number or category). If you want to preserve that information, you can use the <tt>$query_string</tt> global variable in the call to <tt>query_posts()</tt>.
+
+For example, to set the display order of the posts without affecting the rest of the query string, you could place the following before [[The Loop]]:
+
+<pre>
+global $query_string;
+query_posts($query_string . "&order=ASC");
+</pre>
+
+When using <tt>query_posts</tt> in this way, the quoted portion of the argument ''must'' begin with an ampersand (&).
+
+
+==Parameters==
+This is not an exhaustive list yet. It is meant to show some of the more common things possible with setting your own queries.
+
+===Category Parameters===
+Show posts only belonging to certain categories.
+*  <tt>cat</tt> - must use cat ids 
+*  <tt>category_name</tt>
+*  <tt>category__and</tt> - must use cat ids
+*  <tt>category__in</tt> - must use cat ids
+*  <tt>category__not_in</tt> - must use cat ids
+
+'''Show One Category by ID'''
+
+Display posts from only one category ID (and any children of that category):
+
+ query_posts('cat=4');
+
+'''Show One Category by Name'''
+
+Display posts from only one category by name:
+
+ query_posts('category_name=Staff Home');
+
+'''Show Several Categories by ID'''
+
+Display posts from several specific category IDs:
+
+ query_posts('cat=2,6,17,38');
+
+'''Exclude Posts Belonging to Only One Category'''
+
+Show all posts ''except'' those from a category by prefixing its ID with a '-' (minus) sign.
+
+ query_posts('cat=-3');
+
+This excludes any post that belongs to category 3. <!--There is a proviso however: it will exclude all the posts that belong ''only'' to category 3. If a post belongs to another category as well, it will still be picked up.-->
+
+'''Multiple Category Handling'''
+
+Display posts that are in multiple categories.  This shows posts that are in both categories 2 and 6:
+
+ query_posts(array('category__and' => array(2,6)));
+
+To display posts from either category 2 OR 6, you could use <tt>cat</tt> as mentioned above, or by using <tt>category__in</tt> (note this does not show posts from any children of these categories):
+
+ query_posts(array('category__in' => array(2,6)));
+
+You can also exclude multiple categories this way:
+
+ query_posts(array('category__not_in' => array(2,6)));
+
+===Tag Parameters===
+Show posts associated with certain tags.
+*  <tt>tag</tt>
+*  <tt>tag_id</tt> - must use tag ids 
+*  <tt>tag__and</tt> - must use tag ids 
+*  <tt>tag__in</tt> - must use tag ids 
+*  <tt>tag__not_in</tt> - must use tag ids 
+*  <tt>tag_slug__and</tt>
+*  <tt>tag_slug__in</tt>
+
+'''Fetch posts for one tag'''
+ query_posts('tag=cooking');
+
+'''Fetch posts that have either of these tags'''
+
+ query_posts('tag=bread,baking');
+
+'''Fetch posts that have all three of these tags:
+
+ query_posts('tag=bread+baking+recipe');
+
+'''Multiple Tag Handling'''
+
+Display posts that are tagged with both tag id 37 and tag id 47:
+
+ query_posts(array('tag__and' => array(37,47));
+
+To display posts from either tag id 37 or 47, you could use <tt>tag</tt> as mentioned above, or explicitly specify by using <tt>tag__in</tt>:
+
+ query_posts(array('tag__in' => array(37,47));
+
+Display posts that do not have any of the two tag ids 37 and 47:
+
+ query_posts(array('tag__not_in' => array(37,47));
+
+The <tt>tag_slug__in</tt> and <tt>tag_slug__and</tt> behave much the same, except match against the tag's slug.
+
+Also see [http://boren.nu/archives/2007/10/01/taxonomy-intersections-and-unions/ Ryan's discussion of Tag intersections and unions].
+
+===作者参数===
+你也可以通过作者限定文章
+*  <tt>author=3</tt>
+*  <tt>author=-3</tt> 通过“负号”排除作者id为3的文章
+*  <tt>author_name=Harriet</tt>
+
+'''注释：''' <tt>author_name</tt>为定义于<tt>user_nicename</tt>中的字段，<tt>author</tt>为作者的id。
+
+'''排除置顶文章后依照标题排序显示所有作者ID为1的已发布[[页面]]：''' 
+ query_posts('caller_get_posts=1&author=1&post_type=page&post_status=publish&orderby=title&order=ASC');
+
+===Post & Page Parameters===
+
+Retrieve a single post or page.
+
+*  <tt>'p' => 27</tt> - use the post ID to show that post 
+*  <tt>'name' => 'about-my-life'</tt> - query for a particular post that has this [[Introduction to Blogging#Post Slugs|Post Slug]]
+*  <tt>'page_id' => 7</tt> - query for just Page ID 7
+*  <tt>'pagename' => 'about'</tt> - note that this is not the page's title, but the page's path
+*  <tt>'posts_per_page' => 1</tt> - use <tt>'posts_per_page' => 3</tt> to show 3 posts. Use <tt>'posts_per_page' => -1</tt> to show all posts
+*  <tt>'showposts' => 1</tt> - use <tt>'showposts' => 3</tt> to show 3 posts. Use <tt>'showposts' => -1</tt> to show all posts.  '''Deprecated in favor of posts_per_page'''
+*  <tt>'post__in' => array(5,12,2,14,7)</tt> - inclusion, lets you specify the post IDs to retrieve
+*  <tt>'post__not_in' => array(6,2,8)</tt> - exclusion, lets you specify the post IDs NOT to retrieve
+*  <tt>'post_type' => 'page'</tt> - returns [[Pages]]; defaults to value of <tt>post</tt>; can be <tt>any</tt>, <tt>attachment</tt>, <tt>page</tt>, <tt>post</tt>, or <tt>revision</tt>. <tt>any</tt> retrieves any type except revisions. Also can designate custom post types (e.g. movies).
+*  <tt>'post_status' => 'publish'</tt> - returns publish works.  Also could use <tt>pending</tt>, <tt>draft</tt>, <tt>future</tt>, <tt>private</tt>, <tt>trash</tt>.  For <tt>inherit</tt> see [[Function_Reference/get_children|get_children]].  Status of <tt>trash</tt> added with [[Version 2.9]].
+*  <tt>'post_parent' => 93</tt> - return just the child Pages of Page 93.
+
+'''To return both posts and custom post type movie'''
+ query_posts( array( 'post_type' => array('post', 'movie') ) );
+
+===Sticky Post Parameters===
+Sticky posts first became available with WordPress Version 2.7.  Posts that are set as Sticky will be displayed before other posts in a query, unless excluded with the ''caller_get_posts=1'' parameter.
+* <tt>array('post__in'=>get_option('sticky_posts'))</tt> - returns array of all sticky posts
+* <tt>caller_get_posts=1</tt> - To exclude sticky posts being included at the beginning of posts returned, but the sticky post will still be returned in the natural order of that list of posts returned.
+
+'''To return just the first sticky post''':
+ $sticky=get_option('sticky_posts') ; 
+ query_posts('p=' . $sticky[0]);
+
+or
+
+<pre>
+$args = array(
+	'posts_per_page' => 1,
+	'post__in'  => get_option('sticky_posts'),
+	'caller_get_posts' => 1
+);
+query_posts($args);
+</pre>
+
+Note: the second method returns only the more recent sticky post; if there are not sticky posts, it returns the last post published.
+
+'''To return just the first sticky post or nothing''':
+<pre>
+$sticky = get_option('sticky_posts');
+$args = array(
+	'posts_per_page' => 1,
+	'post__in'  => $sticky,
+	'caller_get_posts' => 1
+);
+query_posts($args);
+if($sticky[0]) {
+   // insert here your stuff...
+}
+</pre>
+
+
+'''To exclude all sticky posts from the query''':
+ query_posts(array("post__not_in" =>get_option("sticky_posts")));
+
+'''Return ALL posts with the category, but don't show sticky posts at the top.  The 'sticky posts' will still show in their natural position (e.g. by date):'''
+ query_posts('caller_get_posts=1&posts_per_page=3&cat=6'); 
+
+'''Return posts with the category, but exclude sticky posts completely, and adhere to paging rules:
+<pre>
+<?php
+$paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+$sticky=get_option('sticky_posts');
+$args=array(
+   'cat'=>3,
+   'caller_get_posts'=>1,
+   'post__not_in' => $sticky,
+   'paged'=>$paged,
+   );
+query_posts($args);
+?>
+</pre>
+
+===Time Parameters===
+Retrieve posts belonging to a certain time period.
+*  <tt>hour=</tt> - hour (from 0 to 23)
+*  <tt>minute=</tt> - minute (from 0 to 60)
+*  <tt>second=</tt> - second (0 to 60)
+*  <tt>day=</tt> - day of the month (from 1 to 31)
+*  <tt>monthnum=</tt> - month number (from 1 to 12)
+*  <tt>year=</tt> - 4 digit year (e.g. 2009)
+*  <tt>w=</tt> - week of the year (from 0 to 53) and uses the [http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_week MySQL WEEK command Mode=1].
+
+'''Returns posts for just the current date:'''
+ $today = getdate();
+ query_posts('year=' .$today["year"] .'&monthnum=' .$today["mon"] .'&day=' .$today["mday"] );
+
+'''Returns posts for just the current week:'''
+ $week = date('W');
+ $year = date('Y');
+ query_posts('year=' . $year .'&w=' .$week );
+
+'''Returns posts dated December 20:'''
+ query_posts( 'monthnum=12&day=20' );
+
+'''Return posts for posts for March 1 to March 15, 2009:'''
+<pre>
+<?php
+//based on Austin Matzko's code from wp-hackers email list
+  function filter_where($where = '') {
+    //posts for March 1 to March 15, 2009
+    $where .= " AND post_date >= '2009-03-01' AND post_date < '2009-03-16'";
+    return $where;
+  }
+add_filter('posts_where', 'filter_where');
+query_posts($query_string);
+?>
+</pre>
+
+'''Return posts from the last 30 days:'''
+<pre>
+<?php
+//based on Austin Matzko's code from wp-hackers email list
+  function filter_where($where = '') {
+    //posts in the last 30 days
+    $where .= " AND post_date > '" . date('Y-m-d', strtotime('-30 days')) . "'";
+    return $where;
+  }
+add_filter('posts_where', 'filter_where');
+query_posts($query_string);
+?>
+</pre>   
+
+'''Return posts 30 to 60 days old'''
+<pre>
+<?php
+//based on Austin Matzko's code from wp-hackers email list
+  function filter_where($where = '') {
+    //posts  30 to 60 days old
+    $where .= " AND post_date >= '" . date('Y-m-d', strtotime('-60 days')) . "'" . " AND post_date <= '" . date('Y-m-d', strtotime('-30 days')) . "'";
+    return $where;
+  }
+add_filter('posts_where', 'filter_where');
+query_posts($query_string);
+?>
+</pre>
+
+===Pagination Parameters===
+*  <tt>nopaging=true</tt> - will disable pagination, displaying all posts
+*  <tt>posts_per_page=10</tt> - number of posts to show per page
+*  <tt>paged=2</tt> - show the posts that would normally show up just on page 2 when using the "Older Entries" link. You should set this to <tt>get_query_var( 'paged' )</tt> if you want your query to work with pagination.
+*  <tt>order=ASC</tt> - show posts in chronological order, DESC to show in reverse order (the default)
+
+===Offset Parameter===
+You can ''displace'' or pass over one or more initial posts which would normally be collected by your query through the use of the offset parameter. 
+
+The following will display the 5 posts which follow the most recent (1): 
+
+ query_posts('posts_per_page=5&offset=1');
+
+===Orderby Parameters===
+Sort retrieved posts by this field.
+*  <tt>orderby=author</tt>
+*  <tt>orderby=date</tt>
+*  <tt>orderby=title</tt>
+*  <tt>orderby=modified</tt>
+*  <tt>orderby=menu_order</tt> '''Note:''' Only works with [[Pages]].
+*  <tt>orderby=parent</tt>
+*  <tt>orderby=ID</tt>
+*  <tt>orderby=rand</tt>
+*  <tt>orderby=meta_value</tt> '''Note:''' A <tt>meta_key=keyname</tt> must also be present in the query.
+*  <tt>orderby=none</tt> - no order (available with [[Version 2.8]])
+*  <tt>orderby=comment_count</tt> - (available with [[Version 2.9]])
+
+===Order Parameters===
+Designates the ascending or descending order of the ORDERBY parameter.
+*  <tt>order=ASC</tt> - ascending order, lowest to highest value
+*  <tt>order=DESC</tt> - descending order, highest to lowest value
+
+===Custom Field Parameters===
+Retrieve posts (or [[Pages]]) based on a custom field key or value.   
+
+*  <tt>meta_key=</tt>
+*  <tt>meta_value=</tt>
+*  <tt>meta_compare=</tt> - operator to test the <tt>meta_value=</tt>, default is '=', with other possible values of '!=', '>', '>=', '<', or '<='
+
+Returns posts with custom fields matching both a key of 'color' AND a value of 'blue': 
+ query_posts('meta_key=color&meta_value=blue'); 
+
+Returns posts with a custom field key of 'color', regardless of the custom field value:
+ query_posts('meta_key=color'); 
+
+Returns posts where the custom field value is 'color', regardless of the custom field key:
+ query_posts('meta_value=color');
+
+Returns any [[Pages|Page]] where the custom field value is 'green', regardless of the custom field key:
+ query_posts('post_type=page&meta_value=green');
+
+Returns both posts and [[Pages]] with a custom field key of 'color' where the custom field value IS NOT EQUAL TO 'blue':
+ query_posts('post_type=any&meta_key=color&meta_compare=!=&meta_value=blue');
+
+Returns posts with custom field key of 'miles' with a custom field value that is LESS THAN OR EQUAL TO 22.  Note the value 99 will be considered greater than 100 as the data is stored as strings, not numbers.  
+ query_posts('meta_key=miles&meta_compare=<=&meta_value=22');
+
+===Combining Parameters===
+You may have noticed from some of the examples above that you combine parameters with an ampersand (&), like so: 
+
+ query_posts('cat=3&year=2004');
+
+Posts for category 13, for the current month on the main page:
+
+ if (is_home()) {
+ query_posts($query_string . '&cat=13&monthnum=' . date('n',current_time('timestamp')));
+ }
+
+At 2.3 this combination will return posts belong to both Category 1 AND 3, showing just two (2) posts, in descending order by the title:
+
+  query_posts(array('category__and'=>array(1,3),'posts_per_page'=>2,'orderby'=>title,'order'=>DESC));
+
+
+In 2.3 and 2.5 one would expect the following to return all posts that belong to category 1 and is tagged "apples"
+
+ query_posts('cat=1&tag=apples');
+
+A bug prevents this from happening. See [http://trac.wordpress.org/ticket/5433 Ticket #5433]. A workaround is to search for several tags using +
+
+ query_posts('cat=1&tag=apples+apples');
+
+This will yield the expected results of the previous query. Note that using 'cat=1&tag=apples+oranges' yields expected results.
+
+==Examples==
+
+===Exclude Categories From Your Home Page===
+
+Placing this code in your <tt>index.php</tt> file will cause your home page to display posts from all categories ''except'' category ID 3.
+
+<pre>
+<?php
+   if (is_home()) {
+      query_posts("cat=-3");
+   }
+?>
+</pre>
+
+You can also add some more categories to the exclude-list (tested with WP 2.1.2):
+
+<pre>
+<?php
+   if (is_home()) {
+      query_posts("cat=-1,-2,-3");
+   }
+?>
+</pre>
+
+===Retrieve a Particular Post===
+To retrieve a particular post, you could use the following:
+
+<pre>
+<?php
+// retrieve one post with an ID of 5
+query_posts('p=5');      
+?>
+</pre>
+
+If you want to use the ''Read More'' functionality with this query, you will need to set the global <tt>$more</tt> variable to 0.
+
+<pre>
+<?php
+// retrieve one post with an ID of 5
+query_posts('p=5');
+      
+global $more;
+// set $more to 0 in order to only get the first part of the post
+$more = 0; 
+
+// the Loop
+while (have_posts()) : the_post(); 
+  // the content of the post
+  the_content('Read the full post &raquo;'); 
+endwhile;
+?>
+</pre>
+
+===Retrieve a Particular Page===
+To retrieve a particular page, you could use the following:
+
+<pre>
+<?php
+query_posts('page_id=7');      //retrieves page 7 only
+?>
+</pre>
+or
+<pre>
+<?php
+query_posts('pagename=about'); //retrieves the about page only
+?>
+</pre>
+
+For child pages, the slug of the parent and the child is required, separated by a slash. For example:
+
+<pre>
+<?php
+query_posts('pagename=parent/child'); // retrieve the child page of a parent
+?>
+</pre>
+
+===Passing variables to query_posts===
+You can pass a variable to the query with two methods, depending on your needs. As with other examples, place these above your Loop:
+
+==== Example 1  ====
+
+In this example, we concatenate the query before running it. First assign the variable, then concatenate and then run it. Here we're pulling in a category variable from elsewhere. 
+
+<pre>
+ <?php
+ $categoryvariable=$cat; // assign the variable as current category
+ $query= 'cat=' . $categoryvariable. '&orderby=date&order=ASC'; // concatenate the query
+ query_posts($query); // run the query
+ ?>
+</pre>
+
+==== Example 2 ====
+
+In this next example, the double quotes tell PHP to treat the enclosed as an expression. For this example, we are getting the current month and the current year, and telling <tt>query_posts</tt> to bring us the posts for the current month/year, and in this case, listing in ascending order so we get the oldest post at the top of the page. 
+
+<pre>
+<?php
+$current_month = date('m');
+$current_year = date('Y');
+
+query_posts("cat=22&year=$current_year&monthnum=$current_month&order=ASC");
+?>
+<!-- put your loop here -->
+</pre>
+
+==== Example 3 ====
+
+This example explains how to generate a complete list of posts, dealing with pagination. We can use the default <tt>$query_string</tt> telling <tt>query_posts</tt> to bring us a full posts listing.  We can also modify the <tt>posts_per_page</tt> query argument from -1 to the number of posts you want to show on each page; in this last case, you'll probably want to use [[Template Tags/posts_nav_link|posts_nav_link()]] to navigate the generated archive.
+
+<pre>
+<?php 
+query_posts($query_string.'&posts_per_page=-1');
+while(have_posts()) { the_post();
+<!-- put your loop here -->
+}
+?>
+</pre>
+
+==== Example 4 ====
+
+If you don't need to use the <tt>$query_string</tt> variable, another method exists that is more clear and readable, in some more complex cases. This method puts the parameters into an array. The same query as in Example 2 above could be done like this:
+
+<pre>
+query_posts(array(
+ 'cat'      => 22, 
+ 'year'     => $current_year, 
+ 'monthnum' => $current_month, 
+ 'order'    => 'ASC',
+));
+</pre>
+
+As you can see, with this approach, every variable can be put on its own line, for easier reading.
+
+=== Preserving the Original Query (Pagination etc.)===
+By default running query_posts will completely overwrite all existing query variables on the current page. Pagination, categories dates etc. will be lost and only the variables you pass into query_posts will be used. 
+
+If you want to preserve the original query you can merge the original query array into your parameter array:
+
+<pre>
+global $wp_query;
+query_posts(
+	array_merge(
+		array('cat' => 1),
+		$wp_query->query
+	)
+);</pre>
+
+
+==Usage Tips==
+The "Blog pages show at most" parameter in Settings > Reading can influence your results.  To overcome this, add the 'posts_per_page' parameter.  For example:
+<pre>
+query_posts('category_name=The Category Name&posts_per_page=-1');  //returns ALL from the category
+</pre>
+
+==Resources==
+* [http://www.ifelse.co.uk/archives/2005/04/08/query_posts-redux/ If..Else - Query Post Redux]
+* [http://www.ifelse.co.uk/archives/2005/04/10/make-wp-show-only-one-post-on-the-front-page/ If..Else - Make WordPress Show Only one Post on the Front Page]
+* [http://www.ifelse.co.uk/archives/2005/03/31/query_posts/ If..Else - Query Posts]
+* [http://perishablepress.com/press/2008/01/22/6-ways-to-customize-wordpress-post-order/ Perishable Press - 6 Ways to Customize WordPress Post Order ]
+* [http://www.nietoperzka.com/wptraining/custom-order-of-posts-on-main-page/ nietoperzka's Custom order of posts on the main page]
+* [http://www.darrenhoyt.com/2008/06/11/displaying-related-category-and-author-content-in-wordpress/ Displaying related category and author content]
+*[http://maymay.net/blog/2008/06/06/arbitrarily-exclude-posts-from-displaying-in-wordpress/ Exclude posts from displaying]
+<!--We need resources from other sources for this article-->
+
+==Related==
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

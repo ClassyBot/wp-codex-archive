@@ -1,0 +1,46 @@
+==Description==
+
+The <tt>delete_user</tt> action/hook can be used to perform additional actions when a user is deleted. For example, you can delete rows from custom tables created by a plugin.
+
+The hook passes one parameter: the user's ID.
+
+This hook runs before a user is deleted. The hook <tt>deleted_user</tt> (notice the "ed") runs after a user is deleted. Choose the appropriate hook for your needs. If you need access to user meta or fields from the user table, use <tt>delete_user</tt>.
+
+Users deleted from Network Site installs may not trigger this hook. Be sure to use the <tt>wpmu_delete_user</tt> hook for those cases. The <tt>delete'''d'''_user</tt> hook is called in either case.
+
+==Usage==
+<pre><?php add_action( 'delete_user', 'function_name' ); ?></pre>
+
+where "function_name" is the name of the function to be called.
+
+==Example: Email Users Being Deleted==
+
+Let's have a look at an example:
+
+<pre>
+function my_delete_user( $user_id ) {
+	global $wpdb;
+
+        $user_obj = get_userdata( $user_id );
+        $email = $user_obj->user_email;
+
+	$headers = 'From: ' . get_bloginfo( "name" ) . ' <' . get_bloginfo( "admin_email" ) . '>' . "\r\n";
+ 	 wp_mail( $email, 'You are being deleted, brah', 'Your account at ' . get_bloginfo("name") . ' is being deleted right now.', $headers );
+}
+add_action( 'delete_user', 'my_delete_user' );
+</pre>
+
+In this example we send a friendly message to a user before their account is deleted a few milliseconds later.
+
+==Related==
+*Action hook: [[Plugin_API/Action_Reference/deleted_user|'deleted_user']]
+*Action hook: [[Plugin_API/Action_Reference/wpmu_delete_user|'wpmu_delete_user']]
+*Function: [[Function_Reference/wp_delete_user|wp_delete_user()]]
+*Function: [[Function_Reference/wpmu_delete_user|wpmu_delete_user()]]
+
+==See Also==
+*[[Pluggable Functions]]
+*[[Plugin API/Filter Reference|Filter Reference]]
+
+{{Stub}}
+[[Category:Actions]]

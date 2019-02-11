@@ -1,0 +1,167 @@
+{{Languages|
+{{en|Child Themes}}
+{{ja|Child Themes}}
+{{fr|Thèmes Enfant}}
+{{zh-hans|子主题}} 
+}}
+
+WordPress子主题也是一个主题，它继承了另一个主题——父主题——的功能，并允许你对父主题的功能进行修改，或者添加新功能。本文将说明如何创建一个基本的子主题并解释您能用它来干什么。本文将使用 [[Version_3.0|WordPress 3.0]] 的默认主题 Twenty Ten 作为父主题进行举例说明。
+
+创建一个子主题是很简单的。创建一个目录，将格式编写正确的 ''style.css'' 文件放进去，一个子主题就做成了！只需要对 HTML 和 [[CSS]] 具有基本的了解，您就可以通过创建一个''非常基本的子主题'' 来对一个父主题的样式和布局进行修改和扩展，而不需要对父主题的文件作任何修改。通过这样的方式，当父主题被更新的时候，您所做的修改就可以保存下来。
+
+'''因为这个原因，我们强烈推荐您使用子主题的方式来对主题进行修改。'''  
+
+如果您对 PHP， [[Templates|WordPress Templates]]，和 [[Plugin API|WordPress Plugin API]]有个基本的理解，理论上来讲，您可以使用子主题对父主题的每一个方面进行扩展，而不需要对父主题的文件进行任何修改。
+
+== 目录结构 ==
+
+子主题放在''wp-content/themes''目录下属于自己的目录里。下面的结构显示的就是子主题和它的父主题（Twenty Ten）在典型的WordPress目录结构中的位置：
+
+*   '''public_html'''
+**      '''wp-content''' 
+***         '''themes''' (主题存放的目录)
+****            '''twentyten''' (示例中父主题Twenty Ten的目录)
+****            '''twentyten-child''' (子主题存放的目录，可以任意命名)
+*****               '''style.css''' (子主题中不可或缺的文件，文件名必需为 style.css)
+
+这个文件夹里面可以少至只包含一个''style.css''文件，也可以包含多至一个完整WordPress主题所拥有的文件：
+
+#   style.css (必需)
+#   functions.php (可选)
+#   Template files (可选)
+#   Other files (可选)
+
+让我们看看它们是如何起作用的。
+
+== 必需的style.css文件 ==
+
+''style.css''是一个子主题唯一'''必须的'''文件。它的头部提供的信息让WordPress辨认出子主题，并且'''重写父主题中的style.css文件'''。
+
+对于任何WordPress主题，头部信息必须位于文件的顶端，唯一的区别就是子主题中的<code>Template:</code>行是必须的，因为它让WordPress知道子主题的父主题是什么。
+
+下面是一个''style.css''文件的头部信息的示例：
+
+<pre>
+/*
+Theme Name:     Twenty Ten Child
+Theme URI:      http: //example.com/
+Description:    Child theme for the Twenty Ten theme 
+Author:         Your name here
+Author URI:     http: //example.com/about/
+Template:       twentyten
+Version:        0.1.0
+*/
+</pre>
+
+逐行的简单解释：
+
+
+
+*   <code>Theme Name</code>.   ('''必需''')   子主题的'''名称'''。
+*   <code>Theme URI</code>.    (可选)          子主题的主页。
+*   <code>Description</code>.  (可选)          子主题的描述。比如：我的第一个子主题，真棒！
+*   <code>Author URI</code>.   (可选)          作者主页。
+*   <code>Author</code>.       (optional)       作者的名字。
+*   <code>Template</code>.     ('''必需''')      父主题的目录名，区别大小写。 '''注意：''' 当你更改子主题名字时，要先换成别的主题。
+*   <code>Version</code>.      (可选)         子主题的版本。比如：0.1，1.0，等。
+
+<code>*/  </code>这个关闭标记的后面部分，就会按照一个常规的样式表文件一样生效，你可以把你想对WordPress应用的样式规则都写在它的后面。
+
+要注意的是，子主题的样式表会替换父主题的样式表而生效。（事实上WordPress根本就不会载入父主题的样式表。）所以，如果你想简单地改变父主题中的一些样式和结构——而不是从头开始制作新主题——你必须明确的导入父主题的样式表，然后对它进行修改。下面的例子告诉你如何使用<code>@import</code>规则完成这个。
+
+== 一个子主题的范例 ==
+
+这个例子中的父主题是Twenty Ten，我们喜欢这个主题的几乎每个部分，除了网站标题的颜色，因为我想把它从黑色的改成绿色的。使用子主题的话，只用完成以下三个简单的步骤：
+
+#   在''wp-content/themes''目录下创建一个新目录，并将它命名为twentyten-child（或其他你喜欢的名称）。
+#   将下面的代码保存在名为''style.css''的文件里，并将它放到新建的这个文件夹。
+#   到WordPress的控制台>主题，然后激活你的新主题：Twenty Ten Child。
+
+<pre>
+/*
+Theme Name: Twenty Ten Child
+Description: Child theme for the Twenty Ten theme 
+Author: Your name here
+Template: twentyten
+*/
+
+@import url("../twentyten/style.css");
+
+#site-title a {
+    color: #009900;
+}
+</pre>
+
+下面一步步解释上面代码的作用：
+
+#   <code>/*</code> 开启子主题的头部信息。
+#   <code>Theme Name:</code> 子主题名称的声明。
+#   <code>Description:</code> 主题的描述（可选，也可被省略）。
+#   <code>Author:</code> 作者名字的声明（可选，也可被省略）。
+#   <code>Template:</code> 声明子主题的父主题，换言之，父主题所在的文件夹的名称，区分大小写。
+#   <code>*/</code>子主题头部信息的关闭标记。
+#   用 <code>@import</code>规则将父主题的样式表调入
+#    <code>#site-title a</code> 定义网站标题的颜色（绿色），覆盖父主题中相同的样式规则。
+
+===注意 <code>@import</code> 规则 ===
+
+需要注意的是，<code>@import</code>  规则之前没有其他的CSS样式规则，如果你将其他的规则置于它之上，那么它将无效，并且父主题的样式表不会被导入。
+
+== 使用 functions.php ==
+
+不像''style.css''，子主题中的''functions.php''不会覆盖父主题中对应功能，而是将新的功能加入到父主题的''functions.php''中。（其实它会在'''父主题文件加载之前先载入'''。）
+
+这样，子主题的''functions.php''提供了一个灵活稳定的方式来修改父主题的功能。如果你想在你的主题里加入一些PHP函数，最快的方式可能是打开''functions.php''文件然后加入进去。但那样并不灵活：下次你的主题升级更新了，你加入的新功能就会丢失掉。相反地，如果你使用子主题，将''functions.php''文件放进去，再将你想加入的功能写进这个文件里，那么这个功能同样会工作得很好，并且对于父主题以后的升级更新，子主题中加入的功能也不会受到影响。
+
+''functions.php''文件的结构非常简单：将PHP起始标签置于顶部，关闭标签置于底部，它们之间就写上你自己的PHP函数。你可以写得很多，也可以写得很少，反正按你所需。下面的示例是一个基本的''functions.php''文件的写法，作用是将favicon链接加入到HTML页面的head元素里面。
+
+<pre>
+&lt;?php
+
+function favicon_link() {
+    echo '<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />' . "\n";
+}
+add_action('wp_head', 'favicon_link');
+
+?&gt;
+</pre>
+
+给主题作者的提示。事实上子主题的''functions.php''首先加载意味着你的主题的用户功能可插入——即子主题是可替换的——通过有条件地进行声明。例如：
+
+<pre>
+if (!function_exists('theme_special_nav')) {
+    function theme_special_nav() {
+        //  Do something.
+    }
+}
+</pre>
+注意，替换的过程是在父级主题中，使用php的function_exits进行判断。
+用这种方式，子主题可以替换父主题中的一个PHP函数，只需要简单地对它再次声明。
+
+== 模板文件 ==
+
+[[Templates|模板文件]] 在子主题中的表现和''style.css''一样，它们会'''覆盖'''父主题中的相同文件。子主题可以覆盖'''任何'''父主题模板中的文件，只需要创建同名文件就行。（注意：''index.php''在WordPress3.0及以上版本才能被覆盖。）
+
+同样，这项WordPress的功能允许你修改父主题的样式功能而不用去编辑父主题的文件，并且你的修改能让你在更新父主题后继续保留。
+
+下面是一些使用模板文件的子主题的例子：
+
+*  增加一个父主题没有提供的模板（例如：网站地图页面的模板，或者一单栏页面，它们在页面编辑，模板选择里是可用的）
+
+*  增加一个比父模板更加具体的模板（见[[Template Hierarchy|模板级别]]）。（例如：新加的''tag.php''模板用于按tag归档的文章来代替父主题中通常的''archive.php''模板。）
+
+*  替换父主题中的一个模板.（例：使用你自己的''home.php''来覆盖父主题中的''home.php''）
+
+== 其他文件 ==
+
+除了style.css，functions.php，index.php和home.php，子主题可以使用任何正式主题使用的类型的文件，只要文件被正确链接。打个比方，你可以使用在样式表里或者Javascript文件里链接的图标、图片，或者从functions.php文件中调用出来的额外PHP文件。
+
+== Resources ==
+
+* [[Theme Development]]
+* [http://themeshaper.com/modify-wordpress-themes/ How to Modify WordPress Themes the Smart Way] - four-part series on child themes  
+* [http://op111.net/53 How to make a child theme for WordPress: A pictorial introduction for beginners] -  illustrated introduction to child themes
+* [http://aaron.jorb.in/blog/2010/04/05/introducing-thirty-ten/ Introducing Thirty Ten] - guide to creating a Twenty Ten Child Theme
+
+[[Category:zh-cn:Design and Layout]]
+[[Category:zh-cn:UI Link]]<!-- link from wp-admin/update-core.php -->

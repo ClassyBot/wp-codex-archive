@@ -1,0 +1,92 @@
+{{Languages|
+{{en|Function Reference/wp get attachment image}}
+{{it|Riferimento funzioni/wp get attachment image}}
+{{ja|Function Reference/wp get attachment image}}
+}}
+== Descrizione ==
+
+Restituisce un tag HTML <tt>img</tt> che rappresenta un file allegato, se esiste, altrimenti una stringa vuota.
+
+== Utilizzo ==
+
+%%%<?php wp_get_attachment_image( $attachment_id, $size, $icon, $attr ); ?>%%%
+
+== Utilizzo standard ==
+
+ <?php echo wp_get_attachment_image( 1 ); ?>
+
+Se l'allegato è un'immagine, la funzione restituisce un'immagine con la dimensione specificata.
+Per altri tipi di allegati, la funzione restituisce un'icona se il parametro <var>$icon</var> è impostato a <tt>true</tt>.
+
+Per ottenere gli ID degli allegati in modo dinamico in un template, si può usare [[Template_Tags/get_posts|get_posts('post_type=attachment')]], ecc.
+
+== Parametri ==
+
+{{it:Parameter|$attachment_id|integer|ID dell'allegato desiderato.}}
+
+{{it:Parameter|$size|string/array|Dimensione dell'immagine. Può essere una stringa con la parola chiave thumbnail, medium, large o full, oppure un array con due elementi che rappresentano larghezza e altezza in pixel, es. array(32,32). A partire dalla versione [[Version 2.5|2.5]], questo parametro non influisce sulla dimensione dell'icona, che è sempre mostrata nella sua dimensione originale.|opzionale|thumbnail}}
+
+Al posto di usare un array, è meglio registrare una dimensione con <code>add_image_size</code>, cosicché una versione ritagliata viene generata: è molto più efficiente rispetto a dover cercare l'immagine con la dimensione più simile a quella indicata, e dover poi far ridurre l'immagine al browser.
+
+{{it:Parameter|$icon|boolean|Indica se usare un'icona per rappresentare l'allegato.|opzionale|false}}
+:* <tt>1 (true)</tt> 
+:* <tt>0 (false)</tt> - default
+
+{{it:Parameter|$attr|string/array|Query string o array di attributi.|opzionale}}
+<pre>
+$default_attr = array(
+	'src'	=> $src,
+	'class'	=> "attachment-$size",
+	'alt'   => trim(strip_tags( get_post_meta($attachment_id, '_wp_attachment_image_alt', true) )),
+);
+</pre>
+
+L'argomento <tt>$attr</tt> è combinato con gli attributi predefiniti di WordPress e passato attraverso il filtro <tt>wp_get_attachment_image_attributes</tt>.
+
+== Valori restituiti ==
+{{it:Return||string|Un elemento HTML <tt>img</tt> o una stringa vuota in caso di fallimento.}}
+
+== Esempi ==
+=== Mostra tutte le immagini come una lista ===
+
+Per mostrare tutte le immagini, con i relativi titoli, allegate ad una carta pagina nella forma di una lista puntata, si può usare il seguente codice: 
+
+<pre><ul>
+<?php if ( have_posts() ) : while ( have_posts() ) : the_post();    
+
+ $args = array(
+   'post_type' => 'attachment',
+   'numberposts' => -1,
+   'post_status' => null,
+   'post_parent' => $post->ID
+  );
+
+  $attachments = get_posts( $args );
+     if ( $attachments ) {
+        foreach ( $attachments as $attachment ) {
+           echo '<li>';
+           echo wp_get_attachment_image( $attachment->ID, 'full' );
+           echo '<p>';
+           echo apply_filters( 'the_title', $attachment->post_title );
+           echo '</p></li>';
+          }
+     }
+
+ endwhile; endif; ?>
+</ul></pre>
+
+== Log delle modifiche ==
+Da: 2.5.0
+
+== File sorgente ==
+
+<tt>wp_get_attachment_image()</tt> si trova in {{Trac|wp-includes/media.php}}.
+
+== Correlati ==
+
+{{it:Attachment Tags}}
+
+{{it:Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New page created]]

@@ -1,0 +1,131 @@
+{{Languages|
+{{en|Function Reference/update post meta}}
+{{ja|関数リファレンス/update post meta}}
+}}
+==Description==
+
+The function <tt>update_post_meta()</tt> updates the value of an existing meta key (custom field) for the specified post.
+
+This may be used in place of <tt>[[Function Reference/add post meta | add_post_meta()]]</tt> function.  The first thing this function will do is make sure that <tt>$meta_key</tt> already exists on <tt>$post_id</tt>.  If it does not, <tt>add_post_meta($post_id, $meta_key, $meta_value)</tt> is called instead and its result is returned.
+
+Returns <tt>meta_id</tt> if the meta doesn't exist, otherwise returns <tt>true</tt> on success and <tt>false</tt> on failure.  It also returns <tt>false</tt> if the value submitted is the same as the value that is already in the database.
+
+Please note that if your database collation is case insensitive (has with suffix <tt>_ci</tt>) then <tt>update_post_meta</tt> and <tt>[[Function_Reference/delete_post_meta | delete_post_meta]]</tt> and <tt>[[Function_Reference/get_posts | get_posts]]</tt> will update/delete/query the meta records with keys that are upper or lower case.  However <tt>[[Function_Reference/get_post_meta | get_post_meta]]</tt> will apparently be case sensitive due to [[Class_Reference/WP_Object_Cache | WordPress caching]]. See https://core.trac.wordpress.org/ticket/18210 for more info.
+
+==Usage==
+
+%%% <?php update_post_meta( $post_id, $meta_key, $meta_value, $prev_value ); ?> %%%
+
+==Parameters==
+
+{{Parameter|$post_id|integer|The ID of the post which contains the field you will edit.}}
+{{Parameter|$meta_key|string|The key of the custom field you will edit. (this should be raw as opposed to sanitized for database queries)}}
+{{Parameter|$meta_value|mixed|The new value of the custom field. A passed array will be serialized into a string.(this should be raw as opposed to sanitized for database queries)}}
+{{Parameter|$prev_value|mixed|The old value of the custom field you wish to change. This is to differentiate between several fields with the same key.  If omitted, and there are multiple rows for this post and meta key, all meta values will be updated.|optional|''Empty''}}
+
+== Return Values ==
+
+; (mixed) : Returns meta_id if the meta doesn't exist, otherwise returns true on success and false on failure. NOTE: If the meta_value passed to this function is the same as the value that is already in the database, this function returns false.
+
+==Examples==
+
+===Default Usage===
+
+ <?php update_post_meta( 76, 'my_key', 'Steve' ); ?>
+
+===Other Examples===
+
+Assuming a post has an ID of 76, and the following 4 custom fields:
+
+<div style="border:1px solid blue; width:50%; margin: 20px; padding:20px">
+[key_1] => 'Happy'<br/>
+[key_1] => 'Sad'<br/>
+[key_2] => 'Gregory'<br/>
+[my_key] => 'Steve'<br/>
+</div>
+
+To change <tt>key_2</tt>'s value to ''Hans'':
+ <?php update_post_meta( 76, 'key_2', 'Hans' ); ?>
+
+To change <tt>key_1</tt>'s value from ''Sad'' to ''Happy'':
+ <?php update_post_meta( 76, 'key_1', 'Happy', 'Sad' ); ?>
+
+The fields would now look like this:
+
+<div style="border:1px solid blue; width:50%; margin: 20px; padding:20px">
+[key_1] => 'Happy'<br/>
+[key_1] => 'Happy'<br/>
+[key_2] => 'Hans'<br/>
+[my_key] => 'Steve'<br/>
+</div>
+'''''Note:''' This function will update only the first field that matches the criteria.''
+
+To change the first <tt>key_1</tt>'s value from ''Happy'' to ''Excited'':
+<pre><?php 
+  update_post_meta( 76, 'key_1', 'Excited', 'Happy' );
+
+  //Or
+
+  update_post_meta( 76, 'key_1', 'Excited' );
+
+  //To change all fields with the key "key_1":
+
+  $key1_values = get_post_custom_values( 'key_1', 76 );
+  foreach ( $key1_values as $value )
+    update_post_meta( 76, 'key_1', 'Excited', $value );
+?></pre>
+
+
+Edit Page template
+<pre><?php 
+ update_post_meta( $id, '_wp_page_template', 'new_template.php' );
+?></pre>
+
+For a more detailed example, go to the [[Function Reference/post meta Function Examples|post_meta Functions Examples]] page.
+
+==Character Escaping==
+
+Post meta values are passed through the <tt>[http://www.php.net/stripslashes stripslashes()]</tt> function upon being stored, so you will need to be careful when passing in values (such as JSON) that might include <tt>\</tt> escaped characters.
+
+===Do not store escaped values===
+Consider the JSON value <tt>{"key":"value with \"escaped quotes\""}</tt>:
+<pre><?php
+$escaped_json = '{"key":"value with \\"escaped quotes\\""}';
+update_post_meta( $id, 'escaped_json', $escaped_json );
+$broken = get_post_meta( $id, 'escaped_json', true );
+/*
+$broken, after passing through stripslashes() ends up unparsable:
+{"key":"value with "escaped quotes""}
+*/
+?></pre>
+
+===Workaround===
+By adding one more level of <tt>\</tt> escaping using function <tt>wp_slash</tt> (introduced in WP 3.6), you can compensate for the call to <tt>stripslashes()</tt>:
+<pre><?php
+$escaped_json = '{"key":"value with \\"escaped quotes\\""}';
+update_post_meta( $id, 'double_escaped_json', wp_slash( $escaped_json ) );
+$fixed = get_post_meta( $id, 'double_escaped_json', true );
+/*
+$fixed, after stripslashes(), ends up being stored as desired:
+{"key":"value with \"escaped quotes\""}
+*/
+?></pre>
+
+== Notes ==
+* This function uses <tt>[[Function_Reference/update_metadata | update_metadata()]]</tt>.
+
+== Source Code ==
+
+<tt>update_post_meta()</tt> is located in {{Trac|wp-includes/post.php}}
+
+== Change Log ==
+
+Since [[Version 1.5|1.5.0]]
+
+==Related==
+
+{{Post Meta Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

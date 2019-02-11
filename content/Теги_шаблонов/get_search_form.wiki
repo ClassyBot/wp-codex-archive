@@ -1,0 +1,121 @@
+{{Languages|
+{{en|Function Reference/get_search_form}}
+{{it|Riferimento funzioni/get_search_form}}
+{{mk|Функција:get_search_form}}
+{{ru|Теги шаблонов/get_search_form}}
+}}
+
+==Описание==
+
+Показывает форму поиска, используя файл темы <tt>searchform.php</tt>.
+
+==Использование==
+
+%%%<?php get_search_form( $echo ); ?>%%%
+
+==Параметры==
+
+{{Parameter|$echo|boolean|''true'' чтобы отобразить форму; ''false'' чтобы вернуть форму в виде строки.|необязательный|true}}
+
+==Возвращаемое значение==
+; (string) : HTML-код формы, если параметр $echo равен false.
+
+==Примеры==
+
+===HTML4 форма по умолчанию===
+Если в вашей теме нет файла <tt>searchform.php</tt>, WordPress будет использовать встроенную форму поиска:
+
+<pre>
+<form role="search" method="get" id="searchform" class="searchform" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+	<div>
+		<label class="screen-reader-text" for="s"><?php _x( 'Search for:', 'label' ); ?></label>
+		<input type="text" value="<?php echo get_search_query(); ?>" name="s" id="s" />
+		<input type="submit" id="searchsubmit" value="<?php echo esc_attr_x( 'Search', 'submit button' ); ?>" />
+	</div>
+</form>
+</pre>
+Приведенная форма используется в HTML4-сайтах.
+
+===HTML5 форма по умолчанию===
+Начиная с [[Version 3.6|WordPress 3.6]], если ваша тема поддерживает [[Theme Markup|HTML5 Markup]], что имеет место, если включена такая поддержка:
+
+<pre>add_theme_support( 'html5', array( 'search-form' ) );</pre>
+
+
+WordPress будет использовать встроенную  HTML5 форму поиска:
+
+<pre>
+<form role="search" method="get" class="search-form" action="<?php echo home_url( '/' ); ?>">
+	<label>
+		<span class="screen-reader-text"><?php echo _x( 'Search for:', 'label' ) ?></span>
+		<input type="search" class="search-field" placeholder="<?php echo esc_attr_x( 'Search &hellip;', 'placeholder' ) ?>" value="<?php echo get_search_query() ?>" name="s" title="<?php echo esc_attr_x( 'Search for:', 'label' ) ?>" />
+	</label>
+	<input type="submit" class="search-submit" value="<?php echo esc_attr_x( 'Search', 'submit button' ) ?>" />
+</form>
+</pre>
+
+Среди изменений то, что форма имеет класс <tt>class="search-form"</tt>. Кроме того, для ввода запроса используется тег <tt>input</tt> типа <tt>type="search"</tt>, а не <tt>type="text"</tt>. Далее, имеется атрибут <tt>placeholder</tt>, который показывает подходящий начальный текст-заполнитель для поля поиска без необходимости использовать <tt>javascript</tt>. Форма больше не содержит элементов с идентификаторами <tt>id</tt>, поэтому можно расположить несколько поисковых форм на странице, которая при этом останется валидной.
+
+===Форма в теме===
+Если в вашей теме имеется файл <tt>searchform.php</tt>, именно он будет использоваться в качестве шаблона поисковой формы. Помните, что форма поиска должна выполнять запрос к домашней странице вашего блога с помощью метода <tt>GET</tt>. Поле поискового запроса должно иметь имя <tt>s</tt> и вы всегда должны включать тег <tt>label</tt>, как в примерах выше. 
+
+Пример пользовательского файла <tt>searchform.php</tt>:
+
+<pre>
+<form action="/" method="get">
+	<fieldset>
+		<label for="search">Search in <?php echo home_url( '/' ); ?></label>
+		<input type="text" name="s" id="search" value="<?php the_search_query(); ?>" />
+		<input type="image" alt="Search" src="<?php bloginfo( 'template_url' ); ?>/images/search.png" />
+	</fieldset>
+</form>
+</pre>
+
+Единственный параметр, который будет здесь приниматься - <tt>s</tt> со значением текущего поискового запроса. Однако вы можете сделать уточнение параметров поиска многими способами.
+Например, показывать в результатах поиска только записи блога. Это можно сделать с помощью следующего дополнения к приведенной выше форме: 
+
+<pre>
+<input type="hidden" value="post" name="post_type" id="post_type" />
+</pre>
+
+Здесь мы принимаем значение <tt>post</tt>. Значением по умолчанию является <tt>any</tt>, включающее записи, статические страницы и пользовательские типы. Если добавить в форму приведенный выше <tt>input</tt>, то в результатах будут только материалы с типом <tt>post</tt>. 
+Есть много возможностей уточнить параметры поиска. Использовав функцию <tt>var_dump</tt> с объектом <tt>$wp_query</tt>, вы можете посмотреть значения по умолчанию для всех переменных поиска. Применив <tt>var_dump</tt> к <tt>$wp_query->query</tt>, вы можете увидеть текущий запрос. 
+
+Еще одна возможность - написать пользовательскую функцию (включить ее в ваш файл <tt>functions.php</tt>) и привязать ее к <tt>get_search_form</tt> с помощью "зацепки" (hook).
+
+<pre>
+function my_search_form( $form ) {
+	$form = '<form role="search" method="get" id="searchform" class="searchform" action="' . home_url( '/' ) . '" >
+	<div><label class="screen-reader-text" for="s">' . __( 'Search for:' ) . '</label>
+	<input type="text" value="' . get_search_query() . '" name="s" id="s" />
+	<input type="submit" id="searchsubmit" value="'. esc_attr__( 'Search' ) .'" />
+	</div>
+	</form>';
+
+	return $form;
+}
+
+add_filter( 'get_search_form', 'my_search_form' );
+</pre>
+
+==Примечания==
+
+Пожалуйста, используйте <tt>value="<?php echo get_search_query(); ?>"</tt> (функция обертки <tt>esc_attr( $s );</tt> другие необходимые фильтры), если хотите показать текущий поисковый запрос в поисковом поле после выполнения поиска. Это одно из самых XSS-уязвимых мест в теме, если не позаботиться о безопасности.  
+
+==История изменений==
+
+* Тег добавлен, начиная с версии: [[Version 2.7|2.7.0]]
+
+==Исходный код==
+
+Код <tt>get_search_form()</tt> находится в {{Trac|wp-includes/general-template.php}}.
+
+==Связанные ссылки==
+
+{{Include Tags}}
+
+* [[Теги шаблонов]]
+* [[Справочник по функциям]]
+
+[[Category:Russian Codex]]
+[[Category:Теги_шаблонов]]

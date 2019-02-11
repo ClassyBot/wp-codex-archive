@@ -1,0 +1,178 @@
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit">expanding it</a></b>.</div>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Introduction"><span class="tocnumber">1</span> <span class="toctext">Introduction</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Examples"><span class="tocnumber">2</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Visualblock_plugin"><span class="tocnumber">2.1</span> <span class="toctext">Visualblock plugin</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Creating_a_shortcode_and_a_tag_button"><span class="tocnumber">2.2</span> <span class="toctext">Creating a shortcode and a tag button</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Plugin_Version_Compatibility"><span class="tocnumber">3</span> <span class="toctext">Plugin Version Compatibility</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Wordpress_3.9.2B_compatibility"><span class="tocnumber">3.1</span> <span class="toctext">Wordpress 3.9+ compatibility</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#External_Resources"><span class="tocnumber">4</span> <span class="toctext">External Resources</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">5</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Introduction">Introduction</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit&amp;section=1" title="Edit section: Introduction">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <code>mce_external_plugins</code> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> is used to load external TinyMCE plugins. 
+</p><p>This filter may be useful for loading any of the <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/Plugins">TinyMCE core plugins</a>, many of which are not included by default in WordPress, as well as any custom TinyMCE plugins you may want to create.
+</p><p>To find out how to create a TinyMCE plugin from scratch, <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/Tutorials:Creating_a_plugin">see this article on the TinyMCE Wiki</a>.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit&amp;section=2" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Visualblock_plugin">Visualblock plugin</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit&amp;section=3" title="Edit section: Visualblock plugin">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>For example, you might create a WordPress plugin that loads the TinyMCE plugin <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/Plugin:visualblocks">visualblocks</a>. 
+</p><p>TinyMCE plugins typically consist of a javascript file named 'editor_plugin.js' and a series of CSS files and other helper files. This example assumes the WordPress plugin stores TinyMCE plugins as follows: <i>example_plugin/tinymce/visualblocks/edior_plugin.js</i>
+</p>
+<pre>
+/**
+ * Add the TinyMCE VisualBlocks Plugin.
+ *
+ * @param array $plugins An array of all plugins.
+ * @return array
+ */
+function my_custom_plugins( $plugins ) {
+     $plugins['visualblocks'] = plugins_url( 'tinymce/', __FILE__ ) . 'visualblocks/editor_plugin.js';
+     return $plugins;
+}
+add_filter( 'mce_external_plugins', 'my_custom_plugins' );
+</pre>
+<h3><span class="mw-headline" id="Creating_a_shortcode_and_a_tag_button">Creating a shortcode and a tag button</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit&amp;section=4" title="Edit section: Creating a shortcode and a tag button">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>First, create a plugin that registers the buttons and their JavaScript.
+</p>
+<pre>
+/* Plugin Name: My TinyMCE Buttons */
+add_action( 'admin_init', 'my_tinymce_button' );
+
+function my_tinymce_button() {
+     if ( current_user_can( 'edit_posts' ) &amp;&amp; current_user_can( 'edit_pages' ) ) {
+          add_filter( 'mce_buttons', 'my_register_tinymce_button' );
+          add_filter( 'mce_external_plugins', 'my_add_tinymce_button' );
+     }
+}
+
+function my_register_tinymce_button( $buttons ) {
+     array_push( $buttons, "button_eek", "button_green" );
+     return $buttons;
+}
+
+function my_add_tinymce_button( $plugin_array ) {
+     $plugin_array['my_button_script'] = plugins_url( '/mybuttons.js', __FILE__ )&#160;;
+     return $plugin_array;
+}
+</pre>
+<p>Then, in the same folder as the plugin, the JavaScript file <b>mybuttons.js</b>. We add our two buttons (eek and green), one is a direct <tt>onclick</tt> that inserts a Shortcode and the other is a command that adds an <tt>h3</tt> tag to the selected text in the editor.  
+</p>
+<pre>
+(function() {
+     /* Register the buttons */
+     tinymce.create('tinymce.plugins.MyButtons', {
+          init&#160;: function(ed, url) {
+               /**
+               * Inserts shortcode content
+               */
+               ed.addButton( 'button_eek', {
+                    title&#160;: 'Insert shortcode',
+                    image&#160;: '../wp-includes/images/smilies/icon_eek.gif',
+                    onclick&#160;: function() {
+                         ed.selection.setContent('[myshortcode]');
+                    }
+               });
+               /**
+               * Adds HTML tag to selected content
+               */
+               ed.addButton( 'button_green', {
+                    title&#160;: 'Add span',
+                    image&#160;: '../wp-includes/images/smilies/icon_mrgreen.gif',
+                    cmd: 'button_green_cmd'
+               });
+               ed.addCommand( 'button_green_cmd', function() {
+                    var selected_text = ed.selection.getContent();
+                    var return_text = '';
+                    return_text = '&lt;h1&gt;' + selected_text + '&lt;/h1&gt;';
+                    ed.execCommand('mceInsertContent', 0, return_text);
+               });
+          },
+          createControl&#160;: function(n, cm) {
+               return null;
+          },
+     });
+     /* Start the buttons */
+     tinymce.PluginManager.add( 'my_button_script', tinymce.plugins.MyButtons );
+})();
+</pre>
+<p>You can pass PHP values to the JavaScript file printing directly in <tt>admin_head</tt>:
+</p>
+<pre>
+foreach ( array('post.php','post-new.php') as $hook ) {
+     add_action( "admin_head-$hook", 'my_admin_head' );
+}
+
+/**
+ * Localize Script
+ */
+function my_admin_head() {
+    $plugin_url = plugins_url( '/', __FILE__ );
+   &#160;?&gt;
+&lt;!-- TinyMCE Shortcode Plugin --&gt;
+&lt;script type='text/javascript'&gt;
+var my_plugin = {
+    'url': '&lt;?php echo $plugin_url;&#160;?&gt;',
+};
+&lt;/script&gt;
+&lt;!-- TinyMCE Shortcode Plugin --&gt;
+    &lt;?php
+}
+</pre>
+<p>And then, access it in <b>mybuttons.js</b> with <tt>console.log(my_plugin.url);</tt>.
+</p>
+<h2><span class="mw-headline" id="Plugin_Version_Compatibility">Plugin Version Compatibility</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit&amp;section=5" title="Edit section: Plugin Version Compatibility">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>Note:</b> TinyMCE plugins must be compatible with the version of TinyMCE included in WordPress. As of <a href="https://codex.wordpress.org/Version_3.5.2" title="Version 3.5.2">WordPress 3.5.2</a>, TinyMCE 3.5.8 is used. Be sure to download any plugins from the TinyMCE branch that matches the version currently in use by WordPress.
+</p><p>It may also be helpful to check when the particular plugin was introduced. <a rel="nofollow" class="external text" href="http://www.tinymce.com/develop/changelog/?ctrl=version&amp;act=view&amp;pr_id=1&amp;vr_id=611">For example</a>, the visualblocks plugin was introduced in TinyMCE version 3.5b1.
+</p>
+<h3><span class="mw-headline" id="Wordpress_3.9.2B_compatibility">Wordpress 3.9+ compatibility</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit&amp;section=6" title="Edit section: Wordpress 3.9+ compatibility">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="https://codex.wordpress.org/Version_3.9" title="Version 3.9">WordPress 3.9</a> had a major update with TinyMCE 4.0. Although the <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/Plugin:compat3x">compat3x plugin</a> is included, you may still need to rework some parts. (See <a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/ticket/24067">bug 24067</a>)
+</p><p>If you find that your plugin script is not getting added, make sure you are adding your plugin 'id' =&gt; scripturl with the 'mce_external_plugins' filter, but not the 'tiny_mce_plugins' filter, or else the script file will not be registered.
+</p>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit&amp;section=7" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://wp.tutsplus.com/tutorials/theme-development/guide-to-creating-your-own-wordpress-editor-buttons/">Creating Your Own WordPress Editor Buttons</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/Tutorials:Creating_a_plugin">Creating a TinyMCE Plugin in Javascript</a></li>
+<li> <a rel="nofollow" class="external text" href="http://generatewp.com/take-shortcodes-ultimate-level/">Take your shortcodes to the ultimate level</a> - Tutorial for using external TinyMCE plugins</li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/mce_external_plugins&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Intro: <a href="https://codex.wordpress.org/TinyMCE" title="TinyMCE">TinyMCE</a></li>
+<li> Tutorial: <a href="https://codex.wordpress.org/TinyMCE_Custom_Buttons" title="TinyMCE Custom Buttons">TinyMCE Custom Buttons</a></li>
+<li> Tutorial: <a href="https://codex.wordpress.org/TinyMCE_Custom_Styles" title="TinyMCE Custom Styles">Creating a Custom Style Dropdown</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/add_editor_style" title="Function Reference/add editor style">add_editor_style()</a></li>
+<li> Filter: <a href="/index.php?title=Plugin_API/Filter_Reference/mce_spellchecker_languages&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/mce spellchecker languages (page does not exist)">mce_spellchecker_languages</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_buttons,_mce_buttons_2,_mce_buttons_3,_mce_buttons_4" title="Plugin API/Filter Reference/mce buttons, mce buttons 2, mce buttons 3, mce buttons 4">mce_buttons, mce_buttons_2, mce_buttons_3, mce_buttons_4</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_css" title="Plugin API/Filter Reference/mce css">mce_css</a></li>
+<li> Filter: <strong class="selflink">mce_external_plugins</strong></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_external_languages" title="Plugin API/Filter Reference/mce external languages">mce_external_languages</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/tiny_mce_before_init" title="Plugin API/Filter Reference/tiny mce before init">tiny_mce_before_init</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004102
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.019 seconds
+Preprocessor visited node count: 92/1000000
+Preprocessor generated node count: 232/1000000
+Post‐expand include size: 1728/2097152 bytes
+Template argument size: 247/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.951      1 - -total
+ 66.09%    2.611      1 - Template:Stub
+ 36.65%    1.448      1 - Template:Message
+ 23.16%    0.915      1 - Template:TinyMCE_API
+-->

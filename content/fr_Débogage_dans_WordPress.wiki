@@ -1,0 +1,93 @@
+{{Languages|
+{{en|Debugging in WordPress}}
+{{es|Depurar en WordPress}}
+{{fr|Débogage dans WordPress}}
+{{hr|Ispitivanje kvarova u WordPressu}}
+{{it|Debug in WordPress}}
+{{pt-br|Depuração no WordPress}}
+}}
+
+Le débogage du code PHP fait partie de tout projet, mais WordPress est livré avec des systèmes de débogage spécifiques visant à simplifier le processus ainsi que de normaliser le code du noyau, des extensions et des thèmes. Cette page décrit les divers outils de débogage dans WordPress et comment être plus productif dans votre codage ainsi que comment augmenter de la qualité globale et interopérabilité de votre code.
+
+{{Note|Même s'il n'est pas obligatoire de tenir compte de <tt>WP_DEBUG</tt> dans les extensions et les thèmes il est '''fortement recommandé''' aux développeurs d'extensions et de thèmes d'utiliser le mode <tt>WP_DEBUG</tt> pour travailler sur le code qu'ils prévoient de publier. Si votre extension ou votre thème n'est pas compatible alors les erreurs, avertissements et mises en garde qui s'afficheront rendront votre thème / extension impossible à utiliser pour les autres développeurs lorsqu'ils auront activé <tt>WP_DEBUG</tt>. De plus, votre thème ne sera pas admissible à la promotion des outils officiels [[Theme_Review#PHP.2C_JS.2C_CSS.2C_HTML|WordPress]] (en anglais).}}
+
+== WP_DEBUG ==
+
+[[fr:WP_DEBUG|WP_DEBUG]] est une constante PHP (une variable globale permanente) qui peut être utilisée pour déclencher le mode "debug" tout au long de WordPress. Il est supposé être faux (false) par défaut et est généralement fixé à vrai (true) dans le fichier [[fr:Modifier_wp-config.php | wp-config.php]] sur les copies de développement de WordPress.
+
+  define ('WP_DEBUG', true);
+  define ('WP_DEBUG', false);
+
+Remarque&nbsp;: Les valeurs <tt>true</tt> and <tt>false</tt> dans l'exemple ne sont pas entourées par des apostrophes (') parce que ce sont des valeurs booléennes (vrai / faux). Si vous définissez des constantes à <tt>'false'</tt>, elles seront interprétés comme vraies parce que les guillemets font que c'est interprété comme une chaîne plutôt que comme un booléen.
+
+Il n'est pas recommandé d'utiliser <tt>WP_DEBUG</tt> ou les autres outils de débogage sur les sites en production&nbsp;; Ils sont destinés aux tests locaux et à la mise en place.
+
+=== Erreurs, alertes et avertissements PHP ===
+L'activation de <tt>WP_DEBUG</tt> provoquera l'affichage de toutes les erreurs, alertes et avertissements de PHP. C'est susceptible de modifier le comportement de PHP par défaut qui affiche seulement les erreurs fatales et / ou montre un écran blanc de la mort lorsque des erreurs sont présentes.
+
+Afficher toutes les alertes et avertissements PHP se traduit souvent par des messages d'erreur pour des choses qui ne semblent pas cassées, mais ne suivent pas correctement les conventions de validation des données de PHP. Ces avertissements sont faciles à corriger, une fois que le code correspondant a été identifié, et le code résultant est presque toujours plus résistant aux bogues et plus facile à maintenir.
+
+=== Fonctions et arguments obsolètes ===
+L'activation de <tt>WP_DEBUG</tt> entraînera aussi des avertissements sur les fonctions et les arguments obsolètes dans WordPress qui sont utilisés sur votre site. Ce sont des fonctions ou des arguments de fonctions qui n'ont pas encore été retirées du code du noyau, mais sont prévues pour la suppression dans un proche avenir. Les avis d'obsolescence indiquent souvent la nouvelle fonction qui doit être utilisée à la place.
+
+== WP_DEBUG_LOG ==
+
+<tt>WP_DEBUG_LOG</tt> est un compagnon à <tt>WP_DEBUG</tt> qui provoque l'enregistrement de toutes les erreurs dans un fichier <tt>debug.log</tt> présent à l'intérieur du répertoire <tt>/wp-content/</tt>. C'est utile si vous voulez examiner tous les avertissements plus tard, ou si vous avez besoin de consulter les avertissements générés en dehors de l'écran (par exemple lors d'une requête [[AJAX_in_Plugins|AJAX]] (en anglais) demande ou l'exécution de [[Function_Reference/wp_schedule_event|wp-cron]]).
+
+Notez que cela vous permet d'écrire dans <tt>/wp-content/debug.log</tt> en utilisant la fonction native de PHP <tt>error_log()</tt>, ce qui peut être utile, par exemple, lors du débogage des événements AJAX.
+
+ define('WP_DEBUG_LOG', true);
+
+== WP_DEBUG_DISPLAY ==
+
+<tt>WP_DEBUG_DISPLAY</tt> est un autre compagnon de WP_DEBUG qui contrôle si les messages de débogage sont affichés dans le HTML des pages ou pas. La valeur par défaut est 'true' ce qui montre les erreurs et avertissements lorsqu'ils sont générés. Ce paramètre à 'false' permet de masquer toutes les erreurs. Il doit être utilisé en conjonction avec <tt>WP_DEBUG_LOG</tt> de sorte que des erreurs puissent être examinées ultérieurement.
+
+ define('WP_DEBUG_DISPLAY', false);
+
+== SCRIPT_DEBUG ==
+
+<tt>SCRIPT_DEBUG</tt> est une constante liée qui forcera WordPress à utiliser les versions «&nbsp;dev&nbsp;» des fichiers CSS et JavaScript du noyau plutôt que les versions minifiées qui sont normalement chargées. Ceci est utile lorsque vous testez des modifications à tous fichiers .js ou .css intégrés. La valeur par défaut est 'false'.
+
+ define('SCRIPT_DEBUG', true);
+
+== SAVEQUERIES ==
+
+La définition<tt>SAVEQUERIES</tt> enregistre les requêtes de la base de données dans un tableau et ce tableau peut être affiché pour aider à analyser ces requêtes. La constante définie à 'true' provoque l'enregistrement de chaque requête, combien de temps elle à mis pour s'exécuter, et quelle fonction l'a appelée.
+
+ define('SAVEQUERIES', true);
+
+Le tableau est stocké dans la globale <tt>$wpdb->queries</tt>.
+
+REMARQUE&nbsp;: Cela aura un impact sur les performances sur votre site, assurez-vous donc désactiver cette fonction lorsque vous n'êtes pas en mode débogage.
+
+== Exemple de wp-config.php pour le débogage ==
+Le code suivant, inséré dans votre fichier [[fr:Modifier_wp-config.php|wp-config.php]], va enregistrer toutes les erreurs, alertes et avertissements  dans un fichier appelé debug.log dans le répertoire wp-content. Il masquera également les erreurs de manière à ne pas interrompre la génération de la page.
+
+ <nowiki> // Activer le mode WP_DEBUG
+define('WP_DEBUG', true);
+
+// EActiver l'enregistrement de débogage dans le fichier /wp-content/debug.log
+define('WP_DEBUG_LOG', true);
+
+// Désactiver l'affichage des erreurs et des alertes 
+define('WP_DEBUG_DISPLAY', false);
+@ini_set('display_errors',0);
+
+// Utiliser les versions de dev des fichiers JS et CSS du noyau (nécessaire seulement si vous modifiez ces fichiers)
+define('SCRIPT_DEBUG', true);</nowiki>
+
+REMARQUE&nbsp;: Vous devez insérer cela '''AVANT''' <tt>/* C'est tout, ne touchez pas à ce qui suit ! Bon blogging ! */</tt> dans le fichier [[fr:Modifier_wp-config.php|wp-config.php]].
+
+== Débogage des extensions ==
+
+Il y a beaucoup d'[http://wordpress.org/extend/plugins/search.php?q=debug&sort= extensions bien écrites] qui gèrent le débogage dans WordPress et montrent plus d'informations sur l’intérieur, soit pour un composant spécifique ou en général . Quelques exemples de ces extensions sont [http://wordpress.org/extend/plugins/debug-bar/ Debug Bar] avec [http://wordpress.org/extend/plugins/debug-bar/ Debug Bar] puis [http://wordpress.org/extend/plugins/debug-bar-console/ Debug Bar Console],  [http://wordpress.org/extend/plugins/log-deprecated-notices/ Log Deprecated Notices] et [http://wordpress.org/plugins/total-security/ Total Security].
+
+== Histoire ==
+
+Avant WordPress 3.1, la constante <tt>STYLE_DEBUG</tt> se comportait de façon similaire à <tt>SCRIPT_DEBUG</tt>, mais affectait les fichiers CSS plutôt que JavaScript. Dans la version 3.1 les deux constantes ont été fusionnés dans <tt>SCRIPT_DEBUG</tt>, qui affecte désormais les deux types de fichier minifiés.
+
+== == Ressources externes
+* ['Wp-config.php' déposer Générateur http://generatewp.com/wp-config/ WordPress] (en anglais)
+
+[[Category:fr:Advanced Topics]]
+[[Category:fr:WordPress Development]]

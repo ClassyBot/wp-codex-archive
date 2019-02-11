@@ -1,0 +1,97 @@
+{{Stub}}
+== Introduction ==
+
+TinyMCE is the name of the visual editor that comes with WordPress, which can be used to edit post and page content. It comes with a variety of buttons, but it is also possible to add your own buttons to the editor toolbar, and otherwise change the editor's behavior. A powerful way to do this is by adding a "plugin" to the MCE editor, and this article demonstrates how to set up a WordPress plugin to do that.
+
+This article assumes that you are already familiar with the basics of [[Writing a Plugin]] and the [[Plugin API]] of hooks and filters. Also, the MCE plugins themselves are written in JavaScript, so you will need to be familiar with JavaScript and the MCE editor conventions, as well as PHP programming.
+
+Note that the instructions below apply only to the "Visual" editor. To add buttons to the "HTML" editor as well you must use the [[Quicktags API]].
+
+== Adding Custom CSS Styles to MCE Editor ==
+
+A common use-case for custom TinyMCE plugins is the need for buttons that generate custom styles used in a site's theme, beyond the default HTML tags like Blockquote and Strong. This need is accounted for by the built-in (but hidden in WordPress) [[TinyMCE_Custom_Styles|<tt>'styleselect'</tt> button]] in TinyMCE and the ability to register custom '''formats''' that users can insert using it. 
+
+See [[TinyMCE Custom Styles]] for information about adding a pulldown menu with custom styles to TinyMCE. 
+
+Also see [[Function_Reference/add_editor_style|<tt>add_editor_style()</tt>]] which is used to register a custom CSS file for TinyMCE that will make the Visual editor display post content the way it will be shown on the frontend of the site.
+
+== Enabling hidden MCE buttons ==
+
+In implementing TinyMCE WordPress chooses to avoid a messy editor by not displaying many of the available buttons. In some cases creating a custom MCE button is unnecessary because a button already exists that does what you want and you just need to add it to one of the rows of buttons to have access. Common examples include the '''hr''' (horizontal rule), '''sub''' (subscript) and '''sup''' (superscript) buttons, as well as the powerful '''styleselect''' button mentioned above. [http://www.tinymce.com/wiki.php/TinyMCE3x:Buttons/controls See the full list of buttons on the TinyMCE site].
+
+As of WordPress 3.9 and TinyMCE 4.0 '''sup''' has been renamed to '''superscript''' and '''sub''' has been renamed to '''subscript'''.
+
+Hidden buttons can be enabled by filtering the array of buttons for the row you wish to edit. The filter for the second row is '''<tt>[[Plugin_API/Filter_Reference/mce_buttons, mce_buttons_2, mce_buttons_3, mce_buttons_4|mce_buttons_2]]</tt>''', while '''<tt>[[Plugin_API/Filter_Reference/mce_buttons, mce_buttons_2, mce_buttons_3, mce_buttons_4|mce_buttons_3]]</tt>''' will create a new third row of buttons. 
+
+<pre>
+function my_mce_buttons_2( $buttons ) {	
+	/**
+	 * Add in a core button that's disabled by default
+	 */
+	$buttons[] = 'superscript';
+	$buttons[] = 'subscript';
+
+	return $buttons;
+}
+add_filter( 'mce_buttons_2', 'my_mce_buttons_2' );
+</pre>
+
+== Creating an MCE Editor Plugin ==
+
+The first step in adding a plugin to the MCE editor is to define your plugins's behavior, by creating an MCE plugin (JavaScript) file. You can get some ideas on how to do that by looking at the existing editor plugins distributed with WordPress, which are in the <tt>/wp-includes/js/tinymce/plugins</tt> directory. Or, check the Further Reading section at the bottom of this article for documentation on how to write MCE plugins.
+
+The result is that you will create a JavaScript file, and perhaps also a CSS style file and HTML file that define your MCE plugin. The next sections show how to make your MCE plugin get loaded into the editor in WordPress, from within a WordPress plugin.
+
+== Loading a TinyMCE  Plugin ==
+
+In order to hook an MCE plugin into TinyMCE you need to hook into the following filters:
+; <tt>[[Plugin_API/Filter_Reference/mce_buttons,_mce_buttons_2,_mce_buttons_3,_mce_buttons_4|'''mce_buttons''']]</tt>: passes in/out a php array with the button names; You can also (''optionally'') use the pipe symbol ( '''<code>|</code>''' ) to insert a toolbar separator. See [http://www.tinymce.com/wiki.php/TinyMCE3x:Buttons/controls TinyMCE button list]
+; <tt>[[Plugin_API/Filter_Reference/mce_external_plugins|'''mce_external_plugins''']]</tt>: passes in/out an associative php array 'plugin_name' => 'plugin_url'. The url should be absolute and on the same domain as your WordPress installation.
+
+There are also a couple of details covered in sections below, such as how to deal with languages. 
+
+Here is an example of how these filters might be used in a plugin:
+<pre>
+// add new buttons
+add_filter( 'mce_buttons', 'myplugin_register_buttons' );
+
+function myplugin_register_buttons( $buttons ) {
+   array_push( $buttons, 'separator', 'myplugin' );
+   return $buttons;
+}
+ 
+// Load the TinyMCE plugin : editor_plugin.js (wp2.5)
+add_filter( 'mce_external_plugins', 'myplugin_register_tinymce_javascript' );
+
+function myplugin_register_tinymce_javascript( $plugin_array ) {
+   $plugin_array['myplugin'] = plugins_url( '/js/tinymce-plugin.js',__FILE__ );
+   return $plugin_array;
+}
+</pre>
+
+Note: when using the <tt>mce_external_plugins</tt> filter, the url should point to the actual plugin file, as in the example above.
+
+=== Loading language files ===
+
+The language codes are only ISO 639-1, which is just the first 2 letters from WordPress locale, like "de", "fr", "es", etc. TinyMCE  will look for a sub-directory named "langs" in the directory where my_plugin.js is located. It will load langs/[lang].js when a plugin is loaded and if the plugin has a popup, it will load langs/[lang]_dlg.js when the popup is opened.
+
+All default TinyMCE strings are translated to all languages available in WordPress. A plugin can use any of these strings; check the tinyMCE.i18n js object when TinyMCE is loaded to see how to reference them within your js plugin.
+
+== Further Reading ==
+
+Help for writing TinyMCE plugins can be found on TinyMCE's documentation site:
+* http://archive.tinymce.com/wiki.php/Tutorials:Creating_a_plugin
+* http://archive.tinymce.com/wiki.php/API3:tinymce.api.3.x
+* http://www.tinymce.com/wiki.php/TinyMCE
+* https://www.tinymce.com/docs/
+
+== External Resources ==
+
+* [http://wp.tutsplus.com/tutorials/theme-development/guide-to-creating-your-own-wordpress-editor-buttons/ Creating Your Own WordPress Editor Buttons]
+
+==Related==
+{{TinyMCE API}}
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Plugins]]

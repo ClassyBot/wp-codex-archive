@@ -1,0 +1,311 @@
+{{Languages|
+{{en|Template Tags/wp_list_categories}}
+{{ja|テンプレートタグ/wp_list_categories}}
+{{tr|Tema Etiketleri/wp_list_categories}}
+}}
+
+== Açıklama ==
+
+[[Glossary#Category|Kategori]] listesini bağlantı halinde gösterir.Kategori bağlantısına tıklandığı zaman, o Kategori içindeki tüm yazılar [[Template_Hierarchy|Tema Hiyerarşisi kuralları]]'nda belirtilen uygun [[Category Templates|Kategori Teması]]'na göre görüntülenecektir.
+
+
+'''NOT''': '''wp_list_categories()''' Wordpress 2.1'de değiştirilen iki tema etiketi ile aynı şekilde çalışır, [[Tema_Etiketleri/list_cats|list_cats()]] ve [[Tema_Etiketleri/wp_list_cats|wp_list_cats()]] (her ikisi de kullanım dışıdır).
+
+Eğer sonuçları biçimlendirmeyen bir fonksiyona ihtiyaç duyarsanız,[http://codex.wordpress.org/Function_Reference/get_categories get_categories()] etiketini deneyin.
+
+== Kullanım ==
+
+%%% <?php wp_list_categories( $args ); ?> %%%
+
+===Varsayılan Kullanım===
+
+<pre>
+<?php $args = array(
+	'show_option_all'    => '',
+	'orderby'            => 'name',
+	'order'              => 'ASC',
+	'style'              => 'list',
+	'show_count'         => 0,
+	'hide_empty'         => 1,
+	'use_desc_for_title' => 1,
+	'child_of'           => 0,
+	'feed'               => '',
+	'feed_type'          => '',
+	'feed_image'         => '',
+	'exclude'            => '',
+	'exclude_tree'       => '',
+	'include'            => '',
+	'hierarchical'       => 1,
+	'title_li'           => __( 'Categories' ),
+	'show_option_none'   => __('No categories'),
+	'number'             => null,
+	'echo'               => 1,
+	'depth'              => 0,
+	'current_category'   => 0,
+	'pad_counts'         => 0,
+	'taxonomy'           => 'category',
+	'walker'             => null
+); ?>
+</pre>
+
+Varsayılan olarak kullanıldığında, :
+* Tüm kategoriler bağlantısı yoktur
+* Kategoriler, kategori adına göre artan sırada gösterilir
+* Düzensiz liste şeklinde gösterilir (unordered list)
+* Yazı sayısı gösterilmez
+* Sadece yazı bulunan kategoriler gösterilir
+* Kategori açıklaması başlık özniteliği olarak gösterilir
+* Herhangi bir Kategorinin alt kategorisi ile sınırlı değildir
+* Feed veya feed görüntüsü kullanılmaz
+* Tüm kategoriler içerilir
+* Aktif Kategori 'current-cat' CSS sınıf-soneki ile gösterilir
+* Kategoriler hiyerarşik düzende gösterilir
+* Kategori ismi listenin başlığı olarak gösterilir
+* (!!!!!)No SQL LIMIT is imposed ('number' => 0 is not shown above)
+* Kategorileri görüntüler
+* Derinlik sınırı yoktur
+* Tüm kategoriler.
+* (!!!!)The list is rendered using a new walker object of the the Walker_Category class
+
+== Parametreler ==
+
+; show_option_all : (''string'') Boş bırakılmazsa ve stil ''list'' olarak belirtilmişse tüm kategorilere ait bir bağlantı görüntülenir.Varsayılan olarak tüm kategorilere bağlantı görüntülenmez. 
+
+; orderby : (''string'') Kategorileri alfabetik ,kategori ID'sine göre, veya kategorideki yazı sayısına göre sıralar. Geçerli değerler:
+:* <tt>ID</tt> 
+:* <tt>name</tt> - Varsayılan
+:* <tt>slug</tt> 
+:* <tt>count</tt> 
+:* <tt>term_group</tt>
+
+; order : (''string'') Kategorilerin sıralama süzeni (azalan veya artan düzende). Varsayılan değer ''artan düzende'' dir. Geçerli değerler:
+:* <tt>ASC</tt> - Varsayılan
+:* <tt>DESC</tt>
+
+; style : (''string'') Kategori liste düzeni. ''list'' değeri kategorileri liste halinde görüntüler.''none'' değeri özel bir görüntüleme metodu içermez (liste elemanları <tt><nowiki><br></nowiki></tt> etiketleri ile ayrılır). Varsayılan olarak ''list'' değeri alır (düzensiz liste şeklinde düzenlenir). Daha fazlası için [[Template_Tags/wp_list_categories#Kategori_Listesini_Stilize_Etme|stil bölümü]'ne bakın. Geçerli değerler:
+:* <tt>list</tt> - Varsayılan
+:* <tt>none</tt>
+
+; show_count : (''boolean'') Her kategori için mevcut yazı sayısını gösterir. Varsayılan değer ''false'' (yazı sayılarını gösterme). Geçerli değerler:
+:* <tt>1 (True)</tt> 
+:* <tt>0 (False)</tt> - Varsayılan
+
+; hide_empty : (''boolean'') Yazısı olmayan kategorileri gizler. Varsayılan değer ''true'' (boş kategorileri gizle). Geçerli değerler:
+:* <tt>1 (True)</tt> - Varsayılan
+:* <tt>0 (False)</tt>
+
+; use_desc_for_title : (''boolean'') Oluşturulan bağlantıların <tt>title</tt> özniteliğine kategorinin [[Manage_Categories_SubPanel|açıklaması]]nın eklenip eklenmeyeceğini belirler.(i.e. <nowiki><a title="<em>Kategori Açıklaması</em>" href="...</nowiki>). Varsayılan değer ''true'' (kategori açıklaması ekle). Geçerli değerler:
+:* <tt>1 (True)</tt> - Varsayılan
+:* <tt>0 (False)</tt>
+
+; child_of : (''integer'') Sadece belirtilen kategorinin alt kategorisi olan kategorileri görüntüler. Varsayılan değer bulunmamaktadır.
+
+; feed : (''string'') Her kategorideki ''[[Glossary#RSS|rss-2]]feed'' için bağlantı oluşturur ve bağlantı metnini gösterir. Varsayılan olarak ''metin ve bağlantı bulunmaz''.
+
+; feed_type : (''string'')
+
+; feed_image : (''string'') Her kategorideki rss-2 feed için bağlantı görevi gören görüntü (genellikle rss ikonu) oluşturur. Bu parametre '''feed''' parametresini geçersiz kılar. Varsayılan değer bulunmamaktadır.
+
+; exclude : (''string'') Bir veya daha fazla kategoriyi hariç tutar. Bu parametrede kategori ''id'''leri kullanılabilir. Kategoriler arası '','' kullanılır. ''include'' parametresi boş olmalıdır.[[#Kategorileri_Dahil_Etme_veya_Hariç_Tutma|Örneğe]] bakınız.
+
+; exclude_tree : (''string'') Kategori ağacını hariç tutar. Bu parametrede kategori ''id'''leri kullanılabilir. Kategoriler arası ('','') kullanılır. ''include'' parametresi boş olmalıdır. Eğer ''hierarchical'' parametresi ''true'' ise ''exclude_tree'' yerine ''exclude'' kullanmak gerekir. Bu parametre [[Version 2.7.1]]'da eklenmiştir.
+
+; include : (''string'') Sadece belirtilmiş kategori ''id'''lerine sahip kategoriler görüntülenir. Kategoriler arası '','' kullanılır. [[Template_Tags/wp_list_categories#Include_or_Exclude_Categories|Örneğe]] bakınız.
+
+; hierarchical : (''boolean'') Alt kategorileri iç içe geçmiş liste halinde veya ''inline'' olarak görüntüler. Varsayılan değer ''true'' (alt kategorileri görüntüle). Geçerli değerler:
+:* <tt>1 (True)</tt> - Varsayılan
+:* <tt>0 (False)</tt>
+
+; title_li : (''string'') Listenin başlığını düzenler. Varsayılan değeri "Kategoriler". Bu parametre var ancak değer belirtilmemişse başlık görüntülenmeyecektir. [[#Display or Hide the List Heading|Örneklere]] bakınız.
+
+; number : (''integer'') Görüntülenecek kategori sayısını düzenler. SQL LIMIT değerinin tanımlanmasını sağlar.
+
+; echo : (''boolean'') Sonucu görüntüler veya değişkene atar. Varsayılan değer ''true'' (Kategorileri düzenli şekilde görüntüler). Bu parametre [[Version 2.3]]'te eklenmiştir. Geçerli değerler:
+:* <tt>1 (True)</tt> - Varsayılan
+:* <tt>0 (False)</tt>
+
+; depth : (''integer'') Bu parametre Kategori hiyerarşisinde kaç katmanın listeye dahil edileceğini kontrol eder. Varsayılan değer ''0'' (bütün kategorileri ve alt kategorilerini görüntüle). Bu parametre [[Version 2.5]]'te eklendi.
+:* <tt>0</tt>  - Bütün kategoriler ve alt kategoriler (Varsayılan).
+:* <tt>-1</tt> - Bütün kategoriler yatay düzende görüntülenir (paragrafbaşı oluşturulmaz).('''hierarchical''' parametresini geçersiz kılar).
+:* <tt>1</tt>  - Sadece en üst katman Kategorileri gösterir
+:* <tt>n</tt>  - n (tam sayı) değeri kadar katman aşağıyı görüntüler
+
+; current_category : (''integer'') Kategori arşiv sayfalarında olmayan wp_list_categories kullanımında 'current-cat' ekinin görünmesine izin verir.Normalde 'current-cat' sadece kategori arşiv sayfaları için ayarlıdır. Eğer başka bir kullanımınız varsa veya farklı bir kategoriyi öne çıkarmak isterseniz, bu parametre fonksiyonun aktif olan kategoriyi göstermesini geçersiz kılar. Bu parametre [[Version 2.6]]'da eklenmiştir.
+
+; pad_counts : (''boolean'') Bağlantı veya yazı sayılarını alt kategorileri de ekleyerek hesaplar. Eğer 'show_counts' ve 'hierarchical' parametrelerinin değerleri 'true' ise bu parametre de otomatik olarak 'true' olur. Bu parametre [[Version 2.9]]'da eklenmiştir. Geçerli değerler:
+:* <tt>1 (true)</tt> 
+:* <tt>0 (false)</tt> - Varsayılan
+
+; taxonomy : (''string'') Görüntülenecek taxonomy.
+Bu parametre [[Version 3.0]]'da eklenmiştir. Geçerli değerler:
+:* <tt>category</tt> - Varsayılan
+:* <tt>taxonomy</tt> - veya herhangi bir kayıtlı taxonomy
+
+; walker : (''object'') Walker class to render the list with. Valid values:
+:* <tt>object</tt> - an instance of a class that extends either Walker_Category or [http://codex.wordpress.org/Function_Reference/Walker_Class Walker]
+
+== Örnekler ==
+
+=== Kategorileri Dahil Etme veya Hariç Tutma ===
+Kategorileri alfabetik olarak sıralamak ve sadece 16, 3, 9 ve 5 ID numaralı kategorilerini görüntülemek için şu kodu kullanabilirsiniz:
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('orderby=name&include=3,5,9,16'); ?&gt; 
+&lt;/ul&gt;
+</pre>
+
+Bu örnek kategorileri isme göre sıralar, her kategorinin yazı sayısını görüntüler ve 10 ID numaralı kategoriyi hariç tutar.
+ 
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('orderby=name&show_count=1&exclude=10'); ?&gt; 
+&lt;/ul&gt;
+</pre>
+
+=== Liste Başlığını Görüntüleme veya Gizleme ===
+'''title_li''' parametresi ''wp_list_categories'' tarafından oluşturulan kategori başlığını gösterir veya gizler. Liste başlığı olarak "Kategoriler" görüntülenir. Eğer parametre boş değere ayarlanmışsa, başlık gösterilmez. Bu örnek kategori ID numarası 4 ve 7 olan kategorileri hariç tutar ve başlığı göstermez:
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('exclude=4,7&title_li='); ?&gt;
+&lt;/ul&gt;
+</pre>
+
+Bu örnekte sadece ID numarası 9, 5, ve 23 olan kategoriler dahil edilmiş ve başlık metni "Poetry" ve başlık stili <tt><nowiki><h2></nowiki></tt> olarak belirtilmiştir:
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('include=5,9,23&title_li=&lt;h2&gt;' . __('Poetry') . '&lt;/h2&gt;' ); ?&gt; 
+&lt;/ul&gt;
+</pre>
+
+=== Sadece Bir Kategorinin Alt Kategorilerini Gösterme ===
+Sıradaki örnek kod sadece 8 ID numaralı kategorinin alt kategorilerini ID numarasına göre sıralar;her kategori için yazı sayısını gösterir ve kategori açıklamasını <tt>title</tt> özniteliğine eklemez.'''Not:''' Eğer ana kategoride yazı bulunmuyorsa, ana kategori gösterilmez.
+
+<pre>
+&lt;ul&gt; 
+&lt;?php wp_list_categories('orderby=id&show_count=1&use_desc_for_title=0&child_of=8'); ?&gt;
+&lt;/ul&gt;
+</pre>
+
+=== Kategori Sayımından Parantezi Kaldırma ===
+<tt>show_count=1</tt> iken, her kategori sayımı parantez ile çevrilidir. Wordpress çekirdek dosyalarını düzenlemeden parantezi kaldırmak için sıradaki kodu kullanın.
+
+<pre>
+&lt;?php
+$variable = wp_list_categories('echo=0&show_count=1&title_li=&lt;h2&gt;Categories&lt;/h2&gt;');
+$variable = preg_replace('~\((\d+)\)(?=\s*+<)~', '$1', $variable);
+echo $variable;
+?&gt;
+</pre>
+
+=== Kategorileri RSS Feed Bağlantılarıyla Görüntüleme ===
+Sıradaki örnek kategori bağlantılarını isme göre sıralar, kategorinin yazı sayısını gösterir ve her kategori içi RSS Feed bağlantılarını görüntüler.
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('orderby=name&show_count=1&feed=RSS'); ?&gt;
+&lt;/ul&gt;
+</pre>
+
+RSS bağlantısını feed ikonu ile değiştirmek için, şunu yazabilirsiniz:
+
+<pre>
+&lt;ul&gt;
+&lt;?php wp_list_categories('orderby=name&show_count=1&feed_image=/images/rss.gif'); ?&gt;
+&lt;/ul&gt;
+</pre>
+
+=== Display Terms in a custom taxonomy ===
+With [[Version 3.0]] the ''taxonomy'' parameter was added to enable wp_list_categories() function to list [[Custom Taxonomies]].  This example list the terms in the taxonomy ''genre'':
+
+<pre>
+<?php 
+//list terms in a given taxonomy using wp_list_categories (also useful as a widget if using a PHP Code plugin)
+
+$taxonomy     = 'genre';
+$orderby      = 'name'; 
+$show_count   = 0;      // 1 for yes, 0 for no
+$pad_counts   = 0;      // 1 for yes, 0 for no
+$hierarchical = 1;      // 1 for yes, 0 for no
+$title        = '';
+
+$args = array(
+  'taxonomy'     => $taxonomy,
+  'orderby'      => $orderby,
+  'show_count'   => $show_count,
+  'pad_counts'   => $pad_counts,
+  'hierarchical' => $hierarchical,
+  'title_li'     => $title
+);
+?>
+
+<ul>
+<?php wp_list_categories( $args ); ?>
+</ul>
+</pre>
+
+=== Yazıya Bağlı Kategorileri Görüntüleme ===
+Ana-alt kategori ilişkisi ile sıralanmış yazıların kategorilerini görüntüler.Kategorileri isme göre sıralayan [[Function_Reference/get_the_category_list|get_the_category_list()]] fonksiyonuna benzerlik gösterir.Bu örnek döngü(loop) içinde kullanılmalıdır.
+
+<pre>
+<?php
+// get the category IDs assigned to post
+$categories = wp_get_post_categories( $post->ID, array( 'fields' => 'ids' ) );
+// separator between links
+$separator = ', ';
+
+if ( $categories ) {
+
+	$cat_ids = implode( ',' , $categories );
+	$cats = wp_list_categories( 'title_li=&style=none&echo=0&include=' . $cat_ids );
+	$cats = rtrim( trim( str_replace( '<br />',  $separator, $cats ) ), $separator );
+	
+	// display post categories
+	echo  $cats;
+}
+?>
+</pre>
+
+=== Kategori Listesini Stilize Etme ===
+Varsayılan olarak, '''wp_list_categories()''' "Kategoriler" başlıklı, tekil liste elemanları (<tt>li</tt>) olan iç içe geçmiş düzensiz listeler (<tt>ul</tt>) oluşturur.
+
+<tt>title_li</tt> [[#Parametreler|parametresini]] boş eleman haline getirerek [[#Liste_Başlığını_Görüntüleme_veya_Gizleme|en dıştaki elemanı veya listeyi gizleyebilirsiniz]]. Çıktıyı düzenli (<tt>ol</tt>) veya düzensiz liste haline getirebilirsiniz. ([[#Örnekler|örnekler]]e bakınız). Eğer liste oluşturmak istemiyorsanız <tt>style</tt> parametresinin değerini <var>none</var> yapabilirsiniz.
+
+Çıktıyı şu [[Glossary#CSS|CSS seçicileri]] ile şekillendirebilirsiniz :
+
+  li.categories { ... }  /* en dıştaki liste elemanı */
+  li.cat-item { ... }
+  li.cat-item-7 { ... }  /* #7 ID numaralı kategori, vb. */
+  li.current-cat { ... }
+  li.current-cat-parent { ... }
+  ul.children { ... }
+
+== Log Kayıtları ==
+* Since: [[Version 2.1|2.1.0]]
+* [[Version 2.3|2.3.0]] : <code>echo</code> parametresi eklendi.
+* [[Version 2.5|2.5.0]] : <code>depth</code> parametresi eklendi.
+* [[Version 2.6|2.6.0]] : <code>current_category</code> parametresi eklendi.
+* [[Version 2.7.1|2.7.1]] : <code>exclude_tree</code> parametresi eklendi.
+* [[Version 2.9|2.9.0]] : <code>pad_counts</code> parametresi eklendi.
+* [[Version 3.0|3.0.0]] : <code>taxonomy</code> parametresi eklendi.
+* [[Version 3.4|3.4.0]] : <code>show_last_update</code> parametresi çıkarıldı.
+
+== Kaynak Dosya ==
+
+<tt>wp_list_categories()</tt> bulunduğu dosya {{Trac|wp-includes/category-template.php}}.
+
+== Çeviri ==
+GKY
+
+== İlgili ==
+
+{{Category Tags}}
+, [[Fonksiyon_Listesi/get_categories|get_categories]]
+
+{{Lists Tags}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

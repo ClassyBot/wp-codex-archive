@@ -1,0 +1,97 @@
+{{Languages|
+{{en|Function Reference/wp_register_style}}
+{{ja|関数リファレンス/wp_register_style}}
+}}
+== Description ==
+
+A safe way to register a CSS style file for later use with [[Function_Reference/wp_enqueue_style|wp_enqueue_style()]]. 
+
+== Usage ==
+
+%%%<?php wp_register_style( $handle, $src, $deps, $ver, $media ); ?>%%%
+<strong>Use the [[Plugin API/Action Reference/wp_enqueue_scripts|<code>wp_enqueue_scripts</code>]] action to call this function.</strong> Calling it outside of an action can lead to problems. See [http://core.trac.wordpress.org/ticket/17916 #17916] for details.
+
+== Parameters ==
+
+{{Parameter|$handle|string|Name of the stylesheet (which should be unique as it is used to identify the script in the whole system).}}
+
+{{Parameter|$src|string|URL to the stylesheet. Example: <nowiki>'http://example.com/css/mystyle.css'</nowiki>. You should never hardcode URLs to local styles, use <tt>[[Function_Reference/plugins_url | plugins_url()]]</tt>(for Plugins) and <tt>[[Function_Reference/get_template_directory_uri | get_template_directory_uri()]]</tt> (for Themes) to get a proper URL.  Remote assets can be specified with a protocol-agnostic URL, i.e. '//otherdomain.com/css/theirstyle.css'.}}
+
+{{Parameter|$deps|array|Array of handles of any stylesheets that this stylesheet depends on. Dependent stylesheets will be loaded before this stylesheet.|optional|array()}}
+
+{{Parameter|$ver|string&#124;boolean|String specifying the stylesheet version number, if it has one. This parameter is used to ensure that the correct version is sent to the client regardless of caching, and so should be included if a version number is available and makes sense for the stylesheet. The version is appended to the stylesheet URL as a query string, such as  <tt>?ver&#61;3.5.1</tt>. By default, or if <tt>false</tt>, the WordPress version string is used. If <tt>null</tt> nothing is appended to the URL.|optional|false}}
+
+{{Parameter|$media|string|String specifying the media for which this stylesheet has been defined. Examples: '<tt>all</tt>', '<tt>screen</tt>', '<tt>handheld</tt>', '<tt>print</tt>'. See this [http://www.w3.org/TR/CSS2/media.html#media-types list] for the full range of valid CSS-media-types.|optional|'all'}}
+
+== Return Values ==
+
+; (bool): Whether the style has been registered. True on success, false on failure.
+
+== Examples ==
+
+=== In a Plugin (outside a PHP class) ===
+
+<pre>
+// Register style sheet.
+add_action( 'wp_enqueue_scripts', 'register_plugin_styles' );
+
+/**
+ * Register style sheet.
+ */
+function register_plugin_styles() {
+	wp_register_style( 'my-plugin', plugins_url( 'my-plugin/css/plugin.css' ) );
+	wp_enqueue_style( 'my-plugin' );
+}
+</pre>
+
+* Assumes the Plugin directory is named 'my-plugin'.
+* Assumes the Plugin style sheet is named 'plugin.css'.
+
+=== In a Plugin (inside a PHP class) ===
+
+<pre>
+class my_plugin {
+
+	/**
+	 * @TODO Add class constructor description.
+	 */
+	function __construct() {
+		// Register style sheet.
+		add_action( 'wp_enqueue_scripts', array( $this, 'register_plugin_styles' ) );
+	}
+
+	/**
+	 * Register and enqueue style sheet.
+	 */
+	public function register_plugin_styles() {
+		wp_register_style( 'my-plugin', plugins_url( 'my-plugin/css/plugin.css' ) );
+		wp_enqueue_style( 'my-plugin' );
+	}
+}
+</pre>
+* Assumes the Plugin class name is 'my_plugin'.
+* Assumes the Plugin directory is named 'my-plugin'.
+* Assumes the Plugin style sheet is named 'plugin.css'.
+
+== Notes ==
+
+* Uses global: (<tt>[[Class_Reference/WP_Styles |WP_Styles]] object</tt>) <tt>$wp_styles</tt>
+* See <tt>wp_default_styles()</tt> in {{Trac|wp-includes/script-loader.php|{{CurrentVersion}}|605}} for a complete list of styles WordPress registers by default.
+
+== Change Log ==
+
+* Since: [[Version 2.1|2.1]] (BackPress version: r79)
+
+== Source File ==
+
+<tt>wp_register_style()</tt> is located in {{Trac|wp-includes/functions.wp-styles.php}}.
+
+== Resources ==
+* [http://generatewp.com/register_style/ WordPress Style Registration Generator]
+
+== Related ==
+{{Enqueue Functions Related}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

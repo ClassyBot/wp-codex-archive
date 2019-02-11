@@ -1,0 +1,155 @@
+<p>Adding support for language written in a <a href="https://codex.wordpress.org/Glossary#RTL" title="Glossary">Right-To-Left (RTL)</a> direction is easy.
+</p><p>There are two ways to do that:
+</p>
+<ul><li> By creating a fully mirror of your style.css file named <b>style-rtl.css</b></li>
+<li> By overwriting all the horizontal positioning attributes of your CSS stylesheet in a separate stylesheet file named <b>rtl.css</b>.</li></ul>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Method_1:_style-rtl.css"><span class="tocnumber">1</span> <span class="toctext">Method 1: style-rtl.css</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Notes"><span class="tocnumber">1.1</span> <span class="toctext">Notes</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-3"><a href="#Method_2:_rtl.css"><span class="tocnumber">2</span> <span class="toctext">Method 2: rtl.css</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Tools"><span class="tocnumber">3</span> <span class="toctext">Tools</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Special_Cases"><span class="tocnumber">4</span> <span class="toctext">Special Cases</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Writing_a_Post_in_RTL_Language"><span class="tocnumber">5</span> <span class="toctext">Writing a Post in RTL Language</span></a></li>
+</ul>
+</div>
+
+<h1><span class="mw-headline" id="Method_1:_style-rtl.css">Method 1: style-rtl.css</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Right-to-Left_Language_Support&amp;action=edit&amp;section=1" title="Edit section: Method 1: style-rtl.css">edit</a><span class="mw-editsection-bracket">]</span></span></h1>
+<ul><li> Use an automated RTL css creator such as <a rel="nofollow" class="external text" href="http://rtlcss.com">RTLCSS</a> or <a rel="nofollow" class="external text" href="https://cssjanus.github.io/">CSSJanus</a> to create an rtl version of your <b>style.css</b> file. Save the result as <b>style-rtl.css</b> and place in the same location.</li>
+<li> Use <tt><a href="https://codex.wordpress.org/wp_enqueue_style" title="wp enqueue style" class="mw-redirect">wp_enqueue_style</a></tt> to enqueue your style.css file in the theme. This won't work if the file is simply embedded in the header file</li>
+<li> Use <tt><a href="/index.php?title=wp_style_add_data&amp;action=edit&amp;redlink=1" class="new" title="wp style add data (page does not exist)">wp_style_add_data</a></tt> to set the <tt>rtl</tt> property to <tt>replace</tt> for your stylesheet.</li></ul>
+<p>Example:
+</p>
+<pre>
+wp_enqueue_style( 'themeslug-style', get_stylesheet_uri() );
+wp_style_add_data( 'themeslug-style', 'rtl', 'replace' );
+</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Right-to-Left_Language_Support&amp;action=edit&amp;section=2" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Both of the tools mentioned have developer friendly tools to automate the creation of RTL stylesheets. </li></ul>
+<h1><span class="mw-headline" id="Method_2:_rtl.css">Method 2: rtl.css</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Right-to-Left_Language_Support&amp;action=edit&amp;section=3" title="Edit section: Method 2: rtl.css">edit</a><span class="mw-editsection-bracket">]</span></span></h1>
+<ul><li> Start with your main theme stylesheet (usually <b>style.css</b>).</li>
+<li> Save this file as <b>rtl.css</b></li>
+<li> Add the following attributes to the body selector:</li></ul>
+<pre>
+  direction: rtl;
+  unicode-bidi: embed;
+</pre>
+<ul><li>One by one, go over the CSS selectors and do the following: Remove any irrelevant attributes such as font styling attributes, colors, vertical positioning, width and height etc. Change the value (from right to left and vice-versa) of the following attributes:
+<ul><li> text-direction</li>
+<li> float</li>
+<li> clear</li></ul></li></ul>
+<pre>
+   text-align: left;
+   float: right;
+   clear: left;
+</pre>
+<p>becomes
+</p>
+<pre>
+  text-align: right;
+  float: left;
+  clear: right;
+</pre>
+<ul><li> Add RTL versions of relevant images.</li></ul>
+<p>Some images are clearly suited only for one direction (arrows for example). Create a horizontally flipped version of those images.
+</p>
+<ul><li> Mirror the following attributes, and zero the original 
+<ul><li> margin</li>
+<li> padding</li>
+<li> borders</li>
+<li> background-position</li>
+<li> right/left positioning</li></ul></li></ul>
+<pre>
+.commentslink{
+	background:url("./images/comments.gif") no-repeat 0 3px;
+	padding-left:15px;
+        margin: 2px 4px 0px 12px;
+        left: 10px;
+}
+</pre>
+<p>becomes
+</p>
+<pre>
+.commentslink{
+	background:url("./images/comments-rtl.gif") no-repeat 100% 3px;
+	padding-left:0;
+        padding-right:15px;
+        margin: 2px 12px 0px 4px;
+        left:auto;
+        right:10px;
+}
+</pre>
+<p>For buttons that have hidden text using text-indent, you need to change its value from negative to positive:
+</p>
+<pre>
+.image-button{
+	text-indent:-99999px;
+}
+</pre>
+<p>becomes
+</p>
+<pre>
+.image-button{
+	text-indent:99999px;
+}
+</pre>
+<h1><span class="mw-headline" id="Tools">Tools</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Right-to-Left_Language_Support&amp;action=edit&amp;section=4" title="Edit section: Tools">edit</a><span class="mw-editsection-bracket">]</span></span></h1>
+<p>The RTL Tester plugin allows you to easily switch the text direction of the site: <a rel="nofollow" class="external free" href="http://wordpress.org/extend/plugins/rtl-tester/">http://wordpress.org/extend/plugins/rtl-tester/</a>
+</p><p>P.S. This plugin allows to VIEW ONLY RTL. i.e. How would your site look like when its Text Direction is changed &amp; this change isn't viewed by the viewers, (unless the whole CSS is changed).
+</p>
+<h1><span class="mw-headline" id="Special_Cases">Special Cases</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Right-to-Left_Language_Support&amp;action=edit&amp;section=5" title="Edit section: Special Cases">edit</a><span class="mw-editsection-bracket">]</span></span></h1>
+<ul><li> You'll need to manually adjust pixel positioned backgrounds. If the original value is '0' you can change it to 100%</li>
+<li> Positioning: remember to assign the 'auto' value to the original selector</li>
+<li> Some fields should be Left To Right direction in both LTR and RTL languages, For example&#160;: email, telephones, zip codes, codes, URLs and any input contains English letters and numbers, So it is better to assign a unique id or class to each input fields, which you will be able to make them LTR direction in CSS files</li></ul>
+<p>Example:
+</p>
+<pre>
+&lt;input type="text" class="email-address1 email" id="email-address1" /&gt;
+&lt;input type="text" class="tel-number1 tel" id="tel-number1" /&gt;
+&lt;input type="text" class="zip1 zip" id="zip1" /&gt;
+&lt;input type="text" class="url-address1 url" id="url-address1" /&gt;
+</pre>
+<p>Using class:
+</p>
+<pre>
+/* These fields should be LTR in a RTL language direction */
+.email-address1,
+.email,
+.tel-number1,
+.tel,
+.zip1,
+.url-address1,
+.url,
+...
+{
+     direction: ltr;
+}
+</pre>
+<h1><span class="mw-headline" id="Writing_a_Post_in_RTL_Language">Writing a Post in RTL Language</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Right-to-Left_Language_Support&amp;action=edit&amp;section=6" title="Edit section: Writing a Post in RTL Language">edit</a><span class="mw-editsection-bracket">]</span></span></h1>
+<p>WordPress default visual text editor doesn't support writing in RTL languages like Hebrew, Persian and Arabic. Therefore, if you're willing to write a post in one of those languages, you should either&#160;:
+</p>
+<ul><li>Reinstall / Change your WordPress version to be in that language, which fixes this issue with allowing you as a default to write in RTL.</li>
+<li>Use this plugin: <a rel="nofollow" class="external free" href="http://wordpress.org/plugins/wp-rtl/">http://wordpress.org/plugins/wp-rtl/</a> which adds two buttons to the TinyMCE editor (if you have it) to enable changing text direction from  Left to Right (LTR) and Right to Left (RTL).</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004115
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.013 seconds
+Preprocessor visited node count: 113/1000000
+Preprocessor generated node count: 228/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

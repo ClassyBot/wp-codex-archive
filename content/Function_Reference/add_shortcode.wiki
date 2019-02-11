@@ -1,0 +1,102 @@
+{{Languages|
+{{en|Function Reference/add shortcode}}
+{{it|Riferimento funzioni/add shortcode}}
+{{ja|関数リファレンス/add_shortcode}}
+{{pt-br|Function Reference/add shortcode}}
+}}
+== Description ==
+
+Adds a hook for a [[Shortcode API|shortcode]] tag.
+
+== Usage ==
+
+%%%<?php add_shortcode( $tag , $func ); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$tag|string|Shortcode tag to be searched in post content}}
+{{Parameter|$func|callable|Hook to run when shortcode is found}}
+
+== Return Values ==
+
+; (none)
+
+== Examples ==
+
+Simplest example of a shortcode tag using the API:
+[footag foo="bar"]
+
+<pre>
+function footag_func( $atts ) {
+	return "foo = {$atts['foo']}";
+}
+add_shortcode( 'footag', 'footag_func' );
+</pre>
+
+Example with nice attribute defaults:
+[bartag foo="bar"]
+
+<pre>
+function bartag_func( $atts ) {
+	$atts = shortcode_atts( array(
+		'foo' => 'no foo',
+		'baz' => 'default baz'
+	), $atts, 'bartag' );
+
+	return "foo = {$atts['foo']}";
+}
+add_shortcode( 'bartag', 'bartag_func' );
+</pre>
+
+Example with enclosed content:
+[baztag]content[/baztag]
+
+<pre>
+function baztag_func( $atts, $content = "" ) {
+	return "content = $content";
+}
+add_shortcode( 'baztag', 'baztag_func' );
+</pre>
+
+If your plugin is designed as a class write as follows:
+
+<pre>
+class MyPlugin {
+	public static function baztag_func( $atts, $content = "" ) {
+		return "content = $content";
+	}
+ }
+ add_shortcode( 'baztag', array( 'MyPlugin', 'baztag_func' ) );
+</pre>
+
+== Notes ==
+
+* The shortcode callback will be passed three arguments: the shortcode attributes, the shortcode content (if any), and the name of the shortcode.
+
+* There can only be one hook for each shortcode. Which means that if another plugin has a similar shortcode, it will override yours or yours will override theirs depending on which order the plugins are included and/or ran.
+
+* Shortcode attribute names are always converted to lowercase before they are passed into the handler function. Values are untouched.
+
+* Note that the function called by the shortcode should ''never'' produce output of any kind. Shortcode functions should ''return'' the text that is to be used to replace the shortcode. Producing the output directly will lead to unexpected results. This is similar to the way filter functions should behave, in that they should not produce expected side effects from the call, since you cannot control when and where they are called from.
+
+== Change Log ==
+
+Since: 2.5
+
+== Source File ==
+
+<tt>add_shortcode()</tt> is located in {{Trac|wp-includes/shortcodes.php}}.
+
+== Resources ==
+
+* [http://generatewp.com/shortcodes/ WordPress Shortcodes Generator]
+* [https://www.nimbusthemes.com/add-shortcode-wordpress-snippet-generator/ Add Shortcode – WordPress Code Snippet Generator]
+
+== Related ==
+
+{{Shortcode Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

@@ -1,0 +1,111 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Parameters"><span class="tocnumber">2</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Examples"><span class="tocnumber">3</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Returning_an_Error"><span class="tocnumber">3.1</span> <span class="toctext">Returning an Error</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Validating_a_Custom_Field"><span class="tocnumber">3.2</span> <span class="toctext">Validating a Custom Field</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#Notes"><span class="tocnumber">4</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Change_Log"><span class="tocnumber">5</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Related"><span class="tocnumber">7</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2 tocsection-10"><a href="#Tutorials"><span class="tocnumber">7.1</span> <span class="toctext">Tutorials</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Action_Hooks"><span class="tocnumber">7.2</span> <span class="toctext">Action Hooks</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Filter_Hooks"><span class="tocnumber">7.3</span> <span class="toctext">Filter Hooks</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <i>registration_errors</i> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter hook</a> filters the errors encountered when a new user is being registered.
+</p><p>The filtered WP_Error object may, for example, contain errors for an invalid or existing username or email address. A WP_Error object should always returned, but may or may not contain errors.
+</p><p>If any errors are present in $errors, this will abort the user's registration.
+</p><p>This filter can be used to create custom validation rules on user registration. This fires when the form is submitted but before user information is saved to the database.
+</p><p>When used with other hooks, this filter can be used to create custom registration processes.
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=2" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$errors</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#WP_Error" title="How to Pass Tag Parameters"><i>WP_Error</i></a>) (<i>required</i>) A WP_Error object containing any errors encountered during registration.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$sanitized_user_login</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) User's username after it has been sanitized.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$user_email</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) User's email.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=3" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Returning_an_Error">Returning an Error</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=4" title="Edit section: Returning an Error">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This example shows how to return an error.
+</p>
+<pre>
+function myplugin_check_fields( $errors, $sanitized_user_login, $user_email ) {
+
+    $errors-&gt;add( 'demo_error', __( '&lt;strong&gt;ERROR&lt;/strong&gt;: This is a demo error.', 'my_textdomain' ) );
+    return $errors;
+}
+
+add_filter( 'registration_errors', 'myplugin_check_fields', 10, 3 );
+</pre>
+<h3><span class="mw-headline" id="Validating_a_Custom_Field">Validating a Custom Field</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=5" title="Edit section: Validating a Custom Field">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Assuming you wanted to validate a postal code field that you have already created using the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/register_form" title="Plugin API/Action Reference/register form">register_form</a> hook, you might validate the field like so:
+</p>
+<pre>
+function myplugin_check_fields( $errors, $sanitized_user_login, $user_email ) {
+
+    if (&#160;! preg_match('/[0-9]{5}/', $_POST['zipcode'] ) ) {
+        $errors-&gt;add( 'zipcode_error', __( '&lt;strong&gt;ERROR&lt;/strong&gt;: Invalid Zip.', 'my_textdomain' ) );
+    }
+
+    return $errors;
+}
+
+add_filter( 'registration_errors', 'myplugin_check_fields', 10, 3 );
+</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=6" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The form will not create a new user if any errors are returned. 
+Notice: The function must return the variable $errors in any case (even when there is no error in your logic), otherwise the function may cause this problem: <i><tt>Fatal error: Call to a member function get_error_code() on a non-object</tt></i>.
+</p>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=7" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_2.1" title="Version 2.1">Version 2.1</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=8" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <tt>registration_errors</tt> hook is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/user.php#L0">wp-includes/user.php</a></code>
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=9" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Tutorials">Tutorials</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=10" title="Edit section: Tutorials">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Customizing_the_Registration_Form" title="Customizing the Registration Form">Customizing the Registration Form</a></li></ul>
+<h3><span class="mw-headline" id="Action_Hooks">Action Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=11" title="Edit section: Action Hooks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/register_form" title="Plugin API/Action Reference/register form">register_form</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/register_post" title="Plugin API/Action Reference/register post">register_post</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/user_register" title="Plugin API/Action Reference/user register">user_register</a></li></ul>
+<h3><span class="mw-headline" id="Filter_Hooks">Filter Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/registration_errors&amp;action=edit&amp;section=12" title="Edit section: Filter Hooks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <strong class="selflink">registration_errors</strong></li></ul>
+<p>Return to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">Plugin API/Filter Reference</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004105
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.024 seconds
+Preprocessor visited node count: 120/1000000
+Preprocessor generated node count: 341/1000000
+Post‐expand include size: 614/2097152 bytes
+Template argument size: 272/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   10.658      1 - -total
+ 56.88%    6.062      1 - Template:Trac
+ 38.81%    4.137      3 - Template:Parameter
+ 36.97%    3.940      1 - Template:CurrentVersion
+-->

@@ -1,0 +1,506 @@
+{{Languages|
+{{ar|وصف قاعدة البيانات}}
+{{en|Database Description}}
+{{zh-cn|数据库描述}}
+{{ja|データベース概要}}
+}}
+
+__TOC__
+التالي هو أساسات و أوصاف جداول قاعدة البيانات التي يتم إنشاؤها خلال التركيب القياسي لووردبرس الإصدار 2.9. حالياً, قاعدة البيانات الوحيدة المدعومة من قبل ووردبرس هي MySQL الإصدار 4.1.2 أو أحدث.
+
+لأن ووردبرس يتفاعل مع قاعدة البيانات هذه مباشرة, أنت كمستخدم نهائي لا يجب أن تقلق كثيراً عن بنيتها. إذا كنت [http://codex.wordpress.org/Writing_a_Plugin تصنع إضافة], على كل, قد تكون مهتماً في تعلم كيفية التعامل مع قاعدة البيانات مباشرة. يوفر لك ووردبرس [[Function_Reference/wpdb Class|wpdb Class]] ليجعل هذا سهلاً بالنسبة لك.
+
+	
+= مخطط قاعدة البيانات =
+الرسم البياني أدناه لمحة بصرية من قاعدة البيانات ووردبرس ، والعلاقات بين الجداول (ووردبرس الإصدار 2.5 +) التي أنشئت خلال تركيب ووردبرس القياسي. لمحة الجدول أدناه تتضمن تفاصيل إضافية عن الجداول والأعمدة.
+
+[[Image:WP_27_dbsERD.png|500px|thumb|right|(مخطط قاعدة بيانات ووردبرس 2.5)]]
+
+[يمكنك إيجاد مخطط أحدث للإصدار 2.9.1 [http://schemabank.com/p/5Lj5F هنا].]
+
+رجاءً إنتبه إلى أنه خلال التركيب القياسي لووردبرس لا يتم التأكد من التكامل بين الجداول مثل التدوينات و التعليقات. إذا كنت تكتب إضافة ستعدل قاعد بيانات ووردبرس, يجب على إضافتك أن تقوم التأكد حيث لا تبقى أية سجلات يتيمة في الجداول مثل إزالة السجلات المرتبطة من خلال أمر SQL حين يتم حذف مفتاح أساسي (لا تنسى تذكير المستخدمين بعمل نسخ إحتياطية هند إجراء عمليات كهذه).
+
+
+= لمحة عن الجداول =
+هذا القسم هو لمحة عن كل الجداول المنشأة خلال التركيب القياسي لووردبرس.  هذه اللمحة ملحقة بمعلومات تفصيلية عن ما هو موجود في كل جدول.
+
+{| <!-- width="75%" --> border="1" 
+|- valign="top"
+| colspan="3" bordercolor="#FFFFFF" | <strong>جداول ووردبرس 2.9(11)</strong>
+|- valign="top"
+! width="6%" | '''اسم الجدول''' !! width="35%" | '''الوصف''' !! '''الأماكن المتعلقة بالجدول من واجهات ووردبرس'''
+|- valign="top"
+!  [[#Table:_wp_commentmeta|wp_commentmeta]]
+| كل '''تعليق''' يحوي معلومات تسمى '''meta data''' و هي مصنفة في جدول <tt>wp_commentmeta</tt>. || عادة تقوم الإضافات بإضافة بيانات هنا. 
+|- valign="top"
+!  [[#Table:_wp_comments|wp_comments]]
+| '''التعليقات''' في ووردبرس مصنفة في جدول<tt>wp_comments</tt>. || التعليقات ينشئها القراء كرد على المقالات في المدونة. التعليقات تدار من قبل المسؤولين من خلال [[Administration Panels|لوحة المسؤولين]] > [[Administration Panels#Comments|التعليقات]] > [[Comments Comments SubPanel|التعليقات]]
+|- valign="top"
+! [[#Table:_wp_links|wp_links]]
+| جدول <tt>wp_links</tt> يحوي معلومات عن '''الروابط''' المدخلة في ميزة [[Administration Panels#Links - Putting the Inter in the Internet|الروابط]] في ووردبرس. || 
+* [[Administration Panels|لوحة المسؤولين]] > [[Administration Panels#Add New Link|الروابط]] > [[Links Add New SubPanel|إضافة جديد]]
+* [[Administration Panels|لوحة المسؤولين]] > [[Administration Panels#Edit Links|الروابط]] > [[Links Edit SubPanel|تعديل]]
+|- valign="top"
+!  [[#Table:_wp_options|wp_options]]
+| '''[[Administration Panels#Settings - Configuration Settings|الخيارات]]''' في '''لوحة الإدارة> [[Administration Panels#Settings - Configuration Settings|الإعدادات]]''' تحفظ في جدول <tt>wp_options</tt>.  || 
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Settings - Configuration Settings|الإعدادات]] > [[Settings General SubPanel|عام]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Settings - Configuration Settings|الإعدادات]] > [[Settings Writing SubPanel|كتابة]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Settings - Configuration Settings|الإعدادات]] > [[Settings Reading SubPanel|قراءة]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Settings - Configuration Settings|الإعدادات]] > [[Settings Discussion SubPanel|مناقشة]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Settings - Configuration Settings|الإعدادات]] > [[Settings Privacy SubPanel|الخصوصية]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Settings - Configuration Settings|الإعدادات]] > [[Settings Permalinks SubPanel|روابط]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Settings - Configuration Settings|الإعدادات]] > [[Settings Miscellaneous SubPanel|متعدد]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Widgets|المظهر]] > [[Appearance Widgets SubPanel|مربعات القائمة الجانبية ]]
+|- valign="top"
+! [[#Table:_wp_postmeta|wp_postmeta]]
+| كل '''تدوينة''' تحوي على معلومات تسمى '''meta data''' و هي تخزن في جدول <tt>wp_postmeta</tt>. بعض الإضافات قد تضع بياناتها هنا. || 
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Add New Post|تدوينات]] > [[Posts Add New SubPanel|إضافة جديد]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Add New Page|صفحات]] > [[Pages Add New SubPanel|إضافة جديد]]
+|- valign="top"
+! [[#Table:_wp_posts|wp_posts]]
+| نواة بيانات ووردبرس هي '''التدوينات'''. و هي مخزنة في جدول <tt>wp_posts</tt>.  || 
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Add New Post|تدوينات]] > [[Posts Add New SubPanel|إضافة جديد]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Edit Posts|تدوينات]] > [[Posts Edit SubPanel|تعديل]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Add New Page|صفحات]] > [[Pages Add New SubPanel|إضافة جديد]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Edit Pages|صفحات]] > [[Pages Edit SubPanel|تعديل]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Upload New Media|وسائط]] > [[Media Add New SubPanel|إضافة جديد]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Media Library|وسائط]] > [[Media Library SubPanel|المكتبة]]
+|- valign="top"
+! [[#Table:_wp_terms|wp_terms]]
+| '''التصنيفات''' للتدوينات و الروابط و كذلك '''وسوم''' التدوينات موجودة في جدول <tt>wp_terms</tt> . || rowspan="3" |
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Tags|Posts]] > [[Posts Tags SubPanel|وسوم]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Categories|تدوينات]] > [[Posts Categories SubPanel|تصنيفات]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Link Categories|روابط]] > [[Links Link Categories SubPanel|تصنيفات الروابط]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Add New Post|تدوينات]] > [[Posts Add New SubPanel|إضافة جديد]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Edit Posts|تدوينات]] > [[Posts Edit SubPanel|تعديل]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Add New Page|صفحات]] > [[Pages Add New SubPanel|إضافة جديد]]
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Edit Pages|صفحات]] > [[Pages Edit SubPanel|تعديل]]
+|- valign="top"
+! [[#Table:_wp_term_relationships|wp_term_relationships]]
+| '''التدوينات''' مرتبطة مع '''التصنيفات''' و الوسوممن جدول <tt>wp_terms</tt> و هذه الارتباطات موجودة في جدول <tt>wp_term_relationships</tt>.  ارتباطات '''الروابط''' مع تصنيفاتهاأيضاً موجودة في هذا الجدول.
+|- valign="top"
+! [[#Table:_wp_term_taxonomy|wp_term_taxonomy]]
+| This table describes the taxonomy ('''category''', '''link''', or '''tag''') for the entries in the <tt>wp_terms</tt>  table.
+|- valign="top"
+! [[#Table:_wp_usermeta|wp_usermeta]]
+| كل '''عضو''' يملك بيانات تسمى '''meta data''' و هي مخزنة في جدول <tt>wp_usermeta</tt>. ||
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Users - Your Blogging Family|أعضاء]]
+|- valign="top"
+! [[#Table:_wp_users|wp_users]]
+| قائمة '''الأعضاء''' موجود في جدول <tt>wp_users</tt>. || 
+* [[Administration Panels|الإدارة]] > [[Administration Panels#Users - Your Blogging Family|أعضاء]]
+|}<br /><br />
+
+= تفاصيل الجداول =
+التالي هو التفاصيل الدقيقة للحقول في كل من الجداول المنشأة خلال التركيب القياسي لووردبرس.
+
+==الجدول: wp_commentmeta==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|meta_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|comment_id||bigint(20)  unsigned||&nbsp;||IND||0||FK-&gt;wp_comments.comment_id
+|-
+|meta_key||varchar(255)||نعم||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||نعم||&nbsp;||NULL||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||0||meta_ID
+|-  
+|comment_id||INDEX||none||comment_id  
+|-  
+|meta_key||INDEX||none||meta_key  
+|}
+
+==الجدول: wp_comments==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|comment_ID||bigint(20) unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|comment_post_ID||bigint(20) unsigned||&nbsp;||IND||0||FK-&gt;wp_posts.ID
+|-
+|comment_author||tinytext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_url||varchar(200)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_IP||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_date||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|comment_date_gmt||datetime||&nbsp;||IND & IND Pt2||0000-00-00 00:00:00||&nbsp;
+|-
+|comment_content||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_karma||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|comment_approved||varchar(20)||&nbsp;||IND & Ind Pt1||1||&nbsp;
+|-
+|comment_agent||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_type||varchar(20)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_parent||bigint(20) unsigned||&nbsp;||&nbsp;||0||FK-&gt;wp_comments.ID
+|-
+|user_id||bigint(20) unsigned||&nbsp;||&nbsp;||0||FK-&gt;wp_users.ID
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||1||comment_ID
+|-  
+|comment_approved||INDEX||None||comment_approved  
+|-  
+|comment_post_ID||INDEX||None||comment_post_ID  
+|-  
+|comment_approved_date_gmt||INDEX||None||comment_approved<br />comment_date_gmt
+|-  
+|comment_date_gmt||INDEX||None||comment_date_gmt  
+|}
+
+==الجدول: wp_links==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|link_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|link_url||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_name||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_image||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_target||varchar(25)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_description||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_visible||varchar(20)||&nbsp;||IND||Y||&nbsp;
+|-
+|link_owner||bigint(20)  unsigned||&nbsp;||&nbsp;||1||&nbsp;
+|-
+|link_rating||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|link_updated||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|link_rel||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_notes||mediumtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_rss||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||7||link_ID
+|-  
+|link_category||INDEX||None||link_category  
+|-  
+|link_visible||INDEX||None||link_visible  
+|}
+
+==الجدول: wp_options==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|option_id||bigint(20)  unsigned||&nbsp;||PRI Pt1||NULL||auto_increment
+|-
+|blog_id||int(11)||&nbsp;||PRI Pt2||0||&nbsp;
+|-
+|option_name||varchar(64)||&nbsp;||PRI Pt3 & IND||&nbsp;||&nbsp;
+|-
+|option_value||longtext||&nbsp;||&nbsp;||&nbsp;||
+|-
+|autoload||varchar(20)||&nbsp;||&nbsp;||yes||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||184||option_id<br />blog_id<br />option_name
+|-  
+|option_name||UNIQUE||184||option_name  
+|}
+
+==الجدول: wp_postmeta==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|meta_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|post_id||bigint(20)  unsigned||&nbsp;||IND||0||FK-&gt;wp_posts.ID
+|-
+|meta_key||varchar(255)||نعم||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||نعم||&nbsp;||NULL||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||13||meta_ID
+|-  
+|post_id||INDEX||15||post_id  
+|-  
+|meta_key||INDEX||7||meta_key  
+|}
+
+==الجدول: wp_posts==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI & IND Pt4||&nbsp;||auto_increment
+|-
+|post_author||bigint(20) unsigned||&nbsp;||&nbsp;||0||FK-&gt;wp_users.ID
+|-
+|post_date||datetime||&nbsp;||IND Pt3||0000-00-00 00:00:00||&nbsp;
+|-
+|post_date_gmt||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_content||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_title||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_excerpt||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_status||varchar(20)||&nbsp;||IND PT2||publish||&nbsp;
+|-
+|comment_status||varchar(20)||&nbsp;||&nbsp;||open||&nbsp;
+|-
+|ping_status||varchar(20)||&nbsp;||&nbsp;||open||&nbsp;
+|-
+|post_password||varchar(20)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_name||varchar(200)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|to_ping||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|pinged||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_modified||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_modified_gmt||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_content_filtered||text||&nbsp;||&nbsp;||&nbsp;||
+|-
+|post_parent||bigint(20) unsigned||&nbsp;||&nbsp;||0||FK-&gt;wp_posts.ID
+|-
+|guid||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|menu_order||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|post_type||varchar(20)||&nbsp;||IND Pt1||post||&nbsp;
+|-
+|post_mime_type||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_count||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||2||ID
+|-  
+|post_name||INDEX||None||post_name  
+|-
+|type_status_date||INDEX||None||post_type<br />post_status<br />post_date<br />ID
+|-
+|post_parent||INDEX||None||post_parent
+|}
+
+==الجدول: wp_terms==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|term_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|name||varchar(200)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|-
+|slug||varchar(200)||&nbsp;||UNI||&nbsp;||&nbsp;
+|-
+|term_group||bigint(10)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||2||term_ID
+|-  
+|slug||UNIQUE||2||slug 
+|-
+|name||Index||none||name
+|}
+
+==الجدول: wp_term_relationships==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|object_id||bigint(20)  unsigned||&nbsp;||PRI Pt1||0||&nbsp;
+|-
+|term_taxonomy_id||bigint(20)  unsigned||&nbsp;||PRI Pt2 & IND||0||FK-&gt;wp_term_taxonomy.term_taxonomy_id
+|-
+|term_order||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||8||object_id<br />term_taxonomy_id
+|-  
+|term_taxonomy_id||INDEX||None||term_taxonomy_id  
+|}
+
+==الجدول: wp_term_taxonomy==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|term_taxonomy_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|term_id||bigint(20)  unsigned||&nbsp;||UNI Pt1||0 ||FK-&gt;wp_terms.term_id
+|-
+|taxonomy||varchar(32)||&nbsp;||UNI Pt2||&nbsp;||&nbsp;
+|-
+|description||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|parent||bigint(20)  unsigned||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|count||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||2||term_taxonomy_id
+|-  
+|term_id_taxonomy||UNIQUE||2||term_id<br />taxonomy 
+|-  
+|taxonomy||INDEX||None||taxonomy 
+|}
+
+==الجدول: wp_usermeta==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|umeta_id||bigint(20)  unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|user_id||bigint(20)  unsigned||&nbsp;||&nbsp;||'0'||FK-&gt;wp_users.ID
+|-
+|meta_key||varchar(255)||نعم||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||نعم||IND||NULL||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||9||umeta_id
+|-  
+|user_id||INDEX||None||user_id  
+|-  
+|meta_key||INDEX||None||meta_key  
+|}
+
+==الجدول: wp_users==
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!الحقل!!النوع!!فارغ!!مفتاح!!القيمة الافتراضية!!إضافي
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|user_login||varchar(60)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_pass||varchar(64)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_nicename||varchar(50)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_url||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|user_activation_key||varchar(60)||&nbsp;||&nbsp;||&nbsp;||
+|-
+|user_status||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|display_name||varchar(250)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|}
+
+===المفاتيح الأساسية===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!اسم المفتاح!!النوع!!الأساس!! الحقل
+|-
+|PRIMARY||PRIMARY||1||ID
+|-  
+|user_login_key||INDEX||None||user_login  
+|-  
+|user_nicename||INDEX||None||user_nicename  
+|}
+
+[[Category:New_page_created]]
+[[Category:Arabic_Codex]]
+[[Category:ar:تطوير ووردبرس]]
+[[Category:ar:مواضيع متقدمة]]
+[[Category:ar:البدء مع ووردبريس]]

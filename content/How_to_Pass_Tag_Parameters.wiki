@@ -1,0 +1,183 @@
+{{Languages|
+{{en|How to Pass Tag Parameters}}
+{{it|Come passare i parametri}}
+{{ja|テンプレートタグ/タグパラメータの渡し方}}
+}}
+
+== Introduction == 
+
+[[Template Tags|Template tags]] are [[Glossary#PHP|PHP]] functions you can embed in your WordPress page templates to provide dynamic blog content. And like PHP functions, many template tags accept arguments, or parameters. Template tag parameters are variables you can use to change a tag's output or otherwise modify its action in some way. Think of parameters as user options or settings that allow you to customize how a template tag works.
+
+In regards to parameters, WordPress template tags come in three "flavors." These are described below:
+
+# [[#Tags without parameters|Tags without parameters]]
+# [[#Tags with PHP function-style parameters|Tags with PHP function-style parameters]]
+# [[#Tags with query-string-style parameters|Tags with query-string-style parameters]]
+
+== Tags without parameters ==
+
+Some template tags do not have any options, and thus have no parameters you can pass to them.
+
+The template tag [[Template_Tags/the_author_firstname | the_author_firstname()]] is one that accepts no parameters. This tag simply displays the first name of the author for a post. Tags without parameters should have nothing between the tag function's opening and closing brackets (parentheses):
+
+ <?php the_author_firstname(); ?>
+
+== Tags with PHP function-style parameters ==
+
+For template tags that can accept parameters, some require them to be in the [http://www.php.net/manual/en/functions.arguments.php default PHP style]. For these, parameters are passed to a tag function by placing one or more values inside the function's parentheses, or brackets. 
+
+The [[Template Tags/bloginfo|bloginfo()]] tag accepts one parameter (known as the '''show''' parameter) that tells it what information about your blog to display:
+
+%%% <?php bloginfo('name'); ?>%%%
+
+The [[Template Tags/wp_title|wp_title()]] tag accepts up to three parameters: the first is the '''sep''' or separator parameter, the second the '''echo''' or display parameter, and the third is the location of the seperator, whether the sep string is added before (prepended, or to the left) or after (appended, or to the right) the site title which is set in the [[Administration_Panels#Options_-_Configuration_Settings|Options]] > [[Administration_Panels#General|General]] SubPanel by default: 
+
+%%% <?php wp_title(' - ', TRUE, 'right'); ?> %%%
+
+The first and last parameters are enclosed in single-quotes however, the second is not because the first and last are ''strings'', while the second a ''boolean'' parameter. (See [[#Types of parameters|Types of parameters]] for information on parameter types and how to use them.)
+
+Important points to keep in mind for PHP function-style parameters:
+
+:* Some functions take multiple parameters.  
+:* Multiple parameters are separated by commas.  
+:* '''The order of parameters is important!''' 
+
+When passing parameters to a template tag's function, make sure you specify values for all parameters ''up to the last one you wish to modify'', or the tag may not work as expected. For example, the template tag [[Template Tags/get_archives|get_archives()]] has six parameters:
+
+%%% <?php get_archives('type', 'limit', 'format', 'before', 'after', show_post_count); ?>  %%%
+
+To display the archives list the way you want, let's say you only need to modify the third ('''format''') and fifth ('''after''') parameters. To do this, you also need to make sure to enter default values for the first, second and fourth parameters, as well:
+
+<nowiki> <?php get_archives('', '', 'custom', '', '<br />'); ?></nowiki> 
+
+Notice the use of single-quotes to denote ''empty'' parameter values, which <nowiki>''</nowiki> in this case <nowiki>''</nowiki> forces defaults for those specific parameters. Be aware that defaults can be overwritten when passing empty parameters, as is the case of a parameter specifying a string of text, and there's no way to pass an empty boolean value. So check the documentation for a parameter's default, and when one is specified use it as your parameter value (also see [[#Types of parameters|Types of parameters]] for information on parameter types). The sixth parameter was left off; this is because WordPress uses the default for any remaining parameters left unspecified. 
+
+Make sure to follow the documentation for a template tag carefully, and place your parameters in the order the template function expects. Finally, to use the defaults for all parameters in a template tag, use the tag with no parameter values specified:
+
+%%%<?php get_archives(); ?>%%%
+
+== Tags with query-string-style parameters ==
+
+The last type of template tag makes use of what's called a query-string style to pass parameters to the tag. These provide a convenient 'wrapper' to tags which use the [[#Tags with PHP function-style parameters|PHP function parameter style]] and have a relatively large number of parameters. For example, the template tag [[Template_Tags/wp_list_cats|wp_list_cats()]] is a wrapper to [[Template_Tags/list_cats|list_cats()]], a tag with eighteen parameters! 
+
+If you want to set the '''exclude''' parameter in list_cats() (seventeenth in the parameter list) and leave the rest at their defaults, you have to do this:
+
+ <?php list_cats(TRUE, 'All', 'ID', 'asc', &#39;&#39;, TRUE, FALSE, FALSE, 
+ TRUE, TRUE, FALSE, &#39;&#39;, &#39;&#39;, FALSE, &#39;&#39;, &#39;&#39;, '10,11,12'); ?> 
+
+''Or'' you can use wp_list_cats():
+
+ <?php wp_list_cats('exclude=10,11,12'); ?> 
+
+So query-string style tags are useful in that they let you change the values of just those parameters you require, without needing to provide values for all or nearly all of them. However, not all PHP function-style template tags have a query-string style equivalent. (Also note that names for tags that accept query-string style parameters usually start with a 'wp_' prefix, such as wp_list_cats(), but check the documentation on a tag to verify its method for accepting parameters, if any.)
+
+The tag [[Template Tags/wp_list_authors|wp_list_authors()]] has six parameters, of which we set three here:
+
+ <?php wp_list_authors('show_fullname=1&feed=rss&optioncount=1'); ?>
+
+First, all the parameters together are enclosed by either single or double quotes. Then each parameter is entered in the ''parameter=value'' format, while these are separated with an ampersand (&amp;). Broken down, the tag as shown above states:
+
+:* Parameter '''show_fullname''' (a ''boolean'' type parameter) equals <tt>1</tt> (true).
+:: AND 
+:* Parameter '''feed''' (a ''string'' type parameter) equals <tt>rss</tt>.
+:: AND
+:* Parameter '''optioncount''' (a ''boolean'' type parameter) equals <tt>1</tt> (true).
+
+(See [[#Types of parameters|Types of parameters]] for information on parameter types and how to use them.)
+
+Parameters in the query-string style do not have to be entered in a specific order. The only real concern is assuring parameter names are spelled correctly. If legibility is a problem, you can separate parameters with a space:
+
+ <?php wp_list_authors('show_fullname=1 & feed=rss & optioncount=1'); ?>
+
+You can also spread a query-string over several lines (note the specific format of enclosing each parameter/value pair in single quotes and a dot starting each new line):
+
+ <?php wp_list_authors(
+                       'show_fullname=1'
+                       .'&feed=rss'
+                       .'&optioncount=1'
+                       ); ?>
+
+There are a few limitations when using query-string style tags, among which you cannot pass certain characters, such as the ampersand or a quote mark (single or double). In those cases, you can use an associative array:
+
+ <?php $params = array( 'type'   => 'postbypost',
+                        'limit'  => 5,
+                        'format' => 'custom',
+                        &#39;before' => '&lt;li&gt;&amp;bull;&amp;nbsp;',
+                        &#39;after'  => '&lt;/li&gt;' );
+ wp_get_archives($params); ?>
+
+== Types of parameters ==
+
+There are three types of parameters you need to know about in regards to WordPress template tags: string, integer, and boolean. Each is handled a bit differently, as described below.
+
+=== String ===
+
+A string is a line of text, and is typically anything from a single character to several dozen words. A string parameter is often a selection from two or more valid options, as is the '''show''' parameter in [[Template Tags/bloginfo|bloginfo()]]. Otherwise, a string is intended as text to be displayed, such as the '''sep''' parameter in [[Template Tags/wp_title|wp_title()]]. 
+
+In tags which use the [[#Tags with PHP function-style parameters|PHP function parameter style]], string values should be enclosed in single (') or double (") quotation marks. If a single or double quote is required for part of your string, mix the marks (using double quotes to enclose the parameter if a single quote exists in your parameter value), or use the PHP escape character (a backslash: <tt>\</tt>), as the following does to assign single quotes for the '''before''' and '''after''' parameters in [[Template Tags/the_title|the_title()]]:
+
+ <?php the_title('\&#39;', '\&#39;'); ?> 
+
+<div id="Int"><!-- Don't remove this! --></div>
+=== Integer ===
+An integer is a whole number (…, -2, -1, 0, 1, 2,…). Integer parameters are often used for date and archive based information, like the '''year''' and '''month''' parameters for the [[Function_Reference/get_month_link|get_month_link()]] tag, or for specifying the numeric value of something on your blog, as one finds in the case of the '''id''' parameter in [[Template_Tags/get_permalink|get_permalink()]].
+
+When passed to a [[#Tags with PHP function-style parameters|PHP function parameter style]] tag, integer values either in or out of quotes will be handled correctly. So the following examples are both valid:
+
+ <?php get_permalink('100'); ?> 
+
+ <?php get_permalink(100); ?>
+
+<div id="Bool"><!-- Don't remove this! --></div>
+=== Boolean ===
+
+Boolean parameters provide a simple true/false evaluation. 
+
+For example, the [[Template_Tags/the_date|the_date()]] tag has an '''echo''' parameter which takes either <tt>TRUE</tt> or <tt>FALSE</tt> as a value; setting the parameter to <tt>TRUE</tt> displays the date on the page, whereas <tt>FALSE</tt> causes the tag to "return" the date as a value that can then be used in other PHP code. 
+
+A boolean parameter can be notated as a numeric value: <tt>1</tt> for <tt>TRUE</tt>, <tt>0</tt> for <tt>FALSE</tt>. For a boolean value in [[#Tags with PHP function-style parameters|PHP function parameter style]] tags, these are all equivalent:
+
+:* <tt>1</tt> = <tt>TRUE</tt> = <tt>true</tt> 
+:* <tt>0</tt> = <tt>FALSE</tt> = <tt>false</tt>
+
+However, do '''NOT''' enclose boolean values within quote marks. For [[#Tags with query-string-style parameters|query-string style tags]], use only the numeric boolean values (<tt>1</tt> or <tt>0</tt>).
+
+<div id="Callable"><!-- Don't remove this! --></div>
+=== Callback ===
+
+(string, array) A callback (or [http://www.php.net/manual/en/language.types.callable.php "callable" as of PHP 5.4]) can either be a reference to a function name or method within an class/object. Here is a basic example of a callback function:
+
+  add_action('wp_head', 'myfuncprefix_add_meta_tag'); // functions use string
+  function myfuncprefix_add_meta_tag(){
+    echo '<meta name="description" content="This is an example meta tag" />';
+  }
+
+If you are referencing a method inside a class/object, it can be inside or outside the object. The parameter expects an array with 2 items, first the object (object), then the method (string). Here are some examples:
+
+  class Myclassprefix_Some_Class {
+    function __construct(){
+      add_action('wp_head', array($this, 'myfuncprefix_add_meta_tag'));
+    }
+    function myfuncprefix_add_meta_tag(){
+      echo '<meta name="description" content="This is an example meta tag" />';
+    }
+  }
+
+Another way of doing this would be outside the class:
+
+  class Myclassprefix_Some_Class {
+    function myfuncprefix_add_meta_tag(){
+      echo '<meta name="description" content="This is an example meta tag" />';
+    }
+  }
+  
+  $some_class = new Myclassprefix_Some_Class();
+  
+  add_action('wp_head', array($some_class, 'myfuncprefix_add_meta_tag'));
+
+Note: You should never pass additional array elements into the callback. It only accepts 2 elements. Additional elements will cause the callback to not work.
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]
+[[Category:Advanced Topics]]

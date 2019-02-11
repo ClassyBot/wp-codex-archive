@@ -1,0 +1,60 @@
+==Description==
+<code>wp.template</code> is used to create [http://underscorejs.org/#template Underscore.js] style <code>template</code> functions that, when executed, generates parametrized HTML for rendering.  It is located in the [[Javascript Reference/wp|wp]] scope/namespace.
+
+==Template Interpolation==
+WordPress defines its own interpolation tags using the <tt>_.template( options )</tt> to avoid incompatibility in some PHP configurations with <tt>asp_tags</tt> enabled. The WordPress-specific interpolation syntax is inspired by [https://mustache.github.io/ Mustache] templating syntax:
+
+* Interpolate (unescaped): <tt>{{{ }}}</tt>
+* Interpolate (escaped): <tt>{{ }}</tt>
+* Evaluate: <tt>&lt;# #&gt;</tt>
+
+==Template Definition==
+As with the default <code>_.template()</code> usage, you define your templates within a specially formed <tt>&lt;script&gt;</tt> tag, as such:
+
+<code data-lang="html"><pre>
+<script type="text/html" id="tmpl-my-template">
+   <p>Hello {{{data.name}}}</p>
+</script>
+</pre></code>
+
+The script's type is <tt>text/html</tt> and it has an <tt>id</tt> that must start with '''tmpl-'''. Everything after the '''tmpl''' is the actual name you would like to use to reference your template later on.
+
+To then access that template from JavaScript at runtime, you pass the name of the template to <code>wp.template()</code>, like this:
+
+<code data-lang="javascript"><pre>
+var template = wp.template('my-template');
+</pre></code>
+
+This looks for the element with an ID of '''tmpl-my-template''' and returns a function to render that template and interpolate all the data fields.
+
+==Template Rendering==
+<code>wp.template()</code> returns a '''function''', so don't try to attach the result of calling this to an HTML element, or even <code>console.log</code>ging it out. Generally, you will assign the <code>wp.template()</code> result to a variable and then apply that variable (which is a function) with the data you would like to interpolate.
+
+The example below assumes the use of jQuery to insert the result of the rendered template within an HTML element (stored in <tt>$el</tt> in this example).
+
+<code data-lang="javascript"><pre>
+var template = wp.template( 'my-template' );
+$el.html( template( { name: "World" } ) );
+</pre></code>
+
+<tt>$el</tt> now contains "Hello World". The value of the property "name" of the object that was passed as the argument of the template variable gets interpolated (because of the <tt>{{{ }}}</tt> in the template).
+
+==Interpolation Variable==
+To match the return structure of wp_send_json_success and wp_send_json_failure, wp_template binds the interpolation variable to the variable '''data'''. The implication of this is that you must prefix all your interpolation properties with '''data''' in order to avoid the dreaded '''Uncaught ReferenceError: &lt;property&gt; is not defined''' error.
+
+<code data-lang="html"><pre>
+<script type="text/html" id="tmpl-my-template">
+   <p class="this works">Hello {{{data.name}}}</p>
+   <p class="this fails">Goodbye {{{name}}}</p>
+</script>
+</pre></code>
+
+==Location==
+This is defined in {{Trac|/wp-includes/js/wp-util.js}}
+
+==External Resources==
+* [http://underscorejs.org/#template Underscore.js] - The official Underscore.js templating documentation.
+* [https://lkwdwrd.com/wp-template-js-templates-wp/ wp.template for front end templating in WordPress] - Great tutorial by [https://profiles.wordpress.org/lkwdwrd Luke Woodward]
+
+==Related==
+* [[Javascript Reference]] - WordPress Javascript API reference

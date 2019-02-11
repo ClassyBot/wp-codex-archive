@@ -1,0 +1,133 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Overview"><span class="tocnumber">1</span> <span class="toctext">Overview</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Validating:_Checking_User_Input"><span class="tocnumber">2</span> <span class="toctext">Validating: Checking User Input</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Sanitizing:_Cleaning_User_Input"><span class="tocnumber">3</span> <span class="toctext">Sanitizing: Cleaning User Input</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Escaping:_Securing_Output"><span class="tocnumber">4</span> <span class="toctext">Escaping: Securing Output</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Conclusion"><span class="tocnumber">5</span> <span class="toctext">Conclusion</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Overview">Overview</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Validating_Sanitizing_and_Escaping_User_Data&amp;action=edit&amp;section=1" title="Edit section: Overview">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Your code works, but is it safe? When writing code that will run across hundreds if not thousands of websites, you should be extra cautious of how you handle data coming into WordPress and how it's then presented to the end user. This commonly comes up when building a settings page for your theme, creating and manipulating shortcodes, or saving and rendering extra data associated with a post.
+</p><p>There's a distinction between how input and output are managed, however.
+</p>
+<h2><span class="mw-headline" id="Validating:_Checking_User_Input">Validating: Checking User Input</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Validating_Sanitizing_and_Escaping_User_Data&amp;action=edit&amp;section=2" title="Edit section: Validating: Checking User Input">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>To validate is to ensure the data you've requested of the user matches what they've submitted. There are <a href="https://codex.wordpress.org/Data_Validation#Input_Validation" title="Data Validation">several core methods you can use for input validation</a>; usage obviously depends on the <i>type</i> of fields you'd like to validate. Let's take a look at an example.
+</p><p>Say we have an input area in our form like this:
+</p>
+<pre>
+&lt;input type="text" id="my-zipcode" name="my-zipcode" maxlength="5" /&gt;
+</pre>
+<p>Just like that, we've told the browser to only allow up to five characters of input, but there's no limitation on what characters they can input. They could enter "11221" or "eval(". If we're saving to the database, there's no way we want to give the user unrestricted write access.
+</p><p>This is where validation plays a role. When processing the form, we'll write code to check each field for its proper data type. If it's not of the proper data type, we'll discard it. For instance, to check "my-zipcode" field, we might do something like this:
+</p>
+<pre>
+$safe_zipcode = intval( $_POST['my-zipcode'] );
+if (&#160;! $safe_zipcode ) {
+  $safe_zipcode = '';
+}
+
+if ( strlen( $safe_zipcode ) &gt; 5 ) {
+  $safe_zipcode = substr( $safe_zipcode, 0, 5 );
+}
+
+update_post_meta( $post-&gt;ID, 'my_zipcode', $safe_zipcode );
+</pre>
+<p>Since the `maxlength` attribute is only enforced by the browser, we still need to validate the length of the input on the server. If we don't, an attacker could manually submit a form with a longer value.
+</p><p>The intval() function casts user input as an integer, and defaults to zero if the input was a non-numeric value. We then check to see if the value ended up as zero. If it did, we'll save an empty value to the database. Otherwise, we'll save the properly validated zipcode.
+</p><p>This style of validation most closely follows WordPress' <a href="https://codex.wordpress.org/Data_Validation#Whitelist" title="Data Validation">whitelist philosophy</a>: only allow the user to input what you're expecting. Luckily, there's a <a href="https://codex.wordpress.org/Data_Validation#Input_Validation" title="Data Validation">number of handy helper functions</a> you can use for most every data type.
+</p><p><span id="sanitizing"></span>
+</p>
+<h2><span class="mw-headline" id="Sanitizing:_Cleaning_User_Input">Sanitizing: Cleaning User Input</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Validating_Sanitizing_and_Escaping_User_Data&amp;action=edit&amp;section=3" title="Edit section: Sanitizing: Cleaning User Input">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Sanitization is a bit more liberal of an approach to accepting user data. We can fall back to using these methods when there's a range of acceptable input.
+</p><p>For instance, if we had a form field like this:
+</p>
+<pre>
+&lt;input type="text" id="title" name="title" /&gt;
+</pre>
+<p>We could sanitize the data with the <tt><a href="https://codex.wordpress.org/Function_Reference/sanitize_text_field" title="Function Reference/sanitize text field">sanitize_text_field()</a></tt> function:
+</p>
+<pre>
+$title = sanitize_text_field( $_POST['title'] );
+update_post_meta( $post-&gt;ID, 'title', $title );
+</pre>
+<p>Behinds the scenes, the function does the following:
+</p>
+<ul><li> Checks for invalid UTF-8 (uses <a href="https://codex.wordpress.org/Function_Reference/wp_check_invalid_utf8" title="Function Reference/wp check invalid utf8">wp_check_invalid_utf8()</a>)</li>
+<li> Converts single &lt; characters to entity</li>
+<li> Strips all tags</li>
+<li> Remove line breaks, tabs and extra white space</li>
+<li> Strip octets</li></ul>
+<p>The sanitize_*() class of helper functions are super nice for us, as they ensure we're ending up with safe data and require minimal effort on our part:
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_email" title="Function Reference/sanitize email">sanitize_email()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_file_name" title="Function Reference/sanitize file name">sanitize_file_name()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_html_class" title="Function Reference/sanitize html class">sanitize_html_class()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_key" title="Function Reference/sanitize key">sanitize_key()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_meta" title="Function Reference/sanitize meta">sanitize_meta()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_mime_type" title="Function Reference/sanitize mime type">sanitize_mime_type()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_option" title="Function Reference/sanitize option">sanitize_option()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_sql_orderby" title="Function Reference/sanitize sql orderby">sanitize_sql_orderby()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_text_field" title="Function Reference/sanitize text field">sanitize_text_field()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_textarea_field" title="Function Reference/sanitize textarea field">sanitize_textarea_field()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_title" title="Function Reference/sanitize title">sanitize_title()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_title_for_query" title="Function Reference/sanitize title for query">sanitize_title_for_query()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_title_with_dashes" title="Function Reference/sanitize title with dashes">sanitize_title_with_dashes()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/sanitize_user" title="Function Reference/sanitize user">sanitize_user()</a></li></ul>
+<h2><span class="mw-headline" id="Escaping:_Securing_Output">Escaping: Securing Output</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Validating_Sanitizing_and_Escaping_User_Data&amp;action=edit&amp;section=4" title="Edit section: Escaping: Securing Output">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>For security on the other end of the spectrum, we have escaping. To escape is to take the data you may already have and help secure it prior to rendering it for the end user. WordPress thankfully has a <a href="https://codex.wordpress.org/Data_Validation#Output_Sanitation" title="Data Validation">few helper functions</a> we can use for most of what we'll commonly need to do:
+</p><p><a href="https://codex.wordpress.org/Function_Reference/esc_html" title="Function Reference/esc html">esc_html()</a> we should use anytime our HTML element encloses a section of data we're outputting.
+</p>
+<pre>
+&lt;h4&gt;&lt;?php echo esc_html( $title );&#160;?&gt;&lt;/h4&gt;
+</pre>
+<p><a href="https://codex.wordpress.org/Function_Reference/esc_url" title="Function Reference/esc url">esc_url()</a> should be used on all URLs, including those in the 'src' and 'href' attributes of an HTML element.
+</p>
+<pre>
+&lt;img src="&lt;?php echo esc_url( $great_user_picture_url );&#160;?&gt;" /&gt;
+</pre>
+<p><a href="https://codex.wordpress.org/Function_Reference/esc_js" title="Function Reference/esc js">esc_js()</a> is intended for inline Javascript.
+</p>
+<pre>
+&lt;a href="#" onclick="&lt;?php echo esc_js( $custom_js );&#160;?&gt;"&gt;Click me&lt;/a&gt;
+</pre>
+<p><a href="https://codex.wordpress.org/Function_Reference/esc_attr" title="Function Reference/esc attr">esc_attr()</a> can be used on everything else that's printed into an HTML element's attribute.
+</p>
+<pre>
+&lt;ul class="&lt;?php echo esc_attr( $stored_class );&#160;?&gt;"&gt;
+</pre>
+<p><a href="https://codex.wordpress.org/Function_Reference/esc_textarea" title="Function Reference/esc textarea">esc_textarea()</a> encodes text for use inside a textarea element.
+</p>
+<pre>
+&lt;textarea&gt;&lt;?php echo esc_textarea( $text );&#160;?&gt;&lt;/textarea&gt;
+</pre>
+<p>It's important to note that most WordPress functions properly prepare the data for output, and you don't need to escape again.
+</p>
+<pre>
+&lt;h4&gt;&lt;?php the_title();&#160;?&gt;&lt;/h4&gt;
+</pre>
+<h2><span class="mw-headline" id="Conclusion">Conclusion</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Validating_Sanitizing_and_Escaping_User_Data&amp;action=edit&amp;section=5" title="Edit section: Conclusion">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>To recap:</b> Follow the whitelist philosophy with data validation, and only allow the user to input data of your expected type. If it's not the proper type, discard it. When you have a range of data that can be entered, make sure you sanitize it. Escape data as much as possible on output to avoid XSS and malformed HTML.
+</p><p>Take a look through <tt>/wp-includes/formatting.php</tt> to see all of the sanitization and escaping functions WordPress has to offer.
+</p><p><i>An earlier version of this article appeared on the <a rel="nofollow" class="external text" href="http://vip.wordpress.com/2011/10/13/key-differences-between-validation-and-sanitization/">WordPress.com VIP Publisher Blog</a>. Republished here with permission.</i>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004143
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.050 seconds
+Preprocessor visited node count: 109/1000000
+Preprocessor generated node count: 226/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

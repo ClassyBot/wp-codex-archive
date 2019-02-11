@@ -1,0 +1,81 @@
+{{Languages|
+{{en|Function Reference/wp_create_nonce}}
+{{ja|関数リファレンス/wp_create_nonce}}
+}}
+== Description ==
+
+Generates and returns a [[Glossary#Nonce|nonce]]. The nonce is generated based on the current time, the <tt>$action</tt> argument, and the current user ID.
+
+== Usage ==
+
+%%%<?php wp_create_nonce( $action ); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$action|string/int|Action name. Should give the context to what is taking place. Optional but ''recommended''.|optional|-1}}
+
+== Return Values ==
+
+{{Return||string|The one use form token.}}
+
+== Example ==
+In this simple example, we create an nonce and use it as one of the <tt>GET</tt> query parameters in a URL for a link. When the user clicks the link they are directed to a page where a certain action will be performed (for example, a post might be deleted). On the target page the nonce is verified to insure that the request was valid (this user really clicked the link and really wants to perform this action).
+<pre><?php
+// Create an nonce for a link.
+// We pass it as a GET parameter.
+// The target page will perform some action based on the 'do_something' parameter.
+$nonce = wp_create_nonce( 'my-nonce' );
+?>
+<a href='myplugin.php?do_something=some_action&_wpnonce=<?php echo $nonce; ?>'>Do some action</a>
+
+<?php 
+// This code would go in the target page.
+// We need to verify the nonce.
+$nonce = $_REQUEST['_wpnonce'];
+if ( ! wp_verify_nonce( $nonce, 'my-nonce' ) ) {
+    // This nonce is not valid.
+    die( 'Security check' ); 
+} else {
+    // The nonce was valid.
+    // Do stuff here.
+}
+?>
+</pre>
+
+In the above example we simply called our nonce <tt>'my-nonce'</tt>. It is best to choose a name for the nonce that is specific to the action. For example, if we were to create an nonce that would be part of a request to delete a post, we might call it <tt>'delete_post'</tt>. Then to make it more specific, we could append the ID of the particular post that the nonce was for. For example <tt>'delete_post-5'</tt> for the post with ID 5.
+
+<pre>wp_create_nonce( 'delete_post-' . $post_id );</pre>
+
+Then we would verify the nonce like this:
+
+<pre>wp_verify_nonce( $nonce, 'delete_post-' . $_REQUEST['post_id'] );</pre>
+
+In general, it is best to make the name for the action as specific as possible.
+
+== Notes ==
+* The function should be called using the [[Plugin API/Action Reference/init|init]] or any subsequent action [[Glossary#Hook|hook]]. Calling it outside of an action hook can lead to problems, see the [http://core.trac.wordpress.org/ticket/14024 ticket #14024] for details.
+* Uses: [[Function Reference/apply_filters|<tt>apply_filters()</tt>]] to apply the [[Plugin API/Filter Reference/nonce_user_logged_out| nonce_user_logged_out]] filters on the current user ID used to generate a nonce.
+* Uses: [[Function Reference/wp_nonce_tick|<tt>wp_nonce_tick()</tt>]] as a time-dependent factor to generate a nonce.
+
+== Change Log ==
+
+* Since: [[Version 2.0.3|2.0.3]]
+
+== Source File ==
+<tt>wp_create_nonce()</tt> is located in {{Trac|wp-includes/pluggable.php}}.
+
+== Related ==
+
+{{Nonces}}
+* [[Wordpress Nonce Implementation]]
+
+== Resources ==
+
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ Mark Jaquith - WordPress Nonces]
+* [http://www.prelovac.com/vladimir/improving-security-in-wordpress-plugins-using-nonces Vladimir Prelovac - Using Nonces in WordPress Plugins]
+* [[wikipedia:Cryptographic_nonce|Cryptographic nonce - Wikipedia, the free encyclopedia]]
+* [https://www.bynicolas.com/code/wordpress-nonce/ How Do WordPress Nonces Really Work - bynicolas.com ]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

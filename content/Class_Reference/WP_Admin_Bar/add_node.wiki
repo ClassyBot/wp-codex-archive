@@ -1,0 +1,191 @@
+== Description ==
+This function is a method of the <tt>$wp_admin_bar</tt> global object (see: [[Class_Reference/WP_Admin_Bar|WP_Admin_Bar]]), and can be used to add a new item to the [[Glossary#Toolbar|Toolbar]]. You can also use it to change the properties of an item that is already in the Toolbar.
+
+The Toolbar replaces the [[Glossary#Admin_Bar|Admin Bar]] since WordPress [[Version 3.3]].
+
+Toolbar items are also called "nodes". Nodes can be parents for other nodes, which creates dropdown menus. Group nodes together with [[Function_Reference/add_group|add_group()]] to create distinct sections in a Toolbar menu.
+
+'''Note''': This function is a method of the [[Class_Reference/WP_Admin_Bar|WP_Admin_Bar]] class and <tt>$wp_admin_bar</tt> global object, which may not exist except during the [[Plugin_API/Action_Reference/admin_bar_menu|'admin_bar_menu']] or [[Plugin_API/Action_Reference/wp_before_admin_bar_render|'wp_before_admin_bar_render']] hooks.
+
+'''Note''': [[Function_Reference/add_menu|add_menu]] is an alias for this method.
+
+== Usage ==
+%%%<?php $wp_admin_bar->add_node( $args ); ?>%%%
+
+== Parameters ==
+{{Parameter|$args|array|An array of arguments.}}
+
+=== Arguments ===
+{{Parameter|id|string|The ID of the node.|required|false}}
+{{Parameter|title|string|The text that will be visible in the Toolbar. Including html tags is allowed.|optional|false}}
+{{Parameter|parent|string|The ID of the parent node.|optional|false}}
+{{Parameter|href|string|The 'href' attribute for the link. If 'href' is not set the node will be a text node.|optional|false}}
+{{Parameter|group|boolean|This will make the node a group (node) if set to 'true'. Group nodes are not visible in the Toolbar, but nodes added to it are. See [[Function_Reference/add_group|add_group()]].|optional|false}}
+{{Parameter|meta|array|An array of meta data for the node.|optional|array()}}
+
+:* 'html' - The html used for the node.
+:* 'class' - The class attribute for the list item containing the link or text node.
+:* 'rel' - The rel attribute.
+:* 'onclick' - The onclick attribute for the link. This will only be set if the 'href' argument is present.
+:* 'target' - The target attribute for the link. This will only be set if the 'href' argument is present.
+:* 'title' - The title attribute. Will be set to the link or to a div containing a text node.
+:* 'tabindex' - The tabindex attribute. Will be set to the link or to a div containing a text node.
+
+== Examples ==
+===Add a Page to the Toolbar ===
+This example will add a Page with a "my-toolbar-page" class to the Toolbar. It will be a top level item because the 'parent' argument is not set (it has no parent node). Put this in your theme's [[Functions_File_Explained|functions.php]] file.
+
+<pre>
+add_action( 'admin_bar_menu', 'toolbar_link_to_mypage', 999 );
+
+function toolbar_link_to_mypage( $wp_admin_bar ) {
+	$args = array(
+		'id'    => 'my_page',
+		'title' => 'My Page',
+		'href'  => 'http://mysite.com/my-page/',
+		'meta'  => array( 'class' => 'my-toolbar-page' )
+	);
+	$wp_admin_bar->add_node( $args );
+}
+</pre>
+
+===Make an Existing Child Node a Parent Node===
+This example will change the properties of an existing node by using the ID of that node. See [[Function_Reference/get_node#Finding_Toolbar_Node_ID.27s|Finding Toolbar Node ID's]] on how to find existing node ID's. The following code will make the child node with ID "new-post" (New > '''Post''') a parent node.
+
+<pre>
+add_action( 'admin_bar_menu', 'make_parent_node', 999 );
+
+function make_parent_node( $wp_admin_bar ) {
+	$args = array(
+		'id'     => 'new-post',     // id of the existing child node (New > Post)
+		'title'  => 'Add New Post', // alter the title of existing node
+		'parent' => false,          // set parent to false to make it a top level (parent) node
+	);
+	$wp_admin_bar->add_node( $args );
+}
+</pre>
+
+=== Single function to add parent/child sub menu items ===
+This is how to add a parent or sub menu item with one function.
+
+<pre>
+add_action('wp_before_admin_bar_render', 'baw_admin_bar_render', 100);
+
+/**
+ * Adds admin bar items for easy access to the theme creator and editor
+ */
+function baw_admin_bar_render() {
+    baw_admin_bar_render_item('BAW'); // Parent item
+    baw_admin_bar_render_item('BAW Sub1', 'some_link_to_the_settings', 'BAW');
+    baw_admin_bar_render_item('BAW Sub2', 'some_link_to_the_settings', 'BAW');
+}
+
+/**
+ * Adds menu parent or submenu item.
+ * @param string $name the label of the menu item
+ * @param string $href the link to the item (settings page or ext site)
+ * @param string $parent Parent label (if creating a submenu item)
+ *
+ * @return void
+ * */
+function baw_admin_bar_render_item( $name, $href = '', $parent = '', $custom_meta = array() ) {
+    global $wp_admin_bar;
+
+	if ( ! is_super_admin()
+		 || ! is_object( $wp_admin_bar ) 
+		 || ! function_exists( 'is_admin_bar_showing' ) 
+		 || ! is_admin_bar_showing() ) {
+		return;
+	}
+
+    // Generate ID based on the current filename and the name supplied.
+    $id = sanitize_key( basename(__FILE__, '.php' ) . '-' . $name );
+
+    // Generate the ID of the parent.
+    $parent = sanitize_key( basename(__FILE__, '.php' ) . '-' . $parent );
+
+    // links from the current host will open in the current window
+
+    $meta = strpos( $href, site_url() ) !== false ? array() : array( 'target' => '_blank' ); // external links open in new tab/window
+    $meta = array_merge( $meta, $custom_meta );
+
+    $wp_admin_bar->add_node( array(
+        'parent' => $parent,
+        'id' => $id,
+        'title' => $name,
+        'href' => $href,
+        'meta' => $meta,
+    ) );
+}
+</pre>
+
+===Sorting The Links on the Admin Menu Bar===
+Use further array functions in PHP to sort the admin menu items with the following code.
+
+'''Problem''':
+Since the basic code for admin bar links is to create a separate $args variable for each array, sorting the links could be a lot of work cutting and pasting code around when you need to sort the links.
+
+'''Solution''':
+The following code does the following:
+1. adds each $args into a separate element of the same $args by using PHP's array_push() function
+2. Each $args element is a multi-dimensional array that can be sorted
+3. Use PHP's sort function to sort them.
+4. Traverse a for loop.
+
+<pre>
+
+add_action( 'admin_bar_menu', 'social_media_links', 900 );
+function social_media_links($wp_admin_bar)
+{
+
+	$args = array(
+		'id'     => 'social_media',
+		'title'	=>	'Social Media',
+		'meta'   => array( 'class' => 'first-toolbar-group' ),
+	);
+	$wp_admin_bar->add_node( $args );	
+
+	// add child items
+	$args = array();
+	array_push($args,array(
+		'id'		=>	'twitter',
+		'title'		=>	'Twitter',
+		'href'		=>	'http://www.twitter.com',
+		'parent'	=>	'social_media',
+	));
+
+	array_push($args,array(
+		'id'     	=> 'youtube',
+		'title'		=>	'YouTube',
+		'href'		=>	'http://www.YouTube.com',
+		'parent' 	=> 'social_media',
+		'meta'   	=> array( 'class' => 'first-toolbar-group' ),
+	));
+	array_push($args,array(
+		'id'		=>	'fb',
+		'title'		=>	'Facebook',
+		'href'		=>	'http://www.facebook.com',
+		'parent'	=>	'social_media',
+	));
+
+	sort($args);
+	foreach( $args as $each_arg)	{
+		$wp_admin_bar->add_node($each_arg);
+	}
+
+			
+	
+} 
+</pre>
+
+== Change Log ==
+
+== Source File ==
+<tt>add_node()</tt> is located in {{Trac|wp-includes/class-wp-admin-bar.php}}.
+
+== Related ==
+{{Toolbar Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

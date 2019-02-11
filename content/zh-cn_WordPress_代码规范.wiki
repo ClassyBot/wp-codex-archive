@@ -1,0 +1,139 @@
+{{Languages|
+{{en|WordPress Coding Standards}}
+{{it|Standard di codifica di WordPress}}
+{{ja|WordPress コーディング基準}}
+{{pt-br|Padroes_de_Codificacao_do_WordPress}}
+{{zh-hans|WordPress 代码规范}}
+}}
+
+一些旧的 WordPress 的 PHP 代码结构在风格上不统一。WordPress 一直都努力逐步改善这个问题帮助用户维护一个统一的代码风格，使代码保持简洁、容易阅读。
+
+不论是在编写 WordPress 核心代码、插件还是主题的时候，都请记住以下几点。这篇指南和 PEAR 编码规范在许多地方很相似，但在一些关键地方有所不同。
+
+;单引号和双引号
+:适当的使用单引号和双引号.如果你不在字符串中做计算,就使用单引号.你几乎不用在字符串中转义 html的引号,因为你可以像下面这样替换引用风格:
+<pre><nowiki>
+echo '<a href="/static/link" title="Yeah yeah!">Link name</a>';
+echo "<a href='$link' title='$linktitle'>$linkname</a>";
+</nowiki></pre>
+:唯一的例外就是 JavaScript，因为有时候在一些地方必须使用单引号或者双引号。属性值的文本必须经过 attribute_escape() 函数的处理，以防单引号或者双引号终止属性值解析从而使 XHTML 失效，导致安全问题。
+
+;缩进
+:您的缩进应该能够反映出代码的逻辑结构.尽量使用tab而不要使用空格,因为这样能够保证有跨客户端编辑器软件的灵活性.
+:例外:你如果有段代码想要保持某些数据对齐更方便阅读,可以使用空格.如下:
+
+:总则:在行首使用tab,在行里面使用空格.
+<pre><nowiki>
+[tab]$foo   = 'somevalue';
+[tab]$foo2  = 'somevalue2';
+[tab]$foo34 = 'somevalue3';
+[tab]$foo5  = 'somevalue4';
+</nowiki></pre>
+
+;大括号的使用风格
+:大括号应该在含有多行的代码块中使用:
+<pre><nowiki>
+if ( condition ) {
+    action1();
+    action2();
+} elseif ( condition2 && condition3 ) {
+    action3();
+    action4();
+} else {
+   defaultaction();
+}
+</nowiki></pre>
+:此外,你如果有一个很长的代码块,考虑一下能不能把它拆成多个短点的代码块或者写成一个函数.如果你觉得不能避免这样长代码块,那么最好能够在代码块的结尾做一个简短的注释,告诉阅读代码的人这时一个大括号的结束---比较典型的就是35行以上的逻辑代码块.当然,不是能很直观的看出来结构的代码都应该注释一下.
+:为了简洁,只含有一行的代码块可以省去大括号:
+<pre><nowiki>
+if ( condition )
+    action1();
+elseif ( condition2 )
+    action2();
+else
+    action3();
+</nowiki></pre>
+:如果任何一个逻辑相关(比如判断)的代码块含有多行代码,那么所有的相关代码块都应该用大括号包含.
+<pre><nowiki>
+if ( condition ) {
+    action1();
+} elseif ( condition2 ) {
+    action2a();
+    action2b();
+}
+</nowiki></pre>
+:循环应该总是放到大括号里面以增强可读性,这样一来也可以允许调试或者增加额外的功能编辑里面的代码.
+<pre><nowiki>
+foreach ( $items as $item ) {
+    process_item( $item );
+}
+</nowiki></pre>
+
+;include_once和require_once
+:要知道include_once和require_once的不同然后正确的使用它们.我们这里引用一下php的官方文档的解释:"这两种结构除了在处理错误信息之外是等同的.include()产生警告信息,require()产生致命错误",致命错误会使终止脚本的运行.
+
+;正则表达式
+:应该使用符合POSIX的perl兼容的正则表达式,使用preg_replace_callback,不要使用/e开关.
+
+;不要使用php短标签
+:不要使用简短的php标签(<? ... ?>或者<?=$vars?>),应该使用php完整标签<?php ... ?>,保证在关闭标签后不要有任何空格.
+
+;空格的使用
+:在逗号后面和逻辑操作符与赋值符的两边添加空格.比如:"x == 1","$foo && $bar","array( 1, 2, 3, 4 )".在if, elseif, foreach, for , switch的开始和结束括号两边也同样要添加空格.(例如:foreach ( $foo as $bar ) { ...)定义一个函数的时候这样做:function myfunction( $param1 = 'foo', $param2 = 'bar' ) {,调用函数的时候这样:myfunction( $param1, funcparam( $param2 ) );
+
+;格式化SQL语句
+:编写时可以把较为复杂SQL语句拆分成带缩进的几行,使得复杂的逻辑通俗易懂.当然,大部分的SQL语句写在一行也是可以工作的.要大写UPDATE,INSERT等SQL的关键字.
+:更新数据库的函数希望传递给他们的函数不要含有SQL的\转义,转义应该在数据库查询的时候执行,我们可以使用$wpdb->prepare().
+:$wpdb->prepare()是在SQL查询时候处理转义,引用,整型判定的函数.它使用sprintf()函数的子集.例如:
+<pre><nowiki>
+$var = "dangerous'"; // raw data that may or may not need to be escaped
+$id  = some_foo_number(); // data we expect to be an integer, but we're not certain
+
+$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_title = %s WHERE ID = %d", $var, $id ) );
+</nowiki></pre>
+:%s是字符串的占位符,%d是整型的占位符.注意他们没有被引号引起来.$wpdb->prepare()会为我们处理转义和引用的问题.这样就很容易看得出来哪些东西被转义了哪些没有,因为这会发生在数据库查询的时候.
+
+;数据库查询
+:避免直接动数据库.如果有一个函数可以得到你想得到的数据,那么就使用这个函数.数据库抽象层可以使你的代码向前兼容,如果查询结果在缓存中,使用函数就可以不用查询数据库,可以提高很多倍的访问速度.如果你必须要动数据库,在wp-hackers邮件列表发个帖子联系里面的开发人员,或许他们会考虑在下个版本中加入个实现你的功能的函数.(呵呵~)
+
+;变量,函数,文件名,操作符
+:变量名和函数名使用小写(不要使用驼峰格式),使用下划线做连字符.
+<pre><nowiki>
+function some_name( $some_variable ) { [...] }
+</nowiki></pre>
+:使用小写的,带有描述性的文件名,用横线做连字符.
+<pre><nowiki>
+my-plugin-name.php
+</nowiki></pre>
+:不要创建只使用一次的变量.这包括数据库查询.与数据库交互时使用wpdb类的函数.
+:三元操作符挺好用的.养成表达式为真的时候做测试的习惯,而不是假的时候,否则就会混淆.
+<pre><nowiki>
+// GOOD example:
+// (if statement is true) ? (do this) : (if false, do this);
+$musictype = ( 'jazz' == $music ) ? 'cool' : 'blah';
+</nowiki></pre>
+:还有很重要的一点就是上面的这个例子.做逻辑比较的时候把变量放到右边.试想:如果你忘记了其中一个等号,把变量放到右边就会抛出一个解析错误,而放在左边就会是一个赋值操作而执行了.这不需要花费额外的时间去做,但是如果因此解决了一个bug,那么就值了.
+
+;使用见名知意的函数参数名称
+:调用函数时使用描述性的字符串而不是单单的true和false.
+<pre><nowiki>
+//BAD
+function eat( $what, $slowly = true ) {
+    ...
+}
+eat( 'mushrooms' );
+eat( 'mushrooms', true ); // what does true mean?
+eat( 'dogfood', false ); // what does false mean? The opposite of true?
+</nowiki></pre>
+:因为php不支持命名参数,如果参数名称没有任何意义,我们每遇到这样的函数都得去查函数定义.我们可以使用描述性的参数标记使函数更具可读性.替换上面的布尔类型:
+<pre><nowiki>
+//GOOD
+function eat( $what, $speed = 'slowly' ) {
+    ...
+}
+eat( 'mushrooms' );
+eat( 'mushrooms', 'slowly' );
+eat( 'dogfood', 'fast' );
+</nowiki></pre>
+
+{{zh-cn:Copyedit}}

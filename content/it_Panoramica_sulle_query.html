@@ -1,0 +1,105 @@
+<p>Questo articolo è una panoramica, per gli sviluppatori, del modo usato da WordPress per costruire le pagine del tuo blog, e di come i plugin possano modificare questo processo. Esso è indirizzato agli sviluppatori di plugin che faranno query e permalink avanzati, e anche agli sviluppatori che vogliono migliorare la conoscenza di WordPress, al fine di aggiungere nuove caratteristiche al core oppure correggere bug.
+</p>
+<p>Per maggiori dettagli, sarà necessario leggere i file php e le funzioni del core di WordPress menzionate.</p>  
+<p> Qui sono elencati i passaggi secondo cui WordPress decide quali post o pagine visualizzare in una pagina:
+
+<ol><li>Quando un visitatore clicca su una pagina o digita un URL associato alla pagina che appartiene al tuo blog, WordPress inizia col caricare alcuni file del core (<tt>wp-config.php, wp-settings.php, ecc. </tt>) Se sei interessato all'ordine di caricamento dei file, parti da <tt>index.php</tt> e segui la catena di file richiamati tramite le istruzioni include/require(o leggi <a rel="nofollow" class="external text" href="http://humanshell.net/wordpress/wordpress-initialization/">questo eccellente post at humanshell.net</a>)</li>
+<li>WordPress carica e inizializza ogni plugin che hai attivato (chiama l'azione <tt>init</tt> del plugin)</li>
+<li>WordPress carica il "text domain" per l'internazionalizzazione, e il file <tt>functions.php</tt> dal tema attualmente attivo</li>
+<li>WordPress esegue la funzione <tt>wp()</tt> (in <tt>wp-includes/functions.php</tt>), che chiama <tt>$wp-&gt;main()</tt> (<tt>$wp</tt> è un oggetto della classe <tt>WP</tt>, che è definita in <tt>wp-includes/class-wp.php</tt>). Questa dice a WordPress di:
+<ol><li>Convertire l'URL in una specifica query usando <tt>WP-&gt;parse_request()</tt> -- approfondita in basso.</li>
+<li>Impostare tutte le variabili <tt>is_</tt> che usate dai <a href="https://codex.wordpress.org/Conditional_Tags" title="Conditional Tags">Conditional Tags</a> tramite <tt>$wp_query-&gt;parse_query()</tt> (<tt>$wp_query</tt> è un oggetto della classe <tt>WP_Query</tt>, definita in <tt>wp-includes/query.php</tt>). Notare che a dispetto del nome della funzione, in questo caso <tt>WP_Query-&gt;parse_query</tt> al momento non esegue alcuna conversione, dato che è fatta prima da <tt>WP-&gt;parse_request()</tt></li>
+<li>Convertire la specifica query in una query per il database MySQL, e di eseguire questa query per ottenere la lista dei post, nella funzione <tt>WP_Query-&gt;get_posts()</tt>. Salva i post nell'oggetto <tt>$wp_query</tt> da usare nel Loop di WordPress.</li>
+<li>Gestire gli errori 404</li>
+<li>Inviare i campi headers HTTP del blog</li>
+<li>Impostare alcune variabili per il Loop di WordPress</li></ol></li>
+<li>WordPress carica il tuo template, capisce quale file del template usare in accordo alla <a href="https://codex.wordpress.org/Template_Hierarchy" title="Template Hierarchy">Template Hierarchy</a>, ed esegue quel file (essenzialmente facendo tutto ciò che dice il tuo template). Oppure, WordPress potrebbe richiamare uno dei file feed (come <tt>wp-rss2.php</tt>).</li>
+<li>Generalmente, il template o il file feed esegue il <a href="https://codex.wordpress.org/The_Loop" title="The Loop">WordPress Loop</a> per visualizzare i post del blog o una pagina statica.</li>
+<li>Il template o file feed probabilmente stamperà anche i permalink in alcuni archivi, categorie, o post usando funzioni built-in di WordPress.  </li></ol>
+
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Dettagli_su_WP-.3Eparse_request.28.29"><span class="tocnumber">1</span> <span class="toctext">Dettagli su WP-&gt;parse_request()</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Cosa_possono_modificare_i_plugin"><span class="tocnumber">2</span> <span class="toctext">Cosa possono modificare i plugin</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Correlati"><span class="tocnumber">3</span> <span class="toctext">Correlati</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Articoli"><span class="tocnumber">3.1</span> <span class="toctext">Articoli</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Documentazione_del_codice"><span class="tocnumber">3.2</span> <span class="toctext">Documentazione del codice</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h3><span class="mw-headline" id="Dettagli_su_WP-.3Eparse_request.28.29">Dettagli su <tt>WP-&gt;parse_request()</tt></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:Panoramica_sulle_query&amp;action=edit&amp;section=1" title="Edit section: Dettagli su WP-&gt;parse request()">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Come menzionato sopra, <tt>WP-&gt;parse_request()</tt> (appartenente alla classe <tt>WP</tt> in <tt>wp-includes/class-wp.php</tt>) convente un URL in una specifica query. Qui c'è un riassunto dei passaggi usati per far questo:
+</p>
+<ol><li>Rimuove la sezione della variabile GET dell'URL (ossia tutto ciò che si trova dopo un "?" nell'URL). Inoltre rimuove l'URL dell'home del blog.</li>
+<li>Ottiene le <b>regole di rewrite</b> attualmente attive, chiamando <tt>$wp_rewrite-&gt;wp_rewrite_rules()</tt> (<tt>$wp_rewrite</tt> è un oggetto della classe <tt>WP_Rewrite</tt>, definita in <tt>wp-includes/rewrite.php</tt>). Le regole di rewrite sono essenzialmente un insieme di regole di abbinamento pattern per i permalink di WordPress, con una specifica su cosa fare se il pattern fosse abbinato. Per esempio, di default c'è una regola che abbinerebbe un permalink spoglio come <tt>category/abc</tt>, e la sua specifica dice che è stata richiesta la categoria "abc". C'è anche una regola di rewrite per la home page (niente dopo l'URL del blog). </li>
+<li>Cerca tra le regole di rewrite in ordine, finchè trova una corrispondenza tra regola e permalink. Se non trova niente, si verifica un errore 404. In caso contrario, WordPress estrae le informazioni a seconda delle specifiche della regola.</li>
+<li>Ottiene la lista delle <b>variabili della query</b> attiva al momento. Per ogni variabile della query, WordPress verifica se è stata impostata dalla conversione del permalink, dalla richiesta POST o dalla richiesta GET, e se così fosse, WordPress salva il valore della variabile nel vettore delle <b>specifiche della query</b> (<tt>$wp-&gt;query_vars</tt>, appartenente alla classe <tt>WP</tt> nel file <tt>wp-includes/class-wp.php</tt>)  </li></ol>
+<h3><span class="mw-headline" id="Cosa_possono_modificare_i_plugin">Cosa possono modificare i plugin</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:Panoramica_sulle_query&amp;action=edit&amp;section=2" title="Edit section: Cosa possono modificare i plugin">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Questa è una panoramica di ciò che può fare un plugin per modificare il comportamento di default di permalink e query descritti sopra. Molte di queste modifiche sono descritte (con esempi) nell'articolo <a href="https://codex.wordpress.org/Custom_Queries" title="Custom Queries">Custom Queries</a>.
+</p>
+<ul><li> Aggiungere, modificare o rimuovere regole di rewrite, riguardo al modo in cui vengono convertiti i permalink. Questo generalmente non è compiuto tramite azioni e filtri, ma chiamando le funzioni in <tt>wp-includes/rewrite.php</tt>, come <tt>addd_rewrite_rule</tt></li></ul>
+<p>, <tt>addd_rewrite_endpoint</tt>, etc. Questo può essere un po' complicato, poiché <tt> WP_Rewrite-&gt;wp_rewrite_rules()</tt> di solito estrae solo l'insieme di regole di rewrite precedentemente salvato (esse sono salvate nel database di WordPress nell'opzione "rewrite_rules"). Quindi se vuoi modificare le regole di rewrite, hai bisogno di chiamare la funzione <tt>$wp_rewrite-&gt;flush_rules()</tt> per forzare il ricalcolo. E' necessario far questo nelle azioni <tt>activation/deactivation/uninstall</tt> del tuo plugin, in modo tale che avvenga con buon anticipo nel processo. E' estremamente importante che ciò non avvenga ad ogni richiesta. Fare questo solo durante l'attivazione del plugin o qualcosa di simile.
+</p>
+<ul><li>Aggiungere o rimuovere variabili della query, riguardo a quali variabili sono salvate nelle specifiche della query dalle richieste POST, GET e dei permalink (filtro <tt>query_vars</tt>).</li>
+<li>Modificare le specifiche della query, dopo il salvataggio dei valori delle variabili (filtro <tt>request</tt> o l'azione <tt>parse_request</tt>; se vuoi usare i test dei tag condizionali, usa l'azione <tt>parse_query </tt> o <tt>pre_get_posts</tt>, poichè questi vengono eseguiti dopo aver impostato le variabili <tt>is_</tt>).</li>
+<li>Modificare la query del database MySQL, dopo averla creata dalle specifiche della query usando i seguenti filtri:
+<ul><li>posts_where</li>
+<li>posts_join</li>
+<li>posts_groupby</li>
+<li>posts_orderby</li>
+<li>posts_distinct</li>
+<li>posts_fields</li>
+<li>posts_limits</li>
+<li>posts_where_paged</li>
+<li>posts_join_paged</li>
+<li>posts_request</li></ul></li></ul>
+<ul><li>Modificare i risultati della query del database (filtro <tt>the_posts</tt>)</li>
+<li>Sostituire il file del template scelto di default (azione <tt>template_redirect</tt>)</li></ul>
+<h3><span class="mw-headline" id="Correlati">Correlati</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:Panoramica_sulle_query&amp;action=edit&amp;section=3" title="Edit section: Correlati">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<h4><span class="mw-headline" id="Articoli">Articoli</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:Panoramica_sulle_query&amp;action=edit&amp;section=4" title="Edit section: Articoli">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li>Articolo: <a href="https://codex.wordpress.org/Il_Loop" title="Il Loop">Il Loop</a> - panoramica dell'uso delle query nel Loop di WordPress</li>
+<li>Articolo: <a href="https://codex.wordpress.org/Custom_Queries" title="Custom Queries">Custom Queries</a> - come modificare le query usando gli hook</li>
+<li>Articolo: <a href="https://codex.wordpress.org/Displaying_Posts_Using_a_Custom_Select_Query" title="Displaying Posts Using a Custom Select Query">Displaying Posts Using a Custom Select Query</a> - query personalizzate</li>
+<li>Articolo: <a href="https://codex.wordpress.org/Making_Advanced_Taxonomy_Queries" title="Making Advanced Taxonomy Queries">Making Advanced Taxonomy Queries</a> - query avanzate riguardanti le tassonomie</li>
+<li>Articolo: <a href="https://codex.wordpress.org/Making_Custom_Queries_using_Offset_and_Pagination" title="Making Custom Queries using Offset and Pagination">Making Custom Queries using Offset and Pagination</a></li></ul>
+<h4><span class="mw-headline" id="Documentazione_del_codice">Documentazione del codice</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=it:Panoramica_sulle_query&amp;action=edit&amp;section=5" title="Edit section: Documentazione del codice">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Classe: <a href="https://codex.wordpress.org/it:Riferimento_classi/WP_Query" title="it:Riferimento classi/WP Query"> WP_Query</a> - Panoramica dettagliata della classe WP_Query</li>
+<li> Oggetto: <a href="https://codex.wordpress.org/it:Riferimento_classi/wpdb" title="it:Riferimento classi/wpdb"> $wpdb</a> - Panoramica sull'uso dell'oggetto $wpdb</li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/get_query_var" title="it:Riferimento funzioni/get query var"> get_query_var()</a></li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/query_posts" title="it:Riferimento funzioni/query posts"> query_posts()</a> - Creare query personalizzate aggiuntive</li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/get_post" title="it:Riferimento funzioni/get post"> get_post()</a> - Prende l'ID di un post e restituisce i record del database relativo a tale post</li>
+<li> Funzione: <a href="https://codex.wordpress.org/Function_Reference/get_posts" title="Function Reference/get posts" class="mw-redirect"> get_posts()</a> - Una funzione particolare che restituisce un vettore di elementi </li>
+<li> Funzione: <a href="https://codex.wordpress.org/Function_Reference/get_pages" title="Function Reference/get pages"> get_pages()</a> - Una funzione particolare che restituisce un vettore di pagine</li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/have_posts" title="it:Riferimento funzioni/have posts"> have posts()</a> - una condizione che determina se la query restituisce un articolo</li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/the_post" title="it:Riferimento funzioni/the post"> the_post()</a> - Usata per configurare automaticamente il Loop dopo una query</li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/rewind_posts" title="it:Riferimento funzioni/rewind posts"> rewind posts()</a> - Pulisce il loop corrente</li>
+<li> Funzione: <a href="https://codex.wordpress.org/Function_Reference/setup_postdata" title="Function Reference/setup postdata"> setup_postdata()</a> - Configura i dati per un  singolo risultato di una query all'interno di un loop</li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/wp_reset_postdata" title="it:Riferimento funzioni/wp reset postdata"> wp_reset_postdata()</a> - Ripristina la query precedente (di solito dopo un loop all'interno di un altro loop)</li>
+<li> Funzione: <a href="https://codex.wordpress.org/it:Riferimento_funzioni/wp_reset_query" title="it:Riferimento funzioni/wp reset query"> wp_reset_query()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/is_main_query" title="Function Reference/is main query"> is_main_query()</a> - Assicura che la query che è stata cambiata sia solo la query principale</li>
+<li> Hook per azione: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts" title="Plugin API/Action Reference/pre get posts"> pre_get_posts</a> - Modifica le query di WordPress prima che siano eseguite</li>
+<li> Hook per azione: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/the_post" title="Plugin API/Action Reference/the post"> the_post</a> - Modifica l'oggetto post dopo la query</li>
+<li> Hook per filtro: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/found_posts" title="Plugin API/Filter Reference/found posts"> found_posts</a> - Cambia il valore dell'oggetto found_posts WP_Query</p></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004344
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.016 seconds
+Preprocessor visited node count: 19/1000000
+Preprocessor generated node count: 24/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

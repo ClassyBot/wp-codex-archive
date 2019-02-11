@@ -1,0 +1,79 @@
+{{Languages|
+{{en|Function Reference/get attachment link}}
+{{it|Riferimento funzioni/get attachment link}}
+{{ja|テンプレートタグ/get attachment link}}
+}}
+== Descrizione ==
+
+Restituisce l'URI della [[Templates_Hierarchy#Attachment_display|pagina di un allegato]].
+
+== Utilizzo ==
+
+%%% <?php $attachment_page = get_attachment_link($id); ?> %%%
+
+== Parametri ==
+{{it:Parameter|$id|integer|ID numerico dell'[[Using_Image_and_File_Attachments|allegato]].|opzionale|ID del post corrente, quando usato nel [[it:Il_Loop|loop]].}}
+
+== Esempi ==
+
+== Utilizzo standard ==
+
+Poiché la funzione non stampa il permalink, questo esempio usa il comando PHP echo.
+
+<pre><?php 
+$attachment_id = 1; // ID dell'allegato
+$attachment_page = get_attachment_link( $attachment_id ); 
+?>
+<a href="<?php echo $attachment_page; ?>"><?php echo get_the_title( $attachment_id ); ?></a></pre>
+
+=== Mostrare immagini allegate e titoli in forma di lista ===
+
+Per mostrare le immagini allegate ad una certa pagina sotto forma di lista puntata, si può usare il seguente codice:
+
+<pre><ul>
+<?php if ( have_posts() ) : while ( have_posts() ) : the_post();    
+
+ $args = array(
+   'post_type' => 'attachment',
+   'numberposts' => -1,
+   'post_status' => null,
+   'post_parent' => $post->ID
+  );
+
+  $attachments = get_posts( $args );
+     if ( $attachments ) {
+        foreach ( $attachments as $attachment ) {
+           echo '<li>';
+           the_attachment_link( $attachment->ID, true );
+           echo '<p>';
+           echo apply_filters( 'the_title', $attachment->post_title );
+           echo '</p></li>';
+          }
+     }
+
+ endwhile; endif; ?>
+</ul></pre>
+
+== Valori restituiti ==
+
+Usando [[Using_Permalinks#mod_rewrite:_.22Pretty_Permalinks.22|la struttura dei permalink "gradevoli"]], la funzione restituisce qualcosa simile a <tt><nowiki>http://wp.example.net</nowiki>/<var>path_to_post</var>/<var>post_name</var>/<var>attachment_name</var></tt>.
+
+Usando [[Using_Permalinks#Default:_.22Ugly.22|la struttura predefinita dei permalink]] — o nel caso in cui Wordpress non riesca a costruire un URI gradevole — la funzione restituisce qualcosa simile a <tt><nowiki>http://wp.example.net</nowiki>/?attachment_id=<var>n</var></tt>, dove <var>n</var> è l'ID numerico dell'allegato.
+
+== Note ==
+
+Si può modificare l'output di questa funzione attraverso il filtro <tt>[[Plugin_API/Filter_Reference#Link_Filters|attachment_link ]]</tt>.
+
+Se si vuole un link diretto al file allegato (invece della pagina dell'allegato), si può usare la funzione <tt>[[it:Riferimento_funzioni/wp_get_attachment_url|wp_get_attachment_url]](<var>id</var>)</tt>.
+
+'''Nota''': <tt>get_attachment_link</tt> in realtà restituisce un URI, mentre <tt>[[it:Riferimento_funzioni/wp_get_attachment_link|wp_get_attachment_link()]]</tt> restituisce un link HTML.
+
+== File sorgente ==
+
+<tt>get_attachment_link()</tt> si trova in {{Trac|wp-includes/link-template.php|tags/3.4.2|292}}.
+
+== Correlati ==
+{{it:Attachment Tags}}
+
+[[Category:Attachments]]
+[[Category:Template_Tags]]

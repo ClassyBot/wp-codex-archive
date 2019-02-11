@@ -1,0 +1,207 @@
+__TOC__
+
+Since the advent of [[Using Themes|Themes]] in WordPress 1.5, changing the look and feel of your WordPress site has become fairly straightforward. For instance, when a viewer clicks on a link to a post author, by default he or she is taken to a page listing the posts from that particular author in chronological order, from newest posts at the top to oldest at the bottom. There are many display choices, including whether to display the complete post or post excerpts, and what additional information to display (title, category, publish date, last modified time, etc.). Each theme makes different choices, and you might want to change them. 
+
+This article explains how to change what happens when the blog viewer is visiting one of your site's author pages. This involves the use of Themes and Template files, so if you are new to template files, you might want to read [[Using Themes]] and [[Stepping Into Templates]] first.
+
+There are many ways that you can modify the look of your author pages. Some are not really specific to author pages, such as adding text to the top of the page; you can read about such simple modifications in the [[Category Templates]] article. This article will concentrate on modifications that are specific to author template files.
+
+== Başlangıç ==
+
+=== Yazılarda Yazar Sayfasına Bağlantı Vermek ===
+
+Eğer yazar sayfalarını kullanacaksanız, muhtemelen bir yazı gösterildiğinde, yazarın sayfasına bağlantı olmasını isteyeceksiniz. Bu bağlantıyı [[The Loop]] içerisinde [[tr:Tema_Etiketleri/the_author_posts_link|the_author_posts_link]] Tema Etiketini kullanarak oluşturabilirsiniz. Örneğin:
+<pre>
+<p>Yazar: 
+<?php the_author_posts_link(); ?></p>
+</pre>
+
+'''Not:''' As of WP 2.1, the_author_link() no longer links to author pages - it links to the URL stored in that author's Profile page instead.   the_author_posts_link() is currently the only way to link to a standard WP-generated author page.
+
+=== Bağlantı Verilmiş Yazar Listesi ===
+
+Yazar sayfalarına bağlantı vermenin diğer bir yolu ise, kenar çubuğunda (sidebarda) (veya temanızın herhangi bir yerinde) yazar listesi oluşturmaktır. [[tr:Tema_Etiketleri/wp_list_authors|wp_list_authors]] tema etiketi tam olarak bunu yapıyor. Yapmanız gereken tek şey aşağıdaki kodu kenar çubuğuna yerleştirmek:
+<pre>
+<h2>Yazar Listesi:</h2>
+<ul>
+<?php wp_list_authors(); ?>
+</ul>
+</pre>
+
+=== Hangi Tema Dosyasını Kullanacağım? ===
+
+Artık yazar sayfalarına ait bağlantılara sahip olduğumuza göre, bir sonraki adımımız yazıları göstermek için kullanacağımız tema dosyasını düzenlemek olacaktır. Buna [[Tema Hiyerarşisi]] de denir.
+
+Hiyerarşi sistemi çok basittir. Tema Hiyerarşisi WordPress'in tema klasörünüzde kullanacağı ilk dosyayı belirler. Aşağıdaki listeye bakarsak:
+#<tt style="font-weight:bold; color:#036">author.php</tt>
+#<tt style="font-weight:bold; color:#036">archive.php</tt>
+#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+Eğer <tt style="font-weight:bold; color:#036">author.php</tt> dosyanız yoksa, WordPress <tt style="font-weight:bold; color:#036">archive.php</tt> dosyasını arar, o da yoksa diğerini arar.
+
+Bu yüzden, eğer yazar sayfalarınızın görünümünü değiştirmek istiyorsanız, öncelikle bir <tt>author.php</tt> dosyası oluşturmalısınız. Eğer yoksa <tt>archive.php</tt> dosyasını kopyalayarak, o da yoksa <tt>index.php</tt> dosyasını kullanabilirsiniz.. Bu makalenin devamında <tt>author.php</tt> dosyasının düzenlenmesini göreceksiniz.
+
+== Özel Yazar Bilgileri ==
+
+Bu sekme yazar sayfanıza, yazarla ilgili bilgileri, örneğin isim, biyografi, ve iletişim bilgisini nasıl ekleyeceğinizi gösteriyor.
+
+=== Yazar Bilgilerini Hazırlamak ===
+
+Yapacağınız ilk şey yazarlara ait tema dosyasını (<tt>author.php</tt>) düzenlemek. Böylece sayfada hangi yazarın gösterileceğini anlayacak ve veritabanından bilgileri buna göre çekeceğiz.
+
+Bunu <tt>$curauth</tt> (Current Author yani <tt>Şu an ki Yazar</tt>) denilen bir değişkenle yapabiliriz. Bunun için izlenen geleneksel yol, aşağıdaki satırları tema dosyasında [[The Loop]] öncesine yerleştirmektir:
+<pre><?php 
+if(isset($_GET['author_name'])) :
+    // NOTE: 2.0 bug requires: get_userdatabylogin(get_the_author_login());
+    $curauth = get_userdatabylogin($author_name);
+else :
+    $curauth = get_userdata(intval($author));
+endif;
+?></pre>
+
+Eğer yukarıdaki çalışmıyorsa, <tt>$curauth</tt> değerini almak için başka yollar da var. Örneğin WordPress 1.2 Sürümü, WordPress 1.5 Sürümü ve daha yüksek sürümlerde çalışan bu kodu deneyin.
+<pre>
+<?php
+if(isset($_GET['author_name'])) :
+    $curauth = get_userdatabylogin($_GET['author_name']);
+else :
+    $curauth = get_userdata($_GET['author']);
+endif;
+?>
+</pre>
+
+Yada sadece WordPress 1.5 ve daha üst sürümlerde çalışan bu kodu deneyebilirsiniz:
+<pre>
+<?php
+if(get_query_var('author_name')) :
+    $curauth = get_userdatabylogin(get_query_var('author_name'));
+else :
+    $curauth = get_userdata(get_query_var('author'));
+endif;
+?>
+</pre>
+
+Eğer yukarıdakilerin hiç biri sizde çalışmıyorsa, WordPress 1.5 ve altı sürümler için bir başka seçenek daha var:
+
+<pre>
+<?php
+global $wp_query;
+$curauth = $wp_query->get_queried_object();
+?>
+</pre>
+
+=== Yazar Bilgilerini Kullanmak ===
+
+Artık <tt>$curauth</tt> değişkenine sahip olduğumuza göre, gösterilen yazarın her türlü bilgisini yayınlayabiliriz. Örneğin, yazarın takma ismini, "Ali arkadaşımızın sayfası" formatında göstermek istiyorsanız, şunu kullanmalısınız: 
+<pre>
+<p><?php echo $curauth->nickname; ?> arkadaşımızın sayfası</p>
+</pre>
+
+Not: Yaptıklarımız, bir önceki bölümde elde ettiğimiz <tt>$curauth</tt> değişkeninden ''sonra'' yazılmalıdır.
+
+Yazar takma adının yanı sıra gösterebileceğimiz bir çok bilgi daha var. Bunların hepsi WordPress kullanıcı düzenlemek ekranında çıkan bilgiler. WordPress 2.0 ve daha yüksek sürümlerde bunları kullanabilirsiniz:
+
+* <tt>$curauth->aim;</tt>
+* <tt>$curauth->description;</tt>
+* <tt>$curauth->display_name;</tt>
+* <tt>$curauth->first_name;</tt>
+* <tt>$curauth->ID;</tt>
+* <tt>$curauth->jabber;</tt>
+* <tt>$curauth->last_name;</tt>
+* <tt>$curauth->nickname;</tt>
+* <tt>$curauth->user_email;</tt>
+* <tt>$curauth->user_login;</tt>
+* <tt>$curauth->user_nicename;</tt>
+* <tt>$curauth->user_registered;</tt>
+* <tt>$curauth->user_url;</tt>
+* <tt>$curauth->yim;</tt>
+
+WordPress 1.2 ve 1.5 için:
+
+*<tt>$curauth->user_aim;</tt>
+*<tt>$curauth->user_description;</tt>
+*<tt>$curauth->user_email;</tt>
+*<tt>$curauth->user_firstname;</tt>
+*<tt>$curauth->user_icq;</tt>
+*<tt>$curauth->user_lastname;</tt>
+*<tt>$curauth->user_level;</tt>
+*<tt>$curauth->user_login;</tt>
+*<tt>$curauth->user_msn;</tt>
+*<tt>$curauth->user_nickname;</tt>
+*<tt>$curauth->user_url;</tt>
+*<tt>$curauth->user_yim;</tt>
+
+Bunlarda yukarıda verdiğimiz takma isim örneğiyle aynı şekilde kullanılıyor. Yazarın "Herkes tarafından görülecek ad" bilgisini ve "Biografik Bilgi" yazısını göstermek istersek eğer:
+<pre>
+<p><?php echo $curauth->display_name; ?><br />
+<?php echo $curauth->description; ?></p>
+</pre>
+
+=== Örnek Tema Dosyası ===
+
+Size örnek olması için bütün bir <tt>author.php</tt> dosyası:
+
+<pre>
+<?php get_header(); ?>
+
+<div id="content" class="narrowcolumn">
+
+<!-- $curauth değişkeni ayarlanıyor -->
+
+    <?php
+    if(isset($_GET['author_name'])) :
+        $curauth = get_userdatabylogin($author_name);
+    else :
+        $curauth = get_userdata(intval($author));
+    endif;
+    ?>
+
+    <h2>Yazar: <?php echo $curauth->nickname; ?></h2>
+    <dl>
+        <dt>İnternet Sitesi</dt>
+        <dd><a href="<?php echo $curauth->user_url; ?>"><?php echo $curauth->user_url; ?></a></dd>
+        <dt>Hakkında</dt>
+        <dd><?php echo $curauth->user_description; ?></dd>
+    </dl>
+
+    <h2><?php echo $curauth->nickname; ?> Tarafından Yazılanlar:</h2>
+
+    <ul>
+<!-- The Loop -->
+
+    <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+        <li>
+            <a href="<?php the_permalink() ?>" rel="bookmark" title="Kalıcı Bağlantı: <?php the_title(); ?>">
+            <?php the_title(); ?></a>,
+            <?php the_time('d M Y'); ?> in <?php the_category('&');?>
+        </li>
+
+    <?php endwhile; else: ?>
+        <p><?php _e('No posts by this author.'); ?></p>
+
+    <?php endif; ?>
+
+<!-- End Loop -->
+
+    </ul>
+</div>
+<?php get_sidebar(); ?>
+<?php get_footer(); ?>
+</pre>
+
+== İleri Seviye Bilgiler ==
+
+* [[Templates]] - Tema ve tema dosyaları oluşturmak için referans liste
+* [http://guff.szub.net/2005/01/31/get-author-profile/ Kafkaesquí's Get Author Profile Plugin] will also access the author information and allows you to provide author information outside of the Loop, such as for a sidebar intro of the blog owner or to list contributors to your blog.
+* [http://wordpress.org/support/topic/27554#post-154787 WordPress Support Forum Thread on Author Templates]
+* [http://wordpress.org/support/topic/33064 Another WordPress Support Forum Thread on Author Templates]
+* [http://blog.themeforest.net/wordpress/wordpress-author-details/ Yazar arşivi oluşturmak]
+
+=== Çeviri Notları ===
+* Üst paragrafı türkçeleştiremedim, kusura bakmayın...
+* <tt>Nickname</tt> yerine ''takma isim'', <tt>Link</tt> yerine ''bağlantı'' kelimelerini tercih ettim.
+* Çeviri: * [http://www.semihaksu.com/ Semih Aksu]
+
+[[Category:Design and Layout]]
+[[Category:WordPress Lessons]]
+[[Category:Templates]]

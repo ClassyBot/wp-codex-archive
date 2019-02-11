@@ -1,0 +1,59 @@
+{{Languages|
+{{en|Function Reference/wp_embed_register_handler}}
+{{it|Riferimento funzioni/wp_embed_register_handler}}
+}}
+== Description ==
+
+Register an embed handler. If the site in question supports oEmbed, consider using [[Function Reference/wp_oembed_add_provider|<tt>wp_oembed_add_provider()</tt>]] instead. See the [[Embeds]] document for more details.
+
+This function should be called from a plugin or a theme's [[Theme_Development#Theme_Functions_File|<tt>functions.php</tt>]] file.
+
+== Usage ==
+
+%%% <?php wp_embed_register_handler( $id, $regex, $callback, $priority ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$id|string|An internal ID/name for the handler. Needs to be unique.}}
+
+{{Parameter|$regex|string|The regex that will be used to see if this handler should be used for a URL.}}
+
+{{Parameter|$callback|callback|The callback function that will be called if the regex is matched.}}
+
+{{Parameter|$priority|int|Used to specify the order in which the registered handlers will be tested (default: 10). Lower numbers correspond with earlier testing, and handlers with the same priority are tested in the order in which they were added to the action.|optional|10}}
+
+== Examples ==
+
+Register an embed handler for Forbes video embeds.
+
+<pre><?php
+
+wp_embed_register_handler( 'forbes', '#http://(?:www|video)\.forbes\.com/(?:video/embed/embed\.html|embedvideo/)\?show=([\d]+)&amp;format=frame&amp;height=([\d]+)&amp;width=([\d]+)&amp;video=(.+?)($|&)#i', 'wp_embed_handler_forbes' );
+
+function wp_embed_handler_forbes( $matches, $attr, $url, $rawattr ) {
+
+	$embed = sprintf(
+			'<iframe src="http://www.forbes.com/video/embed/embed.html?show=%1$s&format=frame&height=%2$s&width=%3$s&video=%4$s&mode=render" width="%3$spx" height="%2$spx" frameborder="0" scrolling="no" marginwidth="0" marginheight="0"></iframe>',
+			esc_attr($matches[1]),
+			esc_attr($matches[2]),
+			esc_attr($matches[3]),
+			esc_attr($matches[4])
+			);
+
+	return apply_filters( 'embed_forbes', $embed, $matches, $attr, $url, $rawattr );
+}
+
+?></pre>
+
+'''Update''': The iframe source used here is [http://wordpress.stackexchange.com/questions/238330/wp-embed-register-handler-not-working outdated].
+
+== Change Log ==
+
+Since: 2.9.0
+
+== Source file ==
+<tt>wp_embed_register_handler()</tt> is located in {{Trac|wp-includes/embed.php}}.
+
+== Related ==
+
+{{Embed Tags}}

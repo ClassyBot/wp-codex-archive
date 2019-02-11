@@ -1,0 +1,164 @@
+{{Languages|
+{{en|Child Themes}}
+{{ja|Child Themes}}
+{{fr|Thèmes Enfant}}
+{{sk|Odvodené témy}}
+{{zh-hans|子主题}} 
+}}
+
+WordPress odvodená téma je téma, ktorá preberá funkcionalitu inej témy, nazvanej nadradená téma, a dovoľuje vám pozmeniť, alebo pridať funkcie k nadradenej téme.  Tento článok vám ukáže, ako vytvoriť základnú odvodenú tému, a vysvetlí vám čo s ňou môžete robiť.  Ako príklad nadradenej témy je použitá téma  Twenty Ten, nová prednastavená téma vo verzii  [[Version_3.0|WordPress 3.0]].
+
+Vytvorenie odvodenej témy je  jednoduché. Vytvorte adresár, vložte do neho správne naformátovaný súbor ''style.css'', a máte odvodenú tému! Ak sa trochu vyznáte v   HTML a [[CSS]], môžete s pomocou tejto ''základnej odvodenej témy'' akokoľvek pozmeniť štylizáciu a rozloženie nadradenej témy  bez úpravy samotných súborov nadradenej témy. Týmto spôsobom sa zmeny  zachovajú aj keď je nadradená téma aktualizovaná. 
+
+'''Preto sú odvodené témy odporúčaným spôsobom pre úpravy témy.'''  
+
+So základným porozumením PHP, [[Templates|WordPress šablónam]], a [[Plugin API|WordPress API pre moduly]], môžete s pomocou odvodenej témy rozšíriť prakticky každú súčasť nadradenej témy, znovu, bez úpravy samotných súborov nadradenej témy. 
+
+== Štruktúra adresára ==
+
+Odvodená téma  sídli vo svojom vlastnom adresári v zložke  ''wp-content/themes''.  Nasledujúca schéma zobrazuje umiestnenie odvodenej, aj jej nadradenej témy (Twenty Ten) v typickej štruktúre adresára WordPress:
+
+*   '''public_html'''
+**      '''wp-content''' 
+***         '''themes''' (adresár kde sú umiestnené všetky témy)
+****            '''twentyten''' (adresár nadradenej témy ktorú používame ako príklad, Twenty Ten)
+****            '''twentyten-child''' (adresár našej odvodenej témy; môže byť nazvaný ľubovoľne)
+*****               '''style.css''' (požadovaný súbor v odvodenej téme; musí byť nazvaný ''style.css'')
+
+Tento adresár môže obsahovať iba súbor ''style.css'' , ale môže v ňom byť všetko čo obsahuje ktorákoľvek plne vyvinutá WordPress téma:
+
+#   style.css (povinný)
+#   functions.php (nepovinný)
+#   Súbory šablón (nepovinné)
+#   Iné súbory (nepovinné)
+
+Pozrime sa ako tieto súbory fungujú.
+
+== Povinný súbor style.css ==
+
+''style.css'' je jediný '''povinný''' súbor v odvodenej téme.  Poskytuje informačnú hlavičku, podľa ktorej WordPress rozpoznáva odvodenú tému, a '''nahradzuje style.css nadradenej témy'''.
+
+Tak ako v každej WordPress téme, musí byť informačná hlavička na vrcholku súboru. Jediný rozdiel je že v odvodenej téme potrebujeme riadok <code>Template:</code>, aby WordPress vedel ktorá téma je nadradená pre odvodenú tému. 
+
+Tu je príklad  informačnej hlavičky súboru ''style.css''odvodenej témy:
+
+<pre>
+/*
+Theme Name:     Twenty Ten Child
+Theme URI:      http: //priklad.com/
+Description:    Odvodená téma pre tému Twenty Ten 
+Author:         Vaše meno
+Author URI:     http: //priklad.com/about/
+Template:       twentyten
+Version:        0.1.0
+*/
+</pre>
+
+Stručné vysvetlenie pre každý riadok:
+
+*   <code>Theme Name</code>.   ('''povinné''')     '''Názov''' odvodenej témy.
+*   <code>Theme URI</code>.    (nepovinné)          Webová stránka odvodenej témy.
+*   <code>Description</code>.  (nepovinné)          Popis tejto témy.  Napr.:  Moja prvá odvodená téma.  Hurá!
+*   <code>Author URI</code>.   (nepovinné)          Webová stránka autora.
+*   <code>Author</code>.       (nepovinné)          Meno autora.
+*   <code>Template</code>.     ('''povinné''')    '''adresárový''' názov nadradenej témy, s ohľadom na veľké a malé písmená. '''Pozor:''' Keď upravujete tento riadok, musíte prepnúť na inú tému a potom späť na odvodenú tému. 
+*   <code>Version</code>.      (nepovinné)          Verzia odvodenej témy.  Napr:  0.1, 1.0, atď.
+
+Časť po uzavretí  <code>*/</code> informačnej hlavičky ďalej funguje  ako bežná šablóna štýlu. Je to časť, kde vkladáte pokyny pre štylizáciu ktoré má WordPress aplikovať.   
+
+Všimnite si že šablóna štýlu odvodenej témy nahradila šablónu štýlu nadradenej témy.  (Vzhľad nadradenej témy sa vôbec nenačíta.)  Takže ak chcete iba upraviť pár vecí vo vzhľade a rozložení nadradenej témy a nie vytvoriť niečo úplne nové, mali by ste vložiť šablónu štýlu nadradenej témy, a potom pridať vaše úpravy. Nasledujúci príklad vám ukáže ako to urobiť s pomocou  príkazu  <code>@import</code>.
+
+== Príklad základnej odvodenej témy ==
+
+Našou nadradenou témou v tomto príklade je Twenty Ten.  Sme spokojní so všetkým v nej, okrem farby titulku stránky, ktorý by sme chceli zmeniť z čiernej na zelenú.  S použitím odvodenej témy to môžeme urobiť v troch jednoduchých krokoch: 
+
+#   Vytvorte nový adresár v ''wp-content/themes'', a nazvite ho ''twentyten-child'' (alebo akokoľvek inak).
+#   Uložte kód uvedený nižšie  do súboru  pomenovanom ako ''style.css'', a umiestnite tento súbor do nového adresára.
+#   Prejdite na Nástenka › Témy a aktivujte vašu novú tému,  Twenty Ten Child.
+
+<pre>
+/*
+Theme Name: Twenty Ten Child
+Description: Odvodená téma pre tému Twenty Ten 
+Author: Vaše meno
+Template: twentyten
+*/
+
+@import url("../twentyten/style.css");
+
+#site-title a {
+    color: #009900;
+}
+</pre>
+
+Tu je popis toho čo kód urobí, krok za krokom:
+
+#   <code>/*</code> otvorí informačnú hlavičku odvodenej témy. 
+#   <code>Theme Name:</code> vloží názov odvodenej témy.
+#   <code>Description:</code> vytvorí popis odvodenej témy.  (Nepovinné; môže byť vynechané.)
+#   <code>Author:</code> vloží meno autora  (Nepovinné; môže byť vynechané.)
+#   <code>Template:</code> definuje nadradenú tému;  napr., cesta k  téme ktorej šablóny odvodená téma používa.
+#   <code>*/</code> zatvorí informačnú hlavičku odvodenej témy.
+#   The <code>@import</code>  vloží vzhľad a rozloženie nadradenej témy.
+#   The <code>#site-title a</code>   definuje  farbu pre titulku stránky, prepísaním zodpovedajúceho pravidla z nadradenej témy. 
+
+=== Poznámka  k príkazu <code>@import</code>  ===
+
+Nad príkazom <code>@import</code>  nemôžu byť žiadne iné  CSS  príkazy . Ak nad neho  dáte iné príkazy, súbor sa stane neplatným a šablóna štýlu nadradenej témy nebude vložený. 
+
+== Používanie functions.php ==
+
+Na rozdiel od ''style.css'', súbor ''functions.php'' odvodenej témy neprepíše svoj ekvivalent z nadradenej témy. Namiesto toho sa ''' načíta ako doplnok k functions.php nadradenej témy'''.  (Konkrétne, načíta sa priamo ''pred'' súborom nadradenej témy.)
+
+Týmto spôsobom, ''functions.php'' odvodenej témy poskytuje chytrý, bezproblémový spôsob úpravy funkcionality nadradenej témy. Povedzme že potrebujete do vašej témy pridať nejakú PHP funkciu.  Najrýchlejší spôsob by bol otvoriť ''functions.php'' súbor témy a pridať ju tam. Toto však nie je veľmi rozumné, pretože nabudúce keď bude vaša téma aktualizovaná, vaša funkcia sa stratí. Namiesto toho môžete vytvoriť odvodenú tému, pridať do nej súbor  ''functions.php'', a pridať svoju funkciu do tohto súboru.  Funkcia sa bude odtiaľto správať rovnako, s výhodou zachovania v prípade aktualizácie nadradenej témy. 
+
+Štruktúra ''functions.php'' je jednoduchá:  Otvárací PHP tag na vrchu, zatvárací PHP tag na spodu, a, medzi nimi, vaše časti  PHP kódu.  Môžete do neho vložiť toľko funkcii koľko budete chcieť.  Príklad nižšie ukazuje základný  ''functions.php'' súbor ktorý robí jednu jednoduchú vec:  Pridáva Favikonový odkaz do  <code>head</code> zložky  HTML stránok.
+
+<pre>
+&lt;?php
+
+function favicon_link() {
+    echo '<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />' . "\n";
+}
+add_action('wp_head', 'favicon_link');
+
+?&gt;
+</pre>
+
+TIP PRE  VÝVOJÁROV TÉM.  Tým že sa ''functions.php'' súbor odvodenej témy  načítava ako prvý, umožňuje vám deklarovať užívateľské funkcie vašej témy ako moduly - teda nahraditeľné odvodenou témou- ich podmienečným definovaním. Napr.: 
+
+<pre>
+if (!function_exists('theme_special_nav')) {
+    function theme_special_nav() {
+        //  Do something.
+    }
+}
+</pre>
+
+Týmto spôsobom môže odvodená téma nahradiť  PHP funkciu nadradenej témy jej jednoduchým  opakovaným vložením.  
+
+== Súbory šablón ==
+
+[[Templates|Šablóny]] sa v odvodenej téme správajú tak ako ''style.css'', v tom že '''prekonajú svojich menovcov''' nadradenej témy.  Odvodená téma môže prekonať '''akúkoľvek''' šablónu nadradenej témy jednoduchým použitím súbora s rovnakým názvom. (Poznámka: ''index.php'' môže byť prepísaný iba vo verzii WordPress 3.0 a novších.)
+
+Opäť, táto vlastnosť WordPress vám dovoľuje upraviť šablóny nadradenej témy bez toho aby ste ich priamo menili, takže sa úpravy zachovajú aj keď je nadradená téma aktualizovaná. 
+
+Toto sú napríklad niektoré prípady použitia súborov šablóny v odvodenej téme: 
+
+*   Pre pridanie šablóny ktorú nadradená téma neponúka. (napr., šablóny pre mapu stránky, alebo pre stránky s jedným článkom, ktoré budú dostupné  v menu pre  úpravu stránky).
+*   Pre pridanie špecifickejšej šablóny (pozri [[Template Hierarchy|hierarchiu šablón]]) ako je používaná nadradenou témou (napr.,  ''tag.php'' šablóna pre použitie tagových archívov  namiesto pôvodnej ''archive.php'' nadradenej témy).
+*   Pre nahradenie šablóny nadradenej témy (napr., vytvorenie vašej vlastnej ''home.php'' a prekonanie  ''home.php'' nadradenej témy).
+
+== Iné súbory ==
+
+Okrem súborov ako ''style.css'', ''functions.php'', ''index.php'', a ''home.php'' môže odvodená téma použiť akékoľvek súbory ktoré používajú plne vyvinuté témy, samozrejme ak je na súbor správne odkázané. Napríklad, môže použiť ikony a obrázky s odkazmi na je šablónu štýlu alebo dodatočné   PHP súbory vybraté zo [[Templates|šablón]] alebo z ''functions.php''.
+
+== Zdroje ==
+
+* [[Theme Development|Vývoj tém]]
+* [http://themeshaper.com/modify-wordpress-themes/ How to Modify WordPress Themes the Smart Way] - štvor-dielna sséria o odvodených témach  
+* [http://op111.net/53 How to make a child theme for WordPress: A pictorial introduction for beginners] -  ilustrovaný úvod do odvodených tém
+* [http://aaron.jorb.in/blog/2010/04/05/introducing-thirty-ten/ Introducing Thirty Ten] – sprievodca vytvorením témy Twenty Ten Child
+
+[[Category:sk:Design and Layout]]
+[[Category:sk:UI Link]]<!-- link from wp-admin/update-core.php -->

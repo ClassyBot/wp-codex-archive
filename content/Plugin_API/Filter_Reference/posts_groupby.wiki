@@ -1,0 +1,35 @@
+== Description ==
+The <tt>posts_groupby</tt> filters the <tt>GROUP BY</tt> clause of the SQL query for posts performed by the [[Class_Reference/WP_Query | WP_Query()]] class.
+
+== Important ==
+If you come with MySQL knowledge, the <tt>GROUP BY</tt> clause is pretty useless without the ability to modify the SELECT statement.
+
+There is no SELECT filter since the query is supposed to return only the post data. The GROUP BY clause is set ''only when'' there are [[Class_Reference/WP_Query#Custom Field Parameters | Custom Field Parameters]] for querying by post meta or [[Class_Reference/WP_Query#Taxonomy Parameters | Taxonomy Parameters]] for querying by taxonomy.
+
+The default <tt>posts_groupby</tt> is set to <tt>{$wpdb->posts}.ID</tt>, which means that even if there are multiple results because of multiple meta and taxonomy, they are grouped together by the post id.
+
+== Usage ==
+<pre>&lt;?php add_filter( 'posts_groupby', 'my_posts_groupby' ); ?&gt;</pre>
+
+== Example ==
+
+<pre>
+add_filter( 'posts_groupby', 'my_posts_groupby' );
+function my_posts_groupby($groupby) {
+    global $wpdb;
+    $groupby = "{$wpdb->posts}.ID";
+    return $groupby;
+}
+</pre>
+
+The code above will just set the GROUP BY clause whether or not, a [[Class_Reference/WP_Query#Taxonomy Parameters | taxonomy query]] or a [[Class_Reference/WP_Query#Custom Field Parameters | meta query]] is present.
+
+For example, say we have a custom table (for ratings) and we wish to filter the posts using data from this table (only show posts that have a 5 star rating). 
+
+We can use the [[Plugin_API/Filter_Reference/posts_join | posts_join]] filter to join the tables. If there are multiple entries in the ratings table, the join can return multiple results for the same post.
+
+We can make sure that we only have one row per post (that has all the entries for the ratings) by setting the GROUP BY clause. Remember that in the default query, GROUP BY clause is only set when there is a [[Class_Reference/WP_Query#Custom Field Parameters | meta query]] or [[Class_Reference/WP_Query#Taxonomy Parameters | taxonomy query]] involved.
+
+Return to [[Plugin API/Filter Reference]]
+
+[[Category:Filters]]

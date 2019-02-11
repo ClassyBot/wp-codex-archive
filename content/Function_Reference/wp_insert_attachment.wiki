@@ -1,0 +1,76 @@
+{{Languages|
+{{en|Function_Reference/wp_insert_attachment}}
+{{ja|関数リファレンス/wp_insert_attachment}}
+}}
+==Description==
+This function inserts an attachment into the media library. The function should be used in conjunction with <tt>[[Function_Reference/wp_update_attachment_metadata|wp_update_attachment_metadata()]]</tt> and <tt>[[Function_Reference/wp_generate_attachment_metadata|wp_generate_attachment_metadata()]]</tt>. It returns the ID of the entry created in the <tt>wp_posts</tt> table.
+
+This function is part of the low-level API used by WordPress for handling attachments. To perform the entire attachment upload and insertion process at once, you will want to use <tt>[[Function_Reference/media_handle_upload | media_handle_upload()]]</tt> instead in most cases.
+
+==Usage==
+%%% <?php wp_insert_attachment( $attachment, $filename, $parent_post_id ); ?> %%%
+
+==Parameters==
+{{Parameter|$attachment|array|Array of data about the attachment that will be written into the wp_posts table of the database. Must contain at a minimum the keys post_title, post_content (the value for this key should be the empty string), post_status and post_mime_type.}}
+{{Parameter|$filename|string|Location of the file on the server. Use absolute path and not the URI of the file. The file MUST be in the uploads directory. See [[Function_Reference/wp_upload_dir|wp_upload_dir()]] |optional|false}}
+{{Parameter|$parent_post_id|int|Attachments may be associated with a parent post or page. Specify the parent's post ID, or 0 if unattached.|optional|0}}
+
+==Return Values==
+Returns the resulting post ID (int) on success or 0 (int) on failure.
+
+==Example==
+
+To insert an attachment to a parent with a post ID of 37:
+
+<pre>
+<?php
+
+// $filename should be the path to a file in the upload directory.
+$filename = '/path/to/uploads/2013/03/filename.jpg';
+
+// The ID of the post this attachment is for.
+$parent_post_id = 37;
+
+// Check the type of file. We'll use this as the 'post_mime_type'.
+$filetype = wp_check_filetype( basename( $filename ), null );
+
+// Get the path to the upload directory.
+$wp_upload_dir = wp_upload_dir();
+
+// Prepare an array of post data for the attachment.
+$attachment = array(
+	'guid'           => $wp_upload_dir['url'] . '/' . basename( $filename ), 
+	'post_mime_type' => $filetype['type'],
+	'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $filename ) ),
+	'post_content'   => '',
+	'post_status'    => 'inherit'
+);
+
+// Insert the attachment.
+$attach_id = wp_insert_attachment( $attachment, $filename, $parent_post_id );
+
+// Make sure that this file is included, as wp_generate_attachment_metadata() depends on it.
+require_once( ABSPATH . 'wp-admin/includes/image.php' );
+
+// Generate the metadata for the attachment, and update the database record.
+$attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+wp_update_attachment_metadata( $attach_id, $attach_data );
+
+set_post_thumbnail( $parent_post_id, $attach_id );
+</pre>
+
+==Note==
+Using  the <code>_wp_relative_upload_path()</code> to build the guid may not be reliable on some servers.
+
+== Source File ==
+
+<tt>wp_insert_attachment()</tt> is located in {{Trac|wp-includes/post.php}}.
+
+==Related==
+[[Function Reference/wp get attachment url|wp_get_attachment_url()]], [[Function Reference/wp delete attachment|wp_delete_attachment()]], [[Function Reference/wp insert post|wp_insert_post()]]
+
+{{Tag Footer}}
+{{Copyedit}}
+
+[[Category:Functions]]
+[[Category:New page created]]

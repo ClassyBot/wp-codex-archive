@@ -1,0 +1,89 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Interagindo_com_o_Banco_de_Dados"><span class="tocnumber">1</span> <span class="toctext">Interagindo com o Banco de Dados</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Notas_de_uso"><span class="tocnumber">1.1</span> <span class="toctext">Notas de uso</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-3"><a href="#Execute_qualquer_consulta_no_banco_de_dados"><span class="tocnumber">2</span> <span class="toctext">Execute qualquer consulta no banco de dados</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Exemplos"><span class="tocnumber">2.1</span> <span class="toctext">Exemplos</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Interagindo_com_o_Banco_de_Dados">Interagindo com o Banco de Dados</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Class_Reference/wpdb&amp;action=edit&amp;section=1" title="Edit section: Interagindo com o Banco de Dados">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>O WordPress provê uma classe de funções para manipulação de banco de dados.  A classe é chamada <code>wpdb</code> E é baseada na classe <a rel="nofollow" class="external text" href="http://justinvincent.com/ezsql">ezSQL</a> escrita e mantida por <a rel="nofollow" class="external text" href="http://www.jvmultimedia.com">Justin Vincent</a>.
+</p>
+<h3><span class="mw-headline" id="Notas_de_uso">Notas de uso</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Class_Reference/wpdb&amp;action=edit&amp;section=2" title="Edit section: Notas de uso">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Os métodos na classe <code>wpdb</code> não devem ser chamados diretamente. O WordPress provê a variável global <code>$wpdb</code>, que é uma instância da classe já definida para a comunicação com o banco de dados do WordPress.  Utilize sempre a variável global <code>$wpdb</code>.  (Consulte <a rel="nofollow" class="external text" href="http://www.php.net/manual/pt_BR/language.variables.scope.php#language.variables.scope.global">gloabalize</a> <code>$wpdb</code> antes de utilizar qualquer função customizada.)
+</p><p>O objeto <code>$wpdb</code> pode ser utilizado para ler os dados de qualquer tabela do bando de dados do WordPress, além das tabelas criadas pelo próprio.  Por exemplo para fazer um SELECT em uma tabela personalizada chamada "minha_tabela", você pode fazer o seguinte.
+<code>
+</p>
+<pre>$meusResultados = $wpdb-&gt;<a href="#SELECT_Generic_Results">get_results</a>( "SELECT id, name FROM minha_tabela" );
+</pre>
+<p></code>
+</p><p>O objeto <code>$wpdb</code> pode interagir com inúmeras tabelas, porém com apenas um banco de dados: O banco de dados do WordPress.  Se você precisar se conectar a outro banco de dados, você precisará instanciar seu próprio objeto da classe <code>wpdb</code> com os detalhes de conexão apropriados.  Para instalações complexas com vários bancos de dados, considere utilizar <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/hyperdb/">hyperdb</a>.
+</p>
+<h2><span class="mw-headline" id="Execute_qualquer_consulta_no_banco_de_dados">Execute qualquer consulta no banco de dados</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Class_Reference/wpdb&amp;action=edit&amp;section=3" title="Edit section: Execute qualquer consulta no banco de dados">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A função <code>query</code> permite que você execute <i>qualquer</i> consulta SQL no banco de dados do WordPress.  É preferível utilizar uma função mais específica (veja abaixo), porém, para consultas SELECT.
+</p><p><code><span style="color: #000000">
+&#160;<span style="color: #0000BB">&lt;?php&#160;$wpdb</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">'query'</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>&#160;</span>
+</code>
+</p>
+<dl><dt> query&#160;</dt>
+<dd> (string) A consulta SQL que você deseja executar.</dd></dl>
+<p>A função retorna um integer correspondente ao número de linhas afetadas/selecionadas.  Se houver um erro MySQL, a função retornará <code>FALSE</code>.  (<b>Nota</b>: Como tanto 0 quanto FALSE podem ser retornados, tenha a certeza de usar o operador de comparação correto: igualdade <code>==</code> vs. identidade <code>===</code>).
+</p><p>Nota: Tal como acontece com todas as funções/classes que executam consultas SQL, você deve escapar a entrada (ex., <code>wpdb-&gt;escape($dados_inseridor_pelo_usuario)</code>).  Veja a seção entitulada <a rel="nofollow" class="external text" href="http://codex.wordpress.org/wpdb_Class#Protegento_Consultas_Contra_Ataques_de_SQL_Injection">Protegendo consultas contra ataques de SQL Injection</a> abaixo.
+</p>
+<h3><span class="mw-headline" id="Exemplos">Exemplos</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Class_Reference/wpdb&amp;action=edit&amp;section=4" title="Edit section: Exemplos">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Remover a meta 'gargarejo' e seu valor Post 13. (We'll add the 'prepare' method to make sure we're not dealing with an illegal operation or any illegal characters):
+</p>
+<pre>
+$wpdb-&gt;query( 
+	$wpdb-&gt;prepare( 
+		"
+                DELETE FROM $wpdb-&gt;postmeta
+		 WHERE post_id =&#160;%d
+		 AND meta_key =&#160;%s
+		",
+	        13, 'gargle' 
+        )
+);
+
+</pre>
+<p><i>Performed in WordPress by <code><a href="https://codex.wordpress.org/Function_Reference/delete_post_meta" title="Function Reference/delete post meta">delete_post_meta()</a></code>.</i>
+</p><p><br />
+Set the parent of <a href="https://codex.wordpress.org/Pages" title="Pages">Page</a> 15 to Page 7.
+</p>
+<pre>
+$wpdb-&gt;query(
+	"
+	UPDATE $wpdb-&gt;posts 
+	SET post_parent = 7
+	WHERE ID = 15 
+		AND post_status = 'static'
+	"
+);
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004422
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.011 seconds
+Preprocessor visited node count: 28/1000000
+Preprocessor generated node count: 76/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

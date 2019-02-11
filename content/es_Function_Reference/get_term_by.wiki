@@ -1,0 +1,121 @@
+{{Languages|
+{{en|Function Reference/get term by}}
+{{es|Function Reference/get term by}}
+{{ja|関数リファレンス/get term by}}
+}}
+
+== Descripción ==
+Get all <tt>Term</tt> data from database by <tt>Term</tt> field and data.
+
+Advertencia: <tt>$value</tt> (valor) no contendrá escapado-HTML (HTML-escape) para el $campo (<tt>$field</tt>) '<tt>name</tt>' (nombre). De necesitarlo, deberá hacerlo usted mismo.
+
+
+El <tt>$field</tt> (campo) por defecto es '<tt>id</tt>', por lo tanto, es posible que también puedas usar null (nulo) para <b>field</b> (campo), pero recomendamos que esto no se realice.
+
+Si <tt>$value</tt> (valor) no existe, el valor retornado será <b>false</b> (falso). Si <tt>$taxonomy</tt> (taxonomía) existe y la combinación de <tt>$field</tt> (campo) y <tt>$value</tt> (valor) existe, será retornado el <b>Term</b> (Término).
+
+== Uso ==
+%%%<?php get_term_by( $field, $value, $taxonomy, $output, $filter ) ?>%%%
+
+== Parámetros ==
+{{Parameter|$field|string|Ya sea '<tt>id</tt>', '<tt>slug</tt>', '<tt>name</tt>', o '<tt>term_taxonomy_id</tt>'|requerido|'id'}}
+{{Parameter|$value|string&#124;integer|Buscar este valor de term|requerido}}
+{{Parameter|$taxonomy|string|Taxonomy Name <tt>category</tt>, <tt>post_tag</tt>, <tt>link_category</tt>, <tt>nav_menu</tt> or something custom|opcional|&#39;&#39; (cadena vacia)}}
+{{Parameter|$output|string|Constante OBJECT (objeto), ARRAY_A, o ARRAY_N|opcional|OBJECT}}
+{{Parameter|$filter|string|default is raw or no WordPress defined filter will applied.|opcional|'raw'}}
+
+== Valores Retornados ==
+; (mixto) : Columna de Términos (objeto o array(arreglo)) desde la base de datos. Puede retornar false si <tt>$taxonomy</tt> (taxonomía) no existiera o el <tt>$term</tt> (termino) no fue encontrado. Si esto no ocurre entonces retornará un objeto (por defecto) o un arreglo (array) de campos dependiendo de lo puesto en el parámetro <tt>$output</tt> (salida).
+
+Los campos retornados son:
+* <tt>term_id (Ver la advertencia a continuación)</tt>
+* <tt>name</tt> (nombre)
+* <tt>slug</tt>
+* <tt>term_group</tt>
+* <tt>term_taxonomy_id</tt>
+* <tt>taxonomy</tt> (taxonomía)
+* <tt>description</tt> (descripción)
+* <tt>parent</tt> (padre)
+* <tt>count</tt> (conteo)
+
+'''Advertencia: confusión cadena de texto vs. enteros!''' Los campos con valores, incluyendo <tt>term_id</tt> son retornados en formato de cadena de texto. Antes de su uso, typecast numeric values to actual integers, otherwise WordPress will mix up term_ids and slugs which happen to have only numeric characters!
+
+== Ejemplos==
+Taxonomy_name es el nombre de la taxonomía, no el term_name y es requerida; el id (term_id) es el ID de el term, no post_id;...
+
+Recordar:<br />
+&darr; Tipo de Taxonomía (e.g. post_tag)<br />
+Terms en esta taxonomía:<br />
+&rarr; noticias<br />
+&rarr; webdev<br />
+&rarr; ...
+
+Ejemplo para tomar términos por nombre y ''tipo'' de taxonomía (taxonomy_name como categoría, post_tag o taxonomía personalizada).
+<pre>
+// Toma el término con nombre ''news'' en la taxonomía Categorías 
+$category = get_term_by('name', 'news', 'category')
+
+// Toma el término con el nombre ''news'' en la taxonomía Tags
+$tag = get_term_by('name', 'news', 'post_tag')
+
+// Toma el término con el nombre ''news'' en una taxonomía personalizada
+$term = get_term_by('name', 'news', 'my_custom_taxonomy')
+
+// Get term by name ''Default Menu'' from theme's nav menus.
+// (Alternative to using wp_get_nav_menu_items)
+$menu = get_term_by('name', 'Default Menu', 'nav_menu');
+</pre>
+
+By id (term_id, not post_id):
+<pre>
+// Toma el término por id (''term_id'' en la taxonomía Categorías.
+get_term_by('id', 12, 'category')
+
+...
+</pre>
+
+
+=== Wrong example in this page history ===
+
+Advertencia: El siguiente ejemplo '''esta mal''' (ver en este historial de pagina):
+<pre>get_term_by( 'id', (int) $post->ID, 'taxonomy_name' ); // retorna null (nulo)</pre>
+
+Este ejemplo trata de tomar los términos por ID (term_id) pero usa un ID de un post como instancia de un ID de termino.
+
+Ahora este ejemplo muestra el modo correcto para tomar el/los term(s) para un post usando el post ID:
+<pre>
+// get_term_by( 'id', $category_id, 'category' )
+global $post;
+
+$my_categories   = array();
+$post_categories = get_the_category( $post->ID );
+
+foreach ( $post_categories as $post_category ) {
+	$my_categories[] = get_term_by( 'id', $post_category->cat_ID, 'category' );
+}
+
+// O:
+$my_category = get_term_by( 'id', $post_categories[0]->cat_ID, 'category' );
+</pre>
+
+== Notas ==
+* Advertencia: <tt>$value</tt> no es escapado por '<tt>name</tt>' <tt>$field</tt>. Debes hacerlo tu mismo, si lo necesitas.
+* See [[Function_Reference/sanitize_term_field|<tt>sanitize_term_field()</tt>]] The <tt>$context</tt> param lists the available values for '<tt>get_term_by</tt>' <tt>$filter</tt> param.
+* Usos: [[Function_Reference/sanitize_term|<tt>sanitize_term()</tt>]] Cleanses the term based on <tt>$filter</tt> context before returning.
+* Usos globales: (<tt>object</tt>) [[Class Reference/wpdb|<tt>$wpdb</tt>]]
+* <tt>get_term_by()</tt> retorna un simple objeto WP_Term. Because of core changes from v4.1 - 4.3, it's now possible for multiple terms to match the supplied name or slug parameters. The WP_Term Object returned will be the first matching term found by mySQL, there is no indication that other matching terms may exist. If there is any possibility of multiple terms having the same name or slug in your application, you should use [https://developer.wordpress.org/reference/functions/get_terms get_terms()] instead of <tt>get_term_by()</tt>.
+
+== Anotaciones de Cambios ==
+Desde: 2.3.0
+
+== Source File ==
+<!-- Need links to current source code files -->
+<tt>get_term_by()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== Relacionado ==
+{{Term Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

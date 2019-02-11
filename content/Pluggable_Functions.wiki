@@ -1,0 +1,110 @@
+{{Languages|
+{{en|Pluggable Functions}}
+{{ja|プラガブル関数}}
+}}
+
+Pluggable functions were introduced in [[Version 1.5.1|WordPress 1.5.1]] These functions let you override certain core functions via [[Plugin API|plugins]]. The most up-to-date list of core functions that WordPress allows plugins to override is available at {{Trac|wp-includes/pluggable.php}}. WordPress loads the built-in functions only if they are undefined after all plugins have been loaded.
+
+Pluggable functions are no longer being added to WordPress core. All new functions instead use filters on their output to allow for similar overriding of their functionality.
+
+'''Note:''' A function can only be reassigned this way once, so you can’t install two plugins that plug the same function for different reasons. For safety, it is best to always wrap your functions with <code>if ( !function_exists() )</code>, otherwise you '''will''' produce fatal errors on plugin activation.
+
+
+
+== Full list of Pluggable Functions: ==
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! width="100%" | '''Version 3.5'''
+|-
+|
+*wp-includes/pluggable.php
+** [[Function Reference/auth_redirect|auth_redirect]]
+** [[Function Reference/cache_users|cache_users]]
+** [[Function Reference/check_admin_referer|check_admin_referer]]
+** [[Function Reference/check_ajax_referer|check_ajax_referer]]
+** [[Function Reference/get_avatar|get_avatar]]
+** [[Function Reference/get_currentuserinfo|get_currentuserinfo]]
+** [[Function Reference/get_user_by_email|get_user_by_email]] (deprecated)
+** [[Function Reference/get_user_by|get_user_by]]
+** [[Function Reference/get_userdatabylogin|get_userdatabylogin]] (deprecated)
+** [[Function Reference/get_userdata|get_userdata]]
+** [[Function Reference/is_user_logged_in|is_user_logged_in]]
+** [[Function Reference/wp_authenticate|wp_authenticate]]
+** [[Function Reference/wp_check_password|wp_check_password]]
+** [[Function Reference/wp_clear_auth_cookie|wp_clear_auth_cookie]]
+** [[Function Reference/wp_create_nonce|wp_create_nonce]]
+** [[Function Reference/wp_generate_auth_cookie|wp_generate_auth_cookie]]
+** [[Function Reference/wp_generate_password|wp_generate_password]]
+** [[Function Reference/wp_get_current_user|wp_get_current_user]]
+** [[Function Reference/wp_hash_password|wp_hash_password]]
+** [[Function Reference/wp_hash|wp_hash]]
+** [[Function Reference/wp_logout|wp_logout]]
+** [[Function Reference/wp_mail|wp_mail]]
+** [[Function Reference/wp_new_user_notification|wp_new_user_notification]]
+** [[Function Reference/wp_nonce_tick|wp_nonce_tick]]
+** [[Function Reference/wp_notify_moderator|wp_notify_moderator]]
+** [[Function Reference/wp_notify_postauthor|wp_notify_postauthor]]
+** [[Function Reference/wp_parse_auth_cookie|wp_parse_auth_cookie]]
+** [[Function Reference/wp_password_change_notification|wp_password_change_notification]]
+** [[Function Reference/wp_rand|wp_rand]]
+** [[Function Reference/wp_redirect|wp_redirect]]
+** [[Function Reference/wp_safe_redirect|wp_safe_redirect]]
+** [[Function Reference/wp_salt|wp_salt]]
+** [[Function Reference/wp_sanitize_redirect|wp_sanitize_redirect]]
+** [[Function Reference/wp_set_auth_cookie|wp_set_auth_cookie]]
+** [[Function Reference/wp_set_current_user|wp_set_current_user]]
+** [[Function Reference/wp_set_password|wp_set_password]]
+** [[Function Reference/wp_text_diff|wp_text_diff]]
+** [[Function Reference/wp_validate_auth_cookie|wp_validate_auth_cookie]]
+** [[Function Reference/wp_validate_redirect|wp_validate_redirect]]
+** [[Function Reference/wp_verify_nonce|wp_verify_nonce]]
+|}
+
+== Reference ==
+
+; [[Function_Reference/get_currentuserinfo|<tt>get_currentuserinfo()</tt>]] : Grabs the information of the current logged in user, if there is one.  Essentially a wrapper for get_userdata(), but it also stores information in global variables.
+; [[Function_Reference/get_userdata|<tt>get_userdata($userid)</tt>]] : Pulls user information for the specified user from the database.
+; [[Function Reference/wp_mail|<tt>wp_mail($to, $subject, $message, $headers = <nowiki>''</nowiki>)</tt>]] : A convenient wrapper for PHP's mail function.
+; <tt>wp_login($username, $password, $already_md5 = false)</tt> : Returns <tt>true</tt> if the specified username and password correspond to a registered user.
+; <tt>auth_redirect()</tt> : If a user is not logged in, he or she will be redirected to WordPress' login page before being allowed to access content on the page from which this function was called.  Upon successfully logging in, the user is sent back to the page in question.
+; [[Function Reference/wp_redirect|<tt>wp_redirect($location)</tt>]] : Redirects a browser to the ''absolute URI'' specified by the <tt>$location</tt> parameter.
+; <tt><nowiki>wp_notify_postauthor($comment_id, $comment_type='')</nowiki></tt>: Emails the author of the comment's post the content of the comment specified.
+; <tt>wp_notify_moderator($comment_id)</tt> : Informs the administrative email account that the comment specified needs to be moderated.  See [[Administration_Panels|Administration]] > [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]].
+
+== Example ==
+ 
+An example of what you can do with a pluggable function is replace the default email handler. To do this, you'd need to write a plugin that defines a <tt>wp_mail()</tt> function. The default <tt>wp_mail()</tt> function looks like this:
+
+<pre>
+function wp_mail( $to, $subject, $message, $headers = '' ) {
+  if( $headers == '' ) {
+    $headers = "MIME-Version: 1.0\n" .
+      "From: " . get_settings('admin_email') . "\n" . 
+      "Content-Type: text/plain; charset=\"" . get_settings('blog_charset') . "\"\n";
+  }
+
+  return @mail( $to, $subject, $message, $headers );
+}
+</pre>
+
+But, for example, if you wanted to CC all your mail to another address, you could use this code in a plugin:
+
+<pre>
+if( ! function_exists('wp_mail') ) {
+  function wp_mail( $to, $subject, $message, $headers = '' ) {
+    if( $headers == '' ) {
+      $headers = "MIME-Version: 1.0\n" .
+        "From: " . get_settings('admin_email') . "\n" . 
+        "Cc: dummy@example.com\n" .
+        "Content-Type: text/plain; charset=\"" . get_settings('blog_charset') . "\"\n";
+    }
+
+    return @mail($to, $subject, $message, $headers);
+  }
+}
+</pre>
+
+Notice that if you plug a core function like this the original is no longer available. I.e., the elegant solution here would have been to write a function that tacks our Cc header on the end of the exising <tt>$headers</tt> string then call the original <tt>wp_mail()</tt> with the extra header. However this would not work as the original <tt>wp_mail()</tt> does not exist if you plug it.
+
+[[Category:Functions]]
+[[Category:Pluggable Functions]]

@@ -1,0 +1,126 @@
+{{Languages|
+{{en|Function Reference/wp get recent posts}}
+{{ja|????????/wp get recent posts}}
+{{ru|Справочник_по_функциям/wp get recent posts}}
+}}
+{{ru:Stub}}
+== Описание ==
+
+Возвращает самые последние записи.
+
+== Использование ==
+
+%%%<?php wp_get_recent_posts( $args, $output ) ?>%%%
+
+=== Использование значений по умолчанию ===
+
+%%%<?php $args = array(
+	'numberposts' => 10,
+	'offset' => 0,
+	'category' => 0,
+	'orderby' => 'post_date',
+	'order' => 'DESC',
+	'include' => '',
+	'exclude' => '',
+	'meta_key' => '',
+	'meta_value' =>'',
+	'post_type' => 'post',
+	'post_status' => 'draft, publish, future, pending, private',
+	'suppress_filters' => true );
+
+	$recent_posts = wp_get_recent_posts( $args, ARRAY_A );
+?>%%%
+
+== Возвращаемое значение ==
+
+{{Return|$posts|array|Список записей, каждая запись возвращается как массив значений (по умолчанию) или объект, в зависимости от '''$output'''}}
+
+== Параметры ==
+
+{{Parameter|$args|array||необязательный|array}}
+{{Parameter|$output|string|Constant OBJECT, ARRAY_A|необязательный|ARRAY_A}}
+
+== Примеры ==
+
+Этот пример показывает как использовать функцию wp_get_recent_posts(), чтобы вывести 10 последних записей.
+
+<pre>
+<h2>Последние записи</h2>
+<ul>
+<?php
+	$recent_posts = wp_get_recent_posts();
+	foreach( $recent_posts as $recent ){
+		echo '<li><a href=&quot;' . get_permalink($recent[&quot;ID&quot;]) . '&quot;>' .   $recent[&quot;post_title&quot;].'</a> </li> ';
+	}
+?>
+</ul>
+</pre>
+
+Чтобы вывести больше или меньше последних записей укажите число в параметре функции как показано ниже:
+
+<pre>
+<h2>Recent Posts</h2>
+<ul>
+<?php
+	$args = array( 'numberposts' => '5' );
+	$recent_posts = wp_get_recent_posts( $args );
+	foreach( $recent_posts as $recent ){
+		echo '<li><a href=&quot;' . get_permalink($recent[&quot;ID&quot;]) . '&quot;>' .   $recent[&quot;post_title&quot;].'</a> </li> ';
+	}
+?>
+</ul>
+</pre>
+
+Чтобы исключить записи определенного формата вы можете использовать [[Классы/WP_Query#Taxonomy_Parameters]] как в следующем примере, в котором исключаются все записи формата 'aside' и 'image':
+
+<pre>
+<h2>Последние записи</h2>
+<ul>
+<?php
+	$args = array( 'numberposts' => '5', 'tax_query' => array(
+			array(
+				'taxonomy' => 'post_format',
+				'field' => 'slug',
+				'terms' => 'post-format-aside',
+				'operator' => 'NOT IN'
+			), 
+			array(
+				'taxonomy' => 'post_format',
+				'field' => 'slug',
+				'terms' => 'post-format-image',
+ 				'operator' => 'NOT IN'
+			)
+	) );
+	$recent_posts = wp_get_recent_posts( $args );
+	foreach( $recent_posts as $recent ){
+		echo '<li><a href=&quot;' . get_permalink($recent[&quot;ID&quot;]) . '&quot;>' .   ( __($recent[&quot;post_title&quot;])).'</a> </li> ';
+	}
+?>
+</ul>
+</pre>
+В последнем примере вы можете видеть как post_title помещен внутрь __() функции,
+это используется для перевода (интернализации) (это важно в случае использования многоязычного сайта).
+
+== Замечания ==
+
+* Использует: [[Function_Reference/wp_parse_args|wp_parse_args()]]
+* Использует: [[Function_Reference/get_posts|get_posts()]]
+* * Только значение <tt>ARRAY_A</tt> проверяется для $output. Любое другое переданное значение или константа вернет массив объектов.
+* Эта функция возвращает записи в ассоциативном массиве формата (<tt>ARRAY_A</tt>), который совместим с WordPress версий ниже 3.1. Чтобы получить такое же возвращаемое значение как у функции <tt>get_posts()</tt>, передайте вторым параметром <tt>OBJECT</tt>: <tt>wp_get_recent_posts( $args, OBJECT );</tt>
+
+== История изменений ==
+
+* Добавлена: [[Version 1.0|1.0.0]]
+* [[Version 3.1|3.1.0]]: Параметр <tt>$num</tt> заменен на <tt>$args</tt>.
+
+== Исходные файлы ==
+
+<tt>wp_get_recent_posts()</tt> расположена в {{Trac|wp-includes/post.php}}.
+
+== Похожее ==
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:Функции]]
+[[Category:Russian Codex]]

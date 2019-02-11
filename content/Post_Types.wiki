@@ -1,0 +1,207 @@
+{{Languages|
+{{en|Custom Post Types}}
+{{ja|投稿タイプ}}
+{{pt-br|Tipos de Posts Customizados}}
+{{nl | Post type soorten}}
+{{sk|Vlastné typy príspevkov}}
+{{zh-cn|Post type}}
+}}
+
+WordPress can hold and display many different types of content. A single item of such a content is generally called a post, although ''post'' is also a specific ''post type''. Internally, all the ''post types'' are stored in the same place, in the ''[[Database_Description#Table:_wp_posts|wp_posts]]'' database table, but are differentiated by a column called ''post_type''.
+
+[[Version 3.0|WordPress 3.0]] gives you the capability to add your own ''[[#Custom_Post_Types|custom post types]]'' and to use them in different ways.
+
+== Default Post Types ==
+
+There are several ''post types'' that are readily available to users or internally used by the WordPress installation by default :
+*Post (Post Type: 'post')
+*Page (Post Type: 'page')
+*Attachment (Post Type: 'attachment')
+*Revision (Post Type: 'revision')
+*Navigation Menu (Post Type: 'nav_menu_item')
+*Custom CSS (Post Type: 'custom_css')
+*Changesets (Post Type: 'customize_changeset')
+*User Data Request (Post Type: 'user_request' )
+
+=== Post ===
+
+''[[Posts|Post]]'' in WordPress is a ''post type'' that is typical for and most used by blogs. ''Posts'' are normally displayed in a blog in reverse sequential order by time (newest posts first). ''Posts'' are also used for creating the [[Glossary#Feed|feeds]].
+
+=== Page ===
+
+''[[Pages|Page]]'' in WordPress is like ''post'', but it lives outside the normal time-based listings of ''posts''. ''Pages'' can use different [[Page_Templates|''page'' ''templates'']] to display them. ''Pages'' can also be organized in a hierarchical structure, with ''pages'' being parents to other ''pages'', but they normally cannot be assigned ''[[Glossary#Category|categories]]'' and ''[[Glossary#Tag|tags]]''. If ''[[Permalinks|permalinks]]'' are enabled, the ''permalink'' of a ''page'' is always composed solely of the main site URL and the user-friendly and URL-valid names (also referred to as ''[[Glossary#Slug|slug]]'') of the ''page'' and its parents if they exist. See the ''[[Pages]]'' article for more information about the differences.
+
+=== Attachment ===
+
+''[[Attachments|Attachment]]'' is a special post that holds information about a file uploaded through the WordPress media upload system, such as its description and name. For images, this is also linked to metadata information, stored in the ''[[Database_Description#Table:_wp_postmeta|wp_postmeta]]'' table, about the size of the images, the thumbnails generated from the images, the location of the image files, the HTML alt text, and even information obtained from EXIF data embedded in the images.
+
+=== Revision ===
+
+''[[Revision Management|Revision]]'' is used to hold a draft post as well as any past revisions of a published post. ''Revisions'' are basically identical to the published post which they belong to, but have that post set as their parent using the ''post_parent'' column of the ''wp_posts'' table.
+
+=== Navigation Menu ===
+
+''[[Navigation Menus|Navigation Menu]]'' is a type that holds information about a single item in the WordPress navigation menu system. These are the first examples of entries in the ''wp_posts'' table to be used for something other than an otherwise displayable content on the blog.
+<span id="Custom_Type"></span>
+
+=== Custom CSS ===
+
+''[[Custom CSS]]'' is a theme specific post used to store CSS saved from The Customizer's "Additional CSS" screen. Each theme could have their own post but only the active themes `custom_css` post is used when displaying the theme.
+
+=== Changesets ===
+
+''[[Changesets]]'' is similar to auto-saves but specifically for The Customizer. This is to keep The Customizer in a persistent state.  WordPress will attempt to keep content changes made through The Customizer during the user session in a `customize_changeset` post and attempt to pull them back up should your cat close your browser.
+
+== Custom Post Types ==
+
+''Custom post types'' are new ''post types'' you can create. A ''custom post type'' can be added to WordPress via the <tt>[[Function_Reference/register_post_type|register_post_type()]]</tt> function. This function allows you to define a new ''post type'' by its labels, supported features, availability and other specifics.
+
+Note that you must call <tt>register_post_type()</tt> before the ''[[Plugin_API/Action_Reference/admin_menu|admin_menu]]'' and after the ''[[Plugin_API/Action_Reference/after_setup_theme|after_setup_theme]]'' ''action [[Glossary#Hook|hook]]s''. A good ''hook'' to use is the ''[[Plugin_API/Action_Reference/init|init]]'' ''hook''.
+
+Here's a basic example of adding a ''custom post type'':
+
+<pre>
+function create_post_type() {
+  register_post_type( 'acme_product',
+    array(
+      'labels' => array(
+        'name' => __( 'Products' ),
+        'singular_name' => __( 'Product' )
+      ),
+      'public' => true,
+      'has_archive' => true,
+    )
+  );
+}
+add_action( 'init', 'create_post_type' );
+</pre>
+
+This creates a ''post type'' named ''Product'' identified as ''acme_product''. The <tt>[[Function_Reference/register_post_type|register_post_type()]]</tt> function receives two major arguments. The first one is ''labels'' which define the name of the ''post type'' in both plural and singular forms. The second one is ''public'' which is a predefined flag to show the ''post type'' on the ''[[Administration Screens|administration screens]]'' and to make it show up in the site content itself, if it's queried for.
+
+There are many more arguments you can pass to the <tt>register_post_type()</tt> function, to do things like set up hierarchy (to behave like ''pages''), show the new ''post type'' in searches, change the URLs of the new posts, and hide or show meta boxes in the [[Writing Posts|post edit]] screen. These parameters are optional, and you can use them to configure your ''post type'' on a detailed level.
+
+=== Archive page ===
+For your index or archive page to be accessible (at /acme-product in the above example) you will need to update (or "flush") the permalink structure as described in the [[#Custom_Post_Type_Templates|Custom Post Type Templates]] section.   The template file used for the index is explained [[Template_Hierarchy|here]].
+
+=== A word about custom post types as a plugin ===
+In order to avoid breaking a site on theme switching, try to define custom post types as a plugin, or, better as a [[Must Use Plugins]]. This way you won't force users into using a certain theme.
+
+=== Naming Best Practices ===
+While it is convenient to use a simple ''custom post type'' identifier like ''product'' which is consistent with the identifiers of the default ''post types'' (''post'', ''page'', ''revision'', ''attachment'' and ''nav_menu_item''), it is better if you '''prefix your identifier''' with a short namespace that identifies your ''plugin'', ''theme'' or website that implements the ''custom post type''. 
+
+For example:
+* ''acme_product'' or ''aw_product'' for products ''post type'' used by a hypothetical ''ACMEWidgets.com'' website.
+* ''eightfold_product'' or ''eft_product'' for products ''post type'' provided by a hypothetical ''EightFold'' ''theme''.
+* ''ai1m_product'' for products post type provided by a hypothetical ''All-in-One Merchant'' ''plugin''.
+
+Without namespacing your ''custom post type'' identifier, other ''post types'' in your website will more likely conflict with ''custom post types'' defined in a ''theme'' you fall in love with later or a ''plugin'' you realize that you absolutely need to use. Or if you are developing ''custom post types'' or ''themes'' there is a much greater chance your ''plugin'' or ''theme'' will conflict with ''custom post types'' defined in other ''plugins'' or ''themes'' and/or ''custom post types'' defined in your prospective user's website. Namespacing your ''custom post type'' identifier will not guarantee against conflicts but will certainly minimize their likelihood.
+
+Do pay close attention to not having your ''custom post type'' identifier exceed 20 characters though, as the ''post_type'' column in the database is currently a VARCHAR field of that length.
+
+=== Reserved Post Type Identifiers ===
+Although the core development team has yet to make a final decision on this, it has been proposed on the ''wp-hackers'' mailing list that future core ''post type'' identifiers will be namespaced with '''''wp_''''', i.e. if the core team decides to add an ''event'' ''post type'' then according to this suggestion they would use the '''''wp_'''event'' identifier.  Even though this has not been finalized, it will be a good idea to avoid any ''custom post types'' whose identifier begins with '''''wp_'''''.
+
+=== Custom Post Type Screens ===
+
+(or How to Add Custom Posts)
+
+When a ''custom post type'' is created like in the [[#Custom Post Types|example above]], it gets a new top-level ''[[Administration Menus|administration menu]]'' to create and manage posts of that new ''post type''. New ''[[Administration Screens|administration screens]]'' will be accessible from that menu, such as post edit screen where you will have a full post editor and everything that comes along with it according to what features you set that your ''custom post type'' should support by the ''supports'' argument of the <tt>[[Function_Reference/register_post_type|register_post_type()]]</tt> function. You can customize the screens with several ''[[Glossary#Action|action]]'' and ''[[Glossary#Filter|filter]]'' ''hooks'', see this [http://yoast.com/custom-post-type-snippets/ Custom Post Type Snippets] post by Yoast for an explanation and code examples on how to change a ''custom post type'' overview screen.
+
+=== URLs ===
+
+A ''custom post type'' will also get its own ''[[Glossary#Post_Slug|slug]]'' within the site URL structure. In the above example, a post of this ''product'' ''custom post type'' can be displayed at ''http://<nowiki/>example.com/'''acme_product'''/'''%product_name%''''' where '''''acme_product''''' is the slug of your ''custom post type'' and '''''%product_name%''''' is the ''slug'' of your particular product, so a ''[[Glossary#Permalink|permalink]]'' could be e.g. ''<nowiki>http://example.com/product/foobrozinator</nowiki>''. You can see this ''permalink'' appear on the [[Writing Posts#Permalink|edit post]] screen for your ''custom post type'', just like with default ''post types''. 
+
+==== URLs of Namespaced Custom Post Types Identifiers ====
+
+When you namespace a ''custom post type'' identifier and still want to use a ''clean'' URL structure, you need to set the ''rewrite'' argument of the <tt>[[Function_Reference/register_post_type|register_post_type()]]</tt> function. For example, assuming the ''ACME Widgets'' example from above:
+
+<pre>
+function create_posttype() {
+  register_post_type( 'acme_product',
+    array(
+      'labels' => array(
+        'name' => __( 'Products' ),
+        'singular_name' => __( 'Product' )
+      ),
+      'public' => true,
+      'has_archive' => true,
+      'rewrite' => array('slug' => 'products'),
+    )
+  );
+}
+add_action( 'init', 'create_posttype' );
+</pre>
+
+The above will result in post URLs in the form ''http://<nowiki/>example.com/'''products'''/%product_name%''. Note that we used a plural word for the ''slug'' here which is a form that some people prefer because it implies a more logical URL for a page that embeds a list of products, i.e. ''<nowiki>http://example.com/products/</nowiki>''.  
+
+Also note that using a generic ''slug'' like ''products'' here can potentially conflict with other ''plugins'' or ''themes'' that use the same ''slug'', but most people would dislike longer and more obscure URLs like ''<nowiki>http://example.com/acme_products/foobrozinator</nowiki>'' and '''resolving the URL conflict between two ''plugins'' is easier''' simply because the URL structure is not stored persistently in each post's database record the same way ''custom post type'' identifiers are stored.
+
+=== Custom Post Type Templates ===
+
+The WordPress theme system supports custom ''[[Glossary#Template|templates]]'' for ''custom post types'' too. A custom ''template'' for a single display of posts belonging to a ''custom post type'' is supported since WordPress [[Version 3.0]] and the support for a custom ''template'' for an archive display was added in [[Version 3.1]].
+
+Note: In some cases, the ''permalink'' structure must be updated in order for the new ''template'' files to be accessed when viewing posts of a ''custom post type''. To do this, go to ''[[Administration Panels]]'' > ''[[Administration Panels#Settings|Settings]]'' > ''[[Administration Panels#Permalinks|Permalinks]]'', change the ''permalink'' structure to a different structure, save the changes, and change it back to the desired structure.
+
+==== Template Files ====
+
+In the same way single ''posts'' and their archives can be displayed using the ''single.php'' and ''archive.php'' ''template'' files, respectively,
+* single posts of a ''custom post type'' will use ''single-'''{post_type}'''.php''
+* and their archives will use ''archive-'''{post_type}'''.php''
+* and if you don't have this post type archive page you can pass BLOG_URL?post_type='''{post_type}'''
+where '''''{post_type}''''' is the ''$post_type'' argument of the <tt>[[Function_Reference/register_post_type|register_post_type()]]</tt> function.
+
+So for the above example, you could create ''single-'''acme_product'''.php'' and ''archive-'''acme_product'''.php'' ''template'' files for single product posts and their archives.
+
+Alternatively, you can use the <tt>[[Function Reference/is post type archive|is_post_type_archive()]]</tt> function in any ''template'' file to check if the ''[[Glossary#Query|query]]'' shows an archive page of a given ''post types(s)'', and the <tt>[[Function Reference/post_type_archive_title|post_type_archive_title()]]</tt> to display the ''post type'' title.
+
+=== Querying by Post Type ===
+
+In any ''template'' file of the WordPress theme system, you can also create new ''[[Glossary#Query|queries]]'' to display posts from a specific ''post type''. This is done via the ''post_type'' argument of the <tt>[[Class Reference/WP_Query|WP_Query]] object</tt>.
+
+Example:
+<pre>
+$args = array( 'post_type' => 'product', 'posts_per_page' => 10 );
+$loop = new WP_Query( $args );
+while ( $loop->have_posts() ) : $loop->the_post();
+  the_title();
+  echo '&lt;div class="entry-content"&gt;';
+  the_content();
+  echo '&lt;/div&gt;';
+endwhile;
+</pre>
+
+This simply loops through the latest 10 product posts and displays the title and content of them one by one.
+
+=== Custom Post Types in the Main Query ===
+
+Registering a ''custom post type'' does not mean it gets added to the main ''[[Glossary#Query|query]]'' automatically. 
+
+If you want your ''custom post type'' posts to show up on standard archives or include them on your home page mixed up with other ''post types'', use the ''[[Plugin API/Action Reference/pre get posts|pre_get_posts]]'' ''action [[Glossary#Hook|hook]]''.
+
+<pre>
+// Show posts of 'post', 'page' and 'movie' post types on home page
+function add_my_post_types_to_query( $query ) {
+  if ( is_home() && $query->is_main_query() )
+    $query->set( 'post_type', array( 'post', 'page', 'movie' ) );
+  return $query;
+}
+add_action( 'pre_get_posts', 'add_my_post_types_to_query' );
+</pre>
+
+=== Function Reference ===
+
+{{Post Type Tags}}
+
+== More Information ==
+* [https://generatewp.com/post-type/ WordPress Post Type Generator]
+* [https://metabox.io/plugins/custom-post-type/ MB Custom Post Type plugin: Create, edit and manage custom post types with easy-to-use interface]
+* [https://wordpress.org/plugins/post-types-order/ Customize posts sorting (plugin) ]
+* [http://justintadlock.com/archives/2014/07/25/custom-post-type-standards Custom post type standards]
+* [http://justintadlock.com/archives/2010/02/02/showing-custom-post-types-on-your-home-blog-page Showing custom post types on your home/blog page]
+* [http://blondish.net/podcast-presentation-wordpress-custom-post-types/ Podcast Presentation: WordPress Custom Post Types]
+* [http://kovshenin.com/archives/custom-post-types-in-wordpress-3-0/ Custom Post Types in WordPress 3.0]
+* [http://kovshenin.com/archives/extending-custom-post-types-in-wordpress-3-0/ Extending Custom Post Types in WordPress 3.0]
+* [http://web-profile.net/wordpress/docs/custom-post-types/ Custom Post Type Example]
+* [http://yoast.com/custom-post-type-snippets/ Custom Post Type Snippets]
+
+[[Category:Advanced Topics]]

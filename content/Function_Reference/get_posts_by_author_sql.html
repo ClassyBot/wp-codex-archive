@@ -1,0 +1,87 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/関数リファレンス/get_posts_by_author_sql">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Parameters"><span class="tocnumber">2</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Return_Values"><span class="tocnumber">3</span> <span class="toctext">Return Values</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Examples"><span class="tocnumber">4</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Change_Log"><span class="tocnumber">5</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_posts_by_author_sql&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Retrieve the post SQL based on capability, author, and type.
+</p><p>This function provides a standardized way to appropriately select on the post_status of a post type. The function will return a piece of SQL code that can be added to a WHERE clause; this SQL is constructed to allow all published posts, and all private posts to which the user has access.
+</p><p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;get_posts_by_author_sql</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$post_type</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$full</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$post_author</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$public_only</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_posts_by_author_sql&amp;action=edit&amp;section=2" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$post_type</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) Post type.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$full</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Optional.  Returns a full WHERE statement instead of just an 'andalso' term.
+<dl><dd> Default: true</dd></dl></dd></dl>
+<dl><dt> <tt>$post_author</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Integer" title="How to Pass Tag Parameters"><i>integer</i></a>) (<i>optional</i>) Query posts having a single author ID.
+<dl><dd> Default: null</dd></dl></dd></dl>
+<dl><dt> <tt>$public_only</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Bool" title="How to Pass Tag Parameters"><i>bool</i></a>) (<i>optional</i>) Only return public posts. Skips capability checks for the current user.
+<dl><dd> Default: false</dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Return_Values">Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_posts_by_author_sql&amp;action=edit&amp;section=3" title="Edit section: Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt></tt> <tt style="color:gray">(<a href="https://codex.wordpress.org/Glossary#String" title="Glossary"><i>string</i></a>)</tt>&#160;</dt>
+<dd> SQL WHERE code that can be added to a query.</dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_posts_by_author_sql&amp;action=edit&amp;section=4" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>&lt;?php
+$where = get_posts_by_author_sql( 'post' );
+echo $where;
+
+// user logged in: WHERE post_type = 'post' AND (post_status = 'publish' OR post_status = 'private')
+// user not logged in: WHERE post_type = 'post' AND (post_status = 'publish')
+
+// get post ID with title "Hello world!" query
+global $wpdb;
+$query = "SELECT ID FROM $wpdb-&gt;posts $where AND post_title =&#160;%s";
+$post_id = $wpdb-&gt;get_var( $wpdb-&gt;prepare( $query, 'Hello world!' ) );
+?&gt;</pre>
+<p><br />
+</p>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_posts_by_author_sql&amp;action=edit&amp;section=5" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_3.0" title="Version 3.0">3.0</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_posts_by_author_sql&amp;action=edit&amp;section=6" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>get_posts_by_author_sql() is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/post.php#L0">wp-includes/post.php</a></code>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211003837
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.197 seconds
+Preprocessor visited node count: 148/1000000
+Preprocessor generated node count: 656/1000000
+Post‐expand include size: 1484/2097152 bytes
+Template argument size: 659/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   75.107      1 - -total
+ 48.26%   36.243      1 - Template:Return
+ 35.87%   26.939      1 - Template:Languages
+ 11.85%    8.900      1 - Template:Trac
+  3.09%    2.317      4 - Template:Parameter
+  1.77%    1.328      1 - Template:en
+  1.75%    1.314      1 - Template:ja
+  1.37%    1.032      1 - Template:CurrentVersion
+-->

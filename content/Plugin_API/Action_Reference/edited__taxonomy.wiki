@@ -1,0 +1,44 @@
+==Description==
+The <code>edit_$taxonomy</code> action is used to hook into code <b>after</b> a custom taxonomy term is updated in the database. 
+
+A plugin (or theme) can register an action hook from the example below.
+
+== Parameters ==
+{{Parameter|$term_id|int|ID of the term about to be edited}}
+{{Parameter|$taxonomy_term_id|int|The unique ID for the term + taxonomy pair}}
+
+== Examples ==
+
+<code><pre><?php 
+add_action( 'edited_custom_taxonomy', 'custom_term_slug_edit_success', 10, 2 );
+
+/**
+ * Custom redirect on taxonomy term update, keeps users on the term page for additional updates
+ *
+ * @param $term_id
+ * @param $tt_id
+ */
+function custom_term_slug_edit_success( $term_id, $tt_id ) {
+  
+    // Get the taxonomy slug.
+    $term = get_term( $term_id );
+    $tax_slug = $term->taxonomy;
+    
+    // Setup the redirect URL.
+    $tax_param = '&taxonomy=' . $taxonomy_slug;
+    $term_param = '&tag_ID=' . $term_id;
+    $notice_param = '&notice=success';
+    $redirect_url = admin_url( 'edit-tags.php?action=edit' . $tax_param . $tag_param . $notice_param );
+
+    // Redirect with new query strings.
+    wp_safe_redirect( $redirect_url );
+    exit;
+
+}
+?></pre></code>
+
+==See Also==
+* [[Function_Reference/add_action|add_action()]]
+* [[Function_Reference/wp_update_term|wp_update_term()]]
+* See [[Plugin_API/Action_Reference#Taxonomy_and_Terms|Plugin API/Action Reference#Taxonomy_and_Terms]] for a list of action hooks
+[[Category:Actions]]

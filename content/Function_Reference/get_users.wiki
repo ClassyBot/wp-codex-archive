@@ -1,0 +1,172 @@
+{{Languages|
+{{en|Function_Reference/get_users}}
+{{ja|関数リファレンス/get_users}}
+}}
+
+== Description ==
+
+Wrapper for [[Class_Reference/WP_User_Query|WP_User_Query]]. Retrieves an array of users matching the criteria given in <code>$args</code>.
+
+== Usage ==
+
+<pre>
+<?php get_users( $args ); ?>
+</pre>
+
+== Parameters ==
+
+<pre>
+<?php $args = array(
+	'blog_id'      => $GLOBALS['blog_id'],
+	'role'         => '',
+	'role__in'     => array(),
+	'role__not_in' => array(),
+	'meta_key'     => '',
+	'meta_value'   => '',
+	'meta_compare' => '',
+	'meta_query'   => array(),
+	'date_query'   => array(),        
+	'include'      => array(),
+	'exclude'      => array(),
+	'orderby'      => 'login',
+	'order'        => 'ASC',
+	'offset'       => '',
+	'search'       => '',
+	'number'       => '',
+	'count_total'  => false,
+	'fields'       => 'all',
+	'who'          => '',
+ ); 
+get_users( $args ); ?>
+</pre>
+
+* '''blog_id''' - The current blog's ID, unless multisite is enabled and another ID is provided
+* '''role''' - Limit the returned users to the role specified. [[Roles_and_Capabilities#User_Levels]]
+* '''role__in''' - Limit the returned users that have one of the specified roles. (since WP 4.4)
+* '''role__not_in''' - Exclude users who have any of the specified roles. (since WP 4.4)
+* '''include''' - An array of IDs. Only users matching these IDs will be returned. Note that at present the <tt>include</tt> and <tt>exclude</tt> (below) arguments cannot be used together. See ticket [http://core.trac.wordpress.org/ticket/23228 #23228]
+* '''exclude''' - An array of IDs. Users matching these IDs will not be returned, regardless of the other arguments. It will be ignored if the <tt>include</tt> argument is set.
+* '''meta_key''' - The '''meta_key''' in the [[Database_Description#Table:_wp_usermeta|wp_usermeta table]] for the '''meta_value''' to be returned. See [[Function_Reference/get_userdata#Values_in_users_.26_user_meta_table|get_userdata()]] for the possible meta keys.
+* '''meta_value''' - The value of the meta key.
+* '''meta_compare''' - Operator to test the '<tt>meta_value</tt>'. Possible values are '!=', '>', '>=', '<', or '<='. Default value is '='.
+* '''meta_query''' - An array that is handled through to the [[Class_Reference/WP_Meta_Query|WP_Meta_Query]] object.
+* '''date_query''' - An array that is handled through to the [https://developer.wordpress.org/reference/classes/wp_date_query/ <tt>WP_Date_Query</tt>] object. Date queries are allowed for the <tt>user_registered</tt> field.
+* '''orderby''' - Sort by 'ID', 'login', 'nicename', 'email', 'url', 'registered', 'display_name', 'post_count', 'include', or 'meta_value' (query must also contain a 'meta_key' - see [[Class_Reference/WP_User_Query|WP_User_Query]]).
+* '''order''' - ASC (ascending) or DESC (descending).
+* '''offset''' - The first ''n'' users to be skipped in the returned array.
+* '''search''' - Use this argument to search users by email address, URL, ID, username or display_name.
+* '''number''' - Limit the total number of users returned.
+* '''paged''' - Determines which page should be returned when used with '''number'''.
+* '''count_total''' - This is always <tt>false</tt>. To get a total count, call <tt>[[Class_Reference/WP_User_Query | WP_User_Query]]</tt> directly instead. See [[Class_Reference/WP_User_Query#Total_Count_Parameter | here]] for usage. 
+* '''fields''' - Which fields to include in the returned array. Default is '<tt>all</tt>'. Pass an array of <tt>[[Database_Description#Table:_wp_users | wp_users]]</tt> table fields to return an array of stdClass objects with only those fields.
+* '''who''' - If set to 'authors', only authors (user level greater than 0) will be returned.
+
+== Examples ==
+
+A basic example to display all subscribers in an unordered list.
+
+<pre>
+<?php
+$blogusers = get_users( 'blog_id=1&orderby=nicename&role=subscriber' );
+// Array of WP_User objects.
+foreach ( $blogusers as $user ) {
+	echo '<span>' . esc_html( $user->user_email ) . '</span>';
+}
+</pre>
+
+An example using the 'search' field.
+
+<pre>
+<?php
+$blogusers = get_users( array( 'search' => 'john' ) );
+// Array of WP_User objects.
+foreach ( $blogusers as $user ) {
+	echo '<span>' . esc_html( $user->user_email ) . '</span>';
+}
+</pre>
+
+The first example will find and display all users that have a user name, ID, email of "john". You can also do wild card search by adding an * before or after your search query. For example, to search for all users that start with "jo", you would pass something like "<tt>jo*</tt>".
+
+The results will be all users whose user names, IDs, or emails that start with "jo". The * can be placed before or after your search query. When placed before, the results will be all users that end in your query.
+
+An example of querying by a specific field.
+
+<pre>
+<?php
+$blogusers = get_users( array( 'fields' => array( 'display_name' ) ) );
+// Array of stdClass objects.
+foreach ( $blogusers as $user ) {
+	echo '<span>' . esc_html( $user->display_name ) . '</span>';
+}
+</pre>
+
+== Returns ==
+; (Array) : An array of IDs, stdClass objects, or [[Class_Reference/WP_User|WP_User]] objects, depending on the value of the '<tt>fields</tt>' parameter.
+:*If '<tt>fields</tt>' is set to 'all' (default), or 'all_with_meta', it will return an array of [[Class_Reference/WP_User|WP_User]] objects.
+:*If '<tt>fields</tt>' is set to an array of <tt>[[Database_Description#Table:_wp_users | wp_users]]</tt> table fields, it will return an array of stdClass objects with only those fields.
+:*If '<tt>fields</tt>' is set to any individual <tt>[[Database_Description#Table:_wp_users | wp_users]]</tt> table field, an array of IDs will be returned.
+
+
+
+=== '''Example Object Of A User''' ===
+<code>
+[0] => WP_User Object	(
+	[data] => stdClass Object
+	(
+		[ID] => 3
+		[user_login] => dabid
+		[user_pass] => $P$BK1deNU7lV/rgwp2oncgESRHRYLedRF.
+		[user_nicename] => David
+		[user_email] => example@example.com
+		[user_url] => 
+		[user_registered] => 2017-03-21 14:11:32
+		[user_activation_key] => 149492:$P$BV76R0AcpmGMNAStZbdO.uVu7QWF9l1
+		[user_status] => 0
+		[display_name] => David Example
+	)
+
+	[ID] => 3
+	[caps] => Array
+		(
+			[author] => 1
+		)
+		[cap_key] => llk_capabilities
+	[roles] => Array
+		(
+			[0] => author
+		)
+		[allcaps] => Array
+		(
+		[upload_files] => 1
+		[edit_posts] => 1
+		[edit_published_posts] => 1
+		[publish_posts] => 1
+		[read] => 1
+		[level_2] => 1
+		[level_1] => 1
+		[level_0] => 1
+		[delete_posts] => 1
+		[delete_published_posts] => 1
+		[author] => 1
+		)
+	[filter] => 
+	)
+</code>
+
+== Notes ==
+
+* Uses: [[Class_Reference/WP_User_Query|WP_User_Query]]
+
+== Changelog ==
+
+* Since: [[Version 3.1|3.1.0]]
+
+== Source Code ==
+
+<code>get_users()</code> is located in {{Trac|wp-includes/user.php}}.
+
+[[Category:Functions]]
+{{Tag Footer}}
+
+== Related ==
+* [[Class_Reference/WP_User_Query | WP_User_Query]] class

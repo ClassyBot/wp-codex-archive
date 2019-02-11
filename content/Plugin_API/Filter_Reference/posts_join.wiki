@@ -1,0 +1,46 @@
+==Description==
+When you use the <tt>wp_query</tt> object to run a query not all tables are queried by default. For example, a query on the blog archive will only query the posts table. If you wanted to display posts that have specific meta value you will have to alter the <tt>wp_query</tt> object to include the required meta key. 
+
+== Examples ==
+To include the required tables in the query use the <tt>posts_join</tt> filter.
+
+The below example adds a meta field for use in displaying search results.
+
+<pre>
+// Join for searching metadata
+function AIOThemes_joinPOSTMETA_to_WPQuery($join) {
+    global $wp_query, $wpdb;
+
+    if (!empty($wp_query->query_vars['s'])) {
+        $join .= "LEFT JOIN $wpdb->postmeta ON $wpdb->posts.ID = $wpdb->postmeta.post_id ";
+    }
+
+    return $join;
+}
+
+add_filter('posts_join', 'AIOThemes_joinPOSTMETA_to_WPQuery');
+</pre>
+
+And then the specific search: 
+
+<pre>
+function AIO_AlphabeticSearch_WhereString( $where, &$wp_query )
+{
+    global $wpdb;
+    if(isset($_GET['aioAlphaSearchMode']) && $_GET['aioAlphaSearchMode'] == 1){
+
+        $searchAlphabet = esc_sql($_GET['s']); 
+
+        $where .= ' AND ' . $wpdb->posts . '.post_title LIKE \''.$searchAlphabet.'%\' ';
+
+        // use only if the post meta db table has been joined to the search tables using posts_join filter
+        $where .= " AND ($wpdb->postmeta.meta_key = 'JDReview_CustomFields_ReivewOrNewsPostType' AND $wpdb->postmeta.meta_value = 'JDReview_PostType_ReviewPost') ";
+        return $where;
+    }
+}
+
+add_filter( 'posts_where', 'AIO_AlphabeticSearch_WhereString', 10, 2 );
+</pre>
+
+{{Stub}}
+[[Category:Filters]]

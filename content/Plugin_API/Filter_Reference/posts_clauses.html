@@ -1,0 +1,78 @@
+<h2><span class="mw-headline" id="Introduction">Introduction</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/posts_clauses&amp;action=edit&amp;section=1" title="Edit section: Introduction">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <code>posts_clauses</code> filter runs before the query gets executed and is essentially the sum of all filters that run immediately before it. So it should be used if you don't intend to let another plugin override it, or if you need to alter several different parts of the query at once. If you're only modifying a particular clause, you should probably use one of these clause-specific filters:
+</p>
+<pre>
+ * posts_where_paged
+ * posts_groupby
+ * posts_join_paged
+ * posts_orderby
+ * posts_distinct
+ * post_limits
+ * posts_fields
+</pre>
+<p>Note: If you're working on a caching plugin, use the <code>posts_clauses_request</code> filter instead. It's basically the same filter, but it runs later (and after <code>posts_selection</code>), specifically so that "regular" plugins can execute their filters <i>before</i> your caching plugin does anything.
+</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/posts_clauses&amp;action=edit&amp;section=2" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In the following example, you can see how you can inspect the current query.
+</p>
+<pre>
+&lt;?php
+/**
+ * Alter different parts of the query
+ * 
+ * @param array $pieces
+ * 
+ * @return array $pieces
+ */
+function intercept_query_clauses( $pieces )
+{
+	echo '&lt;style&gt;#post-clauses-dump { display: block; background-color: #777; color: #fff; white-space: pre-line; }&lt;/style&gt;';
+	// &gt;&gt;&gt;&gt; Inspect &amp; Debug the Query 
+	// NEVER EVER show this to anyone other than an admin user - unless you're in your local installation
+	if ( current_user_can( 'manage_options' ) )
+	{
+		$dump = var_export( $pieces, true );
+		echo "&lt; PRE id='post-clauses-dump'&gt;{$dump}&lt;/ PRE &gt;";
+	}
+
+	return $pieces;
+}
+add_filter( 'posts_clauses', 'intercept_query_clauses', 20, 1 );
+</pre>
+<p>If you need to alter anything, simply set the <code>$pieces['whatever_part']</code> string to what you need. Be sure to use appropriate <a href="https://codex.wordpress.org/Class_Reference/wpdb" title="Class Reference/wpdb">$wpdb</a> properties and methods (e.g. $wpdb-&gt;prefix, $wpdb-&gt;prepare()) in your SQL to prevent injection attacks, handle table prefix variations, and so forth.
+</p>
+<h2><span class="mw-headline" id="Example_Output">Example Output</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/posts_clauses&amp;action=edit&amp;section=3" title="Edit section: Example Output">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><i>This would be the output on the Admin "All Posts" example.com/wp-admin/edit.php screen.</i>
+</p>
+<pre>
+array (
+	'where' =&gt; ' AND wp_posts.post_type = \'post\' AND (wp_posts.post_status = \'publish\' OR wp_posts.post_status = \'future\' OR wp_posts.post_status = \'draft\' OR wp_posts.post_status = \'pending\' OR wp_posts.post_status = \'private\')',
+	'groupby' =&gt; '',
+	'join' =&gt; '',
+	'orderby' =&gt; 'wp_posts.post_date DESC',
+	'distinct' =&gt; '',
+	'fields' =&gt; 'wp_posts.*',
+	'limits' =&gt; 'LIMIT 0, 20',
+)
+</pre>
+<p>Return to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">Plugin API/Filter Reference</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004104
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.004 seconds
+Real time usage: 0.005 seconds
+Preprocessor visited node count: 31/1000000
+Preprocessor generated node count: 76/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

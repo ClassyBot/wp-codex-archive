@@ -1,0 +1,79 @@
+{{Languages|
+{{en|Function Reference/delete post meta}}
+{{ru|Справочник_по_функциям/delete post meta}}
+{{ja|関数リファレンス/delete post meta}}
+}}
+==Описание==
+
+Эта функция удаляет все произвольные поля с указанным названием (или названием и значением) из указанной записи.
+См. также [[Function Reference/update post meta|update_post_meta()]], [[Function Reference/get post meta|get_post_meta()]] и [[Справочник_по_функциям/add_post_meta|add_post_meta()]]. 
+
+==Использование==
+
+%%% <?php delete_post_meta($post_id, $meta_key, $meta_value); ?> %%%
+
+==Параметры==
+
+{{Parameter|$post_id|integer|ID записи, у которой нужно удалить поля.}}
+{{Parameter|$meta_key|string|Название поля, которое нужно удалить.}}
+{{Parameter|$meta_value|mixed|Значение поля, которое нужно удалить. Используется, чтобы различать несколько полей с одним названием, но разным значением. Если оставить пустым, будут удалены все поля с указанным названием.|optional|''Empty''}}
+
+==Возвращаемые значения==
+; (boolean) : False при неудаче. True при успехе.
+
+==Примеры==
+
+===Стандартное применение===
+
+ <?php delete_post_meta(76, 'my_key', 'Steve'); ?>
+
+===Другой пример===
+
+Предположим, что был установлен плагин, который добавил несколько значений произвольных полей для записи. После удаления плагина требуется удалить все значения произвольных полей, которые он добавил. Допустим, плагин добавил произвольные поля с названиями <tt>related_posts</tt> и <tt>post_inspiration</tt>.
+
+Чтобы удалить все поля, нужно добавить это к функции деинсталяции:
+<pre><?php
+  $allposts = get_posts('numberposts=-1&post_type=post&post_status=any');
+
+  foreach( $allposts as $postinfo) {
+    delete_post_meta($postinfo->ID, 'related_posts');
+    delete_post_meta($postinfo->ID, 'post_inspiration');
+  }
+?></pre>
+
+Если нужно удалить все поля, кроме тех, в которых <tt>post_inspiration</tt> имеет значение "Sherlock Holmes", функция будет такой:
+
+<pre><?php
+  $allposts = get_posts('numberposts=-1&post_type=post&post_status=any');
+
+  foreach( $allposts as $postinfo) {
+    delete_post_meta($postinfo->ID, 'related_posts');
+    $inspiration = get_post_meta( $postinfo->ID, 'post_inspiration' );
+    foreach( $inspiration as $value ) {
+      if( $value != "Sherlock Holmes" )
+        delete_post_meta($postinfo->ID, 'post_inspiration', $value);
+    }
+  }
+?></pre>
+
+Если запись под номером 185 была удалена, и нужно удалить все поля <tt>related_posts</tt>, которые к ней относятся, можно использовать такую функцию:
+
+<pre><?php
+  $allposts = get_posts('numberposts=-1&post_type=post&post_status=any');
+
+  foreach( $allposts as $postinfo) {
+    delete_post_meta($postinfo->ID, 'related_posts', '185');
+  }
+?></pre>
+
+Больше информации на странице [[Function Reference/post meta Function Examples|post_meta Functions Examples]].
+
+'''''Примечание:''' в отличае от [[Function Reference/update post meta|update_post_meta()]], эта функция позволяет удалить '''все''' поля, соответствующие критериям.''
+
+==Схожее==
+
+{{Post Meta Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

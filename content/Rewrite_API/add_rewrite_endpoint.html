@@ -1,0 +1,127 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Arguments"><span class="tocnumber">3</span> <span class="toctext">Arguments</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Available_Places"><span class="tocnumber">4</span> <span class="toctext">Available Places</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#What_it_does"><span class="tocnumber">5</span> <span class="toctext">What it does</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Articles"><span class="tocnumber">6.1</span> <span class="toctext">Articles</span></a></li>
+<li class="toclevel-2"><a href="#Hooks"><span class="tocnumber">6.2</span> <span class="toctext">Hooks</span></a></li>
+<li class="toclevel-2"><a href="#Functions"><span class="tocnumber">6.3</span> <span class="toctext">Functions</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#External_Resources"><span class="tocnumber">7</span> <span class="toctext">External Resources</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_endpoint&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Add an endpoint, like /trackback/.
+</p><p>Adding an endpoint creates extra rewrite rules for each of the matching places specified by the provided bitmask. A new query var with the same name as the endpoint will also be created.  The string following the endpoint definition supplies the value for this query var (e.g. "/foo/bar/" becomes "?foo=bar").
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_endpoint&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>&lt;?php add_rewrite_endpoint( $name, $places );&#160;?&gt;
+</pre>
+<p>For example:
+</p>
+<pre> add_rewrite_endpoint( 'json', EP_PERMALINK | EP_PAGES );
+</pre>
+<p>will add a new rewrite rule ending with "json(/(.*))?/?$" for every permastruct that describes a permalink (post) or page. This is rewritten to "json=$match" where $match is the part of the URL matched by the endpoint regex (e.g. "&lt;permalink&gt;/json/foo/" becomes "&lt;permalink&gt;/?json=foo").
+</p><p>When specifying $places ensure that you are using the EP_* constants (or a combination of them using the bitwise OR operator) as their values are not guaranteed to remain static (especially EP_ALL).
+</p>
+<h2><span class="mw-headline" id="Arguments">Arguments</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_endpoint&amp;action=edit&amp;section=3" title="Edit section: Arguments">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> $name&#160;</dt>
+<dd> (<i>string</i>) The name of the endpoint</dd></dl>
+<dl><dt> $places&#160;</dt>
+<dd> (<i>int</i>) Endpoint mask describing the places the endpoint should be added. One of the EP_* constants (e.g. EP_PERMALINK) or a combination of them (e.g. EP_PERMALINK | EP_PAGES).</dd></dl>
+<h2><span class="mw-headline" id="Available_Places">Available Places</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_endpoint&amp;action=edit&amp;section=4" title="Edit section: Available Places">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>As of version 3.9.1, the following EP_* constants are available for use in the $places parameter:
+</p>
+<dl><dt> <tt>EP_NONE</tt>&#160;</dt>
+<dd> Endpoint Mask for default, which is nothing. <br /> Bitwise value: 0</dd>
+<dt> <tt>EP_PERMALINK</tt>&#160;</dt>
+<dd> Endpoint Mask for Permalink. <br /> Bitwise value: 1</dd>
+<dt> <tt>EP_ATTACHMENT</tt>&#160;</dt>
+<dd> Endpoint Mask for Attachment. <br /> Bitwise value: 2</dd>
+<dt> <tt>EP_DATE</tt>&#160;</dt>
+<dd> Endpoint Mask for date. <br /> Bitwise value: 4</dd>
+<dt> <tt>EP_YEAR</tt>&#160;</dt>
+<dd> Endpoint Mask for year <br /> Bitwise value: 8</dd>
+<dt> <tt>EP_MONTH</tt>&#160;</dt>
+<dd> Endpoint Mask for month. <br /> Bitwise value: 16</dd>
+<dt> <tt>EP_DAY</tt>&#160;</dt>
+<dd> Endpoint Mask for day. <br /> Bitwise value: 32</dd>
+<dt> <tt>EP_ROOT</tt>&#160;</dt>
+<dd> Endpoint Mask for root. <br /> Bitwise value: 64</dd>
+<dt> <tt>EP_COMMENTS</tt>&#160;</dt>
+<dd> Endpoint Mask for comments. <br /> Bitwise value: 128</dd>
+<dt> <tt>EP_SEARCH</tt>&#160;</dt>
+<dd> Endpoint Mask for searches. <br /> Bitwise value: 256</dd>
+<dt> <tt>EP_CATEGORIES</tt>&#160;</dt>
+<dd> Endpoint Mask for categories. <br /> Bitwise value: 512</dd>
+<dt> <tt>EP_TAGS</tt>&#160;</dt>
+<dd> Endpoint Mask for tags. <br /> Bitwise value: 1024</dd>
+<dt> <tt>EP_AUTHORS</tt>&#160;</dt>
+<dd> Endpoint Mask for authors. <br /> Bitwise value: 2048</dd>
+<dt> <tt>EP_PAGES</tt>&#160;</dt>
+<dd> Endpoint Mask for pages. <br /> Bitwise value: 4096</dd>
+<dt> <tt>EP_ALL_ARCHIVES</tt>&#160;</dt>
+<dd> Endpoint Mask for all archive views. <br /> Same as using <i>EP_DATE | EP_YEAR | EP_MONTH | EP_DAY | EP_CATEGORIES | EP_TAGS | EP_AUTHORS</i></dd>
+<dt> <tt>EP_ALL</tt>&#160;</dt>
+<dd> Endpoint Mask for everything. <br /> Same as using <i>EP_PERMALINK | EP_ATTACHMENT | EP_ROOT | EP_COMMENTS | EP_SEARCH | EP_PAGES | EP_ALL_ARCHIVES</i></dd></dl>
+<h2><span class="mw-headline" id="What_it_does">What it does</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_endpoint&amp;action=edit&amp;section=5" title="Edit section: What it does">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This adds the endpoint to all link types indicated (e.g. posts, pages, category, author, search) and then template-loader.php includes the relevant handler file.
+</p><p>The name of the endpoint is added as query variable and this gets as value any text present after the endpoint name, separated from the name with a '/'. The <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/template_redirect" title="Plugin API/Action Reference/template redirect"><code>template_redirect</code></a> action hook should test this query variable.
+</p><p>This can be used for all sorts of things:
+</p>
+<ul><li> ajax handler</li>
+<li> form submission handler</li>
+<li> alternative notification handler</li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_endpoint&amp;action=edit&amp;section=6" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h4><span class="mw-headline" id="Articles">Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-1" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Lesson: <a href="https://codex.wordpress.org/Rewrite_API" title="Rewrite API"> Rewrite API Overview</a></li>
+<li> Class: <tt><a href="https://codex.wordpress.org/Class_Reference/WP_Rewrite" title="Class Reference/WP Rewrite">WP_Rewrite()</a></tt> - An overview of WordPress's built-in URL rewrite class.</li></ul>
+<h4><span class="mw-headline" id="Hooks">Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-2" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/root_rewrite_rules" title="Plugin API/Filter Reference/root rewrite rules">root_rewrite_rules</a></tt> - Filters the rewrite rules generated for the root of your weblog.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/post_rewrite_rules" title="Plugin API/Filter Reference/post rewrite rules">post_rewrite_rules</a></tt> - Filters the rewrite rules generated for permalink URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/page_rewrite_rules" title="Plugin API/Filter Reference/page rewrite rules">page_rewrite_rules</a></tt> - Filters the rewrite rules generated for your Pages.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/date_rewrite_rules" title="Plugin API/Filter Reference/date rewrite rules">date_rewrite_rules</a></tt> - Filters the rewrite rules generated for dated archive URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/search_rewrite_rules" title="Plugin API/Filter Reference/search rewrite rules">search_rewrite_rules</a></tt> - Filters the rewrite rules generated for search URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/comments_rewrite_rules" title="Plugin API/Filter Reference/comments rewrite rules">comments_rewrite_rules</a></tt> - Filters the rewrite rules generated for the latest comment feed URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/author_rewrite_rules" title="Plugin API/Filter Reference/author rewrite rules">author_rewrite_rules</a></tt> - Filters the rewrite rules generated for author archive URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/rewrite_rules_array" title="Plugin API/Filter Reference/rewrite rules array">rewrite_rules_array</a></tt> - Filters <i>all</i> the rewrite rules at once.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/$permastruct_rewrite_rules" title="Plugin API/Filter Reference/$permastruct rewrite rules">{$permastruct}_rewrite_rules</a></tt> - Can be used to create or modify rewrite rules for any custom permastructs, such as taxonomies or custom post types.</li>
+<li> Action: <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/generate_rewrite_rules" title="Plugin API/Action Reference/generate rewrite rules">generate_rewrite_rules</a></tt> - Runs <strong>after</strong> all the rules have been created.</li></ul>
+<h4><span class="mw-headline" id="Functions">Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-3" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_tag" title="Rewrite API/add rewrite tag"> add_rewrite_tag()</a> - Can be used to allow WordPress to recognize custom variables (particularly custom querystring variables).</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_rule" title="Rewrite API/add rewrite rule"> add_rewrite_rule()</a> - Allows you to specify new, custom rewrite rules.</li>
+<li> <strong class="selflink"> add_rewrite_endpoint()</strong> - Add a new endpoint like /trackback/</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/flush_rules" title="Rewrite API/flush rules"> flush_rules()</a> - Regenerate the rewrite rules and save them to the database.</li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/flush_rewrite_rules" title="Function Reference/flush rewrite rules"> flush_rewrite_rules()</a> - Remove rewrite rules and then recreate rewrite rules.</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/generate_rewrite_rules" title="Rewrite API/generate rewrite rules"> generate_rewrite_rules()</a> - Generates rewrite rules from a permalink structure</li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/add_permastruct" title="Function Reference/add permastruct"> add_permastruct()</a> - Add a new permastruct</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_feed" title="Rewrite API/add feed"> add_feed()</a>- Add a new feed type like /atom1/</li></ul>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_endpoint&amp;action=edit&amp;section=7" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://make.wordpress.org/plugins/2012/06/07/rewrite-endpoints-api/">Rewrite Endpoint API Tutorial</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004114
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 49/1000000
+Preprocessor generated node count: 80/1000000
+Post‐expand include size: 2762/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    1.419      1 - Template:Rewrite_API
+100.00%    1.419      1 - -total
+-->

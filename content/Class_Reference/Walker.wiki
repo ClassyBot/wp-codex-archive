@@ -1,0 +1,175 @@
+{{Languages|
+{{en|Class Reference/Walker}}
+{{ja|クラスリファレンス/Walker}}
+}}
+
+== Introduction ==
+The <tt>Walker</tt> class was implemented in [[Version 2.1|WordPress 2.1]] to provide developers with a means to traverse tree-like data structures for the purpose of rendering HTML.
+
+=== Tree-Like Structures ===
+In terms of web development, a tree-like structure is an array or object with hierarchical data - such that it can be visually represented with a root element and subtrees of children.
+
+Examples of WordPress objects with data that are structured in a "tree-like" way include navigational menus, page categories, and breadcrumbs.
+
+=== Role of Walker ===
+
+<tt>Walker</tt> is an ''[http://php.net/manual/en/language.oop5.abstract.php abstract]'' class. In order to be useful the class must be [http://php.net/manual/en/reflection.extending.php extended] and any necessary abstract methods defined (see "Abstract Methods" below for more).
+
+The class itself simply "walks" through each node in a tree (e.g. an object or associative array) and executes an abstract function at each node. In order to take an action at one of these nodes, a developer must define those abstract methods within a custom child class.
+
+Although the <tt>Walker</tt> class has many uses, one of the most common usages by developers is outputting HTML for custom menus (usually ones that have been defined using the [[Appearance_Menus_Screen|Appearance &rarr; Menus]] screen in the [[Administration Screens]]).
+
+'''Abstraction Note:''' The <tt>Walker</tt> class was created ''prior'' to PHP5 and so does '''not''' make use of PHP5's explicit abstraction keywords or features. In this case, the class and its methods are ''implicitly'' abstract (PHP4 compatible) and '''not''' ''explicitly'' abstract (PHP5 compatible). Developers are not required to implement any methods of the class, and may use or override only those methods that are needed. If you chose not to extend a specific abstract method, that method will simply do nothing.
+
+==Methods &amp; Properties==
+
+===Properties===
+
+Note that the properties of the Walker class are intended to be set by the extending class and probably should not vary over the lifetime of an instance.
+
+; <tt>$db_fields</tt> : '''Required'''. Because Walker can take any type of tree object, you need to specify what object properties the Walker class should treat as parent id and item id (usually these are the names of database fields, hence the property name). This property '''must''' be an associative array with two keys: <code>'parent'</code> and <code>'id'</code>. The value of each key should be the names of the object properties that hold the ''parent id'' and ''item id'', respectively.
+
+; <tt>$tree_type</tt> : Optional. The Walker class itself makes no use of this value, although it may be useful to developers. Internally, WordPress's own extended Walker classes will set this to values like 'category' or 'page'.
+
+; <tt>$max_pages</tt> : Optional. The maximum number of pages walked by the <tt>paged</tt> walker.
+
+=== Abstract Methods ===
+These methods are '''abstract''' and should be explicitly defined in the child class, as needed. Also note that <tt>$output</tt> is passed by reference, so any changes made to the variable within the following methods are automatically handled (no return, echo, or print needed).
+
+; <tt>start_lvl( &$output, $depth = 0, $args = array() )</tt> : "Start Level". This method is run when the walker reaches the '''start''' of a new "branch" in the tree structure. Generally, this method is used to add the opening tag of a ''container'' HTML element (such as <tt>&lt;ol&gt;</tt>, <tt>&lt;ul&gt;</tt>, or <tt>&lt;div&gt;</tt>) to <tt>$output</tt>.
+
+; <tt>end_lvl( &$output, $depth = 0, $args = array() )</tt> : "End Level". This method is run when the walker reaches the '''end''' of a "branch" in the tree structure. Generally, this method is used to add the closing tag of a ''container'' HTML element (such as <tt>&lt;/ol&gt;</tt>, <tt>&lt;/ul&gt;</tt>, or <tt>&lt;/div&gt;</tt>) to <tt>$output</tt>.
+
+; <tt>start_el( &$output, $object, $depth = 0, $args = array(), $current_object_id = 0 )</tt> : "Start Element". Generally, this method is used to add the opening HTML tag for a single tree item (such as <tt>&lt;li&gt;</tt>, <tt>&lt;span&gt;</tt>, or <tt>&lt;a&gt;</tt>) to <tt>$output</tt>.
+
+; <tt>end_el( &$output, $object, $depth = 0, $args = array() )</tt> : "End Element". Generally, this method is used to add any closing HTML tag for a single tree item (such as <tt>&lt;/li&gt;</tt>, <tt>&lt;/span&gt;</tt>, or <tt>&lt;/a&gt;</tt>) to <tt>$output</tt>. Note that elements are not ended until after all of their children have been added.
+
+=== Public Methods ===
+These methods are defined by the parent class and may be called from within child methods as needed.
+
+; <tt>walk($elements, $max_depth)</tt> : This method can be used to initialize the <tt>Walker</tt> class. It takes an array of elements ordered so that children occur below their parents. The <tt>$max_depth</tt> parameter is an integer that specifies how deep into the tree structure the walker should render. By default, the <code>$max_depth</code> argument uses <code>0</code>, which will render every item in every branch, with no depth limit. You can also specify '''<tt>-1</tt>''' to render all objects as a "flattened" single-dimensional list. Any other number will limit the depth that Walker will render in any branch. Any ''additional'' arguments passed to this method will be passed unchanged to the other methods.
+
+; <tt>paged_walk( $elements, $max_depth, $page_num, $per_page )</tt> : This method can be used to initialize the <tt>Walker</tt> class. This function works like <tt>walk()</tt> but allows for pagination. <tt>$page_num</tt> specifies the current page to render while <tt>$per_page</tt> specifies the number of items to show per page. Any ''additional'' arguments passed to this method will be passed unchanged to the other methods.
+
+; <tt>get_number_of_root_elements( $elements )</tt> : Counts the number of top-level items (no children or descendants) in the provided array, and returns that count.
+
+; <tt>unset_children(  $e, &$children_elements )</tt> : Removes all the children for a specified top-level element.
+
+=== Private Methods ===
+
+; <tt>display_element( $element, &$children_elements, $max_depth, $depth=0, $args, &$output )</tt> : This method should be considered <tt>'''private'''</tt> and should not be called directly. Use <tt>walk()</tt> instead.
+
+== Usage ==
+There are two general use-cases for the <tt>Walker</tt> class.
+
+=== Usage as a Callback ===
+Some WordPress APIs and functions ( such as [[Function_Reference/wp_nav_menu|wp_nav_menu()]] ) allow developers to specify a custom <tt>Walker</tt> class as a callback. This is the most common usage of the <tt>Walker</tt> class by developers.
+
+In this scenario, the class is automatically passed a tree of elements. When creating a custom walker for this scenario, you will generally only need to define the '''abstract''' methods needed to create the kind of structure you want. Everything else is handled automatically for you.
+
+=== Custom Usage ===
+It is also possible to call your custom <tt>Walker</tt> classes manually. This is particularly useful for plugin developers.
+
+In this scenario, you can initiate the walker by calling either the <tt>walk()</tt> or <tt>paged_walk()</tt> method of your child class, with the appropriate parameters.
+
+== Examples ==
+
+
+===Property Usage Example===
+This example would shows how you might set up the Walker's <code>$db_fields</code> property for handling a tree of '''page''' objects. Since we know the parent and id properties for all [[Class_Reference/WP_Post|post objects]] ('''pages''' included), we just need to match those up using the Walker's <code>$db_fields</code> property. Like so...
+
+<pre>
+<?php
+class Walker_Page extends Walker {
+    var $db_fields = array (
+        'parent' => 'post_parent', 
+        'id'     => 'ID'
+    );
+
+    // define abstract methods here
+}
+</pre>
+
+=== General Menu Example ===
+This example shows one of the simplest (and most common) implementations of the walker class. In this case, the Walker will be used to generate a custom menu in combination with [[Function_Reference/wp_nav_menu|wp_nav_menu()]]. The first block shows the example Walker child class, the second block demonstrates how this class is utilized.
+
+<pre>
+<?php
+class Walker_Quickstart_Menu extends Walker {
+
+    // Tell Walker where to inherit it's parent and id values
+    var $db_fields = array(
+        'parent' => 'menu_item_parent', 
+        'id'     => 'db_id' 
+    );
+
+    /**
+     * At the start of each element, output a <li> and <a> tag structure.
+     * 
+     * Note: Menu objects include url and title properties, so we will use those.
+     */
+    function start_el( &$output, $item, $depth = 0, $args = array(), $id = 0 ) {
+        $output .= sprintf( "\n<li><a href='%s'%s>%s</a></li>\n",
+            $item->url,
+            ( $item->object_id === get_the_ID() ) ? ' class="current"' : '',
+            $item->title
+        );
+    }
+
+}
+</pre>
+
+'''Tip:''' In this case, you could choose to extend [[Class_Reference/Walker_Nav_Menu|Walker_Nav_Menu]] instead of Walker, and then you wouldn't need to define <code>$db_fields</code> manually.
+
+In order to utilize this custom walker class, you would call <code>wp_nav_menu()</code> (likely from within a theme file) and pass it a new instance of the custom Walker child class.
+<pre>
+<ul>
+    <?php
+    wp_nav_menu(array(
+        'menu'    => 2, //menu id
+        'walker'  => new Walker_Quickstart_Menu() //use our custom walker
+    ));
+    ?>
+</ul>
+</pre>
+
+=== Using Walker Manually ===
+
+This example will cover how to initialize a custom Walker ''manually''. In this example, our goal is to render the same menu as in the [[#General_Menu_Example|previous example]]. We will use the same Walker class as above, but without using the callback feature of <code>wp_nav_menu()</code>.
+
+<pre>
+<?php
+// 1. Fetch the menu (we'll assume it has an id of 2)...
+$menu = wp_get_nav_menu_object(2);
+
+// 2. Create an empty $menu_items array
+$menu_items = array();
+
+// 3. Get menu objects (this is our tree structure)
+if ( $menu && ! is_wp_error($menu) && empty($menu_items) ) {
+    $menu_items = wp_get_nav_menu_items( $menu );
+}
+
+// 4. Create a new instance of our walker...
+$walk = new Walker_Quickstart_Menu();
+
+// 5. Walk the tree and render the returned output as a one-dimensional array
+print_r( $walk->walk( $menu_items, -1 ) );
+</pre>
+
+== Source File ==
+
+<tt>Walker</tt> is located in {{Trac|wp-includes/class-wp-walker.php}}
+
+== External Resources ==
+* [http://wp.tutsplus.com/tutorials/creative-coding/understanding-the-walker-class/ Understanding the Walker Class]
+* [http://shinraholdings.com/62/custom-nav-menu-walker-function/#example-code Example walker function for wp_nav_menu]
+
+==Related==
+
+=== Classes ===
+{{Walker Classes}}
+
+{{Class Footer}}
+
+[[Category:Classes]]

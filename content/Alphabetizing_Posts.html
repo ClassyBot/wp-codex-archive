@@ -1,0 +1,102 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Category_Template"><span class="tocnumber">1</span> <span class="toctext">Category Template</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Specific_Category_Template"><span class="tocnumber">1.1</span> <span class="toctext">Specific Category Template</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-3"><a href="#Main_Page"><span class="tocnumber">2</span> <span class="toctext">Main Page</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#References"><span class="tocnumber">3</span> <span class="toctext">References</span></a></li>
+</ul>
+</div>
+
+<p>By default, WordPress organizes and displays posts in descending chronological order. However, there are different WordPress templates you can use to list posts in alphabetical order. 
+</p>
+<h2><span class="mw-headline" id="Category_Template">Category Template</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Alphabetizing_Posts&amp;action=edit&amp;section=1" title="Edit section: Category Template">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>For example, you may want posts to display in alphabetical order if you have a category named "Glossary", where each post is a definition of a specific term and each term is used as the post title. Edit your theme's <tt><a href="https://codex.wordpress.org/Category_Templates" title="Category Templates">category.php</a></tt> file, and make the following changes, just before your main <a href="https://codex.wordpress.org/The_Loop" title="The Loop">Loop</a>:
+</p>
+<pre>
+&lt;?php
+get_header();
+?&gt;
+
+&lt;div id="content"&gt;
+&lt;ul&gt;
+&lt;?php
+// we add this, to show all posts in our
+// Glossary sorted alphabetically
+if (is_category('Glossary')) 
+{
+$args = array( 'posts_per_page' =&gt; -1, 'orderby'=&gt; 'title', 'order' =&gt; 'ASC' );
+$glossaryposts = get_posts( $args ); 
+}
+foreach( $glossaryposts as $post )&#160;:	setup_postdata($post); 
+ ?&gt;
+&lt;li&gt;&lt;a href="&lt;?php the_permalink();&#160;?&gt;"&gt;&lt;?php the_title();&#160;?&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;?php endforeach;&#160;?&gt;
+&lt;/ul&gt;
+</pre>
+<p>Note: <tt>'posts_per_page' =&gt; -1</tt> indicates that all posts in this category will be shown at once. You can change this number to any positive integer to limit the number of posts displayed in this array.
+</p>
+<h3><span class="mw-headline" id="Specific_Category_Template">Specific Category Template</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Alphabetizing_Posts&amp;action=edit&amp;section=2" title="Edit section: Specific Category Template">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If you want your "Glossary" category to have a different style from the rest of your site, you could create a custom category template file.  First, find the category ID of your "Glossary" category, listed in the left-most column of your <a href="https://codex.wordpress.org/Administration_Panels#Manage_-_Change_your_content" title="Administration Panels" class="mw-redirect">Manage</a> &gt; <a href="https://codex.wordpress.org/Administration_Panels#Categories" title="Administration Panels" class="mw-redirect">Categories</a> administration panel.  For this example, we'll assume that the "Glossary" category has a category ID of 13.
+</p><p>Copy your theme's <tt>index.php</tt> or <tt>category.php</tt> file (or create a brand new file, if necessary) named <strong><tt>category-13.php</tt></strong> and insert your code:
+</p>
+<pre>
+&lt;?php
+get_header();
+?&gt;
+
+&lt;div id="content"&gt;
+&lt;ul&gt;
+&lt;?php
+// we add this, to show all posts in our 
+// Glossary sorted alphabetically
+$args = array( 'posts_per_page' =&gt; -1, 'orderby'=&gt; 'title', 'order' =&gt; 'ASC' );
+$glossaryposts = get_posts( $args ); 
+// here comes The Loop!
+foreach( $glossaryposts as $post )&#160;:	setup_postdata($post); &#160;?&gt;
+&lt;li&gt;&lt;a href="&lt;?php the_permalink();&#160;?&gt;"&gt;&lt;?php the_title();&#160;?&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;?php endforeach;&#160;?&gt;
+&lt;/ul&gt;
+</pre>
+<p>Using a separate category template file for your "Glossary" category means that you do not clutter up your main <tt>category.php</tt> file with a bunch of conditional template tags.
+</p>
+<h2><span class="mw-headline" id="Main_Page">Main Page</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Alphabetizing_Posts&amp;action=edit&amp;section=3" title="Edit section: Main Page">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Maybe you want to list <em>all</em> your posts alphabetically by title on the main page. This means you will want to edit the main query of WordPress using <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts" title="Plugin API/Action Reference/pre get posts">pre_get_posts</a></tt> and <tt><a href="https://codex.wordpress.org/Function_Reference/is_main_query" title="Function Reference/is main query">is_main_query</a></tt>. In your <strong><tt>functions.php</tt></strong> file, or in a separate plugin, insert:
+</p>
+<pre>
+function foo_modify_query_order( $query ) {
+    if ( $query-&gt;is_home() &amp;&amp; $query-&gt;is_main_query() ) {
+        $query-&gt;set( 'orderby', 'title' );
+        $query-&gt;set( 'order', 'ASC' );
+    }
+}
+add_action( 'pre_get_posts', 'foo_modify_query_order' );
+</pre>
+<p>This will edit the main query before it is executed, and ensure that anywhere the main query is called (in <strong><tt>index.php</tt></strong> for instance), posts are sorted alphabetically by title.
+</p>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Alphabetizing_Posts&amp;action=edit&amp;section=4" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Category_Templates" title="Category Templates">Customizing Category Templates</a></li>
+<li> <a href="https://codex.wordpress.org/The_Loop_in_Action" title="The Loop in Action">The Loop in Action</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/support/topic/22801#post-149393">WordPress Support Forum Thread on Sorting Posts and Categories Alphabetically</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003724
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.011 seconds
+Preprocessor visited node count: 44/1000000
+Preprocessor generated node count: 84/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

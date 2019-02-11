@@ -1,0 +1,163 @@
+{{Languages|
+{{en|Taxonomies}}
+{{bn|ট্যাক্সোনমি}}
+{{it|Tassonomie}}
+{{pt-br|Taxonomias}}
+{{ja|カスタム分類}}
+}}
+
+== What is a taxonomy? ==
+
+'''Taxonomy''' is one of those words that most people never hear or use. Basically, a taxonomy is a way to group things together. 
+
+For example, I might have a bunch of different types of animals. I can group them together according to various characteristics and then assign those groups names. This is something most people encounter in biology classes, and it is known as the [http://en.wikipedia.org/wiki/Linnaean_taxonomy Linnaean Taxonomy].
+
+In WordPress, a "taxonomy" is a grouping mechanism for some posts (or links or custom post types).
+
+The names for the different groupings in a taxonomy are called ''terms''.  Using groupings of animals as an example, we might call one group "birds", and another group "fish". "Fish" and "birds" are terms in our taxonomy. As an example from WordPress, a category or tag (see next section) is a term.
+
+== Basic diagram on taxonomies and their relationships in WordPress==
+
+
+[[Image:Z2Ohv.png]]
+
+Diagram added with no restrictions with compliments by Pieter Goosen
+
+== Default Taxonomies ==
+
+WordPress has four built in taxonomies that you've probably used already. 
+
+=== Category ===
+
+The '<tt>category</tt>' taxonomy lets you group posts together by sorting them into various categories. These categories can then be seen on the site by using '<tt>/category/name</tt>' types of URLs. Categories tend to be pre-defined and broad ranging.
+
+=== Tag ===
+
+The '<tt>post_tag</tt>' taxonomy is similar to categories, but more free form. Tags can be made up on the fly, by simply typing them in. They can be seen on the site in the '<tt>/tag/name</tt>' types of URLs. Posts tend to have numerous tags, and they are generally displayed near posts or in the form of tag clouds.
+
+=== Link Category ===
+
+The '<tt>link_category</tt>' taxonomy lets you categorize your links. These tend to be used only internally, for organizational reasons, and are not usually exposed on the site itself. They are handy for defining groups of links to be displayed in sidebars and the like.
+
+=== Post Formats ===
+
+The '<tt>post_format</tt>' taxonomy was introduced in WordPress 3.1 and it is a piece of meta information that can be used by a theme to customize its presentation of a post. New post formats can't be created or added to the default existing ones.
+
+== Custom Taxonomies ==
+
+Since [[Version 2.3|WordPress 2.3]], you've been able to create your own custom taxonomies, but these have been a rarely used feature of WordPress until [[Version 2.9]]. In truth, they are an extremely powerful way to group various items in all sorts of ways.
+
+=== Example ===
+
+The plugin [http://wordpress.org/extend/plugins/matts-community-tags/ Matt's Community Tags] uses taxonomies to define "people" as a taxonomy for attachments. He uses it to allow people to mark the names of people in pictures, and using that his site can display pictures of people under the '<tt>/person/name</tt>' URL.
+
+=== Registering a taxonomy ===
+
+To register a taxonomy, you use the [[Function_Reference/register_taxonomy|register_taxonomy()]] function.
+
+Here's an example of registering a "people" taxonomy:
+
+<pre>
+function people_init() {
+	// create a new taxonomy
+	register_taxonomy(
+		'people',
+		'post',
+		array(
+			'label' => __( 'People' ),
+			'rewrite' => array( 'slug' => 'person' ),
+			'capabilities' => array(
+				'assign_terms' => 'edit_guides',
+				'edit_terms' => 'publish_guides'
+			)
+		)
+	);
+}
+add_action( 'init', 'people_init' );
+</pre>
+
+Here, the "people" taxonomy is defined. It's defined to work for posts, and a rewrite slug is defined to make the url into '<tt>/person/</tt>' instead of '<tt>/people/</tt>'.
+The capabilities line is optional. Without it, WordPress will default capabilities to the same users as posts. As shown above, this will allow any user with the custom "edit_guides" capability to assign the taxonomy to a post and any user with the custom "publish_guides" capability to create new taxonomy items.
+
+Taxonomy capabilities include assign_terms, edit_terms, manage_terms (displays the taxonomy in the admin navigation) and delete_terms.
+
+=== Using that taxonomy ===
+
+Once you've added a taxonomy, you'll find that WordPress creates a new meta box on posts for you. This new meta box looks almost exactly like the Tags box and will let you add tags to those posts.
+
+If you're not attaching your taxonomy to posts, then you may not get the interface created for you. Taxonomies are generic, after all, you could create one for any sort of object. To add terms to an object using your taxonomy, you'll need to use the [[Function_Reference/wp_set_object_terms|wp_set_object_terms()]] function. Here's an example of adding the term "Bob" to post ID number 123 in the "person" taxonomy:
+
+ wp_set_object_terms( 123, 'Bob', 'person' );
+
+As you can see, it's simple to do. The second parameter can also be an array of terms to add all at once, if you need to do so.
+
+=== Clouds ===
+
+The [[Function_Reference/wp_tag_cloud|wp_tag_cloud()]] function can also accept a "taxonomy" parameter, if you want to display a cloud of terms for your custom taxonomy.
+
+=== Listing the terms ===
+
+If you want to have a custom list in your theme, then you can pass the taxonomy name into the [[Function_Reference/the_terms|the_terms()]] function in the Loop, like so:
+<pre>
+ the_terms( $post->ID, 'people', 'People: ', ', ', ' ' );
+</pre>
+That displays the list of People attached to each post. Note that [[Function_Reference/the_terms|the_terms()]] will echo the text to the screen at the point the function is called.
+
+To get a dynamic list of the terms as an array for use in content, use [[Function_Reference/get_terms|get_terms()]]. For example, to list all the terms of a custom taxonomy using check boxes:
+<pre>
+ $terms = get_terms( array(
+                          'taxonomy' => 'your_custom_taxonomy',
+                          'hide_empty' => false,  ) );
+
+ $output = '';
+ foreach($terms as $term){
+    $output .= '<input type="checkbox" name="terms" value="' . $term->name . '" /> ' .  $term->name . '<br />';
+  }
+</pre>
+
+Note that 'hide_empty' must be set to false for the function to return all terms, otherwise only the terms assigned to the post will be returned.
+
+=== Querying by taxonomy ===
+
+Creating a taxonomy generally automatically creates a special query variable using [[Class Reference/WP_Query|WP_Query]] class, which we can use to retrieve posts based on. For example, to pull a list of posts that have "Bob" as a "person" taxonomy in them, we will use:
+
+<pre>
+$query = new WP_Query( array( 'person' => 'bob' ) );
+</pre>
+
+or, for more complex argument:
+
+<pre>
+$args = array(
+	'tax_query' => array(
+		array(
+			'taxonomy' => 'person',
+			'field' => 'slug',
+			'terms' => 'bob'
+		)
+	)
+);
+$query = new WP_Query( $args );
+</pre>
+
+== 404 Error ==
+If your site uses custom permalinks, you will need to flush your permalink structure after making changes to your taxonomies, or else you may see a "Page Not Found" error. Your permalink structure is automatically flushed when you visit [[Administration_Panels#Settings|Settings]] > [[Settings_Permalinks_Screen|Permalinks]] in your WordPress dashboard.
+
+== Related ==
+
+{{Category Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+
+== External Resources ==
+
+* [https://metabox.io/plugins/custom-taxonomy/ MB Custom Taxonomy plugin: Create and manage custom taxonomies with UI]
+* [http://generatewp.com/taxonomy/ WordPress Taxonomy Generator]
+* [https://gist.github.com/1886449 Quick taxonomy creating class]
+* [http://justintadlock.com/archives/2009/05/06/custom-taxonomies-in-wordpress-28 Custom taxonomies in WordPress 2.8]
+* [http://net.tutsplus.com/tutorials/wordpress/introducing-wordpress-3-custom-taxonomies/ Introducing WordPress 3 Custom Taxonomies]
+* [http://wordpress.stackexchange.com/q/158206/31545 Is There a Difference Between Taxonomies and Categories?]
+
+[[Category:Advanced Topics]]

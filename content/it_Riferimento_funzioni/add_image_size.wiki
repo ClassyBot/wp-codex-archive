@@ -1,0 +1,124 @@
+{{Languages|
+{{en|Function Reference/add image size}}
+{{it|Riferimento funzioni/add image size}}
+{{ja|Function Reference/add image size}}
+}}
+== Descrizione ==
+
+Registra una nuova dimensione per le immagini. Questo significa che WordPress creerà una copia dell'immagine in evidenza (nota anche come "Miniatura articolo") con le dimensioni specificate quando viene caricata una nuova immagine.
+
+'''Nota:''' Per abilitare le immagini in evidenza, o miniature articolo, il tema corrente deve includere <code>[[Function Reference/add theme support|add_theme_support]]( 'post-thumbnails' );</code> nel suo file <tt>[[Theme_Development#Functions_File|functions.php]]</tt>. Vedere anche [[Post Thumbnails]].
+
+== Utilizzo ==
+
+%%%<?php add_image_size( $name, $width, $height, $crop ); ?>%%%
+
+== Parametri ==
+
+{{it:Parameter|$name|string|Nome da assegnare alla nuova dimensione.}}
+{{it:Parameter|$width|int|Larghezza in pixel della miniatura.|opzionale|0}}
+{{it:Parameter|$height|int|Altezza in pixel della miniatura.|opzionale|0}}
+{{it:Parameter|$crop|boolean|Indica se ritagliare o meno l'immagine. False - Modalità di ritaglio proporzionale; True - Modalità di ritaglio netta.|opzionale|false}}
+
+== Nomi riservati ==
+
+<code>thumb</code>, <code>thumbnail</code>, <code>medium</code>, <code>large</code>, <code>post-thumbnail</code>
+
+''I nomi "<code>thumb</code>" e "<code>thumbnail</code>" sono solo degli alias, quindi sono equivalenti.''
+
+Per una spiegazione maggiormente dettagliata, leggere l'articolo [[it:Riferimento funzioni/image_downsize|image_downsize()]].
+
+Tuttavia, se necessario, è sempre possibile impostare le opzioni in questo modo:
+
+ update_option('thumbnail_size_w', 160);
+ update_option('thumbnail_size_h', 160);
+ update_option('thumbnail_crop', 1);
+
+== Esempi ==
+
+Un file functions.php di un tema.
+
+ if ( function_exists( 'add_theme_support' ) ) {
+ 	add_theme_support( 'post-thumbnails' );
+         set_post_thumbnail_size( 150, 150 ); // dimensioni di default della miniatura
+ }
+ 
+ if ( function_exists( 'add_image_size' ) ) { 
+ 	add_image_size( 'category-thumb', 300, 9999 ); // larghezza 300 pixel (e altezza illimitata)
+ 	add_image_size( 'homepage-thumb', 220, 180, true ); // (ritagliata)
+ }
+ 
+=== Modalità di ritaglio ===
+
+Imposta la dimensione dell'immagine ridimensionandola proporzionalmente (ossia, senza distorcerla):
+<pre>add_image_size( 'homepage-thumb', 220, 180 ); // larghezza 220 pixel per altezza 180 pixel, modalità di ritaglio proporzionale</pre>
+
+Imposta la dimensione dell'immagine ritagliando l'immagine (o dai lati o dalla cima e dal fondo):
+<pre>add_image_size( 'homepage-thumb', 220, 180, true ); // larghezza 220 pixel per altezza 180 pixel, modalità di ritaglio netta</pre>
+
+== Usare le nuove dimensioni delle immagini ==
+Una volta definite le dimensioni personalizzate, è possibile usarle in vari modi.
+
+=== Per le immagini in evidenza ===
+Una dimensione personalizzata può essere usata per l'''immagine in evidenza'' di un post richiamando la funzione [[Function Reference/the_post_thumbnail|the_post_thumbnail()]] nel file appropriato del tema.
+
+<pre>
+<?php 
+    if ( has_post_thumbnail() ) { 
+        the_post_thumbnail( 'dimensione-personalizzata' ); 
+    } 
+?>
+</pre>
+
+=== Per le immagini della Media Library (Admin) ===
+
+&Egrave; anche possibile rendere le dimensioni personalizzate selezionabili dal pannello di amministrazione. Per fare ciò, bisogna usare il filtro [[it:Le_API_dei_Plugin/Riferimento filtri/image_size_names_choose|image_size_names_choose]] per assegnare loro un nome leggibile.
+
+<pre>
+add_filter( 'image_size_names_choose', 'my_custom_sizes' );
+
+function my_custom_sizes( $sizes ) {
+    return array_merge( $sizes, array(
+        'dimensione-personalizzata' => __('Nome della dimensione personalizzata'),
+    ) );
+}
+</pre>
+
+=== Per le immagini in generale (PHP/Templates) ===
+
+Si possono avere in output immagini (per dimensione) ''direttamente'' dalla Media Library di WordPress usando anche PHP. Per fare ciò, basta usare [[it:Riferimento funzioni/wp_get_attachment_image|wp_get_attachment_image()]].
+
+<pre>
+// Assumendo che l'immagine nella Media Library abbia ID 42
+<?php echo wp_get_attachment_image( 42, 'dimensione-personalizzata' ) ?>
+</pre>
+
+Nota: Se si vuole ottenere solo l'URL dell'immagine invece del tag <tt>&lt;img&gt;</tt> preconfezionato, si può usare [[it:Riferimento funzioni/wp_get_attachment_image_src|wp_get_attachment_image_src()]].
+
+== Note ==
+<!-- A cosa si riferisce la seguente nota? -->
+Usare l'impostazione 'false' impedirà di produrre una nuova immagine nella cartella degli upload se una delle dimensioni dell'immagine caricata è uguale alla nuova dimensione immagine.
+
+== Log delle modifiche ==
+
+* Da [[Version 2.9|2.9]]
+
+== File sorgente ==
+
+<tt>add_image_size()</tt> si trova in {{Trac|wp-includes/media.php}}.
+
+== Risorse ==
+
+[http://wordpress.org/extend/plugins/regenerate-thumbnails/ Regenerate Thumbnails] - Questo plugin rigenera le miniature degli allegati immagine. Risulta molto comodo quando si cambia qualcuna delle dimensioni delle miniature (attraverso Impostazioni -> Media) dopo aver precedentemente caricato immagini o aver cambiato il tema con uno che ha dimensioni differenti per le immagini in evidenza.
+
+[http://wordpress.org/extend/plugins/ajax-thumbnail-rebuild/ AJAX thumbnail rebuild] - Questo plugin permette di ricostruire le miniature dei post. Utile se si usa add_image_size() dopo aver già caricato miniature. (Questo plugin è lento, ma non da mai errori di memoria esaurita).
+
+[http://wordpress.org/extend/plugins/simple-image-sizes/ Simple Image Sizes] - Questo plugin permette di creare nuove dimensioni delle miniature direttamente dal pannello "Media". Permette anche di rigenerare le miniature. Il plugin aggiunge le miniature alle dimensioni del post, ed è anche possibile aggiungerle direttamente nei tuoi post. Si possono scegliere le dimensioni che si vogliono rigenerare e anche i tipi di post.
+
+== Correlati ==
+
+{{it:Post Thumbnail Tags}}
+
+{{it:Tag Footer}}
+
+[[Category:Functions]]

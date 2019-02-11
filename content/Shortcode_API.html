@@ -1,0 +1,568 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="https://codex.wordpress.org/it:Le_API_degli_Shortcode" title="it:Le API degli Shortcode" class="mw-redirect">Italiano</a> • 
+
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/ショートコード_API">日本語</a> 
+<a href="https://codex.wordpress.org/pt-br:Shortcode_API" title="pt-br:Shortcode API">Português do Brasil</a> • 
+
+<a href="https://codex.wordpress.org/ru:Shortcode_API" title="ru:Shortcode API">Русский</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#The_Shortcode_API"><span class="tocnumber">1</span> <span class="toctext">The Shortcode API</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Overview"><span class="tocnumber">1.1</span> <span class="toctext">Overview</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Handling_Attributes"><span class="tocnumber">1.2</span> <span class="toctext">Handling Attributes</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Output"><span class="tocnumber">1.3</span> <span class="toctext">Output</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Enclosing_vs_self-closing_shortcodes"><span class="tocnumber">1.4</span> <span class="toctext">Enclosing vs self-closing shortcodes</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Other_features_in_brief"><span class="tocnumber">1.5</span> <span class="toctext">Other features in brief</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Function_reference"><span class="tocnumber">1.6</span> <span class="toctext">Function reference</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Limitations"><span class="tocnumber">1.7</span> <span class="toctext">Limitations</span></a>
+<ul>
+<li class="toclevel-3 tocsection-9"><a href="#Nested_Shortcodes"><span class="tocnumber">1.7.1</span> <span class="toctext">Nested Shortcodes</span></a></li>
+<li class="toclevel-3 tocsection-10"><a href="#Unregistered_Names"><span class="tocnumber">1.7.2</span> <span class="toctext">Unregistered Names</span></a></li>
+<li class="toclevel-3 tocsection-11"><a href="#Unclosed_Shortcodes"><span class="tocnumber">1.7.3</span> <span class="toctext">Unclosed Shortcodes</span></a></li>
+<li class="toclevel-3 tocsection-12"><a href="#Hyphens"><span class="tocnumber">1.7.4</span> <span class="toctext">Hyphens</span></a></li>
+<li class="toclevel-3 tocsection-13"><a href="#Square_Brackets"><span class="tocnumber">1.7.5</span> <span class="toctext">Square Brackets</span></a></li>
+<li class="toclevel-3 tocsection-14"><a href="#HTML"><span class="tocnumber">1.7.6</span> <span class="toctext">HTML</span></a></li>
+<li class="toclevel-3 tocsection-15"><a href="#Registration_Count"><span class="tocnumber">1.7.7</span> <span class="toctext">Registration Count</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-16"><a href="#Formal_Syntax"><span class="tocnumber">1.8</span> <span class="toctext">Formal Syntax</span></a>
+<ul>
+<li class="toclevel-3 tocsection-17"><a href="#Names"><span class="tocnumber">1.8.1</span> <span class="toctext">Names</span></a></li>
+<li class="toclevel-3 tocsection-18"><a href="#Attributes"><span class="tocnumber">1.8.2</span> <span class="toctext">Attributes</span></a></li>
+<li class="toclevel-3 tocsection-19"><a href="#Self-Closing"><span class="tocnumber">1.8.3</span> <span class="toctext">Self-Closing</span></a></li>
+<li class="toclevel-3 tocsection-20"><a href="#Escaping"><span class="tocnumber">1.8.4</span> <span class="toctext">Escaping</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-21"><a href="#History"><span class="tocnumber">2</span> <span class="toctext">History</span></a></li>
+<li class="toclevel-1 tocsection-22"><a href="#External_Resources"><span class="tocnumber">3</span> <span class="toctext">External Resources</span></a></li>
+<li class="toclevel-1 tocsection-23"><a href="#Default_Shortcodes"><span class="tocnumber">4</span> <span class="toctext">Default Shortcodes</span></a></li>
+<li class="toclevel-1 tocsection-24"><a href="#Related"><span class="tocnumber">5</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Shortcode_API"><span class="tocnumber">5.1</span> <span class="toctext"><b>Shortcode API</b></span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="The_Shortcode_API">The Shortcode API</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=1" title="Edit section: The Shortcode API">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <b>Shortcode API</b> is a simple set of functions for creating WordPress <a href="https://codex.wordpress.org/shortcode" title="shortcode" class="mw-redirect">shortcodes</a> for use in posts and pages. For instance, the following shortcode (in the body of a post or page) would add a photo gallery of images attached to that post or page: <code>[gallery]</code>
+</p><p>The API enables plugin developers to create special kinds of content (e.g. forms, content generators) that users can attach to certain pages by adding the corresponding shortcode into the page text. 
+</p><p>The Shortcode API makes it easy to create shortcodes that support attributes like this:
+</p>
+<pre>[gallery id="123" size="medium"]
+</pre>
+<p>The API handles all the tricky parsing, eliminating the need for writing a custom regular expression for each shortcode.  Helper functions are included for setting and fetching default attributes.  The API supports both self-closing and enclosing shortcodes.
+</p><p>As a quick start for those in a hurry, here's a minimal example of the PHP code required to create a shortcode:
+</p>
+<pre>
+//[foobar]
+function foobar_func( $atts ){
+	return "foo and bar";
+}
+add_shortcode( 'foobar', 'foobar_func' );
+</pre>
+<p>This will create [foobar] shortcode that returns as: foo and bar
+</p><p>With attributes:
+</p>
+<pre>
+// [bartag foo="foo-value"]
+function bartag_func( $atts ) {
+	$a = shortcode_atts( array(
+		'foo' =&gt; 'something',
+		'bar' =&gt; 'something else',
+	), $atts );
+
+	return "foo = {$a['foo']}";
+}
+add_shortcode( 'bartag', 'bartag_func' );
+</pre>
+<p>This creates a "[bartag]" shortcode that supports two attributes: ["foo" and "bar"].  Both attributes are optional and will take on default options [foo="something" bar="something else"] if they are not provided. The shortcode will return as foo = {the value of the foo attribute}.
+</p>
+<h3><span class="mw-headline" id="Overview">Overview</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=2" title="Edit section: Overview">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Shortcodes are written by providing a handler function.  Shortcode handlers are broadly similar to WordPress filters: they accept parameters (attributes) and return a result (the shortcode output).
+</p><p>Shortcode names should be all lowercase and use all letters, but numbers and underscores should work fine too. Be wary of <a href="https://codex.wordpress.org/Shortcode_API#Hyphens" title="Shortcode API">using hyphens</a> (dashes), you'll be better off not using them.
+</p><p>The <code><a href="https://codex.wordpress.org/Function_Reference/add_shortcode" title="Function Reference/add shortcode">add_shortcode</a></code> function is used to register a shortcode handler.  It takes two parameters: the shortcode name (the string used in a post body), and the callback function name.
+</p><p>Three parameters are passed to the shortcode callback function. You can choose to use any number of them including none of them.
+</p>
+<ul><li> <b>$atts</b> - an associative array of attributes, or an empty string if no attributes are given</li>
+<li> <b>$content</b> - the enclosed content (if the shortcode is used in its enclosing form)</li>
+<li> <b>$tag</b> - the shortcode tag, useful for shared callback functions</li></ul>
+<p>The API call to register the shortcode handler would look something like this:
+</p>
+<pre>add_shortcode( 'myshortcode', 'my_shortcode_handler' );
+</pre>
+<p>When <a href="https://codex.wordpress.org/Template_Tags/the_content" title="Template Tags/the content" class="mw-redirect">the_content</a> is displayed, the shortcode API will parse any registered shortcodes such as "[myshortcode]", separate and parse the attributes and content, if any, and pass them the corresponding shortcode handler function.  Any string <i>returned</i> (not echoed) by the shortcode handler will be inserted into the post body in place of the shortcode itself.
+</p><p>Shortcode attributes are entered like this:
+</p>
+<pre>[myshortcode foo="bar" bar="bing"]
+</pre>
+<p>These attributes will be converted into an associative array like the following, passed to the handler function as its <code>$atts</code> parameter:
+</p>
+<pre>array( 'foo' =&gt; 'bar', 'bar' =&gt; 'bing' )
+</pre>
+<p>The array keys are the attribute names; array values are the corresponding attribute values. In addition, the zeroeth entry (<b>$atts[0]</b>) will hold the string that matched the shortcode regex, but ONLY IF that is different from the callback name. See the discussion of attributes, below.
+</p>
+<h3><span class="mw-headline" id="Handling_Attributes">Handling Attributes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=3" title="Edit section: Handling Attributes">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The raw <b>$atts</b> array may include any arbitrary attributes that are specified by the user. (In addition, the zeroeth entry of the array may contain the string that was recognized by the regex; see the note below.)
+</p><p>In order to help set default values for missing attributes, and eliminate any attributes that are not recognized by your shortcode, the API provides a shortcode_atts() function.
+</p><p><code><a href="https://codex.wordpress.org/Function_Reference/shortcode_atts" title="Function Reference/shortcode atts">shortcode_atts()</a></code> resembles the <code><a href="https://codex.wordpress.org/Function_Reference/wp_parse_args" title="Function Reference/wp parse args">wp_parse_args</a></code> function, but has some important differences. Its parameters are:
+</p>
+<pre>shortcode_atts( $defaults_array, $atts );
+</pre>
+<p>Both parameters are required. <code>$defaults_array</code> is an associative array that specifies the recognized attribute names and their default values. <code>$atts</code> is the raw attributes array as passed into your shortcode handler. <code>shortcode_atts()</code> will return a normalized array containing all of the keys from the <code>$defaults_array</code>, filled in with values from the <code>$atts</code> array if present.  For example:
+</p>
+<pre>
+$a = shortcode_atts( array(
+	'title' =&gt; 'My Title',
+	'foo' =&gt; 123,
+), $atts );
+</pre>
+<p>If <code>$atts</code> were to contain <code>array( 'foo' =&gt; 456, 'bar' =&gt; 'something' )</code>, the resulting <code>$a</code> would be <code>array( 'title' =&gt; 'My Title', 'foo' =&gt; 456 )</code>.  The value of <code>$atts['foo']</code> overrides the default of 123. <code>$atts['title']</code> is not set, so the default 'My Title' is used. There is no 'bar' item in the defaults array, so it is not included in the result.
+</p><p>Attribute names are always converted to lowercase before they are passed into the handler function.  Values are untouched.  <code>[myshortcode FOO="BAR"]</code> produces <code>$atts = array( 'foo' =&gt; 'BAR' )</code>.
+</p><p>A suggested code idiom for declaring defaults and parsing attributes in a shortcode handler is as follows:
+</p>
+<pre>
+function my_shortcode_handler( $atts, $content = null ) {
+	$a = shortcode_atts( array(
+		'attr_1' =&gt; 'attribute 1 default',
+		'attr_2' =&gt; 'attribute 2 default',
+		// ...etc
+	), $atts );
+}
+</pre>
+<p>This will parse the attributes, set default values, eliminate any unsupported attributes, and store the results in a local array variable named <code>$a</code> with the attributes as keys - <code>$a['attr_1']</code>, <code>$a['attr_2']</code>, and so on. In other words, the array of defaults approximates a list of local variable declarations.
+</p>
+<hr />
+<dl><dt> IMPORTANT TIP - Don't use camelCase or UPPER-CASE for your <tt>$atts</tt> attribute names</dt>
+<dd> <tt>$atts</tt> values are <i><b>lower-cased</b></i> during <tt>shortcode_atts( array( 'attr_1' =&gt; 'attr_1 default', // ...etc ), $atts )</tt> processing, so you might want to <i>just use lower-case</i>.</dd></dl>
+<hr />
+<hr />
+<dl><dt> NOTE on confusing regex/callback name reference</dt>
+<dd> The zeroeth entry of the attributes array (<b>$atts[0]</b>) will contain the string that matched the shortcode regex, but ONLY if that differs from the callback name, which otherwise appears as the third argument to the callback function.</dd>
+<dt> (Appears to always appear as third argument as of 2.9.2.)</dt></dl>
+<pre> add_shortcode('foo','foo'); // two shortcodes referencing the same callback
+ add_shortcode('bar','foo');
+    produces this behavior:
+ [foo a='b'] ==&gt; callback to: foo(array('a'=&gt;'b'),NULL,"foo");
+ [bar a='c'] ==&gt; callback to: foo(array(0 =&gt; 'bar', 'a'=&gt;'c'),NULL,"");
+</pre>
+<p>This is confusing and perhaps reflects an underlying bug, but an overloaded callback routine can correctly determine what shortcode was used to call it, by checking BOTH the third argument to the callback and the zeroeth attribute. (It is NOT an error to have two shortcodes reference the same callback routine, which allows for common code.)
+</p>
+<h3><span class="mw-headline" id="Output">Output</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=4" title="Edit section: Output">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The return value of a shortcode handler function is inserted into the post content output in place of the shortcode macro. <b>Remember to use return and not echo - anything that is echoed will be output to the browser, but it won't appear in the correct place on the page</b>.
+</p><p>Shortcodes are parsed after <a href="https://codex.wordpress.org/Function_Reference/wpautop" title="Function Reference/wpautop">wpautop</a> and <a href="https://codex.wordpress.org/Function_Reference/wptexturize" title="Function Reference/wptexturize">wptexturize</a> post formatting has been applied. This means that your shortcode output HTML won't automatically have curly quotes applied, p and br tags added, and so on.  If you do want your shortcode output to be formatted, you should call wpautop() or wptexturize() directly when you return the output from your shortcode handler.
+</p><p>wpautop recognizes shortcode syntax and will attempt not to wrap p or br tags around shortcodes that stand alone on a line by themselves.  Shortcodes intended for use in this manner should ensure that the output is wrapped in an appropriate block tag such as &lt;p&gt; or &lt;div&gt;.
+</p><p><br />
+If the shortcode produces a lot of HTML then ob_start can be used to capture output and convert it to a string as follows:-
+</p>
+<pre>
+function my_shortcode() {
+	ob_start();
+	?&gt; &lt;HTML&gt; &lt;here&gt; ... &lt;?php
+	return ob_get_clean();
+}
+</pre>
+<h3><span class="mw-headline" id="Enclosing_vs_self-closing_shortcodes">Enclosing vs self-closing shortcodes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=5" title="Edit section: Enclosing vs self-closing shortcodes">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The examples above show self-closing shortcode macros such as [myshortcode].  The API also supports enclosing shortcodes such as [myshortcode]content[/myshortcode].
+</p><p>If a shortcode macro is used to enclose content, its handler function will receive a second parameter containing that content.  Users might write shortcodes in either form, so it is necessary to allow for either case by providing a default value for the second parameter to your handler function:
+</p>
+<pre>function my_shortcode_handler( $atts, $content = null )
+</pre>
+<p>empty( $content ) can be used to distinguish between the self-closing and enclosing cases.
+</p><p>When content is enclosed, the complete shortcode macro including its content will be replaced with the function output.  It is the responsibility of the handler function to provide any necessary escaping or encoding of the raw content string, and include it in the output.
+</p><p>Here's a trivial example of an enclosing shortcode:
+</p>
+<pre>
+function caption_shortcode( $atts, $content = null ) {
+	return '&lt;span class="caption"&gt;' . $content . '&lt;/span&gt;';
+}
+add_shortcode( 'caption', 'caption_shortcode' );
+</pre>
+<p>When used like this:
+</p>
+<pre>[caption]My Caption[/caption]
+</pre>
+<p>The output would be:
+</p>
+<pre>&lt;span class="caption"&gt;My Caption&lt;/span&gt;
+</pre>
+<p>Since $content is included in the return value without any escaping or encoding, the user can include raw HTML:
+</p>
+<pre>[caption]&lt;a href="<a rel="nofollow" class="external free" href="http://example.com/">http://example.com/</a>"&gt;My Caption&lt;/a&gt;[/caption]
+</pre>
+<p>Which would produce:
+</p>
+<pre>&lt;span class="caption"&gt;&lt;a href="<a rel="nofollow" class="external free" href="http://example.com/">http://example.com/</a>"&gt;My Caption&lt;/a&gt;&lt;/span&gt;
+</pre>
+<p>This may or may not be intended behaviour - if the shortcode should not permit raw HTML in its output, it should use an escaping or filtering function to deal with it before returning the result.
+</p><p>The shortcode parser uses a single pass on the post content.  This means that if the $content parameter of a shortcode handler contains another shortcode, it won't be parsed:
+</p>
+<pre>[caption]Caption: [myshortcode][/caption]
+</pre>
+<p>This would produce:
+</p>
+<pre>&lt;span class="caption"&gt;Caption: [myshortcode]&lt;/span&gt;
+</pre>
+<p>If the enclosing shortcode is intended to permit other shortcodes in its output, the handler function can call <a href="https://codex.wordpress.org/Function_Reference/do_shortcode" title="Function Reference/do shortcode">do_shortcode()</a> recursively:
+</p>
+<pre>function caption_shortcode( $atts, $content = null ) {
+	return '&lt;span class="caption"&gt;' . do_shortcode($content) . '&lt;/span&gt;';
+}
+</pre>
+<p>In the previous example, this would ensure the "[myshortcode]" macro in the enclosed content is parsed, and its output enclosed by the caption span:
+</p>
+<pre>&lt;span class="caption"&gt;Caption: The result of myshortcode's handler function&lt;/span&gt;
+</pre>
+<p>The parser does not handle mixing of enclosing and non-enclosing forms of the same shortcode as you would want it to. For example, if you have:
+</p>
+<pre>[myshortcode example='non-enclosing' /] non-enclosed content [myshortcode] enclosed content [/myshortcode]
+</pre>
+<p>Instead of being treated as two shortcodes separated by the text " non-enclosed content ", the parser treats this as a single shortcode enclosing " non-enclosed content [myshortcode] enclosed content".
+</p><p>Enclosing shortcodes support attributes in the same way as self-closing shortcodes.  Here's an example of the caption_shortcode() improved to support a 'class' attribute:
+</p>
+<pre>
+function caption_shortcode( $atts, $content = null ) {
+	$a = shortcode_atts( array(
+		'class' =&gt; 'caption',
+	), $atts );
+
+	return '&lt;span class="' . esc_attr($a['class']) . '"&gt;' . $content . '&lt;/span&gt;';
+}
+</pre>
+<pre>[caption class="headline"]My Caption[/caption]
+</pre>
+<pre>&lt;span class="headline"&gt;My Caption&lt;/span&gt;
+</pre>
+<h3><span class="mw-headline" id="Other_features_in_brief">Other features in brief</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=6" title="Edit section: Other features in brief">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> The parser supports xhtml-style closing shortcodes like "[myshortcode /]", but this is optional.</li></ul>
+<ul><li> Shortcode macros may use single or double quotes for attribute values, or omit them entirely if the attribute value does not contain spaces.  [myshortcode foo='123' bar=456] is equivalent to [myshortcode foo="123" bar="456"].  Note the attribute value in the last position may not end with a forward slash because the feature in the paragraph above will consume that slash.</li></ul>
+<ul><li> For backwards compatibility with older ad-hoc shortcodes, attribute names may be omitted.  If an attribute has no name it will be given a positional numeric key in the $atts array.  For example, [myshortcode 123] will produce $atts = array( 0 =&gt; 123 ).  Positional attributes may be mixed with named ones, and quotes may be used if the values contain spaces or other significant characters.</li></ul>
+<ul><li> The shortcode API has test cases.  The tests -- which contain a number of examples of error cases and unusual syntax -- can be found at <a rel="nofollow" class="external free" href="http://svn.automattic.com/wordpress-tests/trunk/tests/shortcode.php">http://svn.automattic.com/wordpress-tests/trunk/tests/shortcode.php</a></li></ul>
+<h3><span class="mw-headline" id="Function_reference">Function reference</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=7" title="Edit section: Function reference">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The following Shortcode API functions are available:
+</p>
+<pre>function add_shortcode( $tag, $func )
+</pre>
+<p>Registers a new shortcode handler function.  $tag is the shortcode string as written by the user (without braces), such as "myshortcode".  $func is the handler function name.
+</p><p>Only one handler function may exist for a given shortcode.  Calling add_shortcode() again with the same $tag name will overwrite the previous handler.
+</p>
+<pre>function remove_shortcode( $tag )
+</pre>
+<p>Deregisters an existing shortcode.  $tag is the shortcode name as used in add_shortcode().
+</p>
+<pre>function remove_all_shortcodes()
+</pre>
+<p>Deregisters all shortcodes.
+</p>
+<pre>function shortcode_atts( $pairs, $atts )
+</pre>
+<p>Process a raw array of attributes $atts against the set of defaults specified in $pairs.  Returns an array.  The result will contain every key from $pairs, merged with values from $atts.  Any keys in $atts that do not exist in $pairs are ignored.
+</p>
+<pre>function do_shortcode( $content )
+</pre>
+<p>Parse any known shortcode macros in the $content string.  Returns a string containing the original content with shortcode macros replaced by their handler functions' output.
+</p><p><a href="https://codex.wordpress.org/Function_Reference/do_shortcode" title="Function Reference/do shortcode">do_shortcode()</a> is registered as a default filter on 'the_content' with a priority of 11.
+</p>
+<h3><span class="mw-headline" id="Limitations">Limitations</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=8" title="Edit section: Limitations">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<h4><span class="mw-headline" id="Nested_Shortcodes">Nested Shortcodes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=9" title="Edit section: Nested Shortcodes">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The shortcode parser correctly deals with nested shortcode macros, provided their handler functions support it by recursively calling <a href="https://codex.wordpress.org/Function_Reference/do_shortcode" title="Function Reference/do shortcode">do_shortcode()</a>:
+</p>
+<pre>[tag-a]
+   [tag-b]
+      [tag-c]
+   [/tag-b]
+[/tag-a]
+</pre>
+<p>However the parser will fail if a shortcode macro is used to enclose another macro of the same name:
+</p>
+<pre>[tag-a]
+   [tag-a]
+   [/tag-a]
+[/tag-a]
+</pre>
+<p>This is a limitation of the context-free regexp parser used by <a href="https://codex.wordpress.org/Function_Reference/do_shortcode" title="Function Reference/do shortcode">do_shortcode()</a> - it is very fast but does not count levels of nesting, so it can't match each opening tag with its correct closing tag in these cases.
+</p><p>In future versions of WordPress, it may be necessary for plugins having a nested shortcode syntax to ensure that the wptexturize() processor does not interfere with the inner codes.  It is recommended that for such complex syntax, the <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/no_texturize_shortcodes" title="Plugin API/Filter Reference/no texturize shortcodes">no_texturize_shortcodes</a> filter should be used on the outer tags.  In the examples used here, tag-a should be added to the list of shortcodes to not texturize.  If the contents of tag-a or tag-b still need to be texturized, then you can call <a href="https://codex.wordpress.org/Function_Reference/wptexturize" title="Function Reference/wptexturize">wptexturize()</a> before calling <a href="https://codex.wordpress.org/Function_Reference/do_shortcode" title="Function Reference/do shortcode">do_shortcode()</a> as described above.
+</p>
+<h4><span class="mw-headline" id="Unregistered_Names">Unregistered Names</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=10" title="Edit section: Unregistered Names">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Some plugin authors have chosen a strategy of not registering shortcode names, for example to disable a nested shortcode until the parent shortcode's handler function is called.  This may have unintended consequences, such as failure to parse shortcode attribute values.  For example:
+</p>
+<pre>[tag-a unit="north"]
+   [tag-b size="24"]
+      [tag-c color="red"]
+   [/tag-b]
+[/tag-a]
+</pre>
+<p>Starting with version 4.0.1, if a plugin fails to register tag-b and tag-c as valid shortcodes, the wptexturize() processor will output the following text prior to any shortcode being parsed:
+</p>
+<pre>[tag-a unit="north"]
+   [tag-b size=&amp;#8221;24&amp;#8221;]
+      [tag-c color=&amp;#8221;red&amp;#8221;]
+   [/tag-b]
+[/tag-a]
+</pre>
+<p>Unregistered shortcodes should be considered normal plain text that have no special meaning, and the practice of using unregistered shortcodes is discouraged.  If you must enclose raw code between shortcode tags, at least consider using the <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/no_texturize_shortcodes" title="Plugin API/Filter Reference/no texturize shortcodes">no_texturize_shortcodes</a> filter to prevent texturization of the contents of tag-a:
+</p>
+<pre>add_shortcode( 'tag-a', 'my_tag_a_handler' );
+add_filter( 'no_texturize_shortcodes', 'ignore_tag_a' );
+
+function ignore_tag_a( $list ) {
+  $list[] = 'tag-a';
+  return $list;
+}
+</pre>
+<h4><span class="mw-headline" id="Unclosed_Shortcodes">Unclosed Shortcodes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=11" title="Edit section: Unclosed Shortcodes">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>In certain cases the shortcode parser cannot correctly deal with the use of both closed and unclosed shortcodes. For instance in this case the parser will only correctly identify the second instance of the shortcode:
+</p>
+<pre>[tag]
+[tag]
+   CONTENT
+[/tag]
+</pre>
+<p>However in this case the parser will identify both:
+</p>
+<pre>[tag]
+   CONTENT
+[/tag]
+[tag]
+</pre>
+<h4><span class="mw-headline" id="Hyphens">Hyphens</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=12" title="Edit section: Hyphens">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p><b>Note:</b> The behavior described below involving shortcodes with hyphens ('-') still applies in WordPress 3+. This could be due to a bug in do_shortcode() or get_shortcode_regex().
+</p><p>Take caution when using hyphens in the name of your shortcodes. In the following instance WordPress may see the second opening shortcode as equivalent to the first (basically WordPress sees the first part before the hyphen):
+</p>
+<pre>[tag]
+[tag-a]
+</pre>
+<p>It all depends on which shortcode is defined first. If you are going to use hyphens then define the shortest shortcode first.
+</p><p>To avoid this, use an underscore or simply no separator:
+</p>
+<pre>[tag]
+[tag_a]
+
+[tag]
+[taga]
+</pre>
+<p>If the first part of the shortcode is different from one another, you can get away with using hyphens:
+</p>
+<pre>[tag]
+[tagfoo-a]
+</pre>
+<p><b>Important:</b> Using hyphens can have implications that you may not be aware of; such as if other installed shortcodes also are use hyphens, the use of generic words with hyphens may cause collisions (if shortcodes are used together within the same request):
+</p>
+<pre>// plugin-A
+[is-logged-in]
+
+// plugin-B
+[is-admin]
+</pre>
+<h4><span class="mw-headline" id="Square_Brackets">Square Brackets</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=13" title="Edit section: Square Brackets">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The shortcode parser does not accept square brackets within attributes. Thus the following will fail:
+</p>
+<pre>[tag attribute="[Some value]"]
+</pre>
+<p>Tags surrounded by cosmetic brackets are not yet fully supported by wptexturize() or its filters.  These codes may give unexpected results:
+</p>
+<pre>[I put random text near my captions. [caption]]
+</pre>
+<p><b>Note:</b> these limitations may change in future versions of WordPress, you should test to be absolutely sure.
+</p>
+<h4><span class="mw-headline" id="HTML">HTML</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=14" title="Edit section: HTML">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Starting with version 3.9.3, use of HTML is limited inside shortcode attributes.  For example, this shortcode will not work correctly because it contains a '&gt;' character:
+</p>
+<pre>[tag value1="35" value2="25" compare="&gt;"]
+</pre>
+<p>Version 4.0 is designed to allow validated HTML, so this will work:
+</p>
+<pre>[tag description="&lt;b&gt;Greetings&lt;/b&gt;"]
+</pre>
+<p>The suggested workaround for HTML limitations is to use HTML encoding for all user input, and then add HTML decoding in the custom shortcode handler.  Extra API functions are planned.
+</p><p>Full usage of HTML in shortcode attributes was never officially supported, and this will not be expanded in future versions.
+</p><p>Starting with version 4.2.3, similar limitations were placed on use of shortcodes inside HTML.  For example, this shortcode will not work correctly because it is nested inside a scripting attribute:
+</p>
+<pre>&lt;a onclick="[tag]"&gt;
+</pre>
+<p>The suggested workaround for dynamic attributes is to design a shortcode that outputs all needed HTML rather than just a single value.  This will work better:
+</p>
+<pre>[link onclick="tag"]
+</pre>
+<p>Also notice the following shortcode is no longer allowed because of incorrect attribute quoting:
+</p>
+<pre>&lt;a title="[tag attr="id"]"&gt;
+</pre>
+<p>The only way to parse this as valid HTML is to use single quotes and double quotes in a nested manner:
+</p>
+<pre>&lt;a title="[tag attr='id']"&gt;
+</pre>
+<h4><span class="mw-headline" id="Registration_Count">Registration Count</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=15" title="Edit section: Registration Count">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The API is known to become unstable when registering hundreds of shortcodes.  Plugin authors should create solutions that rely on only a small number of shortcodes names.  This limitation might change in future versions.
+</p>
+<h3><span class="mw-headline" id="Formal_Syntax">Formal Syntax</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=16" title="Edit section: Formal Syntax">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>WordPress shortcodes do not use special characters in the same way as HTML.  The square braces may seem magical at first glance, but they are not truly part of any language.  For example:
+</p>
+<pre>[gallery]
+</pre>
+<p>The gallery shortcode is parsed by the API as a special symbol because it is a registered shortcode.  On the other hand, square braces are simply ignored when a shortcode is not registered:
+</p>
+<pre>[randomthing]
+</pre>
+<p>The randomthing symbol and its square braces are ignored because they are not part of any registered shortcode.
+</p><p>In a perfect world, any [*] symbol could be handled by the API, but we have to consider the following challenges:  Square braces are allowed in HTML and are not always shortcodes, angle braces are allowed inside of shortcodes only in limited situations, and all of this code must run through multiple layers of customizeable filters and parsers before output.  Because of these language compatibility issues, square braces can't be magical.
+</p><p>The shortcode syntax uses these general parts:
+</p>
+<pre>[name attributes close]
+</pre>
+<pre>[name attributes]Any HTML or shortcode may go here.[/name]
+</pre>
+<p>Escaped shortcodes are identical but have exactly two extra braces:
+</p>
+<pre>&#91;&#91;name attributes close]]
+</pre>
+<pre>&#91;&#91;name attributes]Any HTML or shortcode may go here.[/name]]
+</pre>
+<p>Again, the shortcode name must be registered, otherwise all four examples would be ignored.
+</p>
+<h4><span class="mw-headline" id="Names">Names</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=17" title="Edit section: Names">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Shortcode names must never contain the following characters:
+</p>
+<ul><li> Square braces: [ ]</li>
+<li> Angle braces: &lt; &gt;</li>
+<li> Ampersand: &amp;</li>
+<li> Forward slash: /</li>
+<li> Whitespace: space linefeed tab</li>
+<li> Non-printing characters: \x00 - \x20</li></ul>
+<p>It is recommended to also avoid quotes in the names of shortcodes:
+</p>
+<ul><li> Quotes: ' "</li></ul>
+<h4><span class="mw-headline" id="Attributes">Attributes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=18" title="Edit section: Attributes">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Attributes are optional.  A space is required between the shortcode name and the shortcode attributes.  When more than one attribute is used, each attribute must be separated by at least one space.
+</p><p>Each attribute should conform to one of these formats:
+</p>
+<pre>attribute_name = 'value'
+</pre>
+<pre>attribute_name = "value"
+</pre>
+<pre>attribute_name = value
+</pre>
+<pre>"value"
+</pre>
+<pre>value
+</pre>
+<p>Attribute names are optional and should contain only the following characters for compatibility across all platforms:
+</p>
+<ul><li> Upper-case and lower-case letters: A-Z a-z</li>
+<li> Digits: 0-9</li>
+<li> Underscore: _</li>
+<li> Hyphen: - (Not allowed before version 4.3.0)</li></ul>
+<p>Spaces are not allowed in attribute names.  Optional spaces may be used between the name and the = sign.  Optional spaces may also be used between the = sign and the value.
+</p><p>It should be noted that even though attributes can be used with mixed case in the editor, they will always be lowercase after parsing.
+</p><p>Attribute values must never contain the following characters:
+</p>
+<ul><li> Square braces: [ ]</li>
+<li> Quotes: " '</li></ul>
+<p>Unquoted values also must never contain spaces.
+</p><p>HTML characters &lt; and &gt; have only limited support in attributes.
+</p><p>The recommended method of escaping special characters in shortcode attributes is HTML encoding.  Most importantly, any user input appearing in a shortcode attribute must be escaped or stripped of special characters.
+</p><p>Note that double quotes are allowed inside of single-quoted values and vice versa, however this is not recommended when dealing with user input.
+</p><p>The following characters, if they are not escaped within an attribute value, will be automatically stripped and converted to spaces:
+</p>
+<ul><li> No-break space: \xC2\xA0</li>
+<li> Zero-width space: \xE2\x80\x8B</li></ul>
+<h4><span class="mw-headline" id="Self-Closing">Self-Closing</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=19" title="Edit section: Self-Closing">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The self-closing marker, a single forward slash, is optional.  Space before the marker is optional.  Spaces are not allowed after the marker.
+</p>
+<pre>[example /]
+</pre>
+<p>The self-closing marker is purely cosmetic and has no effect except that it will force the shortcode parser to ignore any closing tag that follows it.
+</p><p>The enclosing type shortcodes may not use a self-closing marker.
+</p>
+<h4><span class="mw-headline" id="Escaping">Escaping</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=20" title="Edit section: Escaping">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>WordPress attempts to insert curly quotes between the [name] and [/name] tags.  It will process that content just like any other.  As of 4.0.1, unregistered shortcodes are also "texturized" and this may give unexpected curly quotes:
+</p>
+<pre>[randomthing param="test"]
+</pre>
+<p>A better example would be:
+</p>
+<pre>&lt;code&gt;[randomthing param="test"]&lt;/code&gt;
+</pre>
+<p>The &lt;code&gt; element is always avoided for the sake of curly quotes.
+</p><p>Registered shortcodes are still processed inside of &lt;code&gt; elements.  To escape a registered shortcode for display on your website, the syntax becomes:
+</p>
+<pre>&#91;&#91;caption param="test"]]
+</pre>
+<p>... which will output ...
+</p>
+<pre>[caption param="test"]
+</pre>
+<p>The &lt;code&gt; element is optional in that situation.
+</p><p>For enclosing shortcodes, use the following syntax:
+</p>
+<pre>[[caption]My Caption[/caption]]
+</pre>
+<h2><span class="mw-headline" id="History">History</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=21" title="Edit section: History">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The Shortcode API was introduced in WordPress 2.5.
+</p>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=22" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://generatewp.com/shortcodes/">WordPress Shortcodes Generator</a></li>
+<li> <a rel="nofollow" class="external text" href="https://www.nimbusthemes.com/add-shortcode-wordpress-snippet-generator/">Add Shortcode – WordPress Code Snippet Generator</a> - A snippet generator and full documentation about how to add the code to a WordPress website.</li>
+<li> <a rel="nofollow" class="external text" href="http://solislab.com/how-to-make-shortcodes-user-friendly/">Make Shortcodes User-Friendly</a> - Explains how to add buttons to the rich-text editor so that users don't have to memorize shortcodes and insert them manually.</li>
+<li> <a rel="nofollow" class="external text" href="http://ran.ge/2008/04/15/wordpress-25-shortcodes/">Shortcode summary by  Aaron D. Campbell</a> - Explains shortcodes and gives examples including how to incorporate shortcodes into a meta box for sending them to the editor using js.</li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/iblocks/">Innovative WordPress Shortcodes In Action</a> - a WordPress plugin that shows you how to effectively use shortcodes to change your post content designs.</li>
+<li> <a rel="nofollow" class="external text" href="http://planetozh.com/blog/2008/03/wordpress-25-shortcodes-api-overview/">WordPress Shortcode API Overview</a> - explanations on usage and example of plugin using shortcodes.</li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/bbcode/">Simple shortcode-powered BBCode plugin</a> - a simple plugin that adds support for BBCode via shortcode. A good way to see shortcodes in action.</li>
+<li> <a rel="nofollow" class="external text" href="http://themocracy.com/2010/03/a-flickr-badge-using-wordpress-shortcodes/">A Flickr Badge using WordPress Shortcodes</a> - a demonstration of how to pass variables to shortcode handler functions.</li>
+<li> <a rel="nofollow" class="external text" href="http://wptricks.net/added-permalinks-shortcode-on-wordpress/">Added Permalinks Shortcode</a> Simple Tutorial how to added Permalinks Shortcode on WordPress</li></ul>
+<h2><span class="mw-headline" id="Default_Shortcodes">Default Shortcodes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=23" title="Edit section: Default Shortcodes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <code><a href="https://codex.wordpress.org/Audio_Shortcode" title="Audio Shortcode">[audio]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/Caption_Shortcode" title="Caption Shortcode">[wp_caption]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/Caption_Shortcode" title="Caption Shortcode">[caption]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/Embed_Shortcode" title="Embed Shortcode">[embed]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/Gallery_Shortcode" title="Gallery Shortcode">[gallery]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/Video_Shortcode" title="Video Shortcode">[video]</a></code></li>
+<li> <code><a href="https://codex.wordpress.org/Playlist_Shortcode" title="Playlist Shortcode">[playlist]</a></code></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Shortcode_API&amp;action=edit&amp;section=24" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h4><span class="mw-headline" id="Shortcode_API"><strong class="selflink"><b>Shortcode API</b></strong></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Shortcode_Tags&amp;action=edit&amp;section=T-1" title="Template:Shortcode Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Function: <a href="https://codex.wordpress.org/Function_Reference/do_shortcode" title="Function Reference/do shortcode"> do_shortcode()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/add_shortcode" title="Function Reference/add shortcode"> add_shortcode()</a> </li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/remove_shortcode" title="Function Reference/remove shortcode"> remove_shortcode()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/remove_all_shortcodes" title="Function Reference/remove all shortcodes"> remove_all_shortcodes()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/shortcode_atts" title="Function Reference/shortcode atts"> shortcode_atts()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/strip_shortcodes" title="Function Reference/strip shortcodes"> strip_shortcodes()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/shortcode_exists" title="Function Reference/shortcode exists">shortcode_exists()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/has_shortcode" title="Function Reference/has shortcode">has_shortcode()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_shortcode_regex" title="Function Reference/get shortcode regex"> get_shortcode_regex()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_audio_shortcode" title="Function Reference/wp audio shortcode">wp_audio_shortcode()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_video_shortcode" title="Function Reference/wp video shortcode">wp_video_shortcode()</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/no_texturize_shortcodes" title="Plugin API/Filter Reference/no texturize shortcodes">no_texturize_shortcodes</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004117
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.044 seconds
+Real time usage: 0.051 seconds
+Preprocessor visited node count: 198/1000000
+Preprocessor generated node count: 548/1000000
+Post‐expand include size: 1714/2097152 bytes
+Template argument size: 321/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   13.529      1 - -total
+ 59.95%    8.110      1 - Template:Languages
+ 34.03%    4.604      1 - Template:Shortcode_Tags
+  9.92%    1.342      1 - Template:pt-br
+  9.73%    1.317      1 - Template:it
+  9.65%    1.305      1 - Template:ru
+  9.53%    1.289      1 - Template:ja
+  8.40%    1.136      1 - Template:en
+-->

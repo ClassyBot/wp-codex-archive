@@ -1,0 +1,163 @@
+{{Languages|
+{{en|Template Tags/post_class}}
+{{ja|テンプレートタグ/post_class}}
+{{zh-cn|中文(简体)/post_class}}
+}}
+
+== Description ==
+WordPress theme authors who want to have finer css control options for their post styling, have the <code>'''post_class'''</code> function available. When the <tt>post_class</tt> function is added to a tag '''within the loop''', for example <code>&lt;div <?php post_class(); ?> ></code>, it will print out and add various post-related classes to the div tag. It can also be used '''outside the loop''' with the optional ''post_id'' parameter. This function is typically used in the index.php, single.php, and other template files that feature hierarchical post listings.
+
+If you would prefer to have the post classes returned instead of echoed, you would want to use [[Function Reference/get_post_class | get_post_class()]]. '''Note:''' [[Function Reference/get_post_class | get_post_class()]] does not return a string, but an array that must be processed to produce text similar to what is echoed by ''post_class()''.
+
+For css classes intended to help target entire pages, see [[Function Reference/body_class | body_class()]], and for classes targeting comment listings, see [[Function Reference/comment_class | comment_class()]].
+
+== Usage ==
+
+<pre><div id="post-<?php the_ID(); ?>" <?php post_class(); ?>></pre>
+
+The <code>post_class</code> may include one or more of the following values for the class attribute, dependent upon the pageview.
+
+* .post-[id]
+* .[post-type]
+* .type-[post-type]
+* .status-[post-status]
+* .format-[post-format] (default to 'standard')
+* .post-password-required
+* .post-password-protected
+* .has-post-thumbnail
+* .sticky
+* .hentry (hAtom microformat pages)
+* .[taxonomy]-[taxonomy-slug] (includes category)
+* .tag-[tag-name]
+
+== Default Values ==
+
+The <tt>post_class</tt> CSS classes appear based upon the post pageview [[Conditional Tags]] as follows.
+
+'''Front Page'''<br />
+If posts are found on the front page of the blog, be it static or not, the class selectors are: '''post''' '''post-id''' '''hentry'''
+
+'''Single Post'''<br />
+Single post template files and pageviews feature the class selectors: '''post''' '''post-id''' '''hentry'''
+
+'''Sticky Post'''<br />
+Posts designated as "sticky," sticking to the front page of the blog, feature the class selector: '''sticky'''
+
+'''Author'''<br />
+Author template files and pageviews displaying posts feature the class selectors: '''post''' '''post-id'''
+
+'''Category'''<br />
+Category template files and pageviews displaying posts feature the class selectors: '''post''' '''post-id''' '''category-ID''' '''category-name'''
+
+'''Tags'''<br />
+Tag template files and pageviews with posts feature the class selectors: '''tag-name''' '''post''' '''post-id'''
+
+'''Archives'''<br />
+Archive pageviews and pageviews with posts feature CSS classes:  '''post''' '''post-id'''
+
+'''Search'''<br />
+Search template files and pageviews with posts feature the class selectors:  '''post''' '''post-id'''
+
+'''Attachment'''<br />
+Attachment template files and pageviews feature the class selectors: '''attachment'''  '''post''' '''post-id'''
+
+'''Format'''<br />
+Posts using Post Formats feature the class selector: '''format-name'''
+
+== Parameters ==
+
+[[Template Tags/How to Pass Tag Parameters#Tags with PHP function-style parameters|How to pass parameters to tags with PHP function-style parameters]]
+
+{{Parameter|class|string or array|One or more classes to add to the class attribute, separated by a single space.|optional|null}}
+
+{{Parameter|$post_id|int|An optional post ID, used when calling this function from outside The Loop|optional|null}}
+
+== Examples ==
+
+=== Implementation ===
+The following example shows how to implement the <code>post_class</code> template tag into a theme. 
+
+<pre>
+<div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+</pre>
+
+The actual HTML output might resemble something like this for a post in the "dancing" category:
+
+<pre>
+<div id="post-4564" class="post post-4564 category-48 category-dancing logged-in">
+</pre>
+
+In the WordPress Theme stylesheet, add the appropriate styles, such as:
+
+<pre>.post {
+	/* styles for all posts */
+}
+.post-4564 {
+	/* styles for only post ID number 4564 */
+}
+.category-dancing {
+	/* styles for all posts within the category of dancing */
+}
+</pre>
+
+=== Adding More Classes ===
+
+The classes are restricted to the defaults listed. To add more classes to the post content area, the template tag's parameter can be added. For example, to add a unique class to any template file:
+
+<pre><div id="post-<?php the_ID(); ?>" <?php post_class( 'class-name' ); ?>></pre>
+
+The results would be:
+
+<pre><div id="post-4564" class="post post-4564 category-48 category-dancing logged-in class-name"></pre>
+
+Or you can use an array with classes:
+
+<pre>
+<?php
+	$classes = array(
+		'class1',
+		'class2',
+		'class3',
+	);
+?>
+
+<div id="post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>></pre>
+
+==== Add Classes By Filters ====
+
+To add a category class to single post pageviews and template files in the post content area for the post class and the entire page in the body HTML class, add the following to the <tt>functions.php</tt>.
+
+<pre>
+// add category nicenames in body and post class
+function category_id_class( $classes ) {
+	global $post;
+	foreach ( ( get_the_category( $post->ID ) ) as $category ) {
+		$classes[] = $category->category_nicename;
+	}
+	return $classes;
+}
+add_filter( 'post_class', 'category_id_class' );
+add_filter( 'body_class', 'category_id_class' );
+</pre>
+
+==== Display Posts Outside of the Loop ====
+For displaying posts outside the Loop or in an alternate Loop, the second parameter to the post_class function can be the post ID. Classes will then be determined from that post.
+<pre><?php post_class( '', $post_id ); ?></pre>
+
+== Source Code ==
+<tt>post_class()</tt> is located in {{Trac|wp-includes/post-template.php}}.
+
+== Changelog ==
+* [[Version 3.1|3.1]] : Supports [[Post Formats]].
+* Since: [[Version 2.7|2.7]]
+
+== Related ==
+{{Tag Post Tags}}
+
+[[Template_Tags/comment_class]]
+
+{{PHP Function Tag Footer}}
+
+[[Category:Template Tags|post_class]]
+
+{{Copyedit}}

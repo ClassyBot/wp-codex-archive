@@ -1,0 +1,74 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/get_term_link/}}
+
+{{Languages|
+{{en|Function Reference/get_term_link}}
+{{ja|関数リファレンス/get_term_link}}
+}}
+
+== Description ==
+
+Returns permalink for a taxonomy term archive, or a WP_Error object if the term does not exist.
+
+== Usage ==
+
+%%%<?php get_term_link( $term, $taxonomy ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$term|object/int/string|The term object / term ID / term slug whose link will be retrieved.}}
+{{Parameter|$taxonomy|string|The taxonomy slug. Optional when <tt>$term</tt> is an object.|optional|empty string}}
+
+== Return Values ==
+
+{{Return|URL|string|URL to taxonomy term archive.}}
+{{Return|[[Class_Reference/WP_Error|WP_Error]]|object|Error if term does not exist.}}
+
+== Examples ==
+<pre>
+$terms = get_terms( 'species' );
+
+echo '<ul>';
+
+foreach ( $terms as $term ) {
+
+    // The $term is an object, so we don't need to specify the $taxonomy.
+    $term_link = get_term_link( $term );
+   
+    // If there was an error, continue to the next term.
+    if ( is_wp_error( $term_link ) ) {
+        continue;
+    }
+
+    // We successfully got a link. Print it out.
+    echo '<li><a href="' . esc_url( $term_link ) . '">' . $term->name . '</a></li>';
+}
+
+echo '</ul>';
+</pre>
+
+== Notes ==
+
+* Uses: [[Function_Reference/apply_filters|<tt>apply_filters()</tt>]] Calls <tt>'term_link'</tt> filter on the finished link.
+* Uses global: (<tt>[[Class_Reference/WP_Rewrite|WP_Rewrite]]</tt>) <tt>$wp_rewrite</tt>
+* Since the term can be an object, integer, or string, make sure that any numbers you pass in are explicitly converted to an integer (example: <tt>(int) $term_id</tt>). Otherwise the function will assume that <tt>$term</tt> is a slug instead of a term ID.
+* Because of the above, <tt>$term->term_id</tt> doesn't work for the <tt>$term</tt> parameter prior to [[Version 3.8|3.8.0]]. See [https://core.trac.wordpress.org/ticket/17646 this trac ticket] for more info.
+* PHP may halt if you attempt to print an error result (<tt>"Catchable fatal error: Object of class WP_Error could not be converted to string"</tt>). You should always use <tt>[[Function_Reference/is_wp_error | is_wp_error()]]</tt> to check the result of this function, in case the term does not exist.
+
+== Change Log ==
+
+* [[Version 3.1|3.1.0]]: <tt>$taxonomy</tt> is optional when passing a term object. It is still required if <tt>$term</tt> is passed as a string. See [https://core.trac.wordpress.org/ticket/13081 ticket #13081].
+* Since: [[Version 2.5|2.5.0]]
+
+== Source File ==
+
+<tt>get_term_link()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== Related ==
+
+{{Category Tags}}
+
+{{Term Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

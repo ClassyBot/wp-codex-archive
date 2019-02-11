@@ -1,0 +1,72 @@
+<p>This action adds table rows to the content column on the Right Now widget on the Dashboard. Useful for adding your own custom post types to this table.
+</p>
+<h2><span class="mw-headline" id="Deprecated_Function">Deprecated Function</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/right_now_content_table_end&amp;action=edit&amp;section=1" title="Edit section: Deprecated Function">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This action hook is <b>deprecated</b> as of WordPress 4.0
+</p><p>See the new @filter <code>dashboard_glance_item</code>
+</p><p><a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/questions/127750/right-now-content-table-end-function-not-working">StackExchange Article about the migration</a>
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/right_now_content_table_end&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>&lt;?php add_action('rightnow_end', 'function_name');&#160;?&gt;</pre>
+<p>where "function_name" is the name of the function to be called.
+</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/right_now_content_table_end&amp;action=edit&amp;section=3" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>For this example we will assume you have created a custom post type of "recipes" using the <a href="https://codex.wordpress.org/Function_Reference/register_post_type" title="Function Reference/register post type">register_post_type</a> function. We are going to be adding a row that shows all published recipes, and if there are any pending review, a row showing how many are pending.
+</p>
+<pre>
+&lt;?php
+add_action('rightnow_end', 'add_recipe_counts');
+
+function add_recipe_counts() {
+        if (!post_type_exists('recipes')) {
+             return;
+        }
+
+        $num_posts = wp_count_posts( 'recipes' );
+        $num = number_format_i18n( $num_posts-&gt;publish );
+        $text = _n( 'Recipe', 'Recipes', intval($num_posts-&gt;publish) );
+        if ( current_user_can( 'edit_posts' ) ) {
+            $num = "&lt;a href='edit.php?post_type=recipes'&gt;$num&lt;/a&gt;";
+            $text = "&lt;a href='edit.php?post_type=recipes'&gt;$text&lt;/a&gt;";
+        }
+        echo '&lt;tr&gt;';
+        echo '&lt;td class="first b b-recipes"&gt;' . $num . '&lt;/td&gt;';
+        echo '&lt;td class="t recipes"&gt;' . $text . '&lt;/td&gt;';
+        echo '&lt;/tr&gt;';
+
+        if ($num_posts-&gt;pending &gt; 0) {
+            $num = number_format_i18n( $num_posts-&gt;pending );
+            $text = _n( 'Recipe Pending', 'Recipes Pending', intval($num_posts-&gt;pending) );
+            if ( current_user_can( 'edit_posts' ) ) {
+                $num = "&lt;a href='edit.php?post_status=pending&amp;post_type=recipes'&gt;$num&lt;/a&gt;";
+                $text = "&lt;a href='edit.php?post_status=pending&amp;post_type=recipes'&gt;$text&lt;/a&gt;";
+            }
+            echo '&lt;tr&gt;';
+            echo '&lt;td class="first b b-recipes"&gt;' . $num . '&lt;/td&gt;';
+            echo '&lt;td class="t recipes"&gt;' . $text . '&lt;/td&gt;';
+            echo '&lt;/tr&gt;';
+        }
+}
+?&gt;
+</pre>
+<p>It is important that we first make sure the post type of 'recipes' is registered before adding the rows, otherwise the links created would not work properly.
+</p><p>In the $text variable, the first occurrence of the post type is the singular form, the second occurrence is the plural form.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004054
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.004 seconds
+Real time usage: 0.005 seconds
+Preprocessor visited node count: 23/1000000
+Preprocessor generated node count: 56/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

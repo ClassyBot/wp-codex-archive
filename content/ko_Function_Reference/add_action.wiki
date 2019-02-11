@@ -1,0 +1,93 @@
+{{Languages|
+{{en|Function_Reference/add_action}}
+{{ja|関数リファレンス/add_action}}
+{{ko|Function_Reference/add_action}}
+{{zh-hans|函数参考/add_action}}
+}}
+== Description ==
+
+특별한 [[Plugin_API#Actions|action]] 에 함수를 hook(특별한 위치에서 함수 실행을 추가하거나 실행되지 않도록 제거합니다). 
+
+Action hook 목록: [[Plugin_API/Action_Reference|Plugin API/Action Reference]]  Action은 일반적으로 [[Function_Reference/do_action|do_action()]]에 의해 실행됩니다.
+
+== Usage ==
+
+%%% <?php add_action( $tag, $function_to_add, $priority, $accepted_args ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$tag|string| 연결하고자 하는 hook 이름 (Action hook 리스트 :[[Plugin_API/Action_Reference|Plugin API/Action Reference]] ). 또는 테마나 플러그인에 포함된 action을 넣을 수 있습니다.}}
+{{Parameter|$function_to_add|callback|호출하고자 하는 함수의 이름입니다. Note: Only string-formatted syntaxes listed in [http://us2.php.net/manual/en/language.pseudo-types.php#language.types.callback the PHP documentation for the 'callback' type] are valid.}}
+{{Parameter|$priority|int|호출할 함수의 중요도입니다. 다른 함수의 앞 또는 뒤에 호출하기 위해 이 값을 변경합니다. 기본값:10, 예를 들어 5로 설정하면 이전에 실행 되고 12을 설정하면 나중에 실행됩니다.|optional|10}}
+{{Parameter|$accepted_args|int|How many arguments your function takes. In WordPress 1.5.1+, hooked functions can take extra arguments that are set when the matching [[Function_Reference/do_action|do_action()]] or [[Function_Reference/apply_filters|apply_filters()]] call is run. For example, the action <tt>comment_id_not_found</tt> will pass any functions that hook onto it the ID of the requested comment.|optional|1}}
+
+== Examples ==
+
+=== Simple Hook ===
+블로그에 포스트를 게시할 때마다 친구의 이메일로 발송하는 예:
+
+<pre>
+function email_friends( $post_ID )  
+{
+   $friends = 'bob@example.org, susie@example.org';
+   wp_mail( $friends, "sally's blog updated", 'I just put something on my blog: http://blog.example.com' );
+
+   return $post_ID;
+}
+add_action('publish_post', 'email_friends');
+</pre>
+
+=== Take Arguments ===
+The hooked function takes one argument from the action. Specifically, the <code>'echo_comment_id'</code> function, takes the argument <code>$comment_ID</code>. It then echos the value of the received argument.
+
+<pre>
+function echo_comment_id( $comment_ID ) 
+{
+   echo "I just received $comment_ID";
+}
+add_action( 'comment_id_not_found', 'echo_comment_id', 10, 1 );
+</pre>
+
+
+You can also pass the callback parameter as a anonymous function, for example:
+%%% <?php add_action('wp_head', function() { echo 'something';}) ?> %%%
+
+<!-- WP now doesn't support php 4 compability anymore.
+<em>Note:</em> For PHP 4 compatibility, use create_function() for anonymous functions.
+-->
+
+<em><strong>Important note:</strong> It's not possible to remove an anonymous function using <code>'remove_action'</code> (needs a function name as second argument).</em>
+
+== Notes ==
+
+To find out the number and name of arguments for an action, simply search the code base for the matching do_action() call.  For example, if you are hooking into 'save_post', you would find it in post.php:
+%%% <?php do_action( 'save_post', $post_ID, $post ); ?> %%%
+
+Your add_action call would look like:
+%%% <?php add_action( 'save_post', 'my_save_post', 10, 2 ); ?> %%%
+
+And your function would be:
+<pre>
+function my_save_post( $post_ID, $post )
+{
+   // do stuff here
+}
+</pre>
+
+== Change Log ==
+
+Since: 1.2.0
+
+== Source File ==
+
+<tt>add_action()</tt> is located in {{Trac|wp-includes/plugin.php}}.
+
+== Related ==
+
+{{Action Tags}}
+
+{{Tag Footer}}
+
+[[Category:함수]]
+
+{{Copyedit}}

@@ -1,0 +1,107 @@
+==Role of WP_Screen==
+
+This is a concrete class that is instantiated in the WordPress <tt>$screen</tt> global. It is primarily used to create and customize WordPress admin screens (as of WordPress 3.3).
+
+Is located in {{Trac|wp-admin/includes/screen.php}} with other admin screen-related functions.
+
+===Public Properties===
+
+The following properties are built into the <tt>WP_Screen</tt> class.
+;	<tt>$action</tt>
+:		Any action associated with the screen. <tt>'add'</tt> for <tt>*-add.php</tt> and <tt>*-new.php</tt> screens.  Empty otherwise.
+;	<tt>$base</tt>
+:		The base type of the screen.  This is typically the same as <tt>$id</tt> but with any post types and taxonomies stripped. For example, for an <tt>$id</tt> of <tt>'edit-post'</tt> the base is <tt>'edit'</tt>.
+;	<tt>$id</tt>
+:		The unique ID of the screen.
+;	<tt>$is_network</tt>
+:		Whether the screen is in the network admin.
+;	<tt>$is_user</tt>
+:		Whether the screen is in the user admin.
+;	<tt>$parent_base</tt>
+:		The base menu parent. This is derived from <tt>$parent_file</tt> by removing the query string and any .php extension. <tt>$parent_file</tt> values of <tt>'edit.php?post_type=page'</tt> and <tt>'edit.php?post_type=post'</tt> have a <tt>$parent_base</tt> of <tt>'edit'</tt>.
+;	<tt>$parent_file</tt>
+:		The <tt>$parent_file</tt> for the screen per the admin menu system. Some <tt>$parent_file</tt> values are <tt>'edit.php?post_type=page'</tt>, <tt>'edit.php'</tt>, and <tt>'options-general.php'</tt>.
+;	<tt>$post_type</tt>
+:		The post type associated with the screen, if any. The <tt>'edit.php?post_type=page'</tt> screen has a post type of <tt>'page'</tt>. The <tt>'edit-tags.php?taxonomy=$taxonomy&post_type=page'</tt> screen has a post type of <tt>'page'</tt>.
+;	<tt>$taxonomy</tt>
+:		The taxonomy associated with the screen, if any. The <tt>'edit-tags.php?taxonomy=category'</tt> screen has a taxonomy of <tt>'category'</tt>.
+
+===Private Properties===
+
+The following properties are built into the <tt>WP_Screen</tt> class.
+;	<tt>$_help_tabs</tt>
+:		Private. The help tab data associated with the screen, if any.
+;	<tt>$_help_sidebar</tt>
+:		Private. The help sidebar data associated with screen, if any.
+;	<tt>$_old_compat_help</tt>
+:		Private. Stores old string-based help.
+;	<tt>$_options</tt>
+:		Private. The screen options associated with screen, if any.
+;	<tt>$_registry</tt>
+:		Private. The screen object registry.
+;	<tt>$_show_screen_options</tt>
+:		Private. Stores the result of the public <tt>show_screen_options()</tt> function.
+;	<tt>$_screen_settings</tt>
+:		Private. Stores the <tt>'screen_settings'</tt> section of screen options.
+
+===Static Methods===
+
+The following methods are available statically.
+;	<tt>[[Class_Reference/WP_Screen/get|get( $hook_name="" )]]</tt>
+:		Fetches a screen object. If <tt>$hook_name</tt> is omitted, the current <tt>$hook_suffix</tt> global is used automatically.
+The following methods are available statically.
+;	<tt>[[Class_Reference/WP_Screen/add_old_compat_help|add_old_compat_help( $screen, $help )]]</tt>
+:		Provided for backwards compatibility, this sets the old, string-based contextual help for the specified screen.
+
+===Object Methods===
+
+The following methods are available from a <tt>WP_Screen()</tt> instance.
+;	<tt>[[Class_Reference/WP_Screen/set_current_screen|set_current_screen()]]</tt>
+:		Makes the screen object the current screen. 
+;	<tt>[[Class_Reference/WP_Screen/in_admin|in_admin()]]</tt>
+:		Indicates whether the screen is in a particular admin (network, user, site or any of the three).
+;	<tt>[[Class_Reference/WP_Screen/set_parentage|set_parentage( $parent_file )]]</tt>
+:		Sets the parent information for the screen. This is called in <tt>admin-header.php</tt> after the menu parent for the screen has been determined.
+;	<tt>[[Class_Reference/WP_Screen/add_option|add_option( $option, $args = array() )]]</tt>
+:		Adds an option for the screen. Call this in template files after <tt>admin.php</tt> is loaded and before <tt>admin-header.php</tt> is loaded to add screen options.
+;	<tt>[[Class_Reference/WP_Screen/get_option|get_option( $option, $key = false )]]</tt>
+:		Gets the arguments for an option for the screen.
+;	<tt>[[Class_Reference/WP_Screen/add_help_tab|add_help_tab( $args )]]</tt>
+:		Add a help tab to the contextual help for the screen. Call this on the load-$pagenow hook for the relevant screen. The <tt>$args</tt> array takes the following values: (string) title, (string) id, (string) content, and a callback (callback).
+;	<tt>[[Class_Reference/WP_Screen/remove_help_tab|remove_help_tab( $id )]]</tt>
+:		Removes a help tab from the contextual help for the screen.
+;	<tt>[[Class_Reference/WP_Screen/remove_help_tabs|remove_help_tabs()]]</tt>
+:		Removes '''ALL''' help tabs from the contextual help for the screen.
+;	<tt>[[Class_Reference/WP_Screen/set_help_sidebar|set_help_sidebar( $content )]]</tt>
+:		Add a sidebar to the contextual help for the screen. Call this in template files after <tt>admin.php</tt> is loaded and before <tt>admin-header.php</tt> is loaded to add a sidebar to the contextual help.
+;	<tt>[[Class_Reference/WP_Screen/render_screen_meta|render_screen_meta()]]</tt>
+:		Render the screen's help section. This will trigger the deprecated filters for backwards compatibility.
+;	<tt>[[Class_Reference/WP_Screen/show_screen_options|show_screen_options()]]</tt>
+:		Automatically sets the <tt>$_screen_settings</tt> property and returns the <tt>$_show_screen_options</tt> property.
+;	<tt>[[Class_Reference/WP_Screen/render_screen_options|render_screen_options()]]</tt>
+:		Renders the screen options tab.
+;	<tt>[[Class_Reference/WP_Screen/render_screen_layout|render_screen_layout()]]</tt>
+:		Render the option for number of columns on the page
+;	<tt>[[Class_Reference/WP_Screen/render_per_page_options|render_per_page_options()]]</tt>
+:		Render the "items per page" option
+
+==Change Log==
+
+Since: [[Version_3.3 | 3.3.0]]
+
+==Source File==
+
+<tt>WP_Screen()</tt> is located in {{Trac|/wp-admin/includes/class-wp-screen.php}}.
+
+==Related==
+
+[http://phpdoc.wordpress.org/trunk/WordPress/Administration/WP_Screen.html PHPDocs for WP_Screen]
+
+== Resources ==
+
+* [http://make.wordpress.org/core/2011/12/06/help-and-screen-api-changes-in-3-3/ Help and screen API changes in 3.3] - New Help and Screen usage example. On the official Make blog, by Nacin (core team member) 
+* [http://www.generalthreat.com/2011/11/wordpress-help-panels-with-wp_screen/ WordPress Plugin Help Panels with WP_Screen – Features and Limits] - Tutorial and sample code for customizing an admin page using WP_Screen
+
+{{Class Footer}}
+
+[[Category:Classes]]

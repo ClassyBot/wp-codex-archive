@@ -1,0 +1,138 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Built-in_Column_Types"><span class="tocnumber">2</span> <span class="toctext">Built-in Column Types</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Examples"><span class="tocnumber">3</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Add_Columns"><span class="tocnumber">3.1</span> <span class="toctext">Add Columns</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Replace_Columns"><span class="tocnumber">3.2</span> <span class="toctext">Replace Columns</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Hide_Columns"><span class="tocnumber">3.3</span> <span class="toctext">Hide Columns</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Actions"><span class="tocnumber">4.1</span> <span class="toctext">Actions</span></a></li>
+<li class="toclevel-2"><a href="#Filters"><span class="tocnumber">4.2</span> <span class="toctext">Filters</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/manage_edit-post_type_columns&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Applied to the list of columns to print on the manage <a href="https://codex.wordpress.org/Posts_Screen" title="Posts Screen">posts screen</a> for a custom post type. Filter function argument/return value is an associative array where the element key is the name of the column, and the value is the header text for that column.
+</p><p>In <a href="https://codex.wordpress.org/Version_3.1" title="Version 3.1">WP 3.1</a>, <code>manage_edit-{$post_type}_columns</code> has been supplanted by <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_$post_type_posts_columns" title="Plugin API/Filter Reference/manage $post type posts columns">manage_{$post_type}_posts_columns</a>.
+</p><p>See also the action <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column" title="Plugin API/Action Reference/manage posts custom column">manage_posts_custom_column</a>, which alters the column information for each post in the edit table.
+</p>
+<h2><span class="mw-headline" id="Built-in_Column_Types">Built-in Column Types</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/manage_edit-post_type_columns&amp;action=edit&amp;section=2" title="Edit section: Built-in Column Types">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><strong>Note:</strong> Listed in order of appearance. By default, all columns <a href="https://codex.wordpress.org/Function_Reference/post_type_supports" title="Function Reference/post type supports">supported</a> by the post type are shown.
+</p>
+<dl><dt> cb&#160;</dt>
+<dd> Checkbox for bulk <a href="https://codex.wordpress.org/Posts_Screen#Actions" title="Posts Screen">actions</a>.</dd>
+<dt> title&#160;</dt>
+<dd> <p>Post title.</p> <p>Includes "edit", "quick edit", "trash" and "view" links. If <var>$mode</var> (set from <var>$_REQUEST['mode']</var>) is 'excerpt', a post excerpt is included between the title and links.</p></dd>
+<dt> author&#160;</dt>
+<dd> Post author.</dd>
+<dt> categories&#160;</dt>
+<dd> Categories the post belongs to.</dd>
+<dt> tags&#160;</dt>
+<dd> Tags for the post.</dd>
+<dt> comments&#160;</dt>
+<dd> Number of pending comments.</dd>
+<dt> date&#160;</dt>
+<dd> The date and publish status of the post.</dd></dl>
+<p><br />
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/manage_edit-post_type_columns&amp;action=edit&amp;section=3" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h4><span class="mw-headline" id="Add_Columns">Add Columns</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/manage_edit-post_type_columns&amp;action=edit&amp;section=4" title="Edit section: Add Columns">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Suppose you have a 'books' custom post type and you want to add the publisher and book author to the list of columns.
+</p>
+<code><pre>
+function book_cpt_columns($columns) {
+
+	$new_columns = array(
+		'publisher' =&gt; __('Publisher', 'ThemeName'),
+		'book_author' =&gt; __('Book Author', 'ThemeName'),
+	);
+    return array_merge($columns, $new_columns);
+}
+add_filter('manage_books_posts_columns' , 'book_cpt_columns');
+</pre></code>
+<h4><span class="mw-headline" id="Replace_Columns">Replace Columns</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/manage_edit-post_type_columns&amp;action=edit&amp;section=5" title="Edit section: Replace Columns">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Here's another example that with removing and replacing some of the columns.
+</p>
+<code><pre>
+function book_cpt_columns($columns) {
+	
+	unset(
+		$columns['author'],
+		$columns['comments']
+	);
+	$new_columns = array(
+		'publisher' =&gt; __('Publisher', 'ThemeName'),
+		'book_author' =&gt; __('Book Author', 'ThemeName'),
+	);
+    return array_merge($columns, $new_columns);
+}
+add_filter('manage_books_posts_columns' , 'book_cpt_columns');
+</pre></code>
+<p>Note that unlike an <i>array</i> data type the <i>unset</i> PHP function accepts arguments in which the last argument should <i>NOT</i> end with a comma.
+</p>
+<h4><span class="mw-headline" id="Hide_Columns">Hide Columns</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/manage_edit-post_type_columns&amp;action=edit&amp;section=6" title="Edit section: Hide Columns">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Here is an example of how to remove or (hide) columns from Pages / Posts and Custom Post Types without adding any.
+</p><p>You can also add the name of the custom-post type and filter them out in there too… But if you have 5 custom post types you will need five different filters.
+</p>
+<code><pre>
+
+function my_columns_filter( $columns ) {
+   unset($columns['author']);
+   unset($columns['categories']);
+   unset($columns['tags']);
+   unset($columns['comments']);
+   return $columns;
+   }
+       
+    // Filter pages
+    add_filter( 'manage_edit-page_columns', 'my_columns_filter',10, 1 );	
+
+    // Filter Posts
+    add_filter( 'manage_edit-post_columns', 'my_columns_filter',10, 1 );
+
+    // Custom Post Type
+    add_filter( 'manage_edit-CUSTOMPOSTTYPE_columns', 'my_columns_filter',10, 1 );
+
+</pre></code>
+<p>Note: Replace CUSTOMPOSTTYPE with the name of your post type.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/manage_edit-post_type_columns&amp;action=edit&amp;section=7" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Actions">Actions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Manage_Posts_Hooks&amp;action=edit&amp;section=T-1" title="Template:Manage Posts Hooks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/manage_pages_custom_column" title="Plugin API/Action Reference/manage pages custom column">manage_pages_custom_column</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column" title="Plugin API/Action Reference/manage posts custom column">manage_posts_custom_column</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/manage_$post_type_posts_custom_column" title="Plugin API/Action Reference/manage $post type posts custom column">manage_{$post_type}_posts_custom_column</a></li></ul>
+<h3><span class="mw-headline" id="Filters">Filters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Manage_Posts_Hooks&amp;action=edit&amp;section=T-2" title="Template:Manage Posts Hooks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_pages_columns" title="Plugin API/Filter Reference/manage pages columns">manage_pages_columns</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_posts_columns" title="Plugin API/Filter Reference/manage posts columns">manage_posts_columns</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_$taxonomy_id_columns" title="Plugin API/Filter Reference/manage $taxonomy id columns">manage_{$taxonomy_id}_columns</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_$post_type_posts_columns" title="Plugin API/Filter Reference/manage $post type posts columns">manage_{$post_type}_posts_columns</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_$post_type_sortable_columns" title="Plugin API/Filter Reference/manage $post type sortable columns">manage_{$post_type}_sortable_columns</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004102
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.017 seconds
+Preprocessor visited node count: 61/1000000
+Preprocessor generated node count: 124/1000000
+Post‐expand include size: 1450/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.979      1 - -total
+ 45.44%    1.808      1 - Template:Manage_Posts_Hooks
+ 40.34%    1.605      1 - Template:Manage_Posts_Columns
+-->

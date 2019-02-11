@@ -1,0 +1,168 @@
+{{Languages|
+{{en|Configuring_Automatic_Background_Updates}}
+{{de|Automatische Hintergrund Updates einstellen}}
+{{fr|Configurer_les_Mises_à_Jour_Automatiques_en_Coulisses}}
+{{it|Configurare_gli_aggiornamenti_automatici}}
+{{ja|自動バックグラウンド更新の設定}}
+}}
+
+== Aktualisierungsarten ==
+
+Automatische Hintergrund-Updates wurden mit [[Version_3.7|WordPress 3.7]] eingeführt um eine bessere Sicherheit zu gewährleisten und um Updates zu vereinfachen. Standardmäßig sind bei den meisten Websites nur kleine Updates, wie Wartungs-, Sicherheits- und Sprachupdates aktiviert. In manchen Fällen werden auch Plugins und Themes automatisch aktualisiert.
+
+In WordPress gibt es vier verschiedene Update-Typen, die automatisch im Hintergrund aktualisieren können:
+# Quellcode-Updates (Core Updates)
+# Plugin Updates
+# Theme Updates
+# Sprachdatei-Updates
+
+=== Core Updates ===
+
+Core Updates sind in drei Typen aufgeteilt:
+# Core Entwickler- (Developement-) Updates (auch bekannt als das "Bleeding Edge")
+# Kleine Core Updates, wie Sicherheits- und Wartungs-Releases
+# Hauptversionen-Updates
+
+Standardmäßig hat jede Website automatische Updates für kleine Core Updates (Wartungs-, Sicherheits- und Sprachdateien-Releases) aktiviert. Auf Seiten, die bereits die Entwicklerversion nutzen, sind zudem automatische Updates für Entwicklerversionen aktiviert.
+
+== Update Einstellung ==
+
+Automatische Updates können mit zwei Methoden eingestellt werden: Konstanten in <tt>wp-config.php</tt> setzen oder Filter per Plugin hinzufügen.
+
+=== '''Konfiguration mit Hilfe der <tt>wp-config.php</tt>''' ===
+
+Mithilfe der <tt>wp-config.php</tt> können automatische Updates komplett deaktiviert und Core Updates basierend auf dem Update-Typ deaktiviert oder konfiguriert werden.
+
+==== Konstante zum Deaktivieren aller Updates ====
+
+Die Kern-Entwickler haben sich bewusst dafür entschieden, automatische Updates für Unterversionen und Sprachdateien "out of the box" zu ermöglichen. Auch in Zukunft wird dies eine der besten Möglichkeiten sein, die Website auf dem neuesten Stand und sicher zu halten. Von einem Deaktivieren dieser Updates wird daher dringend abgeraten.
+
+Um alle Arten der automatischen Updates, wie Core oder Ähnliche, zu deaktiveren, muss das folgende zu der <tt>wp-config.php</tt> Datei hinzugefügt werden:
+
+<pre>define( 'AUTOMATIC_UPDATER_DISABLED', true );</pre>
+
+==== Konstanten zum Konfigurieren von Core Updates ====
+
+Um automatische Updates für Hauptversionen oder für Entwicklungszwecke zu aktivieren, nutzt man am besten die Konstante <tt>WP_AUTO_UPDATE_CORE</tt>. Drei unterschiedliche Wege diese Konstante zu definieren ermöglichen das pauschale Aktivieren, oder pauschale Deaktivieren unterschiedlicher Typen von Core Updates auf einmal.
+
+<pre>define( 'WP_AUTO_UPDATE_CORE', false );</pre>
+
+<tt>WP_AUTO_CORE</tt> kann mit drei Werten genutzt werden, wovon jede ein anderes Verhalten produziert:
+
+* Wert <tt>true</tt> - Updates der Entwickler-, Unter- und Hauptversionen werden alle aktiviert
+* Wert <tt>false</tt> - Updates der Entwickler-, Unter- und Hauptversionen werden alle deaktiviert
+* Wert <tt>'minor'</tt> - Updates der Unterversionen werden aktiviert, Entwickler- und Hauptversionen hingegen deaktiviert
+
+Beachten muss man hierbei, dass nur Seiten, die bereits als Entwicklerversion laufen, automatische Entwickler-Updates erhalten werden. Für andere Seiten bedeutet das Setzen von <tt>WP_AUTO_UPDATE_CORE</tt> <tt>true</tt>, dass nur kleine Core- und Hauptversionen-Updates erfolgen.
+
+=== '''Konfiguration mit Filtern''' ===
+
+Die Nutzung von Filtern erlaubt eine genau abgestimmte Kontrolle der automatischen Updates.
+Der beste Platz um diese Filter zu hinterlegen ist ein [[Must Use Plugins|must-use plugin]].
+
+Hinweis: Bitte <em>nicht</em> <tt>add_filter()</tt> Aufrufe in die <tt>wp-config.php</tt> Datei einfügen - das verursacht Konflikte mit WP-CLI und möglicherweise noch weitere Probleme.
+
+==== Deaktivierung aller Updates per Filter ====
+
+Man kann auch alle automatischen Updates mit der Nutzung des folgenden Filters deaktivieren:
+
+<pre>add_filter( 'automatic_updater_disabled', '__return_true' );</pre>
+
+==== Core Updates durch Filter ====
+
+Um nur sämtliche Core Updates zu deaktivieren, kommt der folgende Filter zum Einsatz:
+
+<pre>add_filter( 'auto_update_core', '__return_false' );</pre>
+
+Angenommen man möchte alle drei Arten der Core Updates zusammen weder Aktivieren noch Deaktivieren, sondern diese selektiv aktivieren oder deaktivieren, dann kommen die folgenden Filter zum Zuge: <tt>allow_dev_auto_core_updates</tt>, <tt>allow_minor_auto_core_updates</tt>, und <tt>allow_major_auto_core_updates</tt>.
+
+Es existieren zwei shorthand functions in WordPress, die es ermöglichen, spezielle Typen von Core Updates mit einer einzigen Zeile Code zu aktivieren oder zu deaktivieren. Das sind [[Function_Reference/__return_true|__return_true]] und [[Function_Reference/__return_false|__return_false]]. Nachfolgend ein paar Beispiele dieser Filter:
+
+Um gezielt automatische Updates zu <em>aktivieren</em> selbst wenn ein VCS Ordner (.git, .hg, .svn etc.) in dem WordPress Verzeichnis oder irgendeinem seiner Elternverzeichnisse gefunden wurde:
+<pre>add_filter( 'automatic_updates_is_vcs_checkout', '__return_false', 1 );</pre>
+
+Um gezielt automatische Updates für Entwicklerversionen (nightly) zu <em>aktivieren</em>, nutzt man das folgende:
+<pre>add_filter( 'allow_dev_auto_core_updates', '__return_true' );</pre>
+
+Um gezielt automatische Updates für Unterversionen zu <em>deaktivieren</em>, nutzt man das folgende:
+<pre>add_filter( 'allow_minor_auto_core_updates', '__return_false' );</pre>
+
+Um gezielt automatische Updates für Unterversionen zu <em>aktivieren</em>, nutzt man das folgende:
+<pre>add_filter( 'allow_minor_auto_core_updates', '__return_true' );</pre>
+
+Um gezielt automatische Updates für Hauptversionen zu <em>deaktivieren</em>, nutzt man das folgende:
+<pre>add_filter( 'allow_major_auto_core_updates', '__return_false' );</pre>
+
+Um gezielt automatische Updates für Hauptversionen zu <em>aktivieren</em>, nutzt man das folgende:
+<pre>add_filter( 'allow_major_auto_core_updates', '__return_true' );</pre>
+
+==== Plugin & Theme Updates per Filter ====
+
+Hintergrundaktualisierungen von Pugins und Themes werden nur in besonderen Fällen ausgeführt, die durch Rückmeldung der WordPress API festgelegt werden. Diese API wird vom WordPress Sicherheits-Team kontrolliert, um kritische Sicherheitslücken zu patchen. Um Updates für jeden Fall zu aktivieren oder deaktivieren, kann man den <tt>auto_update_$type</tt> Filter nutzen, wobei dann <tt>$type</tt> mit "plugin" oder "theme" ersetzt wird.
+
+Um alle automatischen Updates für sämtliche Plugins zu aktivieren, nutzt man folgenden Filter:
+<pre>add_filter( 'auto_update_plugin', '__return_true' );</pre>
+
+Um alle automatischen Updates für sämtliche Themes zu aktivieren, nutzt man folgenden Filter:
+<pre>add_filter( 'auto_update_theme', '__return_true' );</pre>
+
+Um alle automatischen Updates für sämtliche Plugins, inklusive der Security-Team-Updates zu deaktivieren, nutzt man diesen Filter:
+<pre>add_filter( 'auto_update_plugin', '__return_false' );</pre>
+
+Um alle automatischen Updates für sämtliche Themes, inklusive der Security-Team-Updates zu deaktivieren, nutzt man diesen Filter:
+<pre>add_filter( 'auto_update_theme', '__return_false' );</pre>
+
+Solche auto_update_$type Filter erlauben ebenso eine feiner granulierte Kontrolle, da der spezielle Update-Typ in den Filter integriert wird. Wenn ein automatisches Update nur für spezielle Plugins aktiviert werden soll, dann kommt ein Code wie dieser zum Einsatz:
+
+<pre>
+function auto_update_specific_plugins ( $update, $item ) {
+    // Array of plugin slugs to always auto-update
+    $plugins = array ( 
+        'akismet',
+        'buddypress',
+    );
+    if ( in_array( $item->slug, $plugins ) ) {
+        return true; // Always update plugins in this array
+    } else {
+        return $update; // Else, use the normal API response to decide whether to update or not
+    }
+}
+add_filter( 'auto_update_plugin', 'auto_update_specific_plugins', 10, 2 );
+</pre>
+
+==== Updates für Übersetzungen per Filter ====
+
+Automatische Updates für Übersetzungsdateien sind standardmäßig aktiviert, dasselbe gilt für kleine Core Updates (Unterversionen).
+
+Um die Updates der Übersetzungsdateien zu deaktivieren, setzt man den folgenden Filter ein:
+<pre>add_filter( 'auto_update_translation', '__return_false' );</pre>
+
+==== E-Mails per Filter deaktivieren ====
+
+ // Deaktivierung der Update-E-Mails
+ add_filter( 'auto_core_update_send_email', '__return_false' );
+
+Dieser Filter kann auch dazu genutzt werden, um die Updates entsprechend von email $type (success, fail, critical), update type object $core_update, oder $result zu manipulieren:
+
+<pre>
+/* @param bool   $send        Ob generell eine E-Mail gesendet wird. Standardwert true.
+ * @param string $type        Der Typ der E-Mail, die verschickt wird.
+ *                            Kann folgendes sein: 'success', 'fail', 'critical'
+ *			      (erfolgreich, fehlgeschlagen, kritisch).
+ * @param object $core_update Das Update, das versucht wurde.
+ * @param mixed  $result      Das Ergebnis des Core Updates. Kann WP_Error sein.
+ */
+apply_filters( 'auto_core_update_send_email', true, $type, $core_update, $result );
+</pre>
+
+----
+
+== Ressourcen ==
+* [https://wordpress.org/plugins/stops-core-theme-and-plugin-updates/ Disable Updates Manager] - ein Plug-In um jede Art von Updates zu deaktivieren.
+* [https://wordpress.org/plugins/disable-wordpress-updates/ Alle WordPress-Updates deaktivieren] - Plug-In um alle WordPress-Updates zu deaktivieren.
+* Weitere Beispiele auf http://make.wordpress.org/core/2013/10/25/the-definitive-guide-to-disabling-auto-updates-in-wordpress-3-7/
+* Mehr Informationen dort: http://wordpress.stackexchange.com/questions/120081/how-do-i-configure-automatic-updates-in-wordpress-3-7
+* Infos über den wp-cli Konflikt: https://github.com/wp-cli/wp-cli/issues/1310
+
+[[Category:de:Installation]]
+[[Category:German_Codex]]

@@ -1,0 +1,69 @@
+{{Languages|
+{{en|Function Reference/get query var}}
+{{it|Riferimento funzioni/get query var}}
+{{ja|関数リファレンス/get query var}}
+}}
+
+== Descrizione ==
+Recupera la [[WordPress_Query_Vars|variabile di query pubblica]] nella classe [[it:Riferimento_classi/WP_Query|<tt>WP_Query</tt>]] dell'oggetto globale $wp_query.
+
+== Utilizzo ==
+%%%<?php get_query_var( $var ) ?>%%%
+
+== Parametri ==
+{{it:Parameter|$var|stringa|La chiave della variabile da restituire.}}
+
+== Valori restituiti ==
+{{it:Return||mixed|Restituisce una stringa vuota se la variabile non è impostata.}}
+
+== Esempi ==
+<!-- Need creative examples. Feel free to link to external examples. -->
+=== Ottenere il numero corrente di paginazione ===
+<pre>
+
+<?php  $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;  ?>
+
+<h1>Stai visitando la pagina <?php echo $paged; ?></h1>
+
+</pre>
+
+Per ottenere il numero corrente di paginazione su una [[Creating_a_Static_Front_Page|pagina principale statica]] (Page template) si deve usare la variabile di query 'page':
+ 
+<pre>
+<?php  $paged = (get_query_var('page')) ? get_query_var('page') : 1;  ?>
+<h1>Stai visitando la pagina <?php echo $paged; ?> su una pagina principale statica</h1>
+</pre>
+
+Nota: La variabile di query 'page' contiene il numero di pagina di un singolo post paginato che include nel suo contenuto il quicktag <code>&lt;!--nextpage--&gt;</code>.
+
+== Note ==
+<tt>get_query_var()</tt> recupera solo '''variabili di query pubbliche''' che sono riconosciute da <tt>WP_Query</tt>. Ciò significa che se si crea il proprio URL personalizzato con le proprie variabili di query, <tt>get_query_var()</tt> '''non le recupererà''' se non si effettua del lavoro ulteriore (''si veda sotto'').
+
+=== Variabili di query personalizzate ===
+Al fine di poter aggiungere e lavorare con le proprie variabili di query personalizzate che si appendono all'URL (es. "http://mysite.com/some_page/?my_var=foo" - per esempo usando [[Function_Reference/add_query_arg|add_query_arg()]]) è necessario aggiungerle alle '''variabili di query pubbliche''' disponibili a <tt>WP_Query</tt>. Queste sono costruite quando <tt>WP_Query</tt> viene istanziata, ma fortunatamente vengono passate attraverso un filtro [[it:API dei plugin/Riferimento filtri/query_vars|'query_vars']] prima di essere effettivamente usate per popolare la proprietà <tt>$query_vars</tt> di <tt>WP_Query</tt>.
+
+Per cui, per esporre la propria nuova variabile personalizzata a <tt>WP_Query</tt> bisogna agganciarsi al filtro [[it:API dei plugin/Riferimento filtri/query_vars|'query_vars']], aggiungere la propria variabile all'array <tt>$vars</tt> che è passato dal filtro, e ricordarsi di restituire l'array come output della propria funzione filtro. Si veda il codice seguente:
+
+<pre>
+function add_query_vars_filter( $vars ){
+  $vars[] = "my_var";
+  return $vars;
+}
+add_filter( 'query_vars', 'add_query_vars_filter' );
+</pre>
+
+== Note ==
+* Si veda <tt>WP_Query::get()</tt>
+* Utilizza l'oggetto globale (<tt>object</tt>) [[it:Riferimento_classi/WP_Query|<tt>$wp_query</tt>]]
+
+== Log delle modifiche ==
+Da: 1.5.0
+
+== File sorgente ==
+<tt>get_query_var()</tt> si trova in {{Trac|wp-includes/query.php}}.
+
+== Correlati ==
+{{it:Query_Tags}}
+{{it:Tag Footer}}
+
+[[Category:Functions]]

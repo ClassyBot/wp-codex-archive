@@ -1,0 +1,221 @@
+{{Languages|
+{{en|Widgets API}}
+{{ja|WordPress ウィジェット API}}
+{{zh-cn|小工具接口}}
+}}
+
+==小工具接口==
+本页包含 WordPress 小工具接口（Widgets API）的技术文档。
+如果您是一位主题设计者、或者插件作者，希望创建一个有效的挂件，建议您阅读本文。本文假定您了解 PHP 脚本语言的基础语法。
+
+所谓的小工具（widget）就是一个在被调用时会输出字符到标准输出的 [http://www.php.net/manual/en/language.functions.php PHP 函数]。把 PHP 函数变成小工具，则需要注册。调用 WordPress 小工具接口所注册的 [http://www.php.net/manual/en/language.pseudo-types.php PHP 回调函数]（PHP 文档中称之为''伪类型''）即可注册您的函数。如下：
+
+register_sidebar_widget($callback);
+
+WordPress 小工具接口部分的代码在 {{Trac|wp-includes/widgets.php}} 中。
+
+== 函数参考 ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''边栏函数'''
+|-
+|
+* <tt>[[Function Reference/is_active_sidebar|is_active_sidebar]]</tt>
+* <tt>[[Function Reference/register_sidebars|register_sidebars]]</tt>
+* <tt>[[Function Reference/register_sidebar|register_sidebar]]</tt>
+* <tt>[[Function Reference/unregister_sidebar|unregister_sidebar]]</tt>
+* <tt>[[Function Reference/is_dynamic_sidebar|is_dynamic_sidebar]]</tt>
+* <tt>[[Function Reference/dynamic_sidebar|dynamic_sidebar]]</tt>
+* <tt>[[Function Reference/register_sidebar_widget|register_sidebar_widget]]</tt>
+* <tt>[[Function Reference/unregister_sidebar_widget|unregister_sidebar_widget]]</tt>
+* <tt>[[Function Reference/wp_register_sidebar_widget|wp_register_sidebar_widget]]</tt>
+* <tt>[[Function Reference/wp_unregister_sidebar_widget|wp_unregister_sidebar_widget]]</tt>
+* <tt>[[Function Reference/wp_get_sidebars_widgets|wp_get_sidebars_widgets]]</tt>
+* <tt>[[Function Reference/wp_set_sidebars_widgets|wp_set_sidebars_widgets]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''挂件函数'''
+|-
+|
+* <tt>[[Function Reference/is_active_widget|is_active_widget]]</tt>
+* <tt>[[Function Reference/the_widget|the_widget]]</tt>
+* <tt>[[Function Reference/register_widget|register_widget]]</tt>
+* <tt>[[Function Reference/unregister_widget|unregister_widget]]</tt>
+* <tt>[[Function Reference/register_widget_control|register_widget_control]]</tt>
+* <tt>[[Function Reference/unregister_widget_control|unregister_widget_control]]</tt>
+* <tt>[[Function Reference/wp_register_widget_control|wp_register_widget_control]]</tt>
+* <tt>[[Function Reference/wp_unregister_widget_control|wp_unregister_widget_control]]</tt>
+* <tt>[[Function Reference/wp_convert_widget_settings|wp_convert_widget_settings]]</tt>
+* <tt>[[Function Reference/wp_get_widget_defaults|wp_get_widget_defaults]]</tt>
+* <tt>[[Function Reference/wp_widget_description|wp_widget_description]]</tt>
+|}
+
+|}
+
+'''注意:''' 建议您 '''不要用''' 这些以 "''wp_''" 开头的函数，因为可能在日后的版本中改变。这就是为什么我们使用 [[Function Reference/register_sidebar_widget|register_sidebar_widget()]] 替代[[Function Reference/wp_register_sidebar_widget|wp_register_sidebar_widget()]]的原因。
+
+== 开发新的挂件 (2.8 及以上) ==
+
+从 2.8 开始，开发挂件的工作变得更加容易。你只需要继承标准的挂件类和它的几个函数就可以了。
+
+基类中包含了关于一个有效的挂件必须继承函数的信息。
+
+=== 默认用法 ===
+<pre>
+class My_Widget extends WP_Widget {
+	function My_Widget() {
+		// 挂件实例化
+	}
+
+	function widget($args, $instance) {
+		// 输出挂件内容
+	}
+
+	function update($new_instance, $old_instance) {
+		// 选项保存过程
+	}
+
+	function form($instance) {
+		// 在管理界面输出选项表单
+	}
+}
+register_widget('My_Widget');
+</pre>
+
+=== 示例 ===
+
+下面的代码创建了一个名为''FooWidget''的挂件。此挂件拥有一个设置标题的表单。
+
+
+<pre>
+/**
+ * FooWidget Class
+ */
+class FooWidget extends WP_Widget {
+    /** 构造函数 */
+    function FooWidget() {
+        parent::WP_Widget(false, $name = 'FooWidget');	
+    }
+
+    /** @see WP_Widget::widget */
+    function widget($args, $instance) {		
+        extract( $args );
+        ?>
+              <?php echo $before_widget; ?>
+                  <?php echo $before_title
+                      . $instance['title']
+                      . $after_title; ?>
+                  Hello, World!
+              <?php echo $after_widget; ?>
+        <?php
+    }
+
+    /** @see WP_Widget::update */
+    function update($new_instance, $old_instance) {				
+        return $new_instance;
+    }
+
+    /** @see WP_Widget::form */
+    function form($instance) {				
+        $title = esc_attr($instance['title']);
+        ?>
+            <p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label></p>
+        <?php 
+    }
+
+} // class FooWidget
+</pre>
+
+接着，这个简单的挂件可以注册在钩子 ''widgets_init'' 上:
+
+<pre>
+// 注册 FooWidget 挂件
+add_action('widgets_init', create_function('', 'return register_widget("FooWidget");'));
+</pre>
+
+就是这么简单。就自动获得了一个可重复选择的挂件。不再需要特别的调整了。
+
+在 [[zh-cn:版本 2.8#新的挂件接口|版本信息]] 中有更多的信息。
+
+== 开发新的小工具 ==
+
+The Google Search widget which was included in the deprecated (i.e. not needed since WordPress 2.2) [http://downloads.wordpress.org/plugin/widgets.zip original widget plugin] is commented within inches of its life, so consider that your tutorial. Additionally, there are a few guidelines to follow:
+
+* Don’t execute any code while the plugin is being loaded. Use the plugins_loaded hook or you risk fatal errors due to undefined functions, or missing the boat completely because your plugin loaded before the one it depends on.
+* Use register_sidebar_widget($name, $callback) to add your widget to the admin interface.
+* Follow this template:
+
+<pre>
+      function widget_myuniquewidget($args) {
+          extract($args);
+      ?>
+              <?php echo $before_widget; ?>
+                  <?php echo $before_title
+                      . 'My Unique Widget'
+                      . $after_title; ?>
+                  Hello, World!
+              <?php echo $after_widget; ?>
+      <?php
+      }
+      register_sidebar_widget('My Unique Widget',
+          'widget_myuniquewidget');
+</pre>
+
+'''Important''': To use the above in a plugin, wrap it with:
+
+ function widget_myuniquewidget_register() {
+   --the above goes here--
+   register_sidebar_widget('My Unique Widget','widget_myuniquewidget');}
+ add_action('init', widget_myuniquewidget_register);
+
+* Don’t leave out $before_widget, $after_widget, $before_title, or $after_title by accident. They are required for compatibility with various themes.
+* Name your widget and its functions carefully. Those strings will be used as HTML attributes and you don’t want to cause identical id’s in a single HTML document.
+* Localization is done internally to preserve the HTML id attribute. If you want your widget name localized with a textdomain, pass array($name, $textdomain) instead of $name.
+* To accommodate multi-widgets (e.g. Text and RSS) you can also pass a replacement value with the name: array($name_as_sprintf_pattern, $textdomain, $replacement). See the source.
+* You may use the variables mentioned above in different ways, or neglect them in some circumstances. Some widgets may not need a title, for example. Some widgets will use the $before_widget and $after_widget several times, or as arguments to tell another template tag how to format its output.
+* Optionally, use the following syntax to add a configuration page to the admin. Your callback will be used within the main form, so you must not include any <form> tags or a form submit button.
+
+<pre>
+      register_widget_control($name, $callback [, $width [, $height ]] );
+</pre>
+
+* Namespace your form elements so they don’t conflict with other widgets.
+* Each widget must have a unique name. You can replace an already-registered widget by registering another one with the same name, supplying your own callback.
+* Any extra arguments to register_sidebar_widget() or register_widget_control() will be passed to your callback. See the Text and RSS widgets for examples.
+* Any widget or control can be “unregistered” by passing an empty string to the registration function.
+* There are probably some undocumented functions. You are encouraged to read the source code and see how we’ve created the standard widgets using these functions.
+* Please test your widgets with several themes other than Classic and Default (they both use the ul/li/h2 markup).
+* Please audit the security of your widgets before distributing them.
+* If you would like your widget to be considered for use on WordPress.com, send a link (no attachments please) to widgets@wordpress.com and we’ll have a look.
+
+==What else can I do with Widgets?==
+You have no idea how glad we are that you asked that. Here are a few ideas:
+
+* Write a theme that includes a special widget to set it apart from the others.
+* How about this for a special widget: a WordPress loop to show asides.
+* Register a replacement widget that buffers the original widget and transforms it somehow.
+* Remember that a “sidebar” is really just a name for a list. It can be displayed vertically or horizontally.
+* Remember that a “widget” is really just a name for a configurable code snippet. It can be invisible or it can be absolutely positioned.
+* Use the id and class attributes of any or all widgets in scripts to animate your sidebar.
+* Heck, use script.aculo.us or dbx (included with WordPress) to make your widgets draggable or even collapsible. Ain’t scripting sweet?
+* Remember that the widget control API is just for convenience. You can always set up your own admin page instead.
+* Support your users and get feedback so you can improve your widget. Put a link to your email or your site at the bottom of your widget control.
+* Send a link to your widgets to widgets@wordpress.com for review. We might put them up for everyone to use on WordPress.com. You could be internet famous!
+
+== Widgets - One or many ==
+Widgets can be coded so that they can exist one time or they can exist multiple times. Wordpress is doing the work for you to instantiate your Widget multiple times if you follow some rules.
+
+==Resources==
+* [http://brainfart.com.ua/post/lesson-wordpress-multi-widgets/ Multiple Widget Lesson]
+* [http://jessealtman.com/2009/06/08/tutorial-wordpress-28-widget-api/ Tutorial for creating a widget using WordPress 2.8]
+
+[[Category:Widgets|*]]

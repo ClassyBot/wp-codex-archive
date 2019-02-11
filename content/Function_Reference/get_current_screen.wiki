@@ -1,0 +1,139 @@
+== Description ==
+
+This function returns an object that includes the screen’s ID, base, post type, and taxonomy, among other data points
+
+== Usage ==
+
+%%% <?php $screen = get_current_screen(); ?> %%%
+
+== Parameters ==
+
+None
+
+== Usage Restrictions ==
+
+This function is defined on most admin pages, but not all.  Thus there are cases where '''is_admin()''' will return true, but attempting to call '''get_current_screen()''' will result in a fatal error because it is not defined.  One known example is wp-admin/customize.php.
+
+The function returns '''null''' if called from the [[Plugin API/Action Reference/admin_init|<tt>admin_init</tt>]] hook. It should be OK to use in a later hook such as [[Plugin API/Action Reference/current_screen|<tt>current_screen</tt>]].
+
+== Return Value ==
+
+Returns a <tt><b>[[Class_Reference/WP_Screen|WP_Screen]]</b></tt> object, or <tt><b>null</b></tt> if not applicable.
+
+The fields returned are:
+
+; <tt>id</tt> : (''string'') The unique ID of the screen
+; <tt>action</tt> : (''string'') Any action associated with the screen. 'add' for *-new.php screens. Empty otherwise.
+; <tt>base</tt> : (''string'') The base type of the screen. For example, for a page 'post-new.php' the base is 'post'.
+; <tt>parent_base</tt> : (''string'') The base menu parent. This is derived from $parent_file by removing the query string and any .php extension. For example, parent_file values of 'edit.php?post_type=page' and 'edit.php?post_type=post' have a parent_base of 'edit'
+; <tt>parent_file</tt> : (''string'') The parent_file for the screen per the admin menu system. Some parent_file values are 'edit.php?post_type=page', 'edit.php', and 'options-general.php'
+; <tt>post_type</tt> : (''string'') The post type associated with the screen, if any. For example, the 'edit.php?post_type=page' screen has a post type of 'page'
+; <tt>taxonomy</tt> : (''string'') The taxonomy associated with the screen, if any. For example, the 'edit-tags.php?taxonomy=category' screen has a taxonomy of 'category'
+
+<i>Example return value on a post edit page (as of WP version 3.3.1):</i>
+<pre>
+WP_Screen Object
+(
+    [action] => 
+    [base] => post
+    [id] => post
+    [is_network] => 
+    [is_user] => 
+    [parent_base] => edit
+    [parent_file] => edit.php
+    [post_type] => post
+    [taxonomy] => 
+    ...
+    (private fields)
+)
+</pre>
+
+== Example ==
+
+=== Default Usage ===
+
+This example shows how you would add contextual help to an admin page you've created with the <tt>add_options_page()</tt> function. Here, we assume that your admin page has a slug of 'my_admin_page' and exists under the Options tab.
+
+The <tt>get_current_screen()</tt> function is used in this example.
+
+<pre>
+<?php 
+add_action('admin_menu', 'my_admin_add_page');
+function my_admin_add_page() {
+    global $my_admin_page;
+    $my_admin_page = add_options_page(__('My Admin Page', 'map'), __('My Admin Page', 'map'), 'manage_options', 'map', 'my_admin_page');
+
+    // Adds my_help_tab when my_admin_page loads
+    add_action('load-'.$my_admin_page, 'my_admin_add_help_tab');
+}
+
+function my_admin_add_help_tab () {
+    global $my_admin_page;
+    $screen = get_current_screen();
+
+    /*
+     * Check if current screen is My Admin Page
+     * Don't add help tab if it's not
+     */
+    if ( $screen->id != $my_admin_page )
+        return;
+
+    // Add my_help_tab if current screen is My Admin Page
+    $screen->add_help_tab( array(
+        'id'	=> 'my_help_tab',
+        'title'	=> __('My Help Tab'),
+        'content'	=> '<p>' . __( 'Descriptive content that will show in My Help Tab-body goes here.' ) . '</p>',
+    ) );
+}
+?>
+</pre>
+
+Another Example:
+
+<pre>
+<?php
+
+add_action( 'current_screen', 'this_screen' );
+
+function this_screen() {
+
+    $current_screen = get_current_screen();
+
+    if( $current_screen->id === "widgets" ) {
+
+        // Run some code, only on the admin widgets page
+
+    }
+    
+}
+
+?>
+</pre>
+
+== Change Log ==
+
+* Since: [[Version 3.1]]
+
+== Source File ==
+
+<tt>get_current_screen()</tt> since [[Version 3.1]] is located in {{Trac|wp-admin/includes/template.php}}.
+Since [[Version 3.3]] is moved to {{Trac|wp-admin/includes/screen.php}}.
+
+== Related ==
+
+=== Topics ===
+* [[Plugin_API/Admin_Screen_Reference|Admin Screen ID Reference]]
+
+=== Functions ===
+
+* [[Function Reference/add_options_page|add_options_page]]
+* [[Function Reference/add_menu_page|add_menu_page]]
+* [[Function Reference/add_submenu_page|add_submenu_page]]
+* [[Function Reference/add_theme_page|add_theme_page]]
+
+== Resources ==
+* [http://make.wordpress.org/core/2011/12/06/help-and-screen-api-changes-in-3-3/ Help and screen API changes in 3.3] - New Help and Screen usage example. On the official WPDevel blog, by Nacin (core team member) 
+* [http://ottopress.com/2011/new-in-wordpress-3-3-more-useful-help-screens/ New in WordPress 3.3: More Useful Help Screens] - Otto (core team member) explains the new Help Screens using his SFC plugin as an example
+
+{{Stub}}
+[[Category:Functions]]

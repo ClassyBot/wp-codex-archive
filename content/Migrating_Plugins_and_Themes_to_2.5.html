@@ -1,0 +1,124 @@
+<div style="background-color:#FFFFFF; border:1px solid #FFFFFF; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;"><span style="float:left; margin:4px"><div class="floatleft"><a href="https://codex.wordpress.org/File:wp-alert.png" class="image"><img alt="wp-alert.png" src="/images/9/9c/wp-alert.png" width="58" height="69" /></a></div></span><b>This article, written to accord with WordPress 2.5, is now obsolete. Please take caution when following its contents, as many things may have changed.</b></div>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Introduction"><span class="tocnumber">1</span> <span class="toctext">Introduction</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Fixing_Up_Your_Theme_or_Plugin"><span class="tocnumber">2</span> <span class="toctext">Fixing Up Your Theme or Plugin</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Avatars"><span class="tocnumber">2.1</span> <span class="toctext">Avatars</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Admin_Menu_Changes"><span class="tocnumber">2.2</span> <span class="toctext">Admin Menu Changes</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Admin_Screens"><span class="tocnumber">2.3</span> <span class="toctext">Admin Screens</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Activation_Global_Scope"><span class="tocnumber">2.4</span> <span class="toctext">Activation Global Scope</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Hook_Changed:_restrict_manage_posts"><span class="tocnumber">2.5</span> <span class="toctext">Hook Changed: restrict_manage_posts</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#TinyMCE_Upgrade_to_Version_3"><span class="tocnumber">2.6</span> <span class="toctext">TinyMCE Upgrade to Version 3</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Database_changes"><span class="tocnumber">2.7</span> <span class="toctext">Database changes</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Introduction">Introduction</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=1" title="Edit section: Introduction">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>When a new major version of WordPress is released, such as WordPress 2.1 or 2.2, you may find that your Themes and Plugins no longer work the way you are used to. It could be that they are completely broken, because something in WordPress that was fundamental to them changed, but it's also possible that you can get them working again by updating some settings, or maybe just a small edit. 
+</p><p>This article is part of a series on <a href="https://codex.wordpress.org/Migrating_Plugins_and_Themes" title="Migrating Plugins and Themes">Migrating Plugins and Themes</a>. It covers changes between WordPress <a href="https://codex.wordpress.org/Version_2.3" title="Version 2.3">Version 2.3</a> and <a href="https://codex.wordpress.org/Version_2.5" title="Version 2.5">Version 2.5</a>, and what you need to do to Plugins and Themes to get them working in Version 2.5. (Note: There was no WordPress version 2.4 - it was skipped.)
+</p><p><br />
+If you are the author of your Theme or Plugin, or if you have modified or customized your Theme, then this article will help you upgrade your Theme/Plugin for 2.5. If your Theme or Plugin is distributed publicly, after getting it working you may want to add it to the Compatibility lists above, so your users will know it is working and which version they should be running.
+</p>
+<h2><span class="mw-headline" id="Fixing_Up_Your_Theme_or_Plugin">Fixing Up Your Theme or Plugin</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=2" title="Edit section: Fixing Up Your Theme or Plugin">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>There is one major new functionality addition in <a href="https://codex.wordpress.org/Version_2.5" title="Version 2.5">Version 2.5</a> for Themes (Avatars), and several changes that affect plugins (the rest of the sections below).
+</p>
+<h3><span class="mw-headline" id="Avatars">Avatars</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=3" title="Edit section: Avatars">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>WordPress 2.5 introduced built-in support for "avatars", which are small icons for people who comment on your blog, retrieved from a web service. The default service is <a rel="nofollow" class="external text" href="http://gravatar.com">Gravatar</a>; plugins can override this. 
+</p><p>If avatar functionality is enabled in the administrative menus, the avatar can be displayed by the theme next to each comment. Theme authors can add lines like this inside the comment loop of the <tt>comments.php</tt> file, to support this new functionality (see the Default and Classic themes in WordPress 2.5 for examples):
+</p>
+<pre>
+&lt;?php if(function_exists('get_avatar')){
+  echo get_avatar($comment, '50');
+}&#160;?&gt; 
+</pre>
+<p>The first input to the <tt>get_avatar</tt> function can be the comment author's email address, the author's WordPress user ID, or a complete comment data structure. The second argument is the size of avatar to display, up to 80 pixels. There is also an optional third argument giving the default avatar image file to display if the comment author doesn't have one. 
+</p>
+<h3><span class="mw-headline" id="Admin_Menu_Changes">Admin Menu Changes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=4" title="Edit section: Admin Menu Changes">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The main change affecting plugins in the (at time of writing) upcoming WordPress version 2.5 is the complete overhaul of the administration screens and menus of WordPress. The menus have been reorganized slightly; most plugins will probably still function correctly, if they used the standard methods of <a href="https://codex.wordpress.org/Adding_Administration_Menus" title="Adding Administration Menus" class="mw-redirect">Adding Administration Menus</a>, but some may need to adjust.
+</p>
+<h3><span class="mw-headline" id="Admin_Screens">Admin Screens</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=5" title="Edit section: Admin Screens">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Any plugin that had added a section to the post editing screen, or other administration screen, will probably find that the formatting and markup changes on the administration screens in WordPress 2.5 have made their section so that it no longer "blends in" and looks like it belongs with the built-in WordPress sections on the screen. Also, some of the <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">hooks</a> that plugins would have used in versions 2.3 and earlier to add information to various screens have been removed, in favor of a new API which uses the function <a href="https://codex.wordpress.org/Function_Reference/add_meta_box" title="Function Reference/add meta box">add_meta_box</a> to define a section that can be added to the post, page, or link editing screen. (Until this function has its own documentation page, you can find it, and its documentation header, in <tt>wp-admin/includes/template.php</tt>).
+</p><p>So, plugin authors will either need to release a new version of their plugins for WordPress 2.5, or (preferably) put some decision logic into their plugin that will detect the version and use the right formatting. A good way to do that is to detect whether the new function <tt>add_meta_box</tt> has been defined. For example:
+</p>
+<pre>
+if (function_exists('add_meta_box')) {
+ // 2.5 logic, calling add_meta_box to define the screen
+} else {
+ // 2.3 logic, calling add_action( 'dbx_post_advanced' ) or similar
+} 
+</pre>
+<p>Note: Be sure to run the function_exists test late in the WordPress initialization process! That function is not loaded at the time of plugin initialization. So it is suggested that you do this inside of an 'admin_menu' action, or the new 'admin_init' action.
+</p>
+<h3><span class="mw-headline" id="Activation_Global_Scope">Activation Global Scope</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=6" title="Edit section: Activation Global Scope">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Another change that might affect some plugins is that in WordPress 2.5, the Activation hooks for plugins are run in non-global scope within a function (they used to be run in the global scope). This means that if your plugin has an activation hook, and the function it calls relies on global variables that are defined within your plugin file, you may find that they are not working properly. All you need to do is, at the global scope level in your plugin, add a "global" declaration for those variables, and you should be OK. For instance:
+</p>
+<pre>
+global $my_plugin_variable;
+$my_plugin_variable = 3;
+
+function my_plugin_activation_function() {
+   global $my_plugin_variable;
+
+   // rest of activation function
+}
+</pre>
+<h3><span class="mw-headline" id="Hook_Changed:_restrict_manage_posts">Hook Changed: restrict_manage_posts</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=7" title="Edit section: Hook Changed: restrict manage posts">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The behavior of the <tt>restrict_manage_posts</tt> hook was changed between WordPress 2.3 and WordPress 2.5. See the March 2008 comments and attachments on <a rel="nofollow" class="external free" href="http://trac.wordpress.org/ticket/6196">http://trac.wordpress.org/ticket/6196</a> for an explanation of the change, and sample plugins for 2.3 and 2.5 illustrating the change.
+</p>
+<h3><span class="mw-headline" id="TinyMCE_Upgrade_to_Version_3">TinyMCE Upgrade to Version 3</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=8" title="Edit section: TinyMCE Upgrade to Version 3">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The upcoming WordPress version 2.5 includes TinyMCE 3 which is a complete rewrite of the editor. There are many changes in the API and all WordPress plugins that add button(s) to it have to be updated. Good places to start are:
+</p>
+<ul><li> <a rel="nofollow" class="external free" href="http://wiki.moxiecode.com/index.php/TinyMCE:Create_plugin/3.x">http://wiki.moxiecode.com/index.php/TinyMCE:Create_plugin/3.x</a></li>
+<li> <a rel="nofollow" class="external free" href="http://wiki.moxiecode.com/index.php/TinyMCE:API">http://wiki.moxiecode.com/index.php/TinyMCE:API</a> </li>
+<li> <a rel="nofollow" class="external free" href="http://codex.wordpress.org/TinyMCE_Custom_Buttons">http://codex.wordpress.org/TinyMCE_Custom_Buttons</a></li></ul>
+<p>Of course adding a button that will insert some code at the cursor location is still quite easy. The "pagebreak" plugin can be used as an example.
+</p><p>For loading the plugins there is a new filter $mce_external_plugins that takes an array 'name' =&gt; 'url' and inserts it in the zipped TinyMCE. It's best to use absolute url (with or without the host name), as using relative needs some settings in the init array to stay at the default values (that can be changed by a WordPress plugin), so it would be possible to break the loading of external plugins that use relative url. TinyMCE would still not load a plugin from another domain.
+</p><p>The gzip compressor has changed too. Now it gathers all parts of TinyMCE and outputs the zipped file all in one step. The action "mce_options" is still supported, but deprecated. The action "tinymce_before_init" is replaced by a filter "tiny_mce_before_init" that is applied to the array with all settings for TinyMCE. Also the zipped file is cached on disk to save some memory/server resources. This cache is invalidated by any change to the init array or by changing the ver=[number] arg when calling tiny_mce_config. The version is filtered by "tiny_mce_version" defined in /wp-includes/script-loader.php, so a plugin can change it.
+</p><p>There are changes in loading language files too. The language codes are only ISO 639-1, which is just the first 2 letters from WordPress locale, like de, fr, es, etc. TinyMCE will load langs/[lang].js when a plugin is loaded and if the plugin has a popup, it will load langs/[lang]_dlg.js when the popup is opened.
+</p><p>The loading of the default language strings is different too. Now they all are defined in tinymce/langs/wp-langs.php, so they can be included in the main .pot file and translated to all languages available in WordPress. A plugin can use any of the strings there, check the tinyMCE.i18n js object when TinyMCE is loaded, to see how to reference them. 
+</p>
+<h3><span class="mw-headline" id="Database_changes">Database changes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.5&amp;action=edit&amp;section=9" title="Edit section: Database changes">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Changes to database schema from Version 2.3 to 2.5.
+</p>
+<ul><li>Table: comments</li></ul>
+<dl><dd>Changed <i>comment_approved</i> to varchar(20) NOT NULL default '1'</dd>
+<dd>Added KEY <i>comment_approved_date_gmt</i> (comment_approved,comment_date_gmt)</dd>
+<dd>Added KEY <i>comment_date_gmt</i> (comment_date_gmt)</dd></dl>
+<ul><li>Table: links</li></ul>
+<dl><dd>Changed <i>link_visible</i> to varchar(20) NOT NULL default 'Y'</dd></dl>
+<ul><li>Table: options</li></ul>
+<dl><dd>Changed <i>autoload</i> to varchar(20) NOT NULL default 'yes'</dd></dl>
+<ul><li>Table: posts</li></ul>
+<dl><dd>Changed <i>post_status</i> to varchar(20) NOT NULL default 'publish'</dd>
+<dd>Changed <i>comment_status</i> to varchar(20) NOT NULL default 'open'</dd>
+<dd>Changed <i>ping_status</i> to varchar(20) NOT NULL default 'open'</dd></dl>
+<ul><li>Table: term_relationships </li></ul>
+<dl><dd>Added <i>term_order</i> int(11) NOT NULL default 0</dd></dl>
+<p><br />
+</p>
+<hr />
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004044
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.021 seconds
+Preprocessor visited node count: 83/1000000
+Preprocessor generated node count: 200/1000000
+Post‐expand include size: 815/2097152 bytes
+Template argument size: 251/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.194      1 - -total
+100.00%    2.194      1 - Template:Oldpage
+ 51.10%    1.121      1 - Template:Message
+-->

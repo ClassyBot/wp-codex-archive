@@ -1,0 +1,73 @@
+<p>This code is the code needed to create a widget to show a list of all blogs.  It is dependent on the plug-in <a rel="nofollow" class="external text" href="http://wpmudev.org/project/List-All">List-All</a>, that should be installed first.  Create a blank text file named widget_list_all.php in your plugins folder, add the following php code.  You should then be able to activate the List All plugin and the List-All-Blogs Widget on the plugins tab.  Then look over in the presentation/widgets tab and you should have a new widget named List All Blogs Widget.
+</p>
+<pre>
+&lt;?php
+/*
+Plugin Name: List-All-Blogs Widget
+Plugin URI: http://codex.wordpress.org/WPMU_List_All_Blogs_Widget
+Description: Creates a list of all blogs on a WPMU site as a widget, conversion from previous version based on code in http://www.erik-rasmussen.com/blog/2006/11/30/widgetize-anything/
+Author: Unknown - last edited Angelo Bertolli
+Author URI: http://codex.wordpress.org/WPMU_List_All_Blogs_Widget
+Version: 0.0.2
+*/
+
+// $show_blog_list_widget = true;  // Uncomment this if you want this widget available for all users
+
+function widget_list_all_blogs_init() {
+        if (&#160;!function_exists('register_sidebar_widget') )
+                return;
+
+
+        function widget_list_all_blogs($args) {
+        extract($args);
+
+        if(function_exists(list_all_wpmu_blogs)) {
+                 echo $before_widget;
+
+                 echo $before_title . 'All Blogs' . $after_title;
+                        echo "&lt;ul&gt;\n";
+                        list_all_wpmu_blogs('100', 'name', '&lt;li&gt;', '&lt;/li&gt;', 'updated');
+                        echo "&lt;/ul&gt;\n";
+                 echo $after_widget;
+        }
+                else
+                {
+                 echo "Error - function  list_all_wpmu_blogs not found";
+        }
+        }
+
+
+    if ( function_exists('wp_register_sidebar_widget') ) // fix for wordpress 2.2.1
+      wp_register_sidebar_widget(sanitize_title('List All Blogs' ), 'List All Blogs', 'widget_list_all_blogs', array(), 1);
+    else
+      register_sidebar_widget('List All Blogs', 'widget_list_all_blogs', 1);
+}
+
+if (get_blog_option(1,'siteurl') == get_settings('siteurl')) // Widget available for the main blog
+        $show_blog_list_widget = true;
+
+if ($show_blog_list_widget)
+        add_action('plugins_loaded', 'widget_list_all_blogs_init');
+
+?&gt;
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004222
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.000 seconds
+Real time usage: 0.002 seconds
+Preprocessor visited node count: 4/1000000
+Preprocessor generated node count: 24/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

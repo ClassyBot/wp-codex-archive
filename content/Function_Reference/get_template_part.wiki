@@ -1,0 +1,88 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/get_template_part/}}
+
+{{Languages|
+{{en|Function Reference/get_template_part}}
+{{tr|Fonksiyon Referans/get_template_part}}
+{{ja|関数リファレンス/get_template_part}}
+{{zh-cn|调用模板部分/get_template_part}}
+{{pt-br|get_template_part}}
+{{ru|Теги шаблонов/get_template_part}}
+}}
+
+== Description ==
+Load a template part (other than header, sidebar, footer) into a template. Makes it easy for a theme to reuse sections of code and an easy way for [[Child Themes|child themes]] to replace sections of their parent theme.
+
+The template part is located by looking for a file named <tt>{slug}.php</tt> in the theme (or parent theme, if your theme is a child theme).  If the optional <tt>$name</tt> argument is provided then this function will first look for <tt>{slug}-{name}.php</tt>, and if it's not found then <tt>{slug}.php</tt> will be used as a fallback.
+
+If no matching template can be located this function will fail silently, producing neither output nor error messages.
+
+== Usage ==
+
+%%% <?php get_template_part( $slug ); ?> %%%
+%%% <?php get_template_part( $slug, $name ); ?> %%%
+
+<code>get_template_part</code> doesn't return a value and doesn't warn if it fails to find a matching template file.
+
+If you want to hear about failures, use:
+
+    <?php assert( "locate_template( array('$slug-$name.php', '$slug.php'), false, false )" ); ?>
+
+== Parameters ==
+{{Parameter|$slug|string|The slug name for the generic template.}}
+{{Parameter|$name|string|The name of the specialized template.|optional}}
+
+== Examples  ==
+
+=== Using loop.php in child themes ===
+Assuming the theme folder is wp-content/themes, that the parent theme is twentyten,  and the child theme is ''twentytenchild'', then the following code --
+ <?php get_template_part( 'loop', 'index' ); ?>
+
+will do a [http://www.php.net/manual/en/function.require.php PHP require()] for the first file that exists among these, in this priority:
+
+:#''wp-content/themes/twentytenchild/loop-index.php''
+:#''wp-content/themes/twentyten/loop-index.php''
+:#''wp-content/themes/twentytenchild/loop.php''
+:#''wp-content/themes/twentyten/loop.php''
+
+=== Using with theme subfolders === 
+
+To use this function with subfolders in your theme directory, simply prepend the folder name before the slug. For example, if you have a folder called "partials" in your theme directory and a template part called "content-page.php" in that sub-folder, you would use get_template_part() like this: 
+ <?php get_template_part( 'partials/content', 'page' ); ?>
+
+=== Navigation ===
+Adding a navigation bar to theme using a generic nav.php template file:
+
+ <?php get_template_part( 'nav' );           // Navigation bar (nav.php) ?>
+ <?php get_template_part( 'nav', '2' );      // Navigation bar #2 (nav-2.php) ?>
+ <?php get_template_part( 'nav', 'single' ); // Navigation bar to use in single pages (nav-single.php) ?>
+
+== Notes  ==
+* Uses: [[Function_Reference/locate_template|locate_template()]]
+* Uses: [[Function_Reference/do_action|do_action()]] Calls 'get_template_part_{$slug}' action.
+
+=== Passing Variables to Template ===
+Because the template is being <tt>require</tt>d, it will not have access to any variables you define within the calling theme's PHP code, unless you explicitly declare them as <code>global</code>.
+
+However, [[Function_Reference/load_template|load_template()]], which is called indirectly by <tt>get_template_part()</tt> <tt>extract</tt>s all of the [[Class_Reference/WP_Query|WP_Query]] query variables, into the scope of the loaded template. So you can use [[Function_Reference/set_query_var|set_query_var()]] to make your variable available to the template part.
+
+<pre>
+// You wish to make $my_var available to the template part at `content-part.php`
+set_query_var( 'my_var', $my_var );
+get_template_part( 'content', 'part' );
+</pre>
+
+== Change Log ==
+* Since: [[Version 3.0|3.0]]
+
+== Source File ==
+<tt>get_template_part()</tt> is located in {{Trac|wp-includes/general-template.php}}.
+
+== External Resources ==
+
+* [http://kovshenin.com/2013/get_template_part/ Understanding get_template_part] by Konstantin Kovshenin
+
+== Related ==
+{{Include Tags}}
+{{Tag Footer}}
+
+[[Category:Functions]]

@@ -1,0 +1,98 @@
+{{Languages|
+{{en|Function Reference/get post ancestors}}
+{{it|Riferimento_funzioni/get_post_ancestors}}
+{{ja|関数リファレンス/get post ancestors}}
+{{ru|Справочник_по_функциям/get_post_ancestors}}
+}}
+== Descrizione ==
+Recupera gli antenati del post basandosi sul suo ID.
+
+== Utilizzo ==
+%%%<?php get_post_ancestors( $post ) ?>%%%
+
+== Parametri ==
+{{it:Parameter|$post|mixed|ID del post o oggetto Post.}}
+
+== Valori restituiti ==
+{{it:Return||array|Array contenente gli ID dei post antenati o vuoto se nessun antenato viene trovato. Il genitore diretto è restituito come primo valore dell'array. L'antenato con il livello più alto è restituito come ultimo valore dell'array.}}
+
+== Esempi ==
+
+=== Ottenere lo slug delle pagine degli antenati ===
+
+Questo esempio restituisce lo [[Glossario#Slug|slug]] della pagina più alta nell'albero e lo usa come classe per il tag HTML body, così il genitore e tutti i figli avranno la stessa classe di stile.
+
+Questo è un esempio per un tema figlio di Twenty Eleven da mettere nel file header.php
+<pre>
+</head>
+
+<?php
+/* Ottiene lo slug della pagina da usare come classe di stile nel tag body */
+$class = '';
+/* è una pagina? */
+if( is_page() ) { 
+	global $post;
+        /* Recupera l'array di antenati e genitori se esistono */
+	$parents = get_post_ancestors( $post->ID );
+        /* Recupera il page->ID di livello più alto */ 
+	$id = ($parents) ? $parents[count($parents)-1]: $post->ID;
+	/* Recupera il genitore e imposta $class assegnandogli lo slug della pagina (post_name) */
+        $parent = get_page( $id );
+	$class = $parent->post_name;
+}
+?>
+
+<body <?php body_class( $class ); ?>>
+</pre>
+
+=== Ottenere i metadati degli antenati del post ===
+
+Se non si vuole usare lo slug della pagina, si può usare un campo personalizzato, come 'body_class', sulla pagina di primo livello ed impostare la classe nei metadati del post.
+
+<pre>
+</head>
+
+<?php
+$class = '';
+if( is_page() ) {
+	global $post;
+	$parents = get_post_ancestors( $post->ID );
+	$id = ($parents) ? $parents[count($parents)-1]: $post->ID;
+	$class = get_post_meta( $id, 'body_class', true );
+}
+?>
+
+<body <?php body_class( $class ); ?>>
+
+</pre>
+
+=== Recuperare le miniature degli antenati del post ===
+
+Recupera la miniatura della pagina di più alto livello e la stampa
+
+<pre>
+<?php
+global $post;
+$parents = get_post_ancestors( $post->ID );
+/* Ottiene l'ID della pagina di più alto livello o quello della pagina corrente */
+$id = ($parents) ? $parents[count($parents)-1]: $post->ID;
+if(has_post_thumbnail( $id )) {
+	get_the_post_thumbnail( $id, 'thumbnail');
+}
+?>
+</pre>
+
+
+== Note ==
+
+== Log delle modifiche ==
+Da: 2.5.0
+
+== File sorgente ==
+<tt>get_post_ancestors()</tt> si trova in {{Trac|wp-includes/post.php}}.
+
+== Correlati ==
+
+{{it:Tag Footer}}
+
+[[Category:Functions]]

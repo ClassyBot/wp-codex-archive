@@ -1,0 +1,69 @@
+The <tt>login_redirect</tt> filter is used to change the location redirected to after logging in. This could be the location set by the "redirect_to" parameter sent to the login page.
+
+== Parameters ==
+
+{{Parameter|$redirect_to|string|The redirect destination URL.}}
+{{Parameter|$requested_redirect_to|string|The requested redirect destination URL passed as a parameter.|optional}}
+{{Parameter|$user|WP_User or WP_Error|WP_User object if login was successful, WP_Error object otherwise.|optional}}
+
+== Examples ==
+
+This example redirects admins to the dashboard and other users to the homepage. Make sure you use add_filter outside of is_admin(), since that function is not available when the filter is called.
+
+<pre>
+/**
+ * Redirect user after successful login.
+ *
+ * @param string $redirect_to URL to redirect to.
+ * @param string $request URL the user is coming from.
+ * @param object $user Logged user's data.
+ * @return string
+ */
+
+function my_login_redirect( $redirect_to, $request, $user ) {
+    //is there a user to check?
+    if (isset($user->roles) && is_array($user->roles)) {
+        //check for subscribers
+        if (in_array('subscriber', $user->roles)) {
+            // redirect them to another URL, in this case, the homepage 
+            $redirect_to =  home_url();
+        }
+    }
+
+    return $redirect_to;
+}
+
+add_filter( 'login_redirect', 'my_login_redirect', 10, 3 );
+</pre>
+
+Redirect all logins to the homepage with an anonymous function (php 5.3+).
+
+<pre>
+add_filter( 'login_redirect', function( $url, $query, $user ) {
+	return home_url();
+}, 10, 3 );
+</pre>
+
+== Notes ==
+
+You can register the login_redirect filter to use all 3 parameters like this:
+%%%<?php add_filter( 'login_redirect', 'filter_function_name', 10, 3 ); ?>%%%
+
+In the example, 'filter_function_name' is the function WordPress should call during the login process.  Note that '''filter_function_name''' should be unique function name. It cannot match any other function name already declared.
+
+The $current_user global may not be available at the time this filter is run. So you should use the $user global or the $user parameter passed to this filter.
+
+== Changelog ==
+
+Since: [[Version 3.0]]
+
+== Source File ==
+
+<tt>login_redirect</tt> is located in {{Trac|wp-login.php}}
+
+== Resources ==
+
+* [http://wpscholar.com/blog/wordpress-user-login-redirect/ WP Scholar - WordPress User Login Redirect ( by role or user meta )]
+
+== Related ==
+{{User Link Filters}}

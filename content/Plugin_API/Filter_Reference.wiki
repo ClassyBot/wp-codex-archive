@@ -1,0 +1,927 @@
+{{Languages|
+{{en|Plugin API/Filter Reference}}
+{{ja|プラグイン API/フィルターフック一覧}}
+}}
+
+This article contains an extensive (but not 100% comprehensive) list of the filter hooks available for use in plugin development in Version 2.1 and above of WordPress. For more information:
+* To learn more about what filter and action hooks are, see [[Plugin API]].
+* To learn about writing plugins in general, see [[Writing a Plugin]].
+* For a reference list of action hooks, see [[Plugin API/Action Reference]].
+* For information about filter and action hooks in previous versions of WordPress, see [[Plugin API/Hooks 2.0.x]]. 
+* For an automatically-generated list of ''all'' WordPress hooks, see the [http://adambrown.info/p/wp_hooks WordPress Hooks Database]
+
+Note: If you want to add to or clarify this documentation, please follow the style of the existing entries. Describe what data the filter is applied to, and if the filter function takes additional arguments, describe the argument list.
+
+== Post, Page, and Attachment (Upload) Filters ==
+
+See also [[#Category and Term Filters]], [[#Author and User Filters]], [[#Link Filters]], [[#Date and Time Filters]], and [[#Administrative Filters]] below.
+
+=== Database Reads ===
+
+Filters in this section are applied to information read from the database, prior to displaying on a page or editing screen.
+
+;[[Plugin_API/Filter_Reference/attachment_fields_to_edit|attachment_fields_to_edit]] : applied to the form fields to be displayed when editing an attachment. Called in the <tt>get_attachment_fields_to_edit</tt> function. Filter function arguments: an array of form fields, the post object.
+
+;[[Plugin_API/Filter_Reference/attachment_icon|attachment_icon]] : applied to the icon for an attachment in the <tt>get_attachment_icon</tt> function. Filter function arguments: icon file as an HTML IMG tag, attachment ID.
+
+;[[Plugin_API/Filter_Reference/attachment_innerHTML|attachment_innerHTML]] : applied to the title to be used for an attachment if there is no icon, in the <tt>get_attachment_innerHTML</tt> function. Filter function arguments: inner HTML (defaults to the title), attachment ID.
+
+;[[Plugin_API/Filter_Reference/author_edit_pre|author_edit_pre]] : applied to post author prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/body_class|body_class]] : applied to the classes for the HTML <code>&lt;body&gt;</code> element. Called in the <code>[[Function_Reference/get_body_class|get_body_class]]</code> function. Filter function arguments: an array of class names and an array of additional class names that were added to the first array.
+
+;[[Plugin_API/Filter_Reference/content_edit_pre|content_edit_pre]] : applied to post content prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/content_filtered_edit_pre|content_filtered_edit_pre]] : applied to post content filtered prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/excerpt_edit_pre|excerpt_edit_pre]] : applied to post excerpt prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/date_edit_pre|date_edit_pre]] : applied to post date prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/date_gmt_edit_pre|date_gmt_edit_pre]] : applied to post date prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/get_attached_file|get_attached_file]] : applied to the attached file information retrieved by the <tt>get_attached_file</tt> function. Filter function arguments: file information, attachment ID.
+
+;[[Plugin_API/Filter_Reference/get_enclosed|get_enclosed]] : applied to the enclosures list for a post by the <tt>get_enclosed</tt> function.
+
+;[[Plugin_API/Filter_Reference/get_pages|get_pages]] : applied to the list of pages returned by the [[Function_Reference/get_pages|<tt>get_pages</tt> function]]. Filter function arguments: list of pages (each item of which contains a page data array), <tt>get_pages</tt> function argument list (telling which pages were requested).
+
+;[[Plugin_API/Filter_Reference/get_pung|get_pung]] : applied to the list of pinged URLs for a post by the <tt>get_pung</tt> function.
+
+;[[Plugin_API/Filter_Reference/get_the_archive_title|get_the_archive_title]] : applied to the archive's title in the <tt>get_the_archive_title</tt> function.
+
+;[[Plugin_API/Filter_Reference/get_the_excerpt|get_the_excerpt]] : applied to the post's excerpt in the <tt>get_the_excerpt</tt> function.
+
+;[[Plugin_API/Filter_Reference/get_the_guid|get_the_guid]] : applied to the post's GUID in the <tt>get_the_guid</tt> function.
+
+;[[Plugin_API/Filter_Reference/get_to_ping|get_to_ping]] : applied to the list of URLs to ping for a post by the <tt>get_to_ping</tt> function.
+
+;[[Plugin_API/Filter_Reference/icon_dir|icon_dir]] : applied to the template's image directory in several functions. Basically allows a plugin to specify that icons for MIME types should come from a different location.
+
+;[[Plugin_API/Filter_Reference/icon_dir_uri|icon_dir_uri]] : applied to the template's image directory URI in several functions. Basically allows a plugin to specify that icons for MIME types should come from a different location.
+
+;[[Plugin_API/Filter_Reference/image_size_names_choose|image_size_names_choose]] : applied to the list of image sizes selectable in the Media Library. Commonly used to make [[Function_Reference/add_image_size|custom image sizes]] selectable.
+
+;[[Plugin_API/Filter_Reference/mime_type_edit_pre|mime_type_edit_pre]] : applied to post mime type prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/modified_edit_pre|modified_edit_pre]] : applied to post modification date prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/modified_gmt_edit_pre|modified_gmt_edit_pre]] : applied to post modification gmt date prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/no_texturize_shortcodes|no_texturize_shortcodes]] : applied to registered shortcodes. Can be used to exempt shortcodes from the automatic texturize function.
+
+;[[Plugin_API/Filter_Reference/parent_edit_pre|parent_edit_pre]] : applied to post parent id prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/password_edit_pre|password_edit_pre]] : applied to post password prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/post_class|post_class]] : applied to the classes of the outermost HTML element for a post. Called in the <code>[[Function_Reference/get_post_class|get_post_class]]</code> function. Filter function arguments: an array of class names, an array of additional class names that were added to the first array, and the post ID.
+
+;[[Plugin_API/Filter_Reference/pre_kses|pre_kses]] : applied to various content prior to being processed/sanitized by KSES. This hook allows developers to customize what types of scripts/tags should either be allowed in content or stripped.
+
+;[[Plugin_API/Filter_Reference/prepend_attachment|prepend_attachment]] : applied to the HTML to be prepended by the <tt>prepend_attachment</tt> function.
+
+
+;[[Plugin_API/Filter_Reference/protected_title_format|protected_title_format]] : Used to the change or manipulate the post title when the post is password protected.
+
+;[[Plugin_API/Filter_Reference/private_title_format|private_title_format]] : Used to the change or manipulate the post title when its status is private.
+;[[Plugin_API/Filter_Reference/sanitize_title|sanitize_title]] : applied to a post title by the <tt>sanitize_title</tt> function, after stripping out HTML tags.
+
+;[[Plugin_API/Filter_Reference/single_post_title|single_post_title]] : applied to the post title when used to create a blog page title by the <tt>wp_title</tt> and <tt>single_post_title</tt> functions.
+
+;[[Plugin_API/Filter_Reference/status_edit_pre|status_edit_pre]] : applied to post status prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/the_content|the_content]] : applied to the post content retrieved from the database, prior to printing on the screen (also used in some other operations, such as trackbacks).
+
+;[[Plugin_API/Filter_Reference/the_content_rss|the_content_rss]] : applied to the post content prior to including in an RSS feed. (Deprecated)
+
+;[[Plugin_API/Filter_Reference/the_content_feed|the_content_feed]] : applied to the post content prior to including in an RSS feed.
+
+;[[Plugin_API/Filter_Reference/the_editor_content|the_editor_content]] : applied to post content before putting it into a rich editor window.
+
+;[[Plugin_API/Filter_Reference/the_excerpt|the_excerpt]] : applied to the post excerpt (or post content, if there is no excerpt) retrieved from the database, prior to printing on the screen (also used in some other operations, such as trackbacks).
+
+;[[Plugin_API/Filter_Reference/the_excerpt_rss|the_excerpt_rss]] : applied to the post excerpt prior to including in an RSS feed.
+
+;[[Plugin_API/Filter_Reference/the_password_form|the_password_form]] : applied to the password form for protected posts.
+
+;[[Plugin_API/Filter_Reference/the_tags|the_tags]] : applied to the tags retrieved from the database, prior to printing on the screen.
+
+;[[Plugin_API/Filter_Reference/the_title|the_title]] : applied to the post title retrieved from the database, prior to printing on the screen (also used in some other operations, such as trackbacks).
+
+;[[Plugin_API/Filter_Reference/the_title_rss|the_title_rss]] : applied to the post title before including in an RSS feed (after first filtering with <tt>the_title</tt>.
+
+;[[Plugin_API/Filter_Reference/title_edit_pre|title_edit_pre]] : applied to post title prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/type_edit_pre|type_edit_pre]] : applied to post type prior to display for editing.
+
+;[[Plugin_API/Filter_Reference/wp_dropdown_pages|wp_dropdown_pages]] : applied to the HTML dropdown list of WordPress pages generated by the <tt>wp_dropdown_pages</tt> function.
+
+;[[Plugin_API/Filter_Reference/wp_list_pages|wp_list_pages]] : applied to the HTML list generated by the <tt>wp_list_pages</tt> function. 
+
+;[[Plugin_API/Filter_Reference/wp_list_pages_excludes|wp_list_pages_excludes]] : applied to the list of excluded pages (an array of page IDs) in the <tt>wp_list_pages</tt> function.
+
+;[[Plugin_API/Filter_Reference/wp_get_attachment_metadata|wp_get_attachment_metadata]] : applied to the attachment metadata retrieved by the <tt>wp_get_attachment_metadata</tt> function. Filter function arguments: meta data, attachment ID.
+
+;[[Plugin_API/Filter_Reference/wp_get_attachment_thumb_file|wp_get_attachment_thumb_file]] : applied to the attachment thumbnail file retrieved by the <tt>wp_get_attachment_thumb_file</tt> function. Filter function arguments: thumbnail file, attachment ID.
+
+;[[Plugin_API/Filter_Reference/wp_get_attachment_thumb_url|wp_get_attachment_thumb_url]] : applied to the attachment thumbnail URL retrieved by the <tt>wp_get_attachment_thumb_URL</tt> function. Filter function arguments: thumbnail URL, attachment ID.
+
+;[[Plugin_API/Filter_Reference/wp_get_attachment_url|wp_get_attachment_url]] : applied to the attachment URL retrieved by the <tt>wp_get_attachment_url</tt> function. Filter function arguments: URL, attachment ID.
+
+;[[Plugin_API/Filter_Reference/wp_mime_type_icon|wp_mime_type_icon]] : applied to the MIME type icon for an attachment calculated by the <tt>wp_mime_type_icon</tt> function. Filter function arguments: icon URI calculated, MIME type, post ID.
+
+;[[Plugin_API/Filter_Reference/wp_title|wp_title]] : applied to the blog page title before sending to the browser in the <tt>wp_title</tt> function.
+
+=== Database Writes ===
+
+Filters in this section are applied to information prior to saving to the database.
+
+;[[Plugin_API/Filter_Reference/add_ping|add_ping]] : applied to the new value of the pinged field on a post when a ping is added, prior to saving the new information in the database.
+
+;[[Plugin_API/Filter_Reference/attachment_fields_to_save|attachment_fields_to_save]] : applied to fields associated with an attachment prior to saving them in the database. Called in the <tt>media_upload_form_handler</tt> function. Filter function arguments: an array of post attributes, an array of attachment fields including the changes submitted from the form.
+
+;[[Plugin_API/Filter_Reference/attachment_max_dims|attachment_max_dims]] : applied to the maximum image dimensions before reducing an image size. Filter function input (and return value) is either false (if no maximum dimensions have been specified) or a two-item list (width, height).
+
+;[[Plugin_API/Filter_Reference/category_save_pre|category_save_pre]] : applied to post category comma-separated list prior to saving it in the database (also used for attachments).
+
+;[[Plugin_API/Filter_Reference/comment_status_pre|comment_status_pre]] : applied to post comment status prior to saving it in the database (also used for attachments).
+
+;[[Plugin_API/Filter_Reference/content_filtered_save_pre|content_filtered_save_pre]] : applied to filtered post content prior to saving it in the database (also used for attachments).
+
+;[[Plugin_API/Filter_Reference/content_save_pre|content_save_pre]] : applied to post content prior to saving it in the database (also used for attachments).
+
+;[[Plugin_API/Filter_Reference/excerpt_save_pre|excerpt_save_pre]] : applied to post excerpt prior to saving it in the database (also used for attachments).
+
+;[[Plugin_API/Filter_Reference/image_save_pre| image_save_pre]] (deprecated) : use [[Plugin_API/Filter_Reference/image_editor_sav_pre|<tt>image_editor_save_pre</tt>]] instead.
+
+;[[Plugin_API/Filter_Reference/jpeg_quality|jpeg_quality]] (deprecated) : use [[Plugin_API/Filter_Reference/wp_editor_set_quality|<tt> wp_editor_set_quality</tt>]] or <tt>WP_Image_Editor::set_quality()</tt> instead.
+
+;[[Plugin_API/Filter_Reference/name_save_pre|name_save_pre]] (Deprecated): applied to post name prior to saving it in the database (also used for attachments).
+
+;[[Plugin_API/Filter_Reference/phone_content|phone_content]] : applied to the content of a post submitted by email, before saving.
+
+;[[Plugin_API/Filter_Reference/ping_status_pre|ping_status_pre]] : applied to post ping status prior to saving it in the database (also used for attachments).
+
+;[[Plugin_API/Filter_Reference/post_mime_type_pre|post_mime_type_pre]] : applied to the MIME type for an attachment prior to saving it in the database.
+
+;[[Plugin_API/Filter_Reference/status_save_pre|status_save_pre]] : applied to post status prior to saving it in the database.
+
+;[[Plugin_API/Filter_Reference/thumbnail_filename|thumbnail_filename]] : applied to the file name for the thumbnail when uploading an image. 
+
+;[[Plugin_API/Filter_Reference/title_save_pre|title_save_pre]] : applied to post title prior to saving it in the database (also used for attachments).
+
+;[[Plugin_API/Filter_Reference/update_attached_file|update_attached_file]] : applied to the attachment information prior to saving in post metadata in the <tt>update_attached_file</tt> function. Filter function arguments: attachment information, attachment ID.
+
+;[[Plugin_API/Filter_Reference/wp_create_thumbnail|wp_create_thumbnail]] (deprecated) 
+
+;[[Plugin_API/Filter_Reference/wp_delete_file|wp_delete_file]] : applied to an attachment file name just before deleting.
+
+;[[Plugin_API/Filter_Reference/wp_generate_attachment_metadata|wp_generate_attachment_metadata]] : applied to the attachment metadata array before saving in the database.
+
+;[[Plugin_API/Filter_Reference/wp_save_image_file|wp_save_image_file]] (deprecated) : use [[Plugin_API/Filter_Reference/wp_save_image_editor_file|<tt>wp_save_image_editor_file</tt>]] instead.
+
+;[[Plugin_API/Filter_Reference/wp_thumbnail_creation_size_limit|wp_thumbnail_creation_size_limit]] : applied to the size of the thumbnail when uploading an image. Filter function arguments: max file size, attachment ID, attachment file name.
+
+;[[Plugin_API/Filter_Reference/wp_thumbnail_max_side_length|wp_thumbnail_max_side_length]] : applied to the size of the thumbnail when uploading an image. Filter function arguments: image side max size, attachment ID, attachment file name.
+
+;[[Plugin_API/Filter_Reference/wp_update_attachment_metadata|wp_update_attachment_metadata]] : applied to the attachment metadata just before saving in the <tt>wp_update_attachment_metadata</tt> function. Filter function arguments: meta data, attachment ID.
+
+== Comment, Trackback, and Ping Filters ==
+See also [[#Author and User Filters]], [[#Link Filters]], [[#Date and Time Filters]], and [[#Administrative Filters]] below.
+
+=== Database Reads ===
+Filters in this section are applied to information read from the database, prior to displaying on a page or editing screen.
+
+;[[Plugin_API/Filter_Reference/comment_excerpt|comment_excerpt]] : applied to the comment excerpt by the <tt>comment_excerpt</tt> function. See also <tt>get_comment_excerpt</tt>.
+
+;[[Plugin_API/Filter_Reference/comment_flood_filter|comment_flood_filter]] : applied when someone appears to be flooding your blog with comments. Filter function arguments: already blocked (true/false, whether a previous filtering plugin has already blocked it; set to true and return true to block this comment in a plugin), time of previous comment, time of current comment.
+
+;[[Plugin_API/Filter_Reference/comment_post_redirect|comment_post_redirect]] : applied to the redirect location after someone adds a comment. Filter function arguments: redirect location, comment info array.
+
+;[[Plugin_API/Filter_Reference/comment_text|comment_text]] : applied to the comment text before displaying on the screen by the <tt>comment_text</tt> function, and in the admin menus.
+
+;[[Plugin_API/Filter_Reference/comment_text_rss|comment_text_rss]] : applied to the comment text prior to including in an RSS feed.
+
+;[[Plugin_API/Filter_Reference/comments_array|comments_array]] : applied to the array of comments for a post in the <tt>comments_template</tt> function. Filter function arguments: array of comment information structures, post ID.
+
+;[[Plugin_API/Filter_Reference/comments_number|comments_number]] : applied to the formatted text giving the number of comments generated by the <tt>comments_number</tt> function. See also <tt>get_comments_number</tt>.
+
+;[[Plugin_API/Filter_Reference/get_comment_excerpt|get_comment_excerpt]] : applied to the comment excerpt read from the database by the <tt>get_comment_excerpt</tt> function (which is also called by <tt>comment_excerpt</tt>. See also <tt>comment_excerpt</tt>.
+
+;[[Plugin_API/Filter_Reference/get_comment_ID|get_comment_ID]] : applied to the comment ID read from the global <tt>$comments</tt> variable by the <tt>get_comment_ID</tt> function.
+
+;[[Plugin_API/Filter_Reference/get_comment_text|get_comment_text]] : applied to the comment text of the current comment in the <tt>get_comment_text</tt> function, which is also called by the <tt>comment_text</tt> function.
+
+;[[Plugin_API/Filter_Reference/get_comment_type|get_comment_type]] : applied to the comment type ("comment", "trackback", or "pingback") by the <tt>get_comment_type</tt> function (which is also called by <tt>comment_type</tt>).
+
+;[[Plugin_API/Filter_Reference/get_comments_number|get_comments_number]] : applied to the comment count read from the <tt>$post</tt> global variable by the <tt>get_comments_number</tt> function (which is also called by the <tt>comments_number</tt> function; see also <tt>comments_number</tt> filter).
+
+;[[Plugin_API/Filter_Reference/post_comments_feed_link|post_comments_feed_link]] : applied to the feed URL generated for the comments feed by the <tt>comments_rss</tt> function.
+
+=== Database Writes ===
+
+Filters in this section are applied to information prior to saving to the database.
+
+;[[Plugin_API/Filter_Reference/comment_save_pre|comment_save_pre]] : applied to the comment data just prior to updating/editing comment data. Function arguments: comment data array, with indices "comment_post_ID", "comment_author", "comment_author_email", "comment_author_url", "comment_content", "comment_type", and "user_ID".
+
+;[[Plugin_API/Filter_Reference/pre_comment_approved|pre_comment_approved]] : applied to the current comment's approval status (true/false) to allow a plugin to override. Return true/false and set first argument to true/false to approve/disapprove the comment, and use global variables such as <tt>$comment_ID</tt> to access information about this comment.
+
+;[[Plugin_API/Filter_Reference/pre_comment_content|pre_comment_content]] : applied to the content of a comment prior to saving the comment in the database.
+
+;[[Plugin_API/Filter_Reference/preprocess_comment|preprocess_comment]] : applied to the comment data prior to any other processing, when saving a new comment in the database. Function arguments: comment data array, with indices "comment_post_ID", "comment_author", "comment_author_email", "comment_author_url", "comment_content", "comment_type", and "user_ID".
+
+;[[Plugin_API/Filter_Reference/wp_insert_post_data|wp_insert_post_data]] : applied to modified and unmodified post data in wp_insert_post() prior to update or insertion of post into database. Function arguments: modified and extended post array and sanitized post array.
+
+== Category and Term Filters ==
+
+See also [[#Administrative Filters]] below.
+
+=== Database Reads ===
+
+Filters in this section are applied to information read from the database, prior to displaying on a page or editing screen.
+
+;[[Plugin_API/Filter_Reference/category_description|category_description]] : applied to the "description" field categories by the <tt>category_description</tt> and <tt>[[Template_Tags/wp_list_categories|wp_list_categories]]</tt> functions. Filter function arguments: description, category ID when called from <tt>category_description</tt>; description, category information array (all fields from the category table for that particular category) when called from <tt>[[Template_Tags/wp_list_categories|wp_list_categories]]</tt>.
+
+;[[Plugin_API/Filter_Reference/category_feed_link|category_feed_link]] : applied to the feed URL generated for the category feed by the <tt>[[Function_Reference/get_category_feed_link|get_category_feed_link]]</tt> function.
+
+;[[Plugin_API/Filter_Reference/category_link|category_link]] : applied to the URL created for a category by the <tt>[[Function_Reference/get_category_link|get_category_link]]</tt> function. Filter function arguments: link URL, category ID.
+
+;[[Plugin_API/Filter_Reference/get_ancestors|get_ancestors]] : applied to the list of ancestor IDs returned by the <tt>[[Function_Reference/get_ancestors|get_ancestors]]</tt> function (which is in turn used by many other functions). Filter function arguments: ancestor IDs array, given object ID, given object type.
+
+;[[Plugin_API/Filter_Reference/get_categories|get_categories]] : applied to the category list generated by the <tt>[[Function_Reference/get_categories|get_categories]]</tt> function (which is in turn used by many other functions). Filter function arguments: category list, <tt>[[Function_Reference/get_categories|get_categories]]</tt> options list.
+
+;[[Plugin_API/Filter_Reference/get_category|get_category]] : applied to the category information that the <tt>[[Function_Reference/get_category|get_category]]</tt> function looks up, which is basically an array of all the fields in WordPress's category table for a particular category ID.
+
+;[[Plugin_API/Filter_Reference/list_cats|list_cats]] : called for two different purposes:
+#the <tt>[[Function_Reference/wp_dropdown_categories|wp_dropdown_categories]]</tt> function uses it to filter the <tt>show_option_all</tt> and <tt>show_option_none</tt> arguments (which are used to put options "All" and "None" in category drop-down lists). No additional filter function arguments.
+#the <tt>[[Function_Reference/wp_list_categories|wp_list_categories]]</tt> function applies it to the category names. Filter function arguments: category name, category information list (all fields from the category table for that particular category).
+
+;[[Plugin_API/Filter_Reference/list_cats_exclusions|list_cats_exclusions]] : applied to the SQL WHERE statement giving the categories to be excluded by the <tt>[[Function_Reference/get_categories|get_categories]]</tt> function. Typically, a plugin would add to this list, in order to exclude certain categories or groups of categories from category lists. Filter function arguments: excluded category WHERE clause, <tt>[[Function_Reference/get_categories|get_categories]]</tt> options list.
+
+;[[Plugin_API/Filter_Reference/single_cat_title|single_cat_title]] : applied to the category name when used to create a blog page title by the <tt>[[Template_Tags/wp_title|wp_title]]</tt> and <tt>[[Template_Tags/single_cat_title|single_cat_title]]</tt> functions.
+
+;[[Plugin_API/Filter_Reference/the_category|the_category]] : applied to the list of categories (an HTML list with links) created by the <tt>get_the_category_list</tt> function. Filter function arguments: generated HTML text, list separator being used (empty string means it is a default LI list), <tt>parents</tt> argument to <tt>get_the_category_list</tt>.
+
+;[[Plugin_API/Filter_Reference/the_category_rss|the_category_rss]] : applied to the category list (a list of category XML elements) for a post by the <tt>[[Function_Reference/get_the_category_rss|get_the_category_rss]]</tt> function, before including in an RSS feed. Filter function arguments are the list text and the type ("rdf" or "rss" generally).
+
+;[[Plugin_API/Filter_Reference/wp_dropdown_cats|wp_dropdown_cats]] : applied to the drop-down category list (a text string containing HTML option elements) generated by the <tt>[[Template_Tags/wp_dropdown_categories|wp_dropdown_categories]]</tt> function.
+
+;[[Plugin_API/Filter_Reference/wp_list_categories|wp_list_categories]] : applied to the category list (an HTML list) generated by the <tt>[[Template_Tags/wp_list_categories|wp_list_categories]]</tt> function.
+
+;[[Plugin_API/Function_Reference/wp_get_object_terms|wp_get_object_terms]] : applied to the list of terms (an array of objects) generated by the <tt>[[Function_Reference/wp_get_object_terms|wp_get_object_terms]]</tt> function, which is called by a number of category/term related functions, such as <tt>[[Function_Reference/get_the_terms|get_the_terms]]</tt> and <tt>[[Function_Reference/get_the_category|get_the_category]]</tt>.
+
+=== Database Writes ===
+
+Filters in this section are applied to information prior to saving to the database.
+
+;[[Plugin_API/Filter_Reference/pre_category_description|pre_category_description]] : applied to the category desription prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/wp_update_term_parent|wp_update_term_parent]] : filter term parent before update to term is applied, hook to this filter to see if it will cause a hierarchy loop.
+
+;[[Plugin_API/Action_Reference/edit_terms|edit_terms]] : (actually an action, but often used like a filter) hooked in prior to saving taxonomy/category change in the database
+
+;[[Plugin_API/Filter_Reference/pre_category_name|pre_category_name]] : applied to the category name prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_category_nicename|pre_category_nicename]] : applied to the category nice name prior to saving in the database.
+
+== Link Filters ==
+
+Note: This section contains filters related to links to posts, pages, archives, feeds, etc. For blogroll links, see the [[#Blogroll Filters]] section below.
+
+;[[Plugin_API/Filter_Reference/attachment_link|attachment_link]] : applied to the calculated attachment permalink by the <tt>get_attachment_link</tt> function. Filter function arguments: link URL, attachment ID.
+
+;[[Plugin_API/Filter_Reference/author_feed_link|author_feed_link]] : applied to the feed URL generated for the author feed by the <tt>get_author_rss_link</tt> function.
+
+;[[Plugin_API/Filter_Reference/author_link|author_link]] : applied to the author's archive permalink created by the <tt>get_author_posts_url</tt> function. Filter function arguments: link URL, author ID, author's "nice" name. Note that <tt>get_author_posts_url</tt> is called within functions <tt>wp_list_authors</tt> and <tt>the_author_posts_link</tt>.
+
+;[[Plugin_API/Filter_Reference/comment_reply_link|comment_reply_link]] : applied to the link generated for replying to a specific comment by the <tt>get_comment_reply_link</tt> function which is called within function <tt>comments_template</tt>. Filter function arguments: link (string), custom options (array), current comment (object), current post (object).
+
+;[[Plugin_API/Filter_Reference/day_link|day_link]] : applied to the link URL for a daily archive by the <tt>get_day_link</tt> function. Filter function arguments: URL, year, month number, day number.
+
+;[[Plugin_API/Filter_Reference/feed_link|feed_link]] : applied to the link URL for a feed by the <tt>get_feed_link</tt> function. Filter function arguments: URL, type of feed (e.g. "rss2", "atom", etc.).
+
+;[[Plugin_API/Filter_Reference/get_comment_author_link|get_comment_author_link]] : applied to the HTML generated for the author's link on a comment, in the <tt>get_comment_author_link</tt> function (which is also called by <tt>comment_author_link</tt>. Action function arguments: user name
+
+;[[Plugin_API/Filter_Reference/get_comment_author_url_link|get_comment_author_url_link]] : applied to the HTML generated for the author's link on a comment, in the <tt>get_comment_author_url_link</tt> function (which is also called by <tt>comment_author_link</tt>).
+
+;[[Plugin_API/Filter_Reference/month_link|month_link]] : applied to the link URL for a monthly archive by the <tt>get_month_link</tt> function. Filter function arguments: URL, year, month number.
+
+;[[Plugin_API/Filter_Reference/page_link|page_link]] : applied to the calculated page URL by the <tt>get_page_link</tt> function. Filter function arguments: URL, page ID. Note that there is also an internal filter called <tt>_get_page_link</tt> that can be used to filter the URLS of pages that are not designated as the blog's home page (same arguments).  Note that this only applies to WordPress pages, not posts, custom post types, or attachments.
+
+;[[Plugin_API/Filter_Reference/post_link|post_link]] : applied to the calculated post permalink by the <tt>get_permalink</tt> function, which is also called by the <tt>the_permalink</tt>, <tt>post_permalink</tt>, <tt>previous_post_link</tt>, and <tt>next_post_link</tt> functions. Filter function arguments: permalink URL, post data list.  Note that this only applies to WordPress default posts, and not custom post types (nor pages or attachments).
+
+;[[Plugin_API/Filter_Reference/post_type_link|post_type_link]] : applied to the calculated custom post type permalink by the <tt>get_post_permalink</tt> function.
+
+;[[Plugin_API/Filter_Reference/the_permalink|the_permalink]] : applied to the permalink URL for a post prior to printing by function <tt>the_permalink</tt>.
+
+;[[Plugin_API/Filter_Reference/year_link|year_link]] : applied to the link URL for a yearly archive by the <tt>get_year_link</tt> function. Filter function arguments: URL, year.
+
+;[[Plugin_API/Filter_Reference/tag_link|tag_link]] : applied to the URL created for a tag by the get_tag_link function. Filter function arguments: link URL, tag ID.
+
+;[[Plugin_API/Filter_Reference/term_link|term_link]] : applied to the URL created for a term by the get_term_link function. Filter function arguments: term link URL, term object and taxonomy slug.
+
+== Date and Time Filters ==
+
+See also [[#Link Filters]] above.
+
+;[[Plugin_API/Filter_Reference/get_comment_date|get_comment_date]] : applied to the formatted comment date generated by the <tt>get_comment_date</tt> function (which is also called by <tt>comment_date</tt>).
+
+;[[Plugin_API/Filter_Reference/get_comment_time|get_comment_time]] : applied to the formatted comment time in the <tt>get_comment_time</tt> function (which is also called by <tt>comment_time</tt>).
+
+;[[Plugin_API/Filter_Reference/get_the_modified_date|get_the_modified_date]] : applied to the formatted post modification date generated by the <tt>get_the_modified_date</tt> function (which is also called by the <tt>the_modified_date</tt> function).
+
+;[[Plugin_API/Filter_Reference/get_the_modified_time|get_the_modified_time]] : applied to the formatted post modification time generated by the <tt>get_the_modified_time</tt> and <tt>get_post_modified_time</tt> functions (which are also called by the <tt>the_modified_time</tt> function).
+
+;[[Plugin_API/Filter_Reference/get_the_time|get_the_time]] :  applied to the formatted post time generated by the <tt>get_the_time</tt> and <tt>get_post_time</tt> functions (which are also called by the <tt>the_time</tt> function).
+
+;[[Plugin_API/Filter_Reference/the_date|the_date]] : applied to the formatted post date generated by the <tt>the_date</tt> function.
+
+;[[Plugin_API/Filter_Reference/the_modified_date|the_modified_date]] : applied to the formatted post modification date generated by the <tt>the_modified_date</tt> function.
+
+;[[Plugin_API/Filter_Reference/the_modified_time|the_modified_time]] : applied to the formatted post modification time generated by the <tt>the_modified_time</tt> function.
+
+;[[Plugin_API/Filter_Reference/the_time|the_time]] : applied to the formatted post time generated by the <tt>the_time</tt> function.
+
+;[[Plugin_API/Filter_Reference/the_weekday|the_weekday]] : applied to the post date weekday name generated by the <tt>the_weekday</tt> function.
+
+;[[Plugin_API/Filter_Reference/the_weekday_date|the_weekday_date]] : applied to the post date weekday name generated by the <tt>the_weekday_date</tt> function. Function arguments are the weekday name, before text, and after text (before text and after text are added to the weekday name if the current post's weekday is different from the previous post's weekday).
+
+== Author and User Filters ==
+
+See also [[#Link Filters]] and [[#Administrative Filters]] sections.
+
+;[[Plugin_API/Filter_Reference/login_body_class|login_body_class]] : Allows filtering of the body class applied to the login screen in <tt>[[Function_Reference/login_header|login_header()]]</tt>.
+
+;[[Plugin_API/Filter_Reference/login_redirect|login_redirect]] : applied to the <tt>redirect_to</tt> post/get variable during the user login process.
+
+;[[Plugin_API/Filter_Reference/user_contactmethods|user_contactmethods]] : applied to the contact methods fields on the user profile page.  (old page is here: [[Plugin_API/Filter_Reference/contactmethods|contactmethods]])
+
+;[[Plugin_API/Filter_Reference/update_(meta_type)_metadata|update_(meta_type)_metadata]] : applied before a (user) metadata gets updated.
+
+=== Database Reads ===
+
+Filters in this section are applied to information read from the database, prior to displaying on a page or editing screen.
+
+;[[Plugin_API/Filter_Reference/author_email|author_email]] : applied to the comment author's email address retrieved from the database by the <tt>comment_author_email</tt> function. See also <tt>get_comment_author_email</tt>.
+
+;[[Plugin_API/Filter_Reference/comment_author|comment_author]] : applied to the comment author's name retrieved from the database by the <tt>comment_author</tt> function. See also <tt>get_comment_author</tt>.
+;[[Plugin_API/Filter_Reference/comment_author_rss|comment_author_rss]] : applied to the comment author's name prior to including in an RSS feed.
+
+;[[Plugin_API/Filter_Reference/comment_email|comment_email]] : applied to the comment author's email address retrieved from the database by the <tt>comment_author_email_link</tt> function.
+
+;[[Plugin_API/Filter_Reference/comment_url|comment_url]] : applied to the comment author's URL retrieved from the database by the <tt>comment_author_url</tt> function (see also <tt>get_comment_author_url</tt>).
+
+;[[Plugin_API/Filter_Reference/get_comment_author|get_comment_author]] : applied to the comment author's name retrieved from the database by <tt>get_comment_author</tt>, which is also called by <tt>comment_author</tt>. See also <tt>comment_author</tt>.
+
+;[[Plugin_API/Filter_Reference/get_comment_author_email|get_comment_author_email]] : applied to the comment author's email address retrieved from the database by <tt>get_comment_author_email</tt>, which is also called by <tt>comment_author_email</tt>. See also <tt>author_email</tt>.
+
+;[[Plugin_API/Filter_Reference/get_comment_author_IP|get_comment_author_IP]] : applied to the comment author's IP address retrieved from the database by the <tt>get_comment_author_IP</tt> function, which is also called by <tt>comment_author_IP</tt>.
+
+;[[Plugin_API/Filter_Reference/get_comment_author_url|get_comment_author_url]] : applied to the comment author's URL retrieved from the database by the <tt>get_comment_author_url</tt> function, which is also called by <tt>comment_author_url</tt>. See also <tt>comment_url</tt>.
+
+;[[Plugin_API/Filter_Reference/login_errors|login_errors]] : applied to the login error message printed on the login screen.
+
+;[[Plugin_API/Filter_Reference/login_headertitle|login_headertitle]] : applied to the title for the login header URL (Powered by WordPress by default) printed on the login screen.
+
+;[[Plugin_API/Filter_Reference/login_headerurl|login_headerurl]] : applied to the login header URL (points to wordpress.org by default) printed on the login screen.
+
+;[[Plugin_API/Filter_Reference/login_message|login_message]] : applied to the login message printed on the login screen.
+
+;[[Plugin_API/Filter_Reference/role_has_cap|role_has_cap]] : applied to a role's capabilities list in the <tt>WP_Role->has_cap</tt> function. Filter function arguments are the capabilities list to be filtered, the capability being questioned, and the role's name. 
+
+;[[Plugin_API/Filter_Reference/sanitize_user|sanitize_user]] : applied to a user name by the <tt>sanitize_user</tt> function. Filter function arguments: user name (after some cleaning up), raw user name, strict (true or false to use strict ASCII or not).
+
+;[[Plugin_API/Filter_Reference/the_author|the_author]] : applied to a post author's displayed name by the <tt>get_the_author</tt> function, which is also called by the <tt>the_author</tt> function.
+
+;[[Plugin_API/Filter_Reference/the_author_email|the_author_email]] : applied to a post author's email address by the <tt>the_author_email</tt> function.
+
+;[[Plugin_API/Filter_Reference/user_search_columns|user_search_columns]] : applied to the list of columns in the wp_users table to include in the <tt>WHERE</tt> clause inside [[Class_Reference/WP_User_Query|WP_User_Query]].
+
+=== Database Writes ===
+
+Filters in this section are applied to information prior to saving to the database.
+
+;[[Plugin_API/Filter_Reference/pre_comment_author_email|pre_comment_author_email]] : applied to a comment author's email address prior to saving the comment in the database. 
+
+;[[Plugin_API/Filter_Reference/pre_comment_author_name|pre_comment_author_name]] : applied to a comment author's user name prior to saving the comment in the database. 
+
+;[[Plugin_API/Filter_Reference/pre_comment_author_url|pre_comment_author_url]] : applied to a comment author's URL prior to saving the comment in the database. 
+
+;[[Plugin_API/Filter_Reference/pre_comment_user_agent|pre_comment_user_agent]] : applied to the comment author's user agent prior to saving the comment in the database.
+
+;[[Plugin_API/Filter_Reference/pre_comment_user_ip|pre_comment_user_ip]] : applied to the comment author's IP address prior to saving the comment in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_id|pre_user_id]] : applied to the comment author's user ID prior to saving the comment in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_description|pre_user_description]] : applied to the user's description prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_display_name|pre_user_display_name]] : applied to the user's displayed name prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_email|pre_user_email]] : applied to the user's email address prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_first_name|pre_user_first_name]] : applied to the user's first name prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_last_name|pre_user_last_name]] : applied to the user's last name prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_login|pre_user_login]] : applied to the user's login name prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_nicename|pre_user_nicename]] : applied to the user's "nice name" prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_nickname|pre_user_nickname]] : applied to the user's nickname prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_user_url|pre_user_url]] : applied to the user's URL prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/registration_errors|registration_errors]] : applied to the list of registration errors generated while registering a user for a new account.
+
+;[[Plugin_API/Filter_Reference/user_registration_email|user_registration_email]] : applied to the user's email address read from the registration page, prior to trying to register the person as a new user.
+
+;[[Plugin_API/Filter_Reference/validate_username|validate_username]] : applied to the validation result on a new user name. Filter function arguments: valid (true/false), user name being validated.
+
+== Blogroll Filters ==
+
+Note: This section contains filters related to blogroll links. For filters related to links to posts, pages, categories, etc., see section [[#Link Filters]] above.
+
+;[[Plugin_API/Filter_Reference/get_bookmarks|get_bookmarks]] : applied to link/blogroll database query results by the <tt>get_bookmarks</tt> function. Filter function arguments: database query results list, <tt>get_bookmarks</tt> arguments list.
+
+;[[Plugin_API/Filter_Reference/link_category|link_category]] : applied to the link category by the <tt>get_links_list</tt> and <tt>wp_list_bookmarks</tt> functions (as of WordPress 2.2).
+
+;[[Plugin_API/Filter_Reference/link_description|link_description]] : applied to the link description by the <tt>get_links</tt> and <tt>wp_list_bookmarks</tt> functions (as of WordPress 2.2).
+
+;[[Plugin_API/Filter_Reference/link_rating|link_rating]] : applied to the link rating number by the <tt>get_linkrating</tt> function.
+
+;[[Plugin_API/Filter_Reference/link_title|link_title]] : applied to the link title by the <tt>get_links</tt> and <tt>wp_list_bookmarks</tt> functions (as of WordPress 2.2)
+
+;[[Plugin_API/Filter_Reference/pre_link_description|pre_link_description]] : applied to the link description prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_link_image|pre_link_image]] : applied to the link image prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_link_name|pre_link_name]] : applied to the link name prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_link_notes|pre_link_notes]] : applied to the link notes prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_link_rel|pre_link_rel]] : applied to the link relation information prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_link_rss|pre_link_rss]] : applied to the link RSS URL prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_link_target|pre_link_target]] : applied to the link target information prior to saving in the database.
+
+;[[Plugin_API/Filter_Reference/pre_link_url|pre_link_url]] : applied to the link URL prior to saving in the database.
+
+== Blog Information and Option Filters ==
+
+;[[Plugin_API/Filter_Reference/all_options|all_options]] : applied to the option list retrieved from the database by the <tt>get_alloptions</tt> function.
+
+;[[Plugin_API/Filter_Reference/all_plugins|all_plugins]] : applied to the list of plugins retrieved for display in the plugins list table.
+
+;[[Plugin_API/Filter_Reference/bloginfo|bloginfo]] : applied to the blog option information retrieved from the database by the <tt>bloginfo</tt> function, after first retrieving the information with the <tt>get_bloginfo</tt> function. A second argument <tt>$show</tt> gives the name of the bloginfo option that was requested. Note that <tt>bloginfo("url")</tt>, <tt>bloginfo("directory")</tt> and <tt>bloginfo("home")</tt> do ''not'' use this filtering function (see <tt>bloginfo_url</tt>).
+
+;[[Plugin_API/Filter_Reference/bloginfo_rss|bloginfo_rss]] : applied to the blog option information by function <tt>get_bloginfo_rss</tt> (which is also called from <tt>bloginfo_rss</tt>), after first retrieving the information with the <tt>get_bloginfo</tt> function, stripping out HTML tags, and converting characters appropriately. A second argument <tt>$show</tt> gives the name of the bloginfo option that was requested. 
+
+;[[Plugin_API/Filter_Reference/bloginfo_url|bloginfo_url]] : applied to the the output of <tt>bloginfo("url")</tt>, <tt>bloginfo("directory")</tt> and <tt>bloginfo("home")</tt> before returning the information.
+
+;[[Plugin_API/Filter_Reference/loginout|loginout]] : applied to the HTML link for logging in and out (generally placed in the sidebar) generated by the <tt>wp_loginout</tt> function.
+
+;[[Plugin_API/Filter_Reference/lostpassword_url|lostpassword_url]] : applied to the URL that allows users to reset their passwords.
+
+;[[Plugin_API/Filter_Reference/option_(option name)|option_(option name)]] : applied to the option value retrieved from the database by the <tt>get_option</tt> function, after unserializing (which decodes array-based options). To use this filter, you will need to add filters for specific options names, such as "option_foo" to filter the output of <tt>get_option("foo")</tt>. 
+
+;[[Plugin_API/Filter_Reference/pre_get_space_used|pre_get_space_used]]: applied to the <tt>[[Function_Reference/get_space_used|get_space_used()]]</tt> function to provide an alternative way of displaying storage space used. Returning false from this filter will revert to default display behavior (used wp_upload_dir() directory space in megabytes).
+
+;[[Plugin_API/Filter_Reference/pre_option_(option name)|pre_option_(option name)]] : applied to the option value retrieved from the database by the <tt>get_alloptions</tt> function, after unserializing (which decodes array-based options). To use this filter, you will need to add filters for specific options names, such as "pre_option_foo" to filter the option "foo".
+
+;[[Plugin_API/Filter_Reference/pre_update_option_(option name)|pre_update_option_(option name)]] : applied the option value before being saving to the database to allow overriding the value to be stored. To use this filter, you will need to add filters for specific options names, such as "pre_update_option_foo" to filter the option "foo".
+
+;[[Plugin_API/Filter_Reference/register|register]] : applied to the sidebar link created for the user to register (if allowed) or visit the admin panels (if already logged in) by the <tt>wp_register</tt> function.
+
+;[[Plugin_API/Filter_Reference/upload_dir|upload_dir]] : applied to the directory to be used for uploads calculated by the <tt>wp_upload_dir</tt> function. Filter function argument is an array with components "dir" (the upload directory path), "url" (the URL of the upload directory), and "error" (which you can set to true if you want to generate an error).
+
+;[[Plugin_API/Filter_Reference/upload_mimes|upload_mimes]] : allows a filter function to return a list of MIME types for uploads, if there is no MIME list input to the <tt>wp_check_filetype</tt> function. Filter function argument is an associated list of MIME types whose component names are file extensions (separated by vertical bars) and values are the corresponding MIME types.
+
+== General Text Filters ==
+
+;[[Plugin_API/Filter_Reference/attribute_escape|attribute_escape]] : applied to post text and other content by the <tt>attribute_escape</tt> function, which is called in many places in WordPress to change certain characters into HTML attributes before sending to the browser.
+
+;[[Plugin_API/Filter_Reference/js_escape|js_escape]] : applied to JavaScript code before sending to the browser in the <tt>js_escape</tt> function.
+
+;[[Plugin_API/Filter_Reference/sanitize_key|sanitize_key]] : applied to key before using it for your settings, field, or other needs, generated by <tt>sanitize_key</tt> function
+
+== Administrative Filters ==
+
+The filters in this section are related to the administration screens of WordPress, including content editing screens.
+
+;[[Plugin_API/Filter_Reference/admin_user_info_links|admin_user_info_links]] : applied to the user profile and info links in the WordPress admin quick menu.
+
+;[[Plugin_API/Filter_Reference/autosave_interval|autosave_interval]] : applied to the interval for auto-saving posts.
+
+;[[Plugin_API/Filter_Reference/bulk_actions|bulk_actions]] : applied to an array of bulk items in admin bulk action dropdowns.
+
+;[[Plugin_API/Filter_Reference/bulk_post_updated_messages|bulk_post_updated_messages]] : applied to an array of bulk action updated messages.
+
+;[[Plugin_API/Filter_Reference/cat_rows|cat_rows]] : applied to the category rows HTML generated for managing categories in the admin menus.
+
+;[[Plugin_API/Filter_Reference/comment_edit_pre|comment_edit_pre]] : applied to comment content prior to display in the editing screen.
+
+;[[Plugin_API/Filter_Reference/comment_edit_redirect|comment_edit_redirect]] : applied to the redirect location after someone edits a comment in the admin menus. Filter function arguments: redirect location, comment ID.
+
+;[[Plugin_API/Filter_Reference/comment_moderation_subject|comment_moderation_subject]] : applied to the mail subject before sending email notifying the administrator of the need to moderate a new comment. Filter function arguments: mail subject, comment ID.  Note that this happens inside the default <tt>wp_notify_moderator</tt> function, which is a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Filter_Reference/comment_moderation_text|comment_moderation_text]] : applied to the body of the mail message before sending email notifying the administrator of the need to moderate a new comment. Filter function arguments: mail body text, comment ID.  Note that this happens inside the default <tt>wp_notify_moderator</tt> function, which is a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Filter_Reference/comment_notification_headers|comment_notification_headers]] : applied to the mail headers before sending email notifying the post author of a new comment. Filter function arguments: mail header text, comment ID.  Note that this happens inside the default <tt>wp_notify_postauthor</tt> function, which is a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Filter_Reference/comment_notification_subject|comment_notification_subject]] : applied to the mail subject before sending email notifying the post author of a new comment. Filter function arguments: mail subject, comment ID.  Note that this happens inside the default <tt>wp_notify_postauthor</tt> function, which is a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Filter_Reference/comment_notification_text|comment_notification_text]] : applied to the body of the mail message before sending email notifying the post author of a new comment. Filter function arguments: mail body text, comment ID.  Note that this happens inside the default <tt>wp_notify_postauthor</tt> function, which is a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Filter_Reference/comment_row_actions|comment_row_actions]] : applied to the list of action links under each comment row (like Reply, Quick Edit, Edit).
+
+;[[Plugin_API/Filter_Reference/cron_request|cron_request]] : Allows filtering of the URL, key and arguments passed to [[Function_Reference/wp_remote_post|wp_remote_post()]] in [[Function_Reference/spawn_cron|spawn_cron()]].
+
+;[[Plugin_API/Filter_Reference/cron_schedules|cron_schedules]] : applied to an empty array to allow a plugin to generate cron schedules in the <tt>wp_get_schedules</tt> function.
+
+;[[Plugin_API/Filter_Reference/custom_menu_order|custom_menu_order]] : used to activate the 'menu_order' filter. 
+
+;[[Plugin_API/Filter_Reference/default_content|default_content]] : applied to the default post content prior to opening the editor for a new post.
+
+;[[Plugin_API/Filter_Reference/default_excerpt|default_excerpt]] :  applied to the default post excerpt prior to opening the editor for a new post.
+
+;[[Plugin_API/Filter_Reference/default_title|default_title]] :  applied to the default post title prior to opening the editor for a new post.
+
+;[[Plugin_API/Filter_Reference/editable_slug|editable_slug]] :  applied to the post, page, tag or category slug by the <tt>get_sample_permalink</tt> function.
+
+;[[Plugin_API/Filter_Reference/format_to_edit|format_to_edit]] : applied to post content, excerpt, title, and password by the <tt>format_to_edit</tt> function, which is called by the admin menus to set up a post for editing. Also applied to when editing comments in the admin menus.
+
+;[[Plugin_API/Filter_Reference/format_to_post|format_to_post]] : applied to post content by the <tt>format_to_post</tt> function, which is not used in WordPress by default.
+
+;[[Plugin_API/Filter_Reference/manage_edit-post_type_columns|manage_edit-${post_type}_columns]] : applied to the list of columns to print on the manage posts screen for a custom post type. Filter function argument/return value is an associative array where the element key is the name of the column, and the value is the header text for that column. See also action [[Plugin_API/Action_Reference/manage_post_type_posts_custom_column|<tt>manage_${post_type}_posts_custom_column</tt>]], which puts the column information into the edit screen.
+
+;[[Plugin_API/Filter_Reference/manage_link-manager_columns|manage_link-manager_columns]] : was <tt>manage_link_columns</tt> until wordpress 2.7. applied to the list of columns to print on the blogroll management screen. Filter function argument/return value is an associative list where the element key is the name of the column, and the value is the header text for that column. See also action [[Plugin_API/Action_Reference/manage_posts_custom_column|<tt>manage_link_custom_column</tt>]], which puts the column information into the edit screen.
+
+;[[Plugin_API/Filter_Reference/manage_posts_columns|manage_posts_columns]] : applied to the list of columns to print on the manage posts screen. Filter function argument/return value is an associative array where the element key is the name of the column, and the value is the header text for that column. See also action [[Plugin_API/Action_Reference/manage_posts_custom_column|<tt>manage_posts_custom_column</tt>]], which puts the column information into the edit screen. (see [http://scompt.com/archives/2007/10/20/adding-custom-columns-to-the-wordpress-manage-posts-screen Scompt's tutorial] for examples and use.)
+
+;[[Plugin_API/Filter_Reference/manage_pages_columns|manage_pages_columns]] : applied to the list of columns to print on the manage pages screen. Filter function argument/return value is an associative array where the element key is the name of the column, and the value is the header text for that column. See also action <tt>manage_pages_custom_column</tt>, which puts the column information into the edit screen.
+
+;[[Plugin_API/Filter_Reference/manage_users_columns|manage_users_columns]] 
+
+;[[Plugin_API/Filter_Reference/manage_users_custom_column|manage_users_custom_column]] 
+
+;[[Plugin_API/Filter_Reference/manage_users_sortable_columns|manage_users_sortable_columns]] 
+
+;[[Plugin_API/Filter_Reference/media_row_actions|media_row_actions]] : applied to the list of action links under each file in the Media Library (like View, Edit).
+
+;[[Plugin_API/Filter_Reference/menu_order|menu_order]] : applied to the array for the admin menu order. Must be activated with the 'custom_menu_order' filter before.
+
+;[[Plugin_API/Filter_Reference/nonce_life|nonce_life]] : applied to the lifespan of a [[Glossary#Nonce|nonce]] to generate or verify the nonce. Can be used to generate nonces which expire earlier. The value returned by the filter should be in seconds.
+
+;[[Plugin_API/Filter_Reference/nonce_user_logged_out | nonce_user_logged_out]] : applied to the current user ID used to generate or verify a [[Glossary#Nonce|nonce]] when the user is logged out.
+
+;[[Plugin_API/Filter_Reference/plugin_row_meta | plugin_row_meta]] : add additional links below each plugin on the plugins page. 
+
+;[[Plugin_API/Filter_Reference/postmeta_form_limit|postmeta_form_limit]] : applied to the number of post-meta information items shown on the post edit screen.
+
+;[[Plugin_API/Filter_Reference/post_row_actions|post_row_actions]] : applied to the list of action links (like Quick Edit, Edit, View, Preview) under each post in the Posts > All Posts section.
+
+;[[Plugin_API/Filter_Reference/post_updated_messages|post_updated_messages]] : applied to the array storing user-visible administrative messages when working with posts, pages and custom post types. This filter is used to change the text of said messages, not to trigger them. See "customizing the messages" in the [[Function_Reference/register_post_type#Example|register_post_type]] documentation.
+
+;[[Plugin_API/Filter_Reference/pre_upload_error|pre_upload_error]] : applied to allow a plugin to create an XMLRPC error for uploading files.
+
+;[[Plugin_API/Filter_Reference/preview_page_link|preview_page_link]] : applied to the link on the page editing screen that shows the page preview at the bottom of the screen.
+
+;[[Plugin_API/Filter_Reference/preview_post_link|preview_post_link]] : applied to the link on the post editing screen that shows the post preview at the bottom of the screen.
+
+;[[Plugin_API/Filter_Reference/richedit_pre|richedit_pre]] : applied to post content by the <tt>wp_richedit_pre</tt> function, before displaying in the rich text editor.
+
+;[[Plugin_API/Filter_Reference/schedule_event|schedule_event]] : applied to each recurring and single event as it is added to the cron schedule.
+
+;[https://developer.wordpress.org/reference/hooks/set-screen-option/ set-screen-option] : Filter a screen option value before it is set.
+
+;[[Plugin_API/Filter_Reference/show_password_fields|show_password_fields]] : applied to the true/false variable that controls whether the user is presented with the opportunity to change their password on the user profile screen (true means to show password changing fields; false means don't).
+
+;[[Plugin_API/Filter_Reference/terms_to_edit|terms_to_edit]] : applied to the CSV of terms (for each taxonomy) that is used to show which terms are attached to the post.
+
+;[[Plugin_API/Filter_Reference/the_editor|the_editor]] : applied to the HTML DIV created to house the rich text editor, prior to printing it on the screen. Filter function argument/return value is a string.
+
+;[[Plugin_API/Filter_Reference/user_can_richedit|user_can_richedit]] : applied to the calculation of whether the user's browser has rich editing capabilities, and whether the user wants to use the rich editor, in the <tt>user_can_richedit</tt> function. Filter function argument and return value is true/false if the current user can/cannot use the rich editor.
+
+;[[Plugin_API/Filter_Reference/user_has_cap|user_has_cap]] : applied to a user's capabilities list in the <tt>WP_User->has_cap</tt> function (which is called by the <tt>current_user_can</tt> function). Filter function arguments are the capabilities list to be filtered, the capability being questioned, and the argument list (which has things such as the post ID if the capability is to edit posts, etc.)
+
+;[[Plugin_API/Filter_Reference/wp_handle_upload_prefilter|wp_handle_upload_prefilter]] : applied to the upload information when uploading a file. Filter function argument: array which represents a single element of $_FILES.
+
+;[[Plugin_API/Filter_Reference/wp_handle_upload|wp_handle_upload]] : applied to the upload information when uploading a file. Filter function argument: array with elements "file" (file name), "url", "type".
+
+;[[Plugin_API/Filter_Reference/wp_revisions_to_keep|wp_revisions_to_keep]] : alters how many revisions are kept for a given post. Filter function arguments: number representing desired revisions saved (default is unlimited revisions), the post object.
+
+;[[Plugin_API/Filter_Reference/wp_terms_checklist_args|wp_terms_checklist_args]] : applied to arguments of the wp_terms_checklist() function. Filter function argument: array of checklist arguments, post ID.
+
+;[[Plugin_API/Filter_Reference/wp_upload_tabs|wp_upload_tabs]] : applied to the list of custom tabs to display on the upload management admin screen. Use action <tt>upload_files_(tab)</tt> to display a page for your custom tab (see [[Plugin API/Action Reference]]).
+
+;[[Plugin_API/Filter_Reference/media_upload_tabs|media_upload_tabs]] : applied to the list of custom tabs to display on the upload management admin screen. Use action <tt>upload_files_(tab)</tt> to display a page for your custom tab (see [[Plugin API/Action Reference]]).
+
+;[[Plugin_API/Filter_Reference/plugin_action_links_(plugin file name)|plugin_action_links_(plugin file name)]] : applied to the list of links to display on the plugins page (beside the activate/deactivate links).
+
+;[[Plugin_API/Filter_Reference/views_edit-post|views_edit-post]] : applied to the list posts eg All (30) | Published (22) | Draft (5) | Pending (2) | Trash (1)
+
+== Rich Text Editor Filters ==
+These filters modify the configuration of the rich text editor, TinyMCE.
+
+;[[Plugin_API/Filter_Reference/mce_spellchecker_languages|mce_spellchecker_languages]] : applied to the language selection available in the spell checker.
+
+;[[Plugin_API/Filter_Reference/mce_buttons, mce_buttons_2, mce_buttons_3, mce_buttons_4|mce_buttons, mce_buttons_2, mce_buttons_3, mce_buttons_4]] : applied to the rows of buttons for the rich editor toolbar (each is an array of button names). 
+
+;[[Plugin_API/Filter_Reference/mce_css|mce_css]] : applied to the CSS file URL for the rich text editor. 
+
+;[[Plugin_API/Filter_Reference/mce_external_plugins|mce_external_plugins]] : applied to the array of external plugins to be loaded by the rich text editor. 
+
+;[[Plugin_API/Filter_Reference/mce_external_languages|mce_external_languages]] : applied to the array of language files loaded by external plugins, allowing them to use the standard translation method (see tinymce/langs/wp-langs.php for reference).
+
+;[[Plugin_API/Filter_Reference/tiny_mce_before_init|tiny_mce_before_init]] : applied to the whole init array for the editor.
+
+== Template Filters ==
+
+This section contains links related to themes, templates, and style files.
+
+;[[Plugin_API/Filter_Reference/locale_stylesheet_uri|locale_stylesheet_uri]] : applied to the locale-specific stylesheet URI returned by the <tt>get_locale_stylesheet_uri</tt> function. Filter function arguments: URI, stylesheet directory URI.
+
+;[[Plugin_API/Filter_Reference/stylesheet|stylesheet]] : applied to the stylesheet returned by the <tt>get_stylesheet</tt> function.
+
+;[[Plugin_API/Filter_Reference/stylesheet_directory|stylesheet_directory]] : applied to the stylesheet directory returned by the <tt>get_stylesheet_directory</tt> function. Filter function arguments: stylesheet directory, stylesheet.
+
+;[[Plugin_API/Filter_Reference/stylesheet_directory_uri|stylesheet_directory_uri]] : applied to the stylesheet directory URI returned by the <tt>get_stylesheet_directory_uri</tt> function. Filter function arguments: stylesheet directory URI, stylesheet.
+
+;[[Plugin_API/Filter_Reference/stylesheet_uri|stylesheet_uri]] : applied to the stylesheet URI returned by the <tt>get_stylesheet_uri</tt> function. Filter function arguments: stylesheet URI, stylesheet.
+
+;[[Plugin_API/Filter_Reference/template|template]] : applied to the template returned by the <tt>get_template</tt> function.
+
+;[[Plugin_API/Filter_Reference/template_directory|template_directory]] : applied to the template directory returned by the <tt>get_template_directory</tt> function. Filter function arguments: template directory, template.
+
+;[[Plugin_API/Filter_Reference/template_directory_uri|template_directory_uri]] : applied to the template directory URI returned by the <tt>get_template_directory_uri</tt> function. Filter function arguments: template directory URI, template.
+
+;[[Plugin_API/Filter_Reference/theme_root|theme_root]] : applied to the theme root directory (normally wp-content/themes) returned by the <tt>get_theme_root</tt> function.
+
+;[[Plugin_API/Filter_Reference/theme_root_uri|theme_root_uri]] : applied to the theme root directory URI returned by the <tt>get_theme_root_uri</tt> function. Filter function arguments: URI, site URL.
+
+You can also replace individual template files from your theme, by using the following filter hooks.  See also the <tt>[[Plugin API/Action Reference/template redirect|template_redirect]]</tt> action hook. Each of these filters takes as input the path to the corresponding template file in the current theme. A plugin can modify the file to be used by returning a new path to a template file.
+
+;[[Plugin_API/Filter_Reference/404_template| 404_template]] :
+;[[Plugin_API/Filter_Reference/archive_template| archive_template]] : You can use this for example to enforce a specific template for a custom post type archive. This way you can keep all the code in a plugin.
+;[[Plugin_API/Filter_Reference/attachment_template| attachment_template]] :
+;[[Plugin_API/Filter_Reference/author_template| author_template]] :
+;[[Plugin_API/Filter_Reference/category_template| category_template]] :
+;[[Plugin_API/Filter_Reference/comments_popup_template| comments_popup_template]] :
+;[[Plugin_API/Filter_Reference/comments_template| comments_template]] : The "comments_template" filter can be used to load a custom template form a plugin which replace the themes default comment template. 
+;[[Plugin_API/Filter_Reference/date_template| date_template]] :
+;[[Plugin_API/Filter_Reference/home_template| home_template]] :
+;[[Plugin_API/Filter_Reference/page_template| page_template]] :
+;[[Plugin_API/Filter_Reference/paged_template| paged_template]] :
+;[[Plugin_API/Filter_Reference/search_template| search_template]] :
+;[[Plugin_API/Filter_Reference/single_template| single_template]] : You can use this for example to enforce a specific template for a custom post type. This way you can keep all the code in a plugin.
+;[[Plugin_API/Filter_Reference/shortcut_link| shortcut_link]] : applied to the "Press This" bookmarklet link.
+;[[Plugin_API/Filter_Reference/template_include| template_include]] :
+;[[Plugin_API/Filter_Reference/wp_nav_menu_args| wp_nav_menu_args]] : applied to the arguments of the <tt>wp_nav_menu</tt> function.
+;[[Plugin_API/Filter_Reference/wp_nav_menu_items| wp_nav_menu_items]] : Filter the HTML list content for navigation menus.
+
+=== Kubrick Filters ===
+
+These filters were present in the pre-3.0 default theme kubrick.
+
+;[[Plugin_API/Filter_Reference/kubrick_header_color|kubrick_header_color]] : applied to the color for the header of the kubrick theme.
+
+;[[Plugin_API/Filter_Reference/kubrick_header_display|kubrick_header_display]] : applied to the display option for the header of the kubrick theme.
+
+;[[Plugin_API/Filter_Reference/kubrick_header_image|kubrick_header_image]] : applied to the header image file for the kubrick theme.
+
+== Registration & Login Filters ==
+;[[Plugin_API/Filter_Reference/authenticate|authenticate]] : allows basic authentication to be performed on login based on username and password.
+
+;[[Plugin_API/Filter_Reference/registration_errors|registration_errors]] : applied to the list of registration errors generated while registering a user for a new account.
+
+;[[Plugin_API/Filter_Reference/user_registration_email|user_registration_email]] : applied to the user's email address read from the registration page, prior to trying to register the person as a new user.
+
+;[[Plugin_API/Filter_Reference/validate_username|validate_username]] : applied to the validation result on a new user name. Filter function arguments: valid (true/false), user name being validated.
+
+;[[Plugin_API/Filter_Reference/wp_authenticate_user|wp_authenticate_user]] : applied when a user attempted to log in, after WordPress validates username and password, but before validation errors are checked.
+
+
+== Redirect/Rewrite Filters ==
+
+These advanced filters relate to WordPress’s handling of rewrite rules.
+
+;[[Plugin_API/Filter_Reference/allowed_redirect_hosts|allowed_redirect_hosts]] : applied to the list of host names deemed safe for redirection.  wp-login.php uses this to defend against a dangerous 'redirect_to' request parameter
+
+;[[Plugin_API/Filter_Reference/author_rewrite_rules|author_rewrite_rules]] : applied to the author-related rewrite rules after they are generated.
+
+;[[Plugin_API/Filter_Reference/category_rewrite_rules|category_rewrite_rules]] : applied to the category-related rewrite rules after they are generated.
+
+;[[Plugin_API/Filter_Reference/comments_rewrite_rules|comments_rewrite_rules]] : applied to the comment-related rewrite rules after they are generated.
+
+;[[Plugin_API/Filter_Reference/date_rewrite_rules|date_rewrite_rules]] : applied to the date-related rewrite rules after they are generated.
+
+;[[Plugin_API/Filter_Reference/mod_rewrite_rules|mod_rewrite_rules]] : applied to the list of rewrite rules given to the user to put into their .htaccess file when they change their permalink structure. (Note: replaces deprecated filter <tt>rewrite_rules</tt>.)
+
+;[[Plugin_API/Filter_Reference/page_rewrite_rules|page_rewrite_rules]] : applied to the page-related rewrite rules after they are generated.
+
+;[[Plugin_API/Filter_Reference/post_rewrite_rules|post_rewrite_rules]] : applied to the post-related rewrite rules after they are generated.
+
+;[[Plugin_API/Filter_Reference/redirect_canonical|redirect_canonical]] : Can be used to cancel a "canonical" URL redirect. Accepts 2 parameters: <tt>$redirect_url</tt>, <tt>$requested_url</tt>. To cancel the redirect return <tt><b>FALSE</b></tt>, to allow the redirect return <tt>$redirect_url</tt>
+
+;[[Plugin_API/Filter_Reference/rewrite_rules_array|rewrite_rules_array]] : applied to the entire rewrite rules array after it is generated.
+
+;[[Plugin_API/Filter_Reference/root_rewrite_rules|root_rewrite_rules]] : applied to the root-level rewrite rules after they are generated.
+
+;[[Plugin_API/Filter_Reference/search_rewrite_rules|search_rewrite_rules]] : applied to the search-related rewrite rules after they are generated.
+
+;[[Plugin_API/Filter_Reference/wp_redirect|wp_redirect]] : applied to a redirect URL by the default <tt>wp_redirect</tt> function. Filter function arguments: URL, HTTP status code. Note that <tt>wp_redirect</tt> is also a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Filter_Reference/wp_redirect_status|wp_redirect_status]] : applied to the HTTP status code when redirecting by the default <tt>wp_redirect</tt> function. Filter function arguments: HTTP status code, URL. Note that <tt>wp_redirect</tt> is also a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+
+== WP_Query Filters ==
+
+These are filters run by the [[Class_Reference/WP_Query|WP_Query object]] in the course of building and executing a query to retrieve posts. See also [[#Advanced WordPress Filters]] for queries relating to users, meta values, and more generic queries.
+
+;[[Plugin_API/Filter_Reference/found_posts|found_posts]] : applied to the list of posts, just after querying from the database.
+
+;[[Plugin_API/Filter_Reference/found_posts_query|found_posts_query]] : after the list of posts to display is queried from the database, WordPress selects rows in the query results. This filter allows you to do something other than <tt>SELECT FOUND_ROWS()</tt> at that step.
+
+;[[Plugin_API/Filter_Reference/post_limits|post_limits]] : applied to the <tt>LIMIT</tt> clause of the query that returns the post array.
+
+;[[Plugin_API/Filter_Reference/posts_clauses|posts_clauses]] : applied to the entire SQL query, divided into a keyed array for each clause type, that returns the post array. Can be easier to work with than <tt>posts_request</tt>.
+
+;[[Plugin_API/Filter_Reference/posts_distinct|posts_distinct]] : allows a plugin to add a <tt>DISTINCTROW</tt> clause to the query that returns the post array. 
+
+;[[Plugin_API/Filter_Reference/posts_fields|posts_fields]] : applied to the field list for the query that returns the post array.
+
+;[[Plugin_API/Filter_Reference/posts_groupby|posts_groupby]] : applied to the <tt>GROUP BY</tt> clause of the query that returns the post array (normally empty).
+
+;[[Plugin_API/Filter_Reference/posts_join|posts_join]] : applied to the <tt>JOIN</tt> clause of the query that returns the post array. This is typically used to add a table to the  <tt>JOIN</tt>, in combination with the <tt>posts_where</tt> filter.
+
+;[[Plugin_API/Filter_Reference/posts_join_paged|posts_join_paged]] : applied to the <tt>JOIN</tt> clause of the query that returns the post array, after the paging is calculated (though paging does not affect the JOIN, so this is actually equivalent to <tt>posts_join</tt>).
+
+;[[Plugin_API/Filter_Reference/posts_orderby|posts_orderby]] : applied to the <tt>ORDER BY</tt> clause of the query that returns the post array.
+
+;[[Plugin_API/Filter_Reference/posts_request|posts_request]] : applied to the entire SQL query that returns the post array, just prior to running the query.
+
+;[[Plugin_API/Filter_Reference/posts_results|posts_results]] : allows you to manipulate the resulting array returned from the query.
+
+;[[Plugin_API/Filter_Reference/posts_search|posts_search]] : applied to the search SQL that is used in the <tt>WHERE</tt> clause of WP_Query.
+
+;[[Plugin_API/Filter_Reference/posts_where|posts_where]] : applied to the <tt>WHERE</tt> clause of the query that returns the post array.
+
+;[[Plugin_API/Filter_Reference/posts_where_paged|posts_where_paged]] : applied to the <tt>WHERE</tt> clause of the query that returns the post array, after the paging is calculated (though paging does not affect the WHERE, so this is actually equivalent to <tt>posts_where</tt>).
+
+;[[Plugin_API/Filter_Reference/the_posts|the_posts]] : applied to the list of posts queried from the database after minimal processing for permissions and draft status on single-post pages.
+
+== Media Filters ==
+
+This section contains media filters that are used to integrated different types of media.
+
+;[[Plugin_API/Filter_Reference/editor_max_image_size|editor_max_image_size]] :
+
+;[[Plugin_API/Filter_Reference/image_downsize|image_downsize]] :
+
+;[[Plugin_API/Filter_Reference/get_image_tag_class|get_image_tag_class]] :
+
+;[[Plugin_API/Filter_Reference/get_image_tag|get_image_tag]] :
+
+;[[Plugin_API/Filter_Reference/image_resize_dimensions|image_resize_dimensions]] :
+
+;[[Plugin_API/Filter_Reference/intermediate_image_sizes|intermediate_image_sizes]] :
+
+;[[Plugin_API/Filter_Reference/icon_dir|icon_dir]] :
+
+;[[Plugin_API/Filter_Reference/wp_get_attachment_image_attributes|wp_get_attachment_image_attributes]] :
+
+;[[Plugin_API/Filter_Reference/img_caption_shortcode|img_caption_shortcode]] :
+
+;[[Plugin_API/Filter_Reference/post_gallery|post_gallery]] :
+
+;[[Plugin_API/Filter_Reference/use_default_gallery_style|use_default_gallery_style]] :
+
+;[[Plugin_API/Filter_Reference/gallery_style|gallery_style]] :
+
+;[[Plugin_API/Filter_Reference/(adjacent)_image_link|(adjacent)_image_link]] :
+
+;[[Plugin_API/Filter_Reference/embed_defaults|embed_defaults]] :
+
+;[[Plugin_API/Filter_Reference/load_default_embeds|load_default_embeds]] :
+
+;[[Plugin_API/Filter_Reference/embed_googlevideo|embed_googlevideo]] :
+
+;[[Plugin_API/Filter_Reference/upload_size_limit|upload_size_limit]] :
+
+;[[Plugin_API/Filter_Reference/wp_image_editors|wp_image_editors]] :
+
+;[[Plugin_API/Filter_Reference/plupload_default_settings|plupload_default_settings]] :
+
+;[[Plugin_API/Filter_Reference/plupload_default_params|plupload_default_params]] :
+
+;[[Plugin_API/Filter_Reference/image_size_names_choose|image_size_names_choose]] :
+
+;[[Plugin_API/Filter_Reference/wp_prepare_attachment_for_js|wp_prepare_attachment_for_js]] :
+
+;[[Plugin_API/Filter_Reference/media_upload_tabs|media_upload_tabs]] :
+
+;[[Plugin_API/Filter_Reference/disable_captions|disable_captions]] :
+
+;[[Plugin_API/Filter_Reference/media_view_settings|media_view_settings]] :
+
+;[[Plugin_API/Filter_Reference/media_view_strings|media_view_strings]] :
+
+;[[Plugin_API/Filter_Reference/wp_handle_upload_prefilter|wp_handle_upload_prefilter]] :
+
+== Advanced WordPress Filters ==
+
+This section contains advanced filters related to internationalization, miscellaneous queries, and other fundamental WordPress functions.
+
+;[[Plugin_API/Filter_Reference/create_user_query|create_user_query]] : applied to the query used to save a new user's information to the database, just prior to running the query.
+
+;[[Plugin_API/Filter_Reference/get_editable_authors|get_editable_authors]] : applied to the list of post authors that the current user is authorized to edit in the <tt>get_editable_authors</tt> function.
+
+;[[Plugin_API/Filter_Reference/get_next_post_join|get_next_post_join]] : in function <tt>get_next_post</tt> (which finds the post after the currently-displayed post), applied to the SQL JOIN clause (which normally joins to the category table if user is viewing a category archive). Filter function arguments: JOIN clause, stay in same category (true/false), list of excluded categories.
+
+;[[Plugin_API/Filter_Reference/get_next_post_sort|get_next_post_sort]] : in function <tt>get_next_post</tt> (which finds the post after the currently-displayed post), applied to the SQL ORDER BY clause (which normally orders by post date in ascending order with a limit of 1 post). Filter function arguments: ORDER BY clause.
+
+;[[Plugin_API/Filter_Reference/get_next_post_where|get_next_post_where]] : in function <tt>get_next_post</tt> (which finds the post after the currently-displayed post), applied to the SQL WHERE clause (which normally looks for the next dated published post). Filter function arguments: WHERE clause, stay in same category (true/false), list of excluded categories.
+
+;[[Plugin_API/Filter_Reference/get_previous_post_join|get_previous_post_join]] : in function <tt>get_previous_post</tt> (which finds the post before the currently-displayed post), applied to the SQL JOIN clause (which normally joins to the category table if user is viewing a category archive). Filter function arguments: join clause, stay in same category (true/false), list of excluded categories.
+
+;[[Plugin_API/Filter_Reference/get_previous_post_sort|get_previous_post_sort]] : in function <tt>get_previous_post</tt> (which finds the post before the currently-displayed post), applied to the SQL ORDER BY clause (which normally orders by post date in descending order with a limit of 1 post). Filter function arguments: ORDER BY clause.
+
+;[[Plugin_API/Filter_Reference/get_previous_post_where|get_previous_post_where]] : in function <tt>get_previous_post</tt> (which finds the post before the currently-displayed post), applied to the SQL WHERE clause (which normally looks for the previous dated published post). Filter function arguments: WHERE clause, stay in same category (true/false), list of excluded categories.
+
+;[[Plugin_API/Filter_Reference/gettext|gettext]] : applied to the translated text by the [[Function_Reference/translation|<tt>translation()</tt>]] function (which is called by functions like the [[Function_Reference/_2|<tt>__()</tt>]] and [[Function_Reference/_e|<tt>_e()</tt>]] internationalization functions ). Filter function arguments: translated text, untranslated text and the text domain. Gets applied even if internationalization is not in effect or if the text domain has not been loaded.
+
+;[[Plugin_API/Filter_Reference/override_load_textdomain|override_load_textdomain]]
+
+;[[Plugin_API/Filter_Reference/get_meta_sql|get_meta_sql]] : in function <tt>WP_Meta_Query::get_sql</tt> (which generates SQL clauses to be appended to a main query for advanced meta queries.), applied to the SQL JOIN and WHERE clause generated by the advanced meta query. Filter function arguments: array( compact( 'join', 'where' ), $this->queries, $type, $primary_table, $primary_id_column, $context )
+
+;[[Plugin_API/Filter_Reference/get_others_drafts|get_others_drafts]] : applied to the query that selects the other users' drafts for display in the admin menus.
+
+;[[Plugin_API/Filter_Reference/get_users_drafts|get_users_drafts]] : applied to the query that selects the users' drafts for display in the admin menus.
+
+;[[Plugin_API/Filter_Reference/locale|locale]] : applied to the locale by the <tt>get_locale</tt> function.
+
+;[[Plugin_API/Filter_Reference/query|query]] : applied to all queries (at least all queries run after plugins are loaded).
+
+;[[Plugin_API/Filter_Reference/query_string|query_string]] : deprecated - use <tt>query_vars</tt> or <tt>request</tt> instead.
+;[[Plugin_API/Filter_Reference/query_vars|query_vars]] : applied to the list of public WordPress query variables before the SQL query is formed. Useful for removing extra permalink information the plugin has dealt with in some other manner.
+
+;[[Plugin_API/Filter_Reference/request|request]] : like <tt>query_vars</tt>, but applied after "extra" and private query variables have been added.
+
+;[[Plugin_API/Filter_Reference/excerpt_length|excerpt_length]] : Defines the length of a single-post excerpt.
+
+;[[Plugin_API/Filter_Reference/excerpt_more|excerpt_more]] : Defines the more string at the end of the excerpt.
+
+;[[Plugin_API/Filter_Reference/post_edit_form_tag|post_edit_form_tag]] : Allows you to append code to the form tag in the default post/page editor.
+
+;[[Plugin_API/Filter_Reference/update_user_query|update_user_query]] : applied to the update query used to update user information, prior to running the query.
+
+;[[Plugin_API/Filter_Reference/uploading_iframe_src|uploading_iframe_src]] (removed since WP 2.5): applied to the HTML src tag for the uploading iframe on the post and page editing screens.
+
+;[[Plugin_API/Filter_Reference/xmlrpc_methods|xmlrpc_methods]] : applied to list of defined XMLRPC methods for the XMLRPC server.
+
+;[[Plugin_API/Filter_Reference/wp_mail_from|wp_mail_from]] : applied before any mail is sent by the wp_mail function. Supplied value is the calculated from address which is wordpress at the current hostname (set by $_SERVER['SERVER_NAME']). The filter should return an email address or name/email combo in the form "user@example.com" or "Name <user@example.com>" (without the quotes!).
+
+;[[Plugin_API/Filter_Reference/wp_mail_from_name|wp_mail_from_name]] : applied before any mail is sent by the wp_mail function. The filter should return a name string to be used as the email from name.
+
+;[[Plugin_API/Filter_Reference/update_(meta_type)_metadata|update_(meta_type)_metadata]] : applied before a metadata gets updated. For example if a user metadata gets updated the hook would be 'update_user_metadata'
+
+== Widgets ==
+
+This section contains filters added by widgets present in WordPress core.
+
+;[[Plugin_API/Filter_Reference/dynamic_sidebar_params|dynamic_sidebar_params]] : applied to the arguments passed to the widgets_init function in the WordPress widgets.
+
+;[[Plugin_API/Filter_Reference/widget_archives_dropdown_args|widget_archives_dropdown_args]] : applied to the arguments passed to the [[Function_Reference/wp_get_archives|<tt>wp_get_archives()</tt>]] function in the WordPress Archives widget.
+
+;[[Plugin_API/Filter_Reference/widget_categories_args|widget_categories_args]] : applied to the arguments passed to the [[Template_Tags/wp_list_categories|<tt>wp_list_categories()</tt>]] function in the WordPress Categories widget.
+
+;[[Plugin_API/Filter_Reference/widget_links_args|widget_links_args]] : applied to the arguments passed to the [[Function_Reference/wp_list_bookmarks|<tt>wp_list_bookmarks()</tt>]] function in the WordPress Links widget.
+
+;[[Plugin_API/Filter_Reference/widget_nav_menu_args|widget_nav_menu_args]] : applied to the arguments passed to the [[Function_Reference/wp_nav_menu|<tt>wp_nav_menu()</tt>]] function in the WordPress Custom Menu widget.
+
+;[[Plugin_API/Filter_Reference/widget_pages_args|widget_pages_args]] : applied to the arguments passed to the [[Function_Reference/wp_list_pages|<tt>wp_list_pages()</tt>]] function in the WordPress Pages widget.
+
+;[[Plugin_API/Filter_Reference/widget_tag_cloud_args|widget_tag_cloud_args]] : applied to the arguments passed to the [[Function_Reference/wp_tag_cloud|<tt>wp_tag_cloud()</tt>]] function in the WordPress Pages widget.
+
+;[[Plugin_API/Filter_Reference/widget_text|widget_text]] : applied to the widget text of the WordPress Text widget. May also apply to some third party widgets as well.
+
+;[[Plugin_API/Filter_Reference/widget_title|widget_title]] : applied to the widget title of any user editable WordPress Widget. May also apply to some third party widgets as well.
+
+== Admin Bar ==
+
+This section contains filters added by the Admin Bar added in WordPress 3.1.0.
+
+;[[Plugin_API/Filter_Reference/wp_admin_bar_class|wp_admin_bar_class]] : allows changing the default 'WP_Admin_Bar' class in the [[Function_Reference/_wp_admin_bar_init|<tt>_wp_admin_bar_init()</tt>]] function in {{Trac|wp-includes/admin-bar.php}}.
+
+== Further Reading ==
+
+* [[Writing a Plugin]] - description of how to write a plugin
+* [[Plugin API]] - article on how to use filters and actions
+* [[Plugin API/Action Reference]] - reference list for Action hooks
+* [[Plugin Resources]] - comprehensive list of plugin-related resources
+* [https://developer.wordpress.org/reference/hooks/ Hooks Database] - documentation for all hooks in the official WordPress Code Reference.
+* [http://adambrown.info/p/wp_hooks WordPress Hooks Database], a database of all WordPress' hooks, showing which version they come from, and linking to the source code spots that use them
+
+[[Category:Filters|*]]
+[[Category:Plugins]]

@@ -1,0 +1,191 @@
+{{Languages|
+{{en|Changing The Site URL}}
+{{pt-br|Mudando o URL do Site}}
+{{sk|Zmena URL stránky}}
+}}
+{{Avançado}}
+__TOC__
+WordPress armazena dois endereços no banco de dados. Estes endereços determinam onde os arquivos do blog estão e onde o índice principal está. Em uma instalação normal, estes endereços são os mesmos.
+
+Há duas ocasiões em que você terá que acessar o banco de dados para alterar uma ou ambas as seguintes definições:
+
+# Se você já tentou alterar o URL do blog WordPress ou URL em Configurações e ocorreu um erro.
+# Se você tiver movido para um domínio/subdomínio com um nome diferente.
+
+'''NOTA''': se você estiver usando vários locais, consulte a seção 11; notas adicionais, a seguir.
+
+<div style="border:red solid 2px; margin:20px; padding:10px;font-weight:bold;width:50%;display:Table">
+Faça backup dos seus dados antes de começar e armazene o backup em seu servidor local, como  seu disco rígido. Veja: [[pt-br:Backups do Banco de Dados|Backups do Banco de Dados]]
+</div>
+
+== Editando o arquivo <tt>wp-config.php</tt>==
+É possível corrigir a URL do site usando este recurso:
+Adicione essas duas linhas no seu <tt>wp-config.php</tt>, onde "exemplo.com" é o novo local do seu site.
+
+ define('WP_HOME','http://exemplo.com');
+ define('WP_SITEURL','http://exemplo.com');
+
+Essa não é necessariamente a melhor solução, é apenas codificar os valores no próprio site. Você não será capaz de editá-los na página de configurações gerais quando se usa este método.
+
+==Editando o arquivo <tt>functions.php</tt>==
+
+Você pode mudar o URL do site editando o arquivo <tt>functions.php</tt> do tema atual, ele adicionará a opção de nova URL ao seu arquivo de configuração.
+
+1. Adicione esta duas linhas, logo após a linha "<?php" .
+ update_option('siteurl','http://exemplo.com/blog');
+ update_option('home','http://exemplo.com/blog');
+
+2. Acesse a página de administração atualizando algumas vezes, até a página carregar normalmente. Visite a página e veja algumas páginas.
+
+3. Agora, remova as linhas que adicionou ao arquivo. 
+
+Se não houver <tt>functions.php</tt> no tema:
+Criar um novo arquivo de texto chamado <tt>functions.php</tt>.
+Edite com o notepad e adicione este texto, usando seu próprio URL, em vez de exemplo.com:
+
+ <?php
+ update_option('siteurl','http://exemplo.com/blog');
+ update_option('home','http://exemplo.com/blog');
+
+Faça o Upload para  seu diretório do tema, em seguida, faça como indicado acima e remova o arquivo depois.
+
+==Método de relocação==
+WordPress suporta um método de transferência automática, que vai descobrir e atualizar esses valores automaticamente para você. Este método é destinado a ser uma ajuda rápida, quando fizer a realocação de um site de um servidor para outro.
+
+Para usá-lo:
+
+1. Edite o arquivo<tt>wp-config.php</tt>
+
+2. Depois de "define" adicione:
+ define('RELOCATE',true);
+
+3. Visite a página <tt>wp-login.php</tt> no navegador.
+
+4. Faça Login normalmente.
+
+Quando RELOCATE é definide como <tt>true</tt>, o URL do site será atualizado automaticamente para qualquer caminho que você está usando para acessar a tela de login. Isso vai ficar fazer a seção admin em funcionar na nova URL, mas não vai corrigir qualquer outra parte da instalação. Estas outras ainda terá de alterar manualmente.
+
+Você deve remover a linha adicional depois que o site está instalado e funcionando. NÃO deixe ele habilitado.
+
+==Mudando o URL diretamente no Banco de Dados==
+
+Se sabe acessar o [[pt-br:phpMyAdmin|phpMyAdmin]] do servidor, então você pode editar estes valores diretamente para ter seu site funcionando novamente.
+
+1. [[pt-br:Backups do Banco de Dados|Faça Backup do seu banco de dados]] e salve uma cópia no seu disco rígido.
+2. Faça login no [[pt-br:phpMyAdmin|phpMyAdmin]].
+3. Clique em '''Banco de Dados'''.
+4 Uma lista de todos os bancos de dados aparecerá. Escolha o bando de dados do seu WordPress.
+{{Imagens|[[image:phpMyAdmin---02.png|750px]]|Tela do phpMyAdmin, do lado esquerdo ficam as tabelas de vários aplicativos, escolha a do seu WordPress}}
+5. Todas as tabelas do seu banco de dados aparece na tela.
+6. Na lista a esquerda, procure por '''<tt>wp_options</tt>'''. '''Nota:''' O prefixo da tabela pode ser diferente se você escolheu outros quando estava instalando manualmente.
+{{Imagens|[[image:Alt-raizWP-st1.png|left]]|Clique no item wp_options}}
+7. A tela mostrará uma lista de todos os campos na tabela '''<tt>wp_options</tt>'''.
+8. No campo '''<tt>option_name</tt>''', procure por '''<tt>siteurl</tt>'''. 
+{{Imagens|[[image:Alt-raizWP-st3.png]]|Clique no item <tt>siteurl</tt>}}
+9. Após localizar o '''<tt>siteurl</tt>''', clique no ícone do lápis para editar o endereço.
+10. A tela  '''Editar Campo''' aparecerá.
+11. Coloque no '''<tt>option_value</tt>''' o novo endereço do blog, os demais campos deixe como está e clique em '''Executar'''. [[image:Alt-raizWP-st4.png]]
+12. Você retornará para a tabela '''<tt>wp_options</tt>'''.
+13. Procure pelo campo '''<tt>home</tt>''' na tabela e clique no lápis para '''Editar Campo'''. '''Nota''' Há várias página dentro da tebela <tt>wp_options</tt>. Procure pelo símbolo <tt>&gt;</tt> para navegar por ela.[[image:Alt-raizWP-st6.png]]<BR>
+14. Novamente, no campo '''<tt>option_value</tt>''', mude a URL para o novo lugar.<BR>
+15. Verifique se está correto e clique em '''Executar'''.<BR>
+16. Para quem possui multisite, não esqueça de alterar o campo '''<tt>domain</tt>''' da tabela '''<tt>wp_blogs</tt>''' seguindo o mesmo padrão. Isso evitará que a rede dê erro ao administrador tentar acessá-la. É um passo importante para os que procurarm somente incluir o "www." em suas URLs e já fizeram os passos anteriores.
+{{Traduz}}
+
+== Mudança de Nome de Domínio==
+
+<div style="border: red 3px solid; margin:20px; padding:10px; font-weight:bold; text-align:center">
+Tenha cuidado com isso!
+Faça backups regularmente. [[pt-br:Backups do Banco de Dados|Backups do Banco de Dados]]
+Ações no banco de dados são irreverssíveis. Não há ''desfazer''. As ações são permanentes.
+</div>
+
+Quando mover de domínio, é preciso [[pt-br:Restaurando Banco de dados a partir do Backup|Restaurar Banco de dados a partir do Backup]]. Em seguida, você precisa carregar seus arquivos para sua nova localização.
+
+'''Neste ponto, o seu blog não vai funcionar.'''
+
+# '''Banco de Dados'''
+## Siga o guia acima para alterar a informação no banco de dados.
+# '''Entradas do Banco de Dados'''
+## Faça Log no [[pt-br:phpMyAdmin|phpMyAdmin]].
+## [[pt-br:Backups do Banco de Dados|Backups do Banco de Dados]] e salve uma cópia.
+## Faça Login no [[[pt-br:phpMyAdmin|phpMyAdmin]].
+## Clique no link '''Banco de Dados'''.
+## Uma lista dos bancos de dados será exibida. Escolha o seu banco de dados do WordPress.
+## Procure o nome da tabela no seu banco de dados usado para armazenar suas informações e postagens. Normalmente <tt>wp_posts</tt>.
+## Clique no ícone '''Browse''', abra a tabela <tt>wp_posts</tt>.
+## Look for the field that holds your post "guid".  It is usually called <tt>guid</tt>, but it may have been changed.  Write it down.
+## Click the tab at the top for '''SQL'''.
+## Usando a informação you wrote down from above and the old and new URL addresses you wish to '''update''' or search and replace within your database, type in the following ('''Cuidado'''):<br />
+<pre>UPDATE wp_posts SET guid = REPLACE (
+guid,
+'http://exemploantigositeurl.com',
+'http://exemplonovositeurl.com');</pre>
+## Make sure that the names of <tt>wp_posts</tt> and <tt>post_content</tt> match the tables and fields within your database. Change them if not. 
+## Ensure that the ONLY content you want to change are within the little '''single 'quotes' '''. Make sure EVERYTHING is spelled right and that you are sure this is correct.
+## Review everything within the '''SQL''' input box again. Make sure it is correct. There are no second changes when you take the next action. The change is permanent.
+## When you are sure, click '''Go'''.
+## At the top of the screen will be generated a list of how many of the tables and fields have been changed.
+
+== Prefixos de Tabelas ==
+Como muitos administradores do WordPress, você pode estar executando vários domínios do seu WordPress fora de uma instalação com vários <tt>wp-config.php </tt>. Muitos desses hacks envolvem configuração de prefixos de tabela dinâmica  e se você acabar alterando o prefixo de tabela,''deve'' atualizar várias entradas na tabela ''prefix_'' também.
+
+Como na seção acima, lembre-se que as mudanças são permanentes e SQL que você deve fazer backup do primeiro banco de dados:
+
+<pre>UPDATE `newprefix_usermeta` SET `meta_key` = REPLACE( `meta_key` , 'oldprefix_', 'newprefix_' );</pre>
+
+== Mudando os Arquivos de Modelo ==
+
+In your [[pt-br:Usando Temas|Usando Temas]], open each template file and search for any manually entered references to your old domain name and replace it with the new one. Look for specific hand coded links you may have entered on the various template files such as the <tt>sidebar.php</tt> and <tt>footer.php</tt>.
+
+WordPress uses a template tag called <tt>[[Template Tags/bloginfo|bloginfo()]]</tt> to automatically generate your site address from information entered in your [[Administration_Panels|Administration]] > [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]]  panel. The tag in your template files will not have to be modified.  
+
+==Mudando o arquivo Config ==
+
+You will need to update your WordPress configuration file if your database has moved or changed in certain ways.
+# You will only need to modify the config file if: 
+## your database has moved to another server and is not running on your <tt>localhost</tt>
+## you have renamed your database
+## you have changed the database user name
+# "'Make a backup copy of your <tt>wp-config.php</tt> file.'" 
+# Open the <tt>wp-config.php</tt> file in a [[Glossary#Text editor|text editor]].
+# Review its contents. In particular, you are looking for the [http://codex.wordpress.org/Editing_wp-config.php#Database_host database host entry]. 
+# Save the file.
+At this point, your WordPress blog should be working.
+
+== Verifique o Perfil ==
+
+# In your [[Administration Panels]] go to [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]] . Here you will verify that the changes you made in [http://codex.wordpress.org/Changing_The_Site_URL#Changing_the_URL Changing the URL] above, are correct.
+# Verify that the reference in your '''WordPress URL''' contains the new address.
+# Verify that the reference in your "Blog URL" contains the new address.
+# If you have made changes, click '''Save Changes'''.
+
+== Mudando o arquivo .htaccess ==
+
+After changing the information in your [[Administration_Panels|Administration]] > [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]] panel, you will need to update your <tt>.htaccess</tt> file if you are using [[Using Permalinks|Permalinks]] or any rewrites or redirects. 
+
+# '''Make a backup copy of your <tt>.htaccess</tt> file.''' This is not a recommendation but a requirement. 
+# Open the <tt>.htaccess</tt> file in a [[Glossary#Text editor|text editor]].
+# Review its contents, looking for any custom rewrites or redirects you entered. '''Copy''' these to another text file for safe keeping.
+# Close the file.
+# Follow the instructions on the Permalinks SubPanel for updating your Permalinks to the <tt>.htaccess</tt> file.
+# Open the new <tt>.htaccess</tt> file and check to see if your custom rewrites and redirects are still there.  If not, copy them from the saved file and paste them into the new <tt>.htaccess</tt> file.
+# Make any changes necessary in those custom rewrites and redirects to reflect the new site address.
+# Save the file.
+# Test those redirects to ensure they are working.
+
+If you make a mistake, you can [[Restoring Your Database From Backup]] from your backup and try this again. So make sure it is right the first time.
+
+== Informações Adicionais ==
+Much of this information was taken from [http://www.tamba2.org.uk/wordpress/ Podz' WordPress Guides] where this topic is also discussed.
+
+Some other things you should consider a FULL Search & Replace in your SQL database.
+# Images link: image links are stored in "post_content" in the wp_posts table.  You can use the similar code above to update image links.
+# wp_options: Besides the "siteurl" and "home" items mentioned above, there are other option_value which also need revision, such as "upload path", and some plugin items (depends on what you've installed, such as widgets, stats, DMSGuestbook, sitemap, etc.)
+# Do a FULL database search for any items left. MAKE SURE you know what you are changing. and go through each item for possible improper replacement. 
+# If you a running a network / have multiple sites, you will NEED to replace all instances of the URL in the database. they are stored in many tables, including each one of the sites (blogs).
+
+[http://wphacks.com/how-to-move-wordpress-blog-new-domain-name/ How To: Move Your WordPress Blog to a New Domain] - Using the Export/Import feature to move a blog to a new domain
+
+{{Codex-pt}}
+{{DEFAULTSORT:M}}

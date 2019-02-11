@@ -1,0 +1,83 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/プラグイン_API/フィルターフック一覧/get_avatar">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/get_avatar&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The "get_avatar" filter can be used to alter the avatar image returned by the <a href="https://codex.wordpress.org/Function_Reference/get_avatar" title="Function Reference/get avatar">get_avatar()</a> function.
+</p><p>The Filter is used at the very end of the get_avatar() function, like this:
+</p>
+<pre>
+    return apply_filters( 'get_avatar', $avatar, $id_or_email, $size, $default, $alt, $args );
+</pre>
+<ul><li> $avatar           Image tag for the user's avatar.</li>
+<li> $id_or_email  A user ID, email address, or comment object.</li>
+<li> $size              Square avatar width and height in pixels to retrieve.</li>
+<li> $default          (Optional) URL for the default image or a default type.</li>
+<li> $alt                Alternative text to use in the avatar image tag.</li>
+<li> $args             @since 4.2.0 (Optional) Extra arguments to retrieve the avatar.</li></ul>
+<p>There are two tricky parts to using this filter:
+</p>
+<ol><li> get_avatar() can be passed a user ID, user object or email address. So we will not know what we are looking at and will need to check for them all.</li>
+<li> It returns the entire image html string with classes, alt, and src. So you need to recreate the entire thing, not just send back the image url.</li></ol>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/get_avatar&amp;action=edit&amp;section=2" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In this example, I am looking for user with an id of 1 and sending back a custom image.
+</p>
+<pre>
+// Apply filter
+add_filter( 'get_avatar' , 'my_custom_avatar' , 1 , 5 );
+
+function my_custom_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
+    $user = false;
+
+    if ( is_numeric( $id_or_email ) ) {
+
+        $id = (int) $id_or_email;
+        $user = get_user_by( 'id' , $id );
+
+    } elseif ( is_object( $id_or_email ) ) {
+
+        if (&#160;! empty( $id_or_email-&gt;user_id ) ) {
+            $id = (int) $id_or_email-&gt;user_id;
+            $user = get_user_by( 'id' , $id );
+        }
+
+    } else {
+        $user = get_user_by( 'email', $id_or_email );	
+    }
+
+    if ( $user &amp;&amp; is_object( $user ) ) {
+
+        if ( $user-&gt;data-&gt;ID == '1' ) {
+            $avatar = 'YOUR_NEW_IMAGE_URL';
+            $avatar = "&lt;img alt='{$alt}' src='{$avatar}' class='avatar avatar-{$size} photo' height='{$size}' width='{$size}' /&gt;";
+        }
+
+    }
+
+    return $avatar;
+}
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004100
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.009 seconds
+Preprocessor visited node count: 38/1000000
+Preprocessor generated node count: 189/1000000
+Post‐expand include size: 607/2097152 bytes
+Template argument size: 254/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.444      1 - Template:Languages
+100.00%    3.444      1 - -total
+ 31.59%    1.088      1 - Template:ja
+ 30.29%    1.043      1 - Template:en
+-->

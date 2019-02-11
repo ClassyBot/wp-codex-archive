@@ -1,0 +1,93 @@
+{{Stub}}
+
+== Description ==
+
+This function is used to add a sidebar to the Contextual Help menu in an admin page. The sidebar appears to the right-side of the main help content.
+
+<tt>set_help_sidebar()</tt> is a method of the <tt>[[Class_Reference/WP_Screen | WP_Screen]]</tt> class, and can not be called directly.
+
+Sidebar must be registered AFTER help tabs have been added using the <tt>[[Class_Reference/WP_Screen/add_help_tab | add_help_tab()]]</tt> method.
+
+== Usage ==
+
+%%%<?php
+$screen = get_current_screen();
+$screen->set_help_sidebar( $content );
+?>%%%
+
+== Parameters ==
+
+{{Parameter|$content|string|Help sidebar content in plain text or HTML.|optional}}
+
+== Example ==
+
+<pre>
+<?php 
+
+   add_action('admin_menu', 'my_admin_add_page');
+
+   function my_admin_add_page() {
+
+       global $my_admin_page;
+
+       $my_admin_page = add_options_page(__('My Admin Page', 'map'), __('My Admin Page', 'map'), 'manage_options', 'map', 'my_admin_page');
+
+
+       // Adds my_help_tab when my_admin_page loads
+       add_action('load-'.$my_admin_page, 'my_admin_add_help_tab');
+
+   }
+
+   function my_admin_add_help_tab () {
+
+    global $my_admin_page;
+
+    $screen = get_current_screen();
+
+    /*
+     * Check if current screen is My Admin Page
+     * Don't add help tab if it's not
+     */
+    if ( $screen->id != $my_admin_page )
+        return;
+
+    // Add my_help_tab if current screen is My Admin Page
+    $screen->add_help_tab( array(
+        'id'	=> 'my_help_tab',
+        'title'	=> __('My Help Tab'),
+        'content'	=> '<p>' . __( 'Descriptive content that will show in My Help Tab-body goes here.' ) . '</p>',
+    ) );
+
+    $screen->set_help_sidebar(
+                              __('This is the content you will be adding to the sidebar for the current page. You must make sure other tabs have already been added using the "add_help_tab" function above. This sidebar will not show up unless there are tabs for the current screen')
+                             );
+    }
+?>
+</pre>
+
+== Change Log ==
+
+* Since: [[Version 3.3]]
+
+== Source File ==
+
+<tt>set_help_sidebar()</tt> is located in {{Trac|wp-admin/includes/screen.php}}.
+
+== Related ==
+
+=== Topics ===
+* [[Plugin_API/Admin_Screen_Reference|Admin Screen ID Reference]]
+
+=== Functions ===
+
+* [[Function Reference/add_options_page|add_options_page]]
+* [[Function Reference/add_menu_page|add_menu_page]]
+* [[Function Reference/add_submenu_page|add_submenu_page]]
+* [[Function Reference/add_theme_page|add_theme_page]]
+* [[Function Reference/get_current_screen|get_current_screen]]
+* [[Class Reference/WP_Screen/add_help_tab|WP_Screen::add_help_tab]]
+
+== Resources ==
+* [http://wpdevel.wordpress.com/2011/12/06/help-and-screen-api-changes-in-3-3/ Help and screen API changes in 3.3] - New Help and Screen usage example. On the official WPDevel blog, by Nacin (core team member) 
+
+[[Category:Functions]]

@@ -1,0 +1,73 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Example"><span class="tocnumber">3</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Parameters"><span class="tocnumber">4</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Returns"><span class="tocnumber">5</span> <span class="toctext">Returns</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_new_user&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <strong class="selflink">register_new_user()</strong> function inserts a new user into the WordPress database. This function is used when a new user registers through WordPress' Login Page. It differs from <a href="https://codex.wordpress.org/Function_Reference/wp_create_user" title="Function Reference/wp create user">wp_create_user()</a> in that it requires a valid username and email address but doesn't allow to chose a password, generating a random one using <a href="https://codex.wordpress.org/Function_Reference/wp_generate_password" title="Function Reference/wp generate password">wp_generate_password()</a>. If you want to create a new user with a specific password or with additional parameters, use <a href="https://codex.wordpress.org/Function_Reference/wp_create_user" title="Function Reference/wp create user">wp_create_user()</a> or <a href="https://codex.wordpress.org/Function_Reference/wp_insert_user" title="Function Reference/wp insert user">wp_insert_user()</a> instead.
+</p><p><strong class="selflink">register_new_user()</strong> doesn't handle the user creation itself, it simply checks the submitted username and email validity and generates a random password, relying on wp_create_user() to create the new User. If registration worked it sends a notification email to the user with his password using <a href="https://codex.wordpress.org/Function_Reference/wp_new_user_notification" title="Function Reference/wp new user notification">wp_new_user_notification()</a>. In case of registration failure it returns a WP_Error().
+</p><p>register_new_user() also provides two useful hooks to customize validation rules or user registration process, <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/register_post" title="Plugin API/Action Reference/register post">register_post</a> and <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/registration_errors" title="Plugin API/Filter Reference/registration errors">registration_errors</a>.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_new_user&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+&#160;<span style="color: #0000BB">&lt;?php&#160;register_new_user</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$user_login</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$user_email&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>&#160;</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_new_user&amp;action=edit&amp;section=3" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>As used in wp-login.php:
+</p>
+<pre>
+$user_login = $_POST['user_login'];
+$user_email = $_POST['user_email'];
+$errors = register_new_user($user_login, $user_email);
+if (&#160;!is_wp_error($errors) ) {
+	$redirect_to =&#160;!empty( $_POST['redirect_to'] )&#160;? $_POST['redirect_to']&#160;: 'wp-login.php?checkemail=registered';
+	wp_safe_redirect( $redirect_to );
+	exit();
+}
+</pre>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_new_user&amp;action=edit&amp;section=4" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$user_login</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) User's username for logging in
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$user_email</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) User's email address to send password and add
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Returns">Returns</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_new_user&amp;action=edit&amp;section=5" title="Edit section: Returns">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Like wp_create_user(), when successful this function returns the user ID of the created user. In case of failure (login or email is empty, invalid, already existing, or wp_create_user() failed) the function returns an <a href="https://codex.wordpress.org/Class_Reference/WP_Error" title="Class Reference/WP Error">error object</a>.
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_new_user&amp;action=edit&amp;section=6" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>register_new_user()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/user.php#L0">wp-includes/user.php</a></code>.
+</p>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003924
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.328 seconds
+Preprocessor visited node count: 93/1000000
+Preprocessor generated node count: 329/1000000
+Post‐expand include size: 978/2097152 bytes
+Template argument size: 287/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  173.476      1 - -total
+ 45.00%   78.063      1 - Template:Trac
+ 29.73%   51.573      1 - Template:CurrentVersion
+ 27.47%   47.649      2 - Template:Parameter
+ 27.34%   47.428      1 - Template:Tag_Footer
+ 16.26%   28.199      1 - Template:Message
+-->

@@ -1,0 +1,213 @@
+{{merge-into|[[es:Plugin API]] with histories}}
+
+==Introducción==
+
+Esta página documenta los hooks API (Interface de Programación de Aplicaciones) disponibles para desarrolladores de plugin de WordPress, y su uso. 
+
+Este artículo asume que usted ya ha leído [[Escribiendo un Plugin]], que le ofrece una visión general (y muchos detales) sobre como desarrollar un plugin. Este artículo trata específicamente sobre el API de los "Hooks", también conocidos como "Filtros" y "Acciones", que WordPress utiliza para poner su plugin en marcha. Estos hooks se pueden utilizar también en plantillas tal y como [[Theme_Development#Theme_Functions_File|se describe aquí]].
+
+'''Nota:''' Esta información se aplica a versiones de WordPress [[Versions 1.2]] y superiores.  Antes de la Version 1.2, las modificaciones se llamaban "hacks" e involucraba editar el código fuente del mismo WordPress.
+
+== Hooks, Acciones y Filtros ==
+
+WordPress dispone de Hooks para permitir a los plugin 'anclarse' en el resto de WordPress; esto es, llamar a las funciones de su plugin en momentos específicos, y de esta forma, poner su plugin en marcha. Hay dos tipos de hooks:
+
+# [[#Acciones|Acciones]]: Las Acciones son los hooks que lanza el núcleo de WordPress en puntos específicos durante la ejecución, o cuando ocurre un evento concreto. Su plugin puede especificar que una o más de sus funciones PHP se ejecuten en esos puntos, utilizando el API Acción.
+# [[#Filtros|Filtros]]: Los Filtros son los hooks que lanza el WordPress para modificar textos de varios tipos antes de añadirlos a la base de datos o enviarlos a la pantalla del navegador. Su plugin puede especificar que una o más de sus funciones PHP se ejecuten para modificar tipos específicos de texto en esos momentos, utilizando el API de Filtro. 
+
+A veces se puede conseguir el mismo fin ya sea con acciones como con filtros. Por ejemplo, si desea que su plugin cabie el texto de un post, usted podría añadir una función de acción a <tt>publish_post</tt> ( de forma que el post se modifica cuando es guardado en la base de datos), o una función de filtro a  <tt>the_content</tt> (de forma que el post se modificará en el momento en que es mostrado en pantalla).
+
+Para una lista completa de todos los hooks de acción y filtro consultar [http://adambrown.info/p/wp_hooks Adam Brown's WP Hooks Database].
+
+== Referencia de Funciones ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Funciones de Filtro'''
+|-
+|
+* <tt>[[Function Reference/has_filter | has_filter]]</tt>
+* <tt>[[Function Reference/add_filter | add_filter]]</tt>
+* <tt>[[Function Reference/apply_filters | apply_filters]]</tt>
+* <tt>[[Function Reference/current_filter | current_filter]]</tt>
+* <tt>[[Function Reference/merge_filters | merge_filters]]</tt>
+* <tt>[[Function Reference/remove_filter | remove_filter]]</tt>
+* <tt>[[Function Reference/remove_all_filters | remove_all_filters]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Funciones de Acción'''
+|-
+|
+* <tt>[[Function Reference/has_action | has_action]]</tt>
+* <tt>[[Function Reference/add_action | add_action]]</tt>
+* <tt>[[Function Reference/do_action | do_action]]</tt>
+* <tt>[[Function Reference/do_action_ref_array | do_action_ref_array]]</tt>
+* <tt>[[Function Reference/did_action | did_action]]</tt>
+* <tt>[[Function Reference/remove_action | remove_action]]</tt>
+* <tt>[[Function Reference/remove_all_actions | remove_all_actions]]</tt>
+|}
+
+|}
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! colspan="2" | '''Funciones de Activation/Desactivation'''
+|-
+|
+* <tt>[[Function Reference/register_activation_hook | register_activation_hook]]</tt>
+| 
+* <tt>[[Function Reference/register_deactivation_hook | register_deactivation_hook]]</tt>
+|}
+
+|}
+
+
+== Acciones ==
+
+Las '''Acciones''' son disparadas por eventos específicos que tienen lugar en WordPress, tales como publicar un post, cambiar una plantilla o mostrando una página del panel de administración. Su plugin puede responder al evento ejecutando una función PHP, que puede hacer uno o más de lo siguiente:
+* Modificar la base de datos
+* Enviar un correo electrónico
+* Modificar lo que se muestra en la pantalla del navegador (del admin o de un usuario final)
+
+Lo pasos básicos para hacer que esto suceda (descritos en más detalle más adelante) son:
+# Crear una función PHP, en su archivo de plugin, que podría ejecutarse cuando ocurre el evento.
+# Crear un Hook de acción en WordPress, llamando a <tt>[[Referencia de Funciones/add_action|add_action()]]</tt>
+# Poner su función PHP en un archivo de plugin, y activarlo.
+
+=== Crear una Función de Acción ===
+
+El primer paso para crear una acción en su plugin es crear una función PHP con la funcionalidad que usted desea para el mismo, y ponerla en su archivo de plugin (su archivo de plugin debe ir en la carpeta  ''wp-content/plugins''). Por ejemplo, si usted desea que sus amigos reciban un correo cada vez que usted  crea un nuevo post, debería definir la siguiente función:
+
+<pre>
+function email_friends($post_ID)  {
+    $friends = 'bob@example.org,susie@example.org';
+    mail($friends, "sally's blog updated", 
+      'Acabo de publicar algo en mi bitácora: http://blog.example.com');
+    return $post_ID;
+}
+</pre>
+
+Para la mayoría de las acciones, su función debería aceptar un único parámetro (normalmente el ID del post o comentario, dependiendo de la acción). Algunas acciones toman más de un parámetro -- Compruebe la documentación de la acción (si está disponible) o la fuente del código de WordPress para obtener más información. Además de un parámetro, usted también puede acceder a las variables golbales de WordPress, y llamar a otras funciones de WordPress (o funciones en su archivo de plugin).
+
+Cualquier salida de texto hecha por la función (p.ej. con print) aparecerá en la página en la ubicación donde se invocó la acción.
+
+'''NOTA''':  Tenga en cuenta que otros plugins o el núcleo de WordPress puede estar ya utilizando el nombre de función que usted ha pensado. Consulte [[Escribiendo un Plugin#Avoiding Function Name Collisions|Avoiding Function Name Collisions]] para más información.
+
+=== Hook a WordPress ===
+
+Una vez usted ha definido su función, el siguiente paso es "anclarla" o registrarla con WordPress. Para hacerlo, haga una llamada a  <tt>[[Referencia de Funciones/add_action|add_action()]]</tt> en el espacio global de ejecución en su archivo de plugin:
+
+<pre>
+add_action ( 'nombre_del_hook', 'nombre_de_su_función', [prioridad], [argumentos_aceptados] );
+</pre>
+
+donde: 
+; <tt>nombre_del_hook</tt> : El nombre de un hook de acción provisto por WordPress, que indica con que evento ha de asociarse su función.
+; <tt>nombre_de_su_función</tt> : El nombre de la función que usted quiere que se ejecute siguiendo al evento especificado por <tt>nombre_del_hook</tt>. Esta puede ser una función PHP estándar, una función presente en el núcleo de WordPress, o una función definida por usted en su archivo de plugin (tal como <tt>'email_friends'</tt> definida anteriormente).
+; <tt>prioridad</tt> : Un número entero opcional que puede usarse para especificar el orden en el cual se ejecutarán las funciones asociadas con una acción particular (por defecto: 10). Los número más pequeños se ejecutarán antes, y las funciones con la misma prioridad se ejecutarán en el orden en el que han sido añadidas a la acción.
+; <tt>argumentos_aceptados</tt> : Un argumento de número entero, opcional, que define el número de argumentos que puede aceptar la función (por defecto 1), útil porque algunos hooks pueden pasar más de un argumento a su función. Este parámetro es nuevo desde la versión 1.5.1.
+
+En el ejemplo anterior,podríamos poner la siguiente línea en el archivo de plugin:
+
+<pre>
+add_action ( 'publish_post', 'email_friends' );
+</pre>
+
+Igualmente, usted además puede [[#Quitando Acciones y Filtros|Quitar Acciones]] de los hooks de acción. Consulte esta sección para detalles.
+
+=== Instalar y Activar ===
+
+El último paso para hacer funcionar su hook de acción es instalar el archivo y activar el plugin. La función PHP que usted escribió y la llamada a <tt>add_action</tt> deben ir en un archivo PHP juntas, y el archivo PHP debe instalarse en la carpeta ''wp-content/plugins''. Una vez instalado, usted necesitará visitar la sección admin de WordPress y activar su plugin; consulte [[Gestionando Plugins]] para más detalles.
+
+=== Hooks Actuales para Acciones ===
+
+Consulte [[API Plugin/Referencia de Acción]] para la lista actual de hooks de acción en WordPress, y enlaces a versiones previas de WordPress.
+
+== Filtros ==
+
+Los '''Filtros''' son funciones a través de las cuales WordPress hace pasar los datos, en momentos particulares de la ejecución, justo antes de tomar alguna acción con ellos (tal como añadir la información a la base de datos o mandarla a la pantalla del navegador). Los filtros se situan entre la base de datos y el navegador (cuando WordPress añade nuevos post y comentarios a la base de datos); la mayor parte de las entradas y salidas en WordPress pasa a través de, al menos, un filtro. WordPress hace algún filtro por defecto, y su plugin puede añadir sus propios filtros.
+
+Los pasos básicos para añadir sus propios filtros a WordPress (descritos en más detalle más adelante) son:
+# Crear un afunción PHP que filtre los datos.
+# Hacer un hook al filtro en WordPress, llamando a <tt>[[Referencia_de_Funciones/add_filter|add_filter()]]</tt>
+# Poner su función PHP en un archivo de plugin, y activarlo.
+
+=== Crear una Función de Filtro ===
+
+Una función de filtros toma una entrada de datos sin modificar, y devuelve los datos modificados (o, en algunos casos, un valor null para indicar que la información debería ser borrada o ignorada). Si los datos no son modificados por su filtro, entonces deberá obtenerse la información original de forma que los subsiguientes plugins puedan continuar modificando los datos si es necesario. 
+
+Así, el primer paso en crear un filtro para su plugin es crear una función PHP que haga el filtro, y ponerla en el archivo de plugin (su archivo de plugin debe ubicarse en la carpeta ''wp-content/plugins''). Por ejemplo, si usted quiere asegurarse de que sus post y comentarios no contenganFor example, if you want to make sure that your posts and comments contain no mal lenguaje, debería definir una variable con una lista de palabras prohibidas, y crear la siguiente función: 
+
+<pre>
+function filter_profanity($content) {
+    $profanities = array('malapalabra','tambiénmala','...');
+    $content=str_ireplace($profanities,'{censurado}',$content);
+    return $content;
+}
+</pre>
+''Why does this work without a loop? Because $profanities is an array, and [http://www.php.net/manual/en/function.str-ireplace.php str_ireplace] loops through the array for you. The [http://www.php.net/manual/en/function.str-ireplace.php str_ireplace] function is used instead of [http://www.php.net/manual/en/function.str-replace.php str_replace] because [http://www.php.net/manual/en/function.str-ireplace.php str_ireplace] is case insensitive.'' 
+
+'''NOTE''':  Keep in mind that other plugins or the WordPress core may already be using the function name you have thought of. See the [[Writing a Plugin#Plugin_Development_Suggestions|Plugin Development Suggestions]] for more information.
+
+=== Hook in your Filter ===
+
+After your function is defined, the next step is to "hook" or register it with WordPress. To do this, call <tt>[[Function_Reference/add_filter|add_filter()]]</tt> in the global execution space of your plugin file:
+
+<pre>
+add_filter ( 'hook_name', 'your_filter', [priority], [accepted_args] );
+</pre>
+
+where:
+; <tt>hook_name</tt> : The name of a filter hook provided by WordPress, which defines when your filter should be applied.
+; <tt>your_filter</tt> : The name of the function that you want to use for filtering. This can be a standard PHP function, a function present in the WordPress core, or a function defined by you in the plugin file.
+; <tt>priority</tt> : An optional integer argument that can be used to specify the order in which the functions associated with a particular filter are executed (default: 10). Lower numbers correspond with earlier execution, and functions with the same priority are executed in the order in which they were added to the filter.
+; <tt>accepted_args</tt> : An optional integer argument defining how many arguments your function can accept (default 1), useful because some hooks can pass more than one argument to your function.
+
+In the example above, we would put the following in the main executing section of the plugin file, to tell WordPress to filter comments for profanity:
+
+<pre>
+add_filter('comment_text','filter_profanity');
+</pre>
+
+You can also remove filters from filter hooks using the <tt>remove_filter()</tt> function.  See [[#Removing Actions and Filters|Removing Actions and Filters]].
+
+=== Install and Activate ===
+
+The last step in getting your filter hook to work is to install the file and activate the plugin. The PHP function you wrote and the <tt>[[Function_Reference/add_filter|add_filter()]]</tt> call must go into a PHP file together, and the PHP file must be installed in the ''wp-content/plugins'' directory. Once it is installed, you will need to visit the admin section of WordPress and activate your plugin; see [[Managing Plugins]] for more details.
+
+=== Current Hooks for Filters ===
+
+See [[Plugin API/Filter Reference]] for a current list of filter hooks in WordPress, and links to previous versions of WordPress.
+
+=== Example ===
+
+This is an example, [http://comox.textdrive.com/pipermail/wp-hackers/2008-February/018013.html as described by Ozh on the wp-hackers email list], for a plugin to modify (or overwrite) the default <code>[[Template Tags/bloginfo|bloginfo()]]</code> function.  This will require modifying a core function behavior.
+
+<pre>
+add_filter('bloginfo', 'mybloginfo', 1, 2);
+add_filter('bloginfo_url', 'mybloginfo', 1, 2);
+
+function mybloginfo($result='', $show='') {
+        switch ($show) {
+        case 'wpurl':
+                $result = SITE_URL;
+                break;
+        case 'template_directory':
+                $result = TEMPL_DIR;
+                break;
+        default: 
+        }
+        return $result;
+}
+</pre>

@@ -1,0 +1,73 @@
+<div style="background-color: #e0e0e0; padding: 5px 10px; border: 1px solid #a0a0a0; margin-bottom: 10px;border-radius:5px;box-shadow: 0px 0px 1px #a0a0a0 inset">
+<p style="margin: 0px; padding: 0px"><a href="https://codex.wordpress.org/fr:Accueil" title="fr:Accueil"> Page d'accueil du Codex en français</a> - <a rel="nofollow" class="external text" href="http://fr.wordpress.org/">Télécharger WordPress en français</a><br />
+Les utilisateurs francophones se retrouvent sur le site <a rel="nofollow" class="external text" href="https://www.wpfr.net">WordPress-Francophone</a>, notamment sur son <a rel="nofollow" class="external text" href="https://wpfr.net/support/">forum d'entraide</a>.</p>
+</div>
+<p>Ce qui suit ne traite pas du choix d'un <a href="https://codex.wordpress.org/Using_Themes" title="Using Themes">Thème WordPress</a> (en anglais), mais plutôt de trouver les styles CSS à l'intérieur de votre Thème courant. Souvent le problème survient dans la disposition ou le <a href="https://codex.wordpress.org/Templates" title="Templates">modèle</a> (en anglais). Par exemple, une bordure indésirable entre le menu de barre latérale et le reste de la page. Vous avez beau chercher et chercher, vous ne trouvez aucune référence à cette bordure. Que faire&#160;?
+</p>
+<h2><span class="mw-headline" id="Jouer_au_D.C3.A9tective_des_CSS">Jouer au Détective des CSS</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:Trouver_votre_style_de_CSS&amp;action=edit&amp;section=1" title="Edit section: Jouer au Détective des CSS">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Commençons en jouant le détective des CSS. Vous savez quel est le problème, mais vous n'arrivez tout simplement pas à le <i>trouver</i>. Dans l'exemple ci-dessus, vous chassez la bordure errante.
+</p><p>Commencez par examiner attentivement une page affichée (ou la page de test) et repérez un texte significatif dans la barre latérale, près de la bordure errante. Imaginons que parmi la liste de la barre latérale, vous avez un article intitulé "Tout sur Harry".  Vous savez que vous allez trouver ce titre dans la barre latérale quand vous allez visualiser le code source de la page.
+</p><p>Pour voir le code source d'une page, dans la <b>barre de menu</b> de votre navigateur et choisissez <b>Affichage &gt; Code source de la page</b> ou <b>Affichage &gt; source</b>. Une fenêtre affichant le code source de la page apparaîtra.
+</p><p>Utilisez votre panoplie de détective, <b>Ctrl+F</b>, pour lancer une recherche.  Saisissez "tout sur harry" et cliquez sur <b>Suivant</b> ou <b>Occurrence suivante</b>. Vous devez y être, à moins que vous n'ayez plusieurs fois les mots "tout sur harry" dans votre article. Cela vous emmène à la première occurrence de la phrase "tout sur harry" qui est probablement dans votre barre latérale. Sinon, cliquez sur <b>Suivant</b> ou <b>Occurrence suivante</b> jusqu'à ce que vous trouviez la bonne phrase au bon endroit.
+</p><p>Si vous utilisez le navigateur <a rel="nofollow" class="external text" href="http://www.mozilla-europe.org/fr/products/firefox/">Firefox</a>, vous pouvez installer l'incontournable extension "<a rel="nofollow" class="external text" href="http://www.framasoft.net/article3825.html">Web Developer</a>" en français, qui fera s'afficher à volonté les attributs CSS d'une page. 
+</p><p>Si vous utilisez Internet Explorer, une autre alternative est d'utiliser la Barre d'outils de Développement d'Internet Explorer, qui vous permet de visualiser et sélectionner les éléments, IDs, et classes de la page. Il affiche les éléments selon leur hiérarchie dans la page avec leurs attributs CSS, et il peut mettre en évidence les balises DIVs, les tables, etc. Vous pouvez télécharger cette barre d'outils à&#160;: <a rel="nofollow" class="external free" href="http://www.microsoft.com/downloads/details.aspx?FamilyID=e59c3964-672d-4511-bb3e-2d5e1db91038&amp;DisplayLang=en">http://www.microsoft.com/downloads/details.aspx?FamilyID=e59c3964-672d-4511-bb3e-2d5e1db91038&amp;DisplayLang=en</a>.
+</p><p>Une fois que vous avez trouvé la phrase, il est temps de jouer au détective dans le CSS. Examinez le code autour de la phrase "Tout sur Harry" pour trouver ce que nous cherchons.  Cela devrait ressembler à quelque chose comme un des exemples suivants, contenant des mots comme <b>sidebar</b>, <b>menu</b>, ou <b>sidecolumn</b>&#160;:
+</p>
+<pre>&lt;div id="sidebar"&gt;
+
+or
+
+&lt;div class="sidebar"&gt;</pre>
+<p>Ceci est la section principale contenant votre barre de menu latérale. Vous tenez votre premier suspect.
+</p><p>Maintenant, ouvrez le fichier <tt>style.css</tt> et faites une nouvelle recherche du mot <b>sidebar</b> ou quelque soit le nom de ce que vous venez de trouver. On peut généralement l'identifier de deux façons:
+</p>
+<pre>#sidebar
+
+ou
+
+.sidebar</pre>
+<p>Regardez dans les styles de ces <b>définitions</b> de CSS et vérifiez s'il n'est pas question d'une bordure (<i>border</i>), cela ressemble souvent à quelque chose comme cela&#160;:
+</p>
+<pre>#sidebar {position: relative; float: right; width: 170px;
+    color: blue; font-size: 90%; border-right: solid 1px blue; }</pre>
+<p>La voici la bordure, la coupable&#160;! Si c'est bien la partie en cause, supprimez la référence à la bordure (border) et tout devrait rentrer dans l'ordre.
+</p><p>Sinon continuez à chercher...
+</p><p>Parfois le coupable est celui que l'on soupçonne le moins. Peut-être que la bordure n'est pas causée par le suspect le plus évident, la <i>barre latérale</i>, mais par la section <b>contenu (content)</b>. Retournez sur le code source de la page et cherchez les premiers mots de votre article. Cherchez quelque chose comme ça&#160;:
+</p>
+<pre>&lt;div id="content"&gt;</pre>
+<p>Cela peut être nommé <b>content</b>, <b>page</b>. <b>post</b>, <b>maincolumn</b>, <b>widecolumn</b>, ou d'autres manières encore, mais cela doit être un <i>contenant</i> CSS qui englobe l'information de l'article. Ensuite, revenez à la feuille de style et vérifiez qu'il y a bien une bordure dans cette section.
+</p>
+<h2><span class="mw-headline" id="Parcourir_la_Feuille_de_Style">Parcourir la Feuille de Style</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:Trouver_votre_style_de_CSS&amp;action=edit&amp;section=2" title="Edit section: Parcourir la Feuille de Style">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Si tout cela n'a rien donné, le détective des CSS n'abandonne jamais sa traque. Retournez à la cachette de tous les styles, le fichier <tt>style.css</tt>, parcourez-le en faisant une recherche avec le terme "border" et examinez attentivement tous les suspects. Notez le nom de l'identifiant, comme <b>sidebar</b>, <b>menu</b>, <b>content</b> et <b>page</b>, et retournez au code source de la page générée pour vérifier s'il s'agit bien du coupable.
+</p><p>Vous pouvez également sélectionner la bordure suspecte que vous avez trouvée dans la feuille de style, la <b>couper/coller</b> dans un fichier texte (avec le bloc-notes par exemple) qui restera ouvert sur votre ordinateur. Indiquez à l'aide d'un commentaire l'endroit d'où vous l'avez retiré.
+</p>
+<pre>Retiré border: solid 2px green de #content
+</pre>
+<p>Ensuite sauvez le <tt>style.css</tt> modifié et téléchargez-le sur votre site. <a href="https://codex.wordpress.org/I_Make_Changes_and_Nothing_Happens" title="I Make Changes and Nothing Happens">Actualisez</a> le texte de la page de l'article et vérifiez si la bordure a disparu.  Si oui, vous avez trouvé votre coupable. Sinon, retournez au bloc-notes pour récupérer le code que vous avez retiré de <tt>style.css</tt> pour l'y remettre et recommencez ailleurs.
+</p><p>Si vous avez trouvé votre coupable, effectuez une petite danse, poussez des cris aigus et acclamez-vous, et rendez les autres suspicieux et nerveux à votre vue. Le détective des CSS a encore frappé&#160;!
+</p>
+<h2><span class="mw-headline" id="Autres_Sources_d.27Aide_pour_Corriger_vos_Probl.C3.A8mes_de_CSS">Autres Sources d'Aide pour Corriger vos Problèmes de CSS</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:Trouver_votre_style_de_CSS&amp;action=edit&amp;section=3" title="Edit section: Autres Sources d'Aide pour Corriger vos Problèmes de CSS">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/CSS_Fixing_Browser_Bugs" title="CSS Fixing Browser Bugs">Corriger les Bugs de CSS du Navigateur</a> (en anglais)</li>
+<li> <a href="https://codex.wordpress.org/CSS_Troubleshooting" title="CSS Troubleshooting">Dépannage des CSS</a> (en anglais)</li></ul>
+<p><a href="https://codex.wordpress.org/fr:Accueil" title="fr:Accueil">Retour à la Page d'Accueil</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004314
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.010 seconds
+Preprocessor visited node count: 53/1000000
+Preprocessor generated node count: 112/1000000
+Post‐expand include size: 529/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.952      1 - Template:French_Header
+100.00%    0.952      1 - -total
+-->

@@ -1,0 +1,129 @@
+{{Stub}}
+
+== Description ==
+The <code>upgrader_process_complete</code> action hook is run when the download process for a plugin install or update finishes.
+
+It is passed two arguments: an instance of the [[Class_Reference/WP_Upgrader|WP_Upgrader() class]] and the <code>$hook_extra</code> array.
+
+Use with caution: When you use the <code>upgrader_process_complete</code> action hook in your plugin and your plugin is the one which under upgrade, then this action will run the old version of your plugin.
+
+== PARAMETERS==
+    my_upgrade_function( $this, $data )
+
+    $this - (Plugin_Upgrader) Plugin_Upgrader instance. In other contexts, $this, might be a Theme_Upgrader or Core_Upgrade instance.
+    $data (array)
+        'action'   -(string) Type of action. Default 'update'.
+        'type'     -(string) Type of update process. Accepts 'plugin', 'theme', or 'core'.  Default:'plugin'
+        'bulk'     - (bool) Whether the update process is a bulk update. Default true.
+        'packages' -  (array) Array of plugin, theme, or core packages to update.
+
+== Example ==
+<pre>
+add_action( 'upgrader_process_complete', 'my_upgrade_function',10, 2);
+
+function my_upgrade_function( $upgrader_object, $options ) {
+    $current_plugin_path_name = plugin_basename( __FILE__ );
+
+    if ($options['action'] == 'update' && $options['type'] == 'plugin' ){
+       foreach($options['plugins'] as $each_plugin){
+          if ($each_plugin==$current_plugin_path_name){
+             // .......................... YOUR CODES .............
+
+          }
+       }
+    }
+}
+</pre>
+
+This short plugin demonstrates how to display a notice to the user when they update the plugin. It displays a different notice when they first install the plugin:
+
+<pre>
+<?php
+/*Plugin Name: Upgrader Process Example
+Plugin URI: https://catapultthemes.com/wordpress-plugin-update-hook-upgrader_process_complete/
+Description: Just an example of using upgrader_process_complete
+Version: 1.0.0
+Author: Catapult Themes
+Author URI: https://catapultthemes.com/
+Text Domain: wp-upe
+Domain Path: /languages*/
+
+// Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+ exit;
+}
+
+/**
+ * This function runs when WordPress completes its upgrade process
+ * It iterates through each plugin updated to see if ours is included
+ * @param $upgrader_object Array
+ * @param $options Array
+ */
+function wp_upe_upgrade_completed( $upgrader_object, $options ) {
+ // The path to our plugin's main file
+ $our_plugin = plugin_basename( __FILE__ );
+ // If an update has taken place and the updated type is plugins and the plugins element exists
+ if( $options['action'] == 'update' && $options['type'] == 'plugin' && isset( $options['plugins'] ) ) {
+  // Iterate through the plugins being updated and check if ours is there
+  foreach( $options['plugins'] as $plugin ) {
+   if( $plugin == $our_plugin ) {
+    // Set a transient to record that our plugin has just been updated
+    set_transient( 'wp_upe_updated', 1 );
+   }
+  }
+ }
+}
+add_action( 'upgrader_process_complete', 'wp_upe_upgrade_completed', 10, 2 );
+
+/**
+ * Show a notice to anyone who has just updated this plugin
+ * This notice shouldn't display to anyone who has just installed the plugin for the first time
+ */
+function wp_upe_display_update_notice() {
+ // Check the transient to see if we've just updated the plugin
+ if( get_transient( 'wp_upe_updated' ) ) {
+  echo '<div class="notice notice-success">' . __( 'Thanks for updating', 'wp-upe' ) . '</div>';
+  delete_transient( 'wp_upe_updated' );
+ }
+}
+add_action( 'admin_notices', 'wp_upe_display_update_notice' );
+
+/**
+ * Show a notice to anyone who has just installed the plugin for the first time
+ * This notice shouldn't display to anyone who has just updated this plugin
+ */
+function wp_upe_display_install_notice() {
+ // Check the transient to see if we've just activated the plugin
+ if( get_transient( 'wp_upe_activated' ) ) {
+  echo '<div class="notice notice-success">' . __( 'Thanks for installing', 'wp-upe' ) . '</div>';
+  // Delete the transient so we don't keep displaying the activation message
+ delete_transient( 'wp_upe_activated' );
+ }
+}
+add_action( 'admin_notices', 'wp_upe_display_install_notice' );
+
+/**
+ * Run this on activation
+ * Set a transient so that we know we've just activated the plugin
+ */
+function wp_upe_activate() {
+ set_transient( 'wp_upe_activated', 1 );
+}
+register_activation_hook( __FILE__, 'wp_upe_activate' );
+</pre>
+
+
+The following is example data of the 2nd parameter passed to this hook (as of 4.8.1):<pre>Array
+(
+    [action] => update
+    [type] => plugin
+    [bulk] => 1
+    [plugins] => Array
+        (
+            [0] => wordpress-beta-tester/wp-beta-tester.php
+        )
+
+)</pre>
+
+
+[[Category:Actions]]

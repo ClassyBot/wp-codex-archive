@@ -1,0 +1,88 @@
+{{Languages|
+{{en|Function Reference/get_search_form}}
+{{it|Function Reference/it:get_search_form}}
+{{tr|Fonksiyon Listesi/tr:get_search_form}}
+
+}}
+==Açıklama==
+
+<tt>searchform.php</tt> tema dosyasını kullanarak arama formunu görüntüler.
+
+==Kullanım==
+
+%%%<?php get_search_form( $echo ); ?>%%%
+
+==Parametreler==
+
+{{Parameter|$echo|boolean| ''true'' formu görüntüler; ''false'' formu string olarak döndürür.|isteğe bağlı|true}}
+
+==Döndürülen Değerler==
+; (string) : Eğer $echo değeri 'false' ise form HTML olarak görüntülenir.
+
+==Örnekler==
+
+Eğer temanızda <tt>searchform.php</tt> yoksa, Wordpress kendi arama formunu kullanacaktır.
+
+<pre>
+<form role="search" method="get" id="searchform" action="<?php echo home_url( '/' ); ?>">
+    <div><label class="screen-reader-text" for="s">Search for:</label>
+        <input type="text" value="" name="s" id="s" />
+        <input type="submit" id="searchsubmit" value="Ara" />
+    </div>
+</form>
+</pre>
+
+Eğer temanızda <tt>searchform.php</tt> varsa, Wordpress'in kendi arama formu yerine bu kullanılacaktır.Unutmayın ki, arama formunuzda anasayfaya yönlendirilen bir GET metodu kullanmanız gereklidir.Metin girişi kısmı <tt>s</tt> olarak isimlendirilmeli ve daima yukarıdaki örnekteki olduğu gibi <tt>label</tt> etiketi içermelidir. 
+
+Özel bir <tt>searchform.php</tt> örneği:
+
+<pre>
+<form action="/" method="get">
+    <fieldset>
+        <label for="search">Search in <?php echo home_url( '/' ); ?></label>
+        <input type="text" name="s" id="search" value="<?php the_search_query(); ?>" />
+        <input type="image" alt="Ara" src="<?php bloginfo( 'template_url' ); ?>/images/search.png" />
+    </fieldset>
+</form>
+</pre>
+
+Son olarak (<tt>functions.php</tt> dosyanıza) bir fonksiyon yazarak bu fonksiyonu <tt>get_search_form</tt>'a ekleyebilirsiniz.
+
+
+<pre>
+function my_search_form( $form ) {
+
+    $form = '<form role="search" method="get" id="searchform" action="' . home_url( '/' ) . '" >
+    <div><label class="screen-reader-text" for="s">' . __('Search for:') . '</label>
+    <input type="text" value="' . get_search_query() . '" name="s" id="s" />
+    <input type="submit" id="searchsubmit" value="'. esc_attr__('Search') .'" />
+    </div>
+    </form>';
+
+    return $form;
+}
+
+add_filter( 'get_search_form', 'my_search_form' );
+</pre>
+
+==Notlar==
+
+Eğer searchform.php varsa $echo parametresi yok sayılır. WordPress Trac içinde bunula ilgili bir [http://core.trac.wordpress.org/ticket/16541 konu] mevcut. 
+
+Formu get_search_form filtresinden get_search_form() 'a geçirmek için geçici bir çözümdür.
+
+==Log Kayıtları==
+
+* Since: [[Version 2.7|2.7.0]]
+
+==Kaynak Dosya==
+
+<tt>get_search_form()</tt> {{Trac|wp-includes/general-template.php}} dosyasında bulunur.
+
+==İlgili==
+
+{{Include Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

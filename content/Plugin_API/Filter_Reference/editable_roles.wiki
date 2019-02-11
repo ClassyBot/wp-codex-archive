@@ -1,0 +1,65 @@
+== Description ==
+<code>editable_roles</code> is a filter applied by the function <code>[[Function Reference/get_editable_roles|get_editable_roles()]]</code> to the list of roles that one user can assign to others (a user must have the <tt>[[Roles and Capabilities#edit_users|edit_users]]</tt> capability to change another user's role). This list is displayed in the bulk operations (if the user has the <tt>[[Roles and Capabilities#list_users|list_users]]</tt> and <tt>[[Roles and Capabilities#promote_users|promote_users]]</tt>) of the [[Users Screen]], and on the [[Users_Your_Profile_Screen|profile screen]].
+
+== Usage ==
+%%%<?php
+function my_editable_roles($all_roles) {
+    # ...
+}
+add_filter('editable_roles', 'my_editable_roles');%%%
+
+== Parameters ==
+{{Parameter|$all_roles|array|All roles.}}
+
+== Return ==
+Filter functions should return an array of roles with the same format as the <var>$all_roles</var> parameter.
+
+== Examples ==
+Filter out roles with levels higher than the current user's:
+<code><pre><?php
+function remove_higher_levels($all_roles) {
+    $user = wp_get_current_user();
+    $next_level = 'level_' . ($user->user_level + 1);
+
+    foreach ( $all_roles as $name => $role ) {
+        if (isset($role['capabilities'][$next_level])) {
+            unset($all_roles[$name]);
+        }
+    }
+
+    return $all_roles;
+}
+
+add_filter('editable_roles', 'remove_higher_levels');</pre></code>
+
+Add a "No role" option that sets users' roles to nothing on pages other than the user profile screen (where it already exists):
+<code><pre><?php
+function add_empty_editable_role($all_roles) {
+    $screen = get_current_screen();
+
+    if (! (isset($all_roles['']) || 'user-edit' == $screen->id)) {
+        $all_roles[''] = array(
+            'name' => __('&mdash; No role for this site &mdash;'),
+            'capabilities' => array(),
+            );
+    }
+
+    return $all_roles;
+}
+
+add_filter('editable_roles', 'add_empty_editable_role');</pre></code>
+
+== Change Log ==
+Since: [[Version 2.8]]
+
+== Source Files ==
+This filter is applied by:
+* [[Function Reference/get_editable_roles|get_editable_roles()]] in {{Trac|wp-includes/user.php}}
+
+== Related ==
+=== Functions ===
+* [[Function Reference/get_editable_roles|get_editable_roles()]]
+* [[Function Reference/wp_dropdown_roles|wp_dropdown_roles()]]
+
+[[Category:Filters]]
+{{Stub}}

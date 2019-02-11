@@ -1,0 +1,80 @@
+{{Languages|
+{{en|Function Reference/get_search_form}}
+{{it|Riferimento funzioni/get_search_form}}
+{{mk|Функција:get_search_form}}
+}}
+==Опис==
+
+Прикажување на формата за пребарување користејќи ја <tt>searchform.php</tt> датотеката.
+
+==Користење==
+
+%%%<?php get_search_form( $echo ); ?>%%%
+
+==Параметри==
+
+{{Parameter|$echo|boolean|''true'' за прикажување на формата; ''false'' за да ја врати формата како стринг.|опционално|true}}
+
+==Резултат==
+; (string) : HTML кодот на формата доколку $echo параметарот е наместен да биде false.
+
+==Примери==
+
+Доколку немате <tt>searchform.php</tt> во вашата тема, WordPress ќе ја рендерира стандардната форма за пребарување со код:
+<pre>
+<form role="search" method="get" id="searchform" action="<?php echo home_url( '/' ); ?>">
+    <div><label class="screen-reader-text" for="s">Пребарувај за:</label>
+        <input type="text" value="" name="s" id="s" />
+        <input type="submit" id="searchsubmit" value="Пребарувај" />
+    </div>
+</form>
+</pre>
+
+(Забелешка: Стандардниот кодт погоре повеќе не е стандарден (почнувајќи од WP 3.6 - beta 3). Стандардната форма нема id="searchform", туку користи class="searchform" или доколку е во HTML5, користи type="search", а не type="text". Доколку некој ги знае сите промени, ажурирајте го кодот и избришете ја оваа забелешка).
+
+Доколку имате <tt>searchform.php</tt> во вашата тема, таа ќе биде искористена. Имајте на ум дека формата за пребарување треба да направи GET до почетната страница на вашиот сајт. Полето за влез треба да биде именувано <tt>s</tt> и секогаш треба да вклучува <tt>label</tt>, како во примерот подолу.
+
+Пример за сопствена <tt>searchform.php</tt>:
+
+<pre>
+<form action="/" method="get">
+    <fieldset>
+        <label for="search">Search in <?php echo home_url( '/' ); ?></label>
+        <input type="text" name="s" id="search" value="<?php the_search_query(); ?>" />
+        <input type="image" alt="Search" src="<?php bloginfo( 'template_url' ); ?>/images/search.png" />
+    </fieldset>
+</form>
+</pre>
+
+Последна опција е да напишете сопствена функција (во вашата <tt>functions.php</tt> датотека):
+
+<pre>
+function my_search_form( $form ) {
+    $form = '<form role="search" method="get" id="searchform" action="' . home_url( '/' ) . '" >
+    <div><label class="screen-reader-text" for="s">' . __( 'Search for:' ) . '</label>
+    <input type="text" value="' . get_search_query() . '" name="s" id="s" />
+    <input type="submit" id="searchsubmit" value="'. esc_attr__( 'Search' ) .'" />
+    </div>
+    </form>';
+
+    return $form;
+}
+
+add_filter( 'get_search_form', 'my_search_form' );
+</pre>
+
+==Лог на промени==
+
+* Од: [[Version 2.7|2.7.0]]
+
+==Изворна датотека==
+
+<tt>get_search_form()</tt> се наоѓа во {{Trac|wp-includes/general-template.php}}.
+
+==Поврзано==
+
+{{Include Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

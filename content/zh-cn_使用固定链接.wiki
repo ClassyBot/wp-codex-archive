@@ -1,0 +1,386 @@
+{{Languages|
+{{en|Using Permalinks}}
+{{fr|Utilisation des permaliens}}
+{{ja|パーマリンクの使い方}}
+{{ko|Using Permalinks}}
+{{lo|Using_Permalinks}}
+{{mya|Using_Permalinks}}
+{{nl| Permalinks gebruiken}}
+{{pt-br|Usando Links permanentes}}
+{{th|Using Permalinks}}
+{{zh-cn|使用固定链接}}
+{{zh-tw|使用固定連結}}
+}}
+
+__TOC__
+固定链接是你个人博客里的文章、分类以及其他页面的固定链接地址。通过固定链接，别的博友可以链到你写的博客，你也可以将这个链接地址写在邮件里发给其他人看。如果博客的链接地址变来变去，会造成其他人通过之前的链接地址来浏览博客时出错，所以每篇博客的链接地址都应该固定，而且永久不改———这也是''固定''链接名字的由来。
+
+== 固定链接的类型 ==
+
+目前共有三种基本的类型：
+
+=== 默认：“丑陋” ===
+
+默认的链接如下
+
+<pre>http://example.com/?p=N</pre>
+
+<var>N</var>是<tt>文章ID</tt>，一串数字。默认链接在所有的环境下都运转良好，但和其他的类型比起来没那么好看。
+
+=== mod_rewrite: "漂亮的链接" ===
+
+使用mod_rewrite或lighttpd可以生成更好看的链接地址(查看 [[Introduction_to_Blogging#Pretty_Permalinks|漂亮的链接]])，有各种个样的链接格式，最常见、最通用的格式如下
+
+<pre>    http://example.com/category/post-name/
+or  http://example.com/year/month/day/post-name</pre>
+
+有些博主为了使用更简短的链接地址，去掉了部分或全部的日期参数(day, month, year)。
+
+在以下环境中均能配置漂亮链接
+
+*  Apache web server，需要<tt>mod_rewrite</tt>模块
+*  Microsoft IIS 7+ web server，需要URL Rewrite模块，版本1.1+，而且PHP5必须使用FastCGI
+*  Microsoft IIS 6+ 参考[http://tech.einaregilsson.com/2007/07/30/pretty-wordpress-permalinks-on-iis/ a 404 handler] or [http://www.micronovae.com/ModRewrite/articles/CleanPermalinksWordpress.html Mod-Rewrite Pro]可能会成功。
+*  Lighttpd 参考[http://chrisjohnston.org/2009/setting-up-a-wordpress-blog-on-lighttpd a 404 handler] or [http://blog.nix.is/lighttpd-rewrite-rules-for-wordpress mod_rewrite] or [http://sudhaker.com/web-development/wordpress/wordpress-permalinks-lighttpd.html mod_magnet] (查看[[zh-cn:使用固定链接#外部资源|外部资源]])
+
+=== PATHINFO: "比较好的链接" ===
+
+<tt>PATHINFO</tt>类型的链接地址和<tt>mod_rewrite</tt>类型的地址看起来很像，唯一的区别是在前面多了<tt>/index.php</tt>，如下: 
+
+<pre>http://example.com/index.php/yyyy/mm/dd/post-name/</pre>
+
+除此之外，和<tt>mod_rewrite</tt>类型的地址一样，也具有同样的可配置性。任何<tt>mod_rewrite</tt>链接地址可以做的事情，<tt>PATHINFO</tt>也可以。
+
+有个很有用的[http://www.askapache.com/htaccess/rewriterule-viewer-plugin.html 插件]可以显示使用的是何种类型的链接，以及WordPress重写规则的详细信息。
+
+== 选择你的固定链接结构 ==
+
+在设置 &rarr; 固定链接(WordPress 2.5之前的版本在选项&rarr; 固定链接)，可以选择默认格式，也可以使用<i>结构标签</i>在自定义结构的输入框里输入你想要的格式。
+
+如果想激活PATHINFO类型的链接地址，只要将地址以<tt>index.php/</tt>开头。
+
+[[File:wordpress-permalinks-structure.gif]]
+
+=== 结构标签 ===
+
+结构标签用来自定义mod_rewrite/PATHINFO类型的固定链接地址格式，下面是一些tips：
+* 确保以<tt>%post_id%</tt>或<tt>%postname%</tt>结尾(如<tt>/%year%/%monthnum%/%day%/%postname%/</tt>)，以便每个地址对应唯一的一篇博客。
+* 出于性能上的考量，''不''推荐以博客类型、博客标签、博客作者、博客标题作为固定链接地址的开头这些都是纯文本的属性(field)，使用它们作为链接的开头，WordPress需要更多的时间区分文章(Post)地址和页面(Page)地址，而且为了区分还要在数据库里存储额外的信息，带来不必要的开销。推荐使用数字的属性(field)作为链接的开头，如年份或文章ID。查看 [http://comox.textdrive.com/pipermail/wp-testers/2009-January/011097.html wp-testers的讨论].
+
+;'''%year%''' : 文章发表的年份，四位数，如 <tt>2004</tt>
+;'''%monthnum%''' : 月份，如 <tt>05</tt>
+;'''%day%''' : 天，如 <tt>28</tt>
+;'''%hour%''' : 小时，如 <tt>15</tt>
+;'''%minute%''' : 分钟，如 <tt>43</tt>
+;'''%second%''' : 秒，如 <tt>33</tt>
+;'''%postname%''' : 文章标题的别名 (编辑文章/页面时的<i>别名栏</i>)。对于文章标题为 &#8220;This Is A Great Post!&#8221; 的%postname%是<tt>this-is-a-great-post</tt>(查看 [[zh-cn:使用固定链接#.E4.BB.85.E4.BB.85.E4.BD.BF.E7.94.A8.25postname.25|仅仅使用 <tt>%postname%</tt>]])。  '''出于性能原因，强烈不建议使用%postname%作为链接地址的开头'''。 ***<strong> 注 - 从WordPress 2.0开始这条建议可以无视了。</strong> 
+;'''%post_id%''' : 文章的唯一ID，如 <tt>423</tt>
+;'''%category%''' : 分类的别名 (新建/编辑分类时的<i>别名栏</i>)。 有层级关系的类型在链接地址里就像有层级的目录。   '''出于性能原因，强烈不建议使用%category%作为链接地址的开头'''。
+;'''%tag%''' : 标签的别名(新建/编辑标签时的<i>别名栏</i>)。  '''出于性能原因，强烈不建议使用%tag%作为链接地址的开头'''。
+;'''%author%''' : 作者的别名。
+
+=== 基于分类和基于标签 ===
+
+<i>基于分类</i>和<i>基于标签</i>作为分类、标签归档链接地址的前缀，如下：
+
+  example.net/wp/<var>category_base</var>/<var>category_name</var>
+  example.net/wp/<var>tag_base</var>/<var>tag_name</var>
+
+默认值分别是<tt>category</tt>和<tt>tag</tt>。可以修改它们，但不可以从地址中删除它们。
+
+自定义固定链接在大多数系统中都运作良好，但在某些条件下，还是有问题。
+
+=== 仅仅使用<tt>%postname%</tt> === 
+<strong>如果你使用的是2.0及以后的版本，那么以下的建议无效。</strong>
+
+如果使用postname作为固定链接的唯一参数，如<tt>example.com/post-title</tt>, 重写规则有可能导致访问css文件(和固定链接有相似的格式)或<tt>/wp-admin/</tt>出错。为了阻止这个错误的发生，最好在固定链接里加上数字参数(如文章 ID或日期)。另外，为了使日历等特性工作正常，WordPress v1.2.x必须使用date这个结构标签。 <tt>/%year%/%monthnum%/%day%/%postname%/</tt> 通常是个好的链接开头。
+
+通过简单修改.htaccess文件可以解决上面的问题，.htaccess文件如下：
+
+<pre>
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} ^wp-content.*
+RewriteCond %{REQUEST_FILENAME} ^wp-admin.*
+RewriteCond %{REQUEST_FILENAME} ^wp-include.*
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+</pre>
+
+如果访问地址包含wp-content、wp-admin、wp-include，则不使用重写规则，这样就可以正常访问管理页面和博客了。
+
+=== 文章有多个分类时使用<tt>%category%</tt>，或有多个标签时使用<tt>%tag%</tt> ===
+
+当一篇文章有多个分类时，只有一个分类会显示在固定链接里，是最小数字的那个分类(查看[[Manage_Categories_SubPanel|管理分类]])。这篇文章仍然可以通过所有的分类访问。
+
+在使用<tt>%tag%</tt>时也是同样的。
+
+== 使用漂亮的固定链接 ==
+
+要求:
+
+*	Apache web server，安装了mod_rewrite模块
+*	在WordPress的home目录，
+**		[http://httpd.apache.org/docs/1.3/mod/core.html#options FollowSymLinks option] enabled
+**		[http://httpd.apache.org/docs/1.3/mod/core.html#allowoverride <tt>FileInfo</tt> directives]允许 (如 <code>AllowOverride FileInfo</code> 或 <code>AllowOverride All</code>) 
+**		<tt>.htaccess</tt>文件 (如果找不到，当你激活漂亮固定链接时WordPress会尝试创建它)	
+**		如果你希望WordPress自动更新<tt>.htaccess</tt>，WordPress需要有这个文件的写权限。
+
+* 如果你使用lighttpd, 查看[[zh-cn:使用固定链接#外部资源|外部资源]].
+
+当创建或更新“漂亮”固定链接结构时，WordPress会生成新的重写规则并插入到<tt>.htaccess</tt>文件中。如果出错，WordPress会提示<tt>You should update your .htaccess now</tt>并且告诉你哪些重写规则需要拷贝和粘贴到<tt>.htaccess</tt>文件(粘贴到文件的末尾)。
+
+对于WordPress 2.0+的版本，也许只要做一次就够了，因为WordPress在内部直接重写。如果改变了WordPress home目录(<i>博客地址</i>)，需要重复上述步骤。
+
+WordPress不会删除<tt>.htaccess</tt>中任何已存在的重写规则或目录。如果有其他重写规则，把它们放到WordPress的重写规则的前面。
+
+=== 我的<tt>.htaccess</tt>在哪里？ ===
+
+Wordpress的<tt>index.php</tt>和<tt>.htaccess</tt>都在<i>博客地址</i>目录下，博客地址在设置，常规选项里可以查到。由于有个"."在文件名中，FTP客户端可能看不到，除非你修改FTP客户端的设置，使其显示所有文件，包括隐藏文件。
+如果你是通过Godaddy Hosting Connection installation来安装WordPress的话，有些主机提供商(如Godaddy)不显示或不允许你修改.htaccess文件。
+
+=== 创建和编辑(<tt>.htaccess</tt>) ===
+
+如果还没有.htaccess文件，创建一个。如果能通过shell或ssh连上服务器，直接输入<code>touch .htaccess</code>就创建了。如果使用FTP上传文件，可以在本地创建文件，如<tt>1.htaccess</tt>，上传到WordPress的跟目录，然后重命名为<tt>.htaccess</tt>。
+
+可以通过FTP，shell或主机提供商可能提供的[[Using cPanel|控制面板]]来编辑<tt>.htaccess</tt>。
+
+如果<tt>.htaccess</tt>有错而导致("Internal Server Error (500)")，可以使用FTP或[[Using cPanel|控制面板]]删除出错的<tt>.htaccess</tt>。
+
+=== 自动更新 <tt>.htaccess</tt>===
+
+如果WordPress不能自动更新<tt>.htaccess</tt>，它会告诉你原因，如<tt>.htaccess文件可写，才会自动更新，但是目前不是可写的…</tt>，这个提示在设置&rarr;固定链接面板的底部。
+
+想让WordPress自动更新，必须[[Changing_File_Permissions|给WordPress开通.htaccess文件的写权限]]. 确切的权限依赖于你的服务器环境，尝试给文件拥有者打开写权限，然后作者所在组打开写权限，然后所有人，一步一步测试，一旦WordPress有了写权限，则不要再进一步放宽权限。
+
+使用固定链接后，最后修改.htaccess文件的权限为660或644，以免服务器上的其他用户修改。
+
+== 不使用<tt>mod_rewrite</tt>的固定链接 ==
+
+“漂亮”的固定链接通常需要<tt>[[Glossary#mod_rewrite|mod_rewrite]]</tt>，但是IIS(Windows servers)不支持<tt>mod_rewrite</tt>。(如果在Windows上使用Apache 2.0.54，<tt>mod_rewrite</tt>可以正常工作，需要在<tt>apache\conf\httpd.conf</tt>打开这个模块。) 
+
+如果使用IIS 7且有服务器的管理权限，可以使用Microsoft的[http://learn.iis.net/page.aspx/460/using-url-rewrite-module/ URL Rewrite模块]。虽然和<tt>mod_rewrite</tt>不是完全兼容，但是支持WordPress的“漂亮”链接。安装后打开WordPress文件夹下的<tt>web.config</tt>，添加下面的规则到 <tt>system.webServer</tt>节点。
+
+<pre>
+<rewrite>
+    <rules>
+        <rule name="Main Rule" stopProcessing="true">
+            <match url=".*" />
+            <conditions logicalGrouping="MatchAll">
+                <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+            </conditions>
+            <action type="Rewrite" url="index.php/{R:0}" />
+        </rule>
+    </rules>
+</rewrite>
+</pre>
+
+在IIS网站有[http://learn.iis.net/page.aspx/466/enabling-pretty-permalinks-in-wordpress/ 完整的安装指南]。支持[http://www.iis.net/downloads/1692/ItemPermaLink.ashx x64]和[http://www.iis.net/downloads/1691/ItemPermaLink.ashx x86]。
+
+如果不符合上面的条件，可以使用PATHINFO类型的固定链接将<tt>index.php/</tt>作为地址的开头：
+
+  /index.php/%year%/%monthnum%/%day%/%postname%/
+
+这个不一定正常工作，尤其是使用IIS 6。解决办法是在php.ini添加2行，并保存此文件到webroot(<cite>http://blog.taragana.com/index.php/archive/wordpress-tip-on-permalink-options</cite>)：
+
+  cgi.fix_pathinfo = 1
+  cgi.force_redirect = 0
+
+另一个解决办法是使用IIS的自定义404重定向，需要你的主机允许你添加自定义的404重定向，这个办法的好处是不用安装任何第三方的mod_rewrite模块，也不用以<tt>/index.php/</tt>开头。
+
+*  http://www.keyboardface.com/IIS-Permalinks/
+*  另一种简单的自定义404重定向解决方案：http://tech.einaregilsson.com/2007/07/30/pretty-wordpress-permalinks-on-iis/
+*  更新版本的自定义404解决方案： http://www.ikailo.com/94/url-modrewrite-workaround-iis-60/
+
+如果有服务器的管理员权限，可以看看下面的方案：
+
+*  [http://www.binaryfortress.com/wordpress-url-rewrite/ WordPress URL Rewrite Plugin for blogs running on IIS] by Binary Fortress Software
+* [http://www.deanlee.cn/wordpress/url-rewriting-for-wordpress-under-iis/ URL Rewriting for WordPress under IIS] by Dean Lee
+
+== 固定链接遇到的问题和解决 ==
+
+=== <tt>.htaccess</tt>一般性问题 ===
+
+对于WordPress没有生成.htaccess文件或不将新的重写规则写到已存在的.htaccess文件，原因各种各样，按照下面的步骤，一步一步，注意，当且仅当上一步无效后再继续下一步。
+
+<ol>
+<li>'''修改权限：'''  使用[[Changing File Permissions|<tt>chmod</tt>]]将 <tt>.htaccess</tt>的权限改为666，以便使用[[Editing_Files#Using_the_Built-in_Editor|template editor]]编辑，但是不推荐这样做，因为这样的话其他有编辑模板权限的用户也能编辑.htaccess，可以将权限改为660。</li>
+<li>'''服务器阻止修改：''' 服务器有可能阻止了<tt>SERVER_SOFTWARE</tt>变量的设置，导致生成.htaccess失败。如果确定使用的是Apache，修改<tt>wp-includes/vars.php</tt>，跟着下面的步骤走。</li>
+
+<ul>
+<li>在WordPress的管理面板用内置的文件编辑器打开<tt>wp-includes/vars.php</tt>，先登录，然后点管理(Manage)，然后文件(Files)，滚动到底部，在“其他文件”输入<tt>wp-includes/vars.php</tt></li>
+查找<pre style="font-size:0.7em">$is_apache = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? 1 : 0;</pre>并替换为<pre style="font-size:0.7em">// $is_apache = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? 1 : 0;</pre>
+<li>在<pre style="font-size:0.7em">// $is_apache = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? 1 : 0;</pre>下面新添一行<pre style="font-size:0.8em">$is_apache = 1;</pre></li>
+</ul>
+
+<li>'''XAMPP用户(Windows)：''' [http://www.apachefriends.org/en/xampp.html XAMPP]有些版本默认没有打开<tt>mod_rewrite</tt>(虽然''是''通过Apache编译的)。修改<tt>apache/conf/httpd.conf</tt>，注释掉<tt>LoadModule rewrite_module modules/mod_rewrite.so</tt> (如删掉前面的#)。</li>
+</ol>
+
+== 固定链接、.htaccess和MS Frontpage ==
+
+注：许多服务器自带<tt>mod_frontpage</tt>，而且很多时候Frontpage Server Extensions也安装了。即使不使用Frontpage，几乎所有的二进制发布都包含了mod_fronpage和server extensions。由于server extensions和apache的通讯方式(和<tt>httpd.conf</tt>)，当你访问博客时，很可能出现500错误或空白页面，但是管理页面却是好的，这种问题都是因为<tt>extensions/mod_frontpage</tt>安装在服务器上造成的。
+
+Wordpress和Frontpage Extensions可以和平共处，但是固定链接不会正常工作而且'''任何'''对固定链接结构的修改都会导致Frontpage server extensions出错，是往.htaccess添加新的重写规则的缘故。''下面是解决办法。''
+
+=== 快速修复Frontpage或固定链接 ===
+
+'''修复Frontpage Extensions：''' 如果你不在乎固定链接，仅仅希望MS Frontpage server extensions正常工作，很简单，只要编辑.htaccess，删除WordPress相关的重写规则。
+
+'''修复固定链接：''' 如果你不在乎Frontpage(但是你的主机供应商安装了extensions)
+
+需要删除(或通过主机供应商)MS Frontpage server extensions，或编辑.htaccess，删除所有Frontpage相关的代码，仅保留WordPress mod_rewrite代码。 
+
+=== 同时使用FrontPage和固定链接 ===
+
+'''终于，有个办法了。'''
+
+直到目前为止，在论坛上有很多讨论这个问题的帖子，却没有一个解决方案。
+
+一般来说, 在安装了Microsoft FrontPage Server extensions的Unix服务器上，WordPress工作得很好，你可以编辑和发布文章(使用[http://www.microsoft.com/frontpage/ Microsoft FrontPage]) &mdash; '''直到''' &mdash; 你改变了固定链接的结构(如/2005/04/)。
+
+然后, 问题是FrontPage使用.htaccess来配置它的"publishing" and "web authoring"，而WordPress mod_rewrite重写规则也访问.htaccess，一旦WordPress mod_rewrite重写规则代码添加到这个文件，杯具了 &mdash; 固定链接和Frontpage Server extensions都挂了。
+
+我试了很多种办法，包括在重写规则中"忽略"<tt>%{HTTP_USERAGENT)%</tt>、在<tt>httpd.conf</tt>使用另外的文件名<tt>.wpaccess</tt> 等等，但是都失败了。
+
+最后的方法很简单，是我无意中发现的。
+
+如果你想同时使用FrontPage和WordPress，跟着下面的步骤。
+
+Microsoft FrontPage创建了目录
+<pre>_vti_bin</pre>
+
+有两个子目录<pre>_vti_adm</pre>和<pre>_vti_aut</pre>
+
+包含<tt>.htaccess</tt>的目录和根目录
+
+在所有上面目录的<tt>.htaccess</tt>的第一行添加一行：
+<pre>
+Options +FollowSymlinks
+</pre>
+有可能在第一行已经有下面的代码
+<pre>Options None</pre> 
+保存，然后所有都正常了，包括FrontPage和固定链接。
+
+=== 长长的固定链接 ===
+
+在email、文章评论和聊天室中使用长长的固定链接时，有些链接被截断了或只有一部分被当作链接，就像下面的例子。
+
+<div style="margin: 5px; padding:5px">
+<tt style="font-weight:bold; color:#036; text-decoration:underline; font-size:0.9em">http://yourdomain.example.com/2005/10/4/article-about-joe-fred-sally-and-bog</tt></div>
+
+变成：
+
+<div style="margin:5px; padding 5px"><tt> <span style="font-weight:bold; color:#036; text-decoration:underline; font-size:0.9em">http://yourdomain.example.com/2005/10/4/article</span>-about-joe-fred-sally-and-bog</tt>
+</div>
+
+点击不完整的地址会出现404错误。如果你很喜欢使用长的固定链接，请采取下面的步骤来避免链接被截断的问题。
+
+1. 检查是否正在使用固定链接[[zh-cn:使用固定链接|固定链接]]
+
+2. 编辑<tt>.htaccess</tt>，添加如下代码：
+<pre style="font-size: 0.7em">
+ RewriteRule ^post/([0-9]+)?/?([0-9]+)?/?$ /index.php?p=$1&page=$2 [QSA]
+</pre>
+
+3. 测试。使用文章ID号，然后在浏览器里输入如下地址，正常的话应该跳转到对应的文章：
+<pre>
+http://yourdomain.example.com/post/(the ID #)
+</pre>
+
+
+=== 修复其他问题 ===
+
+如果正确生成<tt>.htaccess</tt>但固定链接还是有问题，到[http://www.wordpress.org/support WordPress论坛]How To版发帖子求助。
+
+;'''AllowOverride Not Enabled''' :服务器可能没打开AllowOverride。如果<tt>httpd.config</tt>的AllowOverride设置的是<tt>None</tt>，那<tt>.htaccess</tt>将被忽略。正确的设置：
+
+<pre>
+ <Directory />
+    Options FollowSymLinks
+    AllowOverride All
+ </Directory>
+</pre>
+
+也需要在DocumentRoot打开AllowOverride：
+
+<pre>
+ <Directory /var/www/html>
+    # ... other directives...
+    AllowOverride All
+ </Directory>
+</pre>
+
+:对于使用Mac OS X服务器的，还要修改<tt>/etc/httpd/sites/</tt>中的AllowOverride。
+
+:如果不想设为all，参考[http://httpd.apache.org/docs-2.0/mod/core.html#allowoverride Apache Core Features].
+
+;翻页有问题 :有时候翻到第二页或其他页不能正常工作，地址如下：
+<pre> http://www.example.com/page/2/
+ http://www.example.name/category/categoryname/page/2/
+ http://www.example/year/month/day/page/2/
+ http://www.example/year/month/page/2/
+</pre>
+
+:访问上面的任何一个链接，出现提示说: "Sorry, no posts match that criteria." 
+
+:这是<tt>.htaccess</tt>造成的，删掉，重新生成就好了。 
+
+:如果还不行，到这里看看[http://wordpress.org/support/topic/51613#post-283222 this support post].
+
+;'''固定链接正常，但没有页面返回''' :PHP 4.4.x and 5.x的某些版本有bug导致Apache 2.x某些版本的mod_rewrite出错，更多细节请查看http://bugs.php.net/bug.php?id=35096 and http://bugs.php.net/bug.php?id=35059.
+
+=== 更多帮助 ===
+
+如果上面的所有步骤都无效，在[http://codex.wordpress.org Codex]、[[Troubleshooting]]或[http://wordpress.org/support/ Support Forum]搜索你的问题。最后还是不行的话，[[Submitting_Bugs|报bug]].
+
+== 小贴士和小技巧 ==	 
+
+如果想在Google News上展示你的网站，你的链接地址至少以3个数字结尾，通过%postname%-%post_id%很容易做到，最后生成的URL如http://mysite.com/cooking-tips-tricks-344。
+
+=== 地址以<tt>.html</tt>结尾 ===	 
+		 
+使用结构标签很容易做到这一点，如
+<pre> /%year%/%monthnum%/%day%/%postname%.html
+</pre>
+会生成http://yoursite.com/2006/01/01/happy-newyear.html 这样的地址。
+
+需要注意的是，这并不会生成静态的html文件，仅仅是用<tt>.html</tt>作为后缀，页面还是动态生成的。这是否会给SEO带来好处还无定论，但是当你想从WordPress搬家时，将带来很多便利，因为所有页面可以很容易地变成静态的，而且地址不用改变。
+
+=== 避免固定链接地址被解析成归档链接 ===
+也许有的人一天顶多发一篇博客，于是使用%year%%monthnum%%day%这样的固定链接，这样的链接会解析成这一天所有的文章，为了避免这个问题，最好使用%year%%monthnum%%day%%hour%。
+
+=== 检查固定链接结构 ===
+检查博客是否有固定链接结构，使用如下代码：
+<pre>if ( get_option('permalink_structure') != '' ) { echo 'permalinks enabled' }</pre>
+
+== 另请参阅 ==
+
+*[[Linking Posts Pages and Categories]] 怎样从一篇文章链到另一篇文章
+
+== 外部资源 ==
+
+* [http://www.prelovac.com/vladimir/optimizing-wordpress-permalinks Optimize WordPress Permalinks]
+* [http://www.cypherhackz.net/archives/2007/03/25/beautify-your-urls-with-permalinks/ Beautify your URLs with Permalinks]
+* [http://www.emilyrobbins.com/how-to-blog/how-to-configure-wordpress-to-create-search-engine-friendly-urls-for-permalinks-242.htm How to Configure WordPress to Create Search Engine Friendly URLs for Permalinks]
+* [http://perishablepress.com/press/2006/06/14/the-htaccess-rules-for-all-wordpress-permalinks/ The htaccess Rules for all WordPress Permalinks]
+* [http://www.yourhtmlsource.com/sitemanagement/urlrewriting.html URL Rewriting Tutorial] &mdash; the whats, hows and wherefores.
+* [http://www.tomrafteryit.net/boost-search-engine-optimisation-seo-using-permalinks/ Boost Search Engine Optimisation (SEO) using Permalinks]
+* [http://www.homebizpal.com/blogging/wordpress/understanding-wordpress-permalinks/ Understanding WordPress Permalinks] 
+* [http://perishablepress.com/press/2008/01/16/comprehensive-htaccess-canonicalization-for-wordpress/ WordPress Permalink Canonicalization using htaccess]
+* [http://perishablepress.com/press/2008/02/06/permalink-evolution-customize-and-optimize-your-dated-wordpress-permalinks/ Customize and Optimize Your Dated WordPress Permalinks]
+* [http://www.micronovae.com/ModRewrite/articles/CleanPermalinksWordpress.html Clean Permalinks for IIS using .htaccess]
+* [http://chrisjohnston.org/2009/setting-up-a-wordpress-blog-on-lighttpd The Easiest Lighttpd Rewrite Rule]
+* [http://blog.nix.is/lighttpd-rewrite-rules-for-wordpress URL rewriting with lighttpd]
+* [http://sudhaker.com/web-development/wordpress/wordpress-permalinks-lighttpd.html Permalinks with Lighttpd] &mdash; using mod_magnet; works on 1.4.2+
+
+
+[[Category:zh-cn:Getting Started]]
+[[Category:zh-cn:Troubleshooting]]
+[[Category:zh-cn:UI Link]]

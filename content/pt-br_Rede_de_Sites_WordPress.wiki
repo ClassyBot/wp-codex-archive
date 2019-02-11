@@ -1,0 +1,115 @@
+{{Languages|
+{{en|Create A Network}}
+{{ja|Create A Network}}
+{{pt-br|Rede de Sites WordPress}}
+{{ru|Создание сети}}
+{{zh-hans|创建一个(博客)网络-Create A Network}}
+}}
+{{Avançado}}
+A partir da versão [[pt-br:Versão 3.0|WordPress 3.0]],você têm a possibilidade de criar uma  [[pt-br:Glossário#Rede|rede]] de sites (Multisite). Este artigo contém instruções para criar a rede. É bem semelhante a criar um único site.
+
+{{Note|Se estiver usando o [[WPMU|WordPress MU]], <strong>não é preciso</strong> completar estes passos. Sua rede já está ativada. Uma vez que atualizou para a ramificação 3.x, você será solicitado para atualizar as regras do arquivo .htaccess para o MultiSite.}}
+
+{{Message|
+| background = #FCECAD
+| border = #CCCCCC
+| color = #000000
+| text = <strong>Alerta!</strong> Se atualizou para o WordPress 3.1, o menu Super Admin foi substituído com a seção <em>Network Admin</em>.  Observe o topo do cabeçalho, a esquerda: O link é 'Site Admin.'
+}}
+
+== Antes de Começar ==
+
+__TOC__
+
+=== Requisitos do Admin===
+Se você deseja rodar uma rede de blogs, você deve pelo menos ter um conhecimento básico de administração de UNIX /Linux. Um conhecimento básico de desenvolvimento do WordPress, PHP, HTML e CSS é recomendado também.
+
+Configurar e executar uma instalação multi-site é mais complexo do que uma instalação em local único. Ler esta página deve ajudá-lo a decidir se você realmente precisa de uma instalação multi-site e que podem estar envolvidos com a criação de um. Se as instruções nesta página não fazem sentido para você, não se esqueça de testar as coisas em um site de desenvolvimento em primeiro lugar, ao invés de seu site ao vivo.
+
+=== Requisitos do Servidor ===
+
+Como esse recurso requer a configuração do servidor extra e maior capacidade técnica, por favor, verifique com seu serviço de hospedagem e perguntar se eles apoiam o uso deste recurso. Não é recomendável tentar isso em hospedagem compartilhada.
+
+Você tem a escolha entre usar subdomínios ou subdiretórios ao criar sua Rede. Isso significa que cada site adicional na sua rede pode ser criado como um novo subdomínio ou subdiretório virtual.
+
+:* '''Subdomínios''' -- like <code>site1.exemplo.com</code> e <code>site2.exemplo.com</code>
+:* '''Subdiretórios''' -- like <code>exemplo.com/site1</code> e <code>exemplo.com/site2</code>
+
+Também é possível mais tarde, através do uso de um plugin como [http://wordpress.org/extend/plugins/wordpress-mu-domain-mapping/ WordPress MU Domain Mapping], mapear sites individuais para nomes de domínios independentes.
+
+; Subdiretório
+: Funciona com o ''' recurso [[pt-br:Glossário#mod_rewrite|mod_rewrite]] do servidor''' com habilidade de ler o arquivo <code>.htaccess</code>, para criação da estrutura de links.
+: Se você estiver já está usando links permanentes legíveis no seu blog, então sites em subdiretório vão funcionar.
+; Subdomínios
+: Funciona através de '''domínios coringa'''. Você deve tem isso habilitado no Apache, e  também deve adicionar um subdomínio coringa para seus registros de DNS. (Veja [[pt-br:Rede_de_Sites_WordPress#Passo_2:_Definir_Subdom.C3.ADnios_Coringa|Passo 2]] como definir.)
+: Some hosts have already set up the wildcard on the server side, which means all you need to add is the DNS record.
+: Some shared webhosts may not support this, so you may need to check your webhost before enabling this feature.
+
+=== Requisitos de Configuração do WordPress ===
+
+* [[pt-br:WordPress em Diretório Próprio|WordPress em Diretório Próprio]] não funciona no WordPress 3.0 com multisite ativado por interferir na consulta a membros do site.
+* '''Não é possível usar o multisite''' nos seguintes casos:<!-- network_step1() function -->
+** "Endereço do WordPress (URL)" é diferente do "Endereço do site (URL)".
+** "Endereço do WordPress (URL)" usa um número de porta diferente de ':80', ':443'.
+* ''Não é possível usar multisite em '''Subdomínio''' '' nos seguintes casos:<!-- allow_subdomain_install() function -->
+** A instalação do WordPress está em uma pasta (não na raiz do servidor).
+** "Endereço do WordPress (URL)" é <code>localhost</code>.
+** "Endereço do WordPress (URL)" é um ednereço de IP como <var>127.0.0.1</var>.
+* ''Não é possível usar multisite em '''Subdiretório''' '' nos seguintes casos:<!-- allow_subdirectory_install() function -->
+** Se suas instalação tem mais de um mês, devido a existência de links permanentes. Esta  limitação será corrigida em versões futuras, veja [[pt-br:Recursos_do_Multisite#Alternando_entre_subdomínios_e_subpastas|Alternando entre subdomínios e subpastas]].
+
+(Veja {{Trac|wp-admin/network.php}} para detalhes dessa correção - em inglês)
+
+== Passo 1: Faça Backup do seu WordPress ==
+Seu WordPress será atualizado quando criar a Rede. Por favor faça backup dos seus arquivos e banco de dados.
+*[[pt-br:Backups do Banco de Dados|Backups do Banco de Dados]]
+*[[pt-br:Backups no WordPress|Backups no WordPress]]
+
+== Passo 2: Definir Subdomínios Coringa  ==
+
+(Se optou para multisite em subdiretórios, [[#Passo 3: Permitir Multisite|siga para o passo 3]].)
+
+'''Sites em subdomínios''' funciona através de subdomínios curinga. Este é um processo de dois passos:
+# Apache deve estar configurado para aceitar curingas.
+## Abra o arquivo <code>httpd.conf</code> ou o arquivo que contém a entrada VHOST entry  para sua conta do servidor.
+## Adicione esta linha: <pre>ServerAlias *.exemplo.com</pre>
+# Nas gravações DNS do seu servidor, adicione um subdomínio curinga que aponta para a instalação principaç. Deve ser algo como:<pre>A *.exemplo.com</pre>
+
+Links Externos:
+* [[Wikipedia:Wildcard DNS record|Wildcard DNS]] (Wikipedia em inglês)
+* [http://httpd.apache.org/docs/2.0/en/vhosts/ Apache Virtual Host] (em inglês)
+
+===Configurações Epecíficas ===
+Devido o fato que todo servidor é configurado diferentemente, as isntruções seguinte 'per site' não são exaustivas; Em todos os casos, se você não consegue determinar subdomínios curinga, ''contate seu serviço de registro de domínios e hospedagem''.
+
+<strong>No CPanel</strong>
+Crie um subdomínios chamado "*" (curinga) no seu CPanel (*.exemplo.com). Certifique-se de apontá-lo para a localidade da pasta que contém o arquivo <tt>wp-config.php</tt>.
+
+<strong>No Plesk</strong>
+Há vários passos que diferem entre servidores quando usando o Plesk. Este artigo [[Configuring Wildcard Subdomains for multi site under Plesk Control Panel‎]](em inglês) detalha os passos envolvidos.
+
+<strong>Direto no Painel</strong>
+
+Click "User Panel" -> DNS Management -> add the following three entries using the three columns: <pre>* A xxx.xx.xx.xxx</pre> (Replace "xxx.xx.xx.xxx" with your website IP.) 
+
+Click "Admin Panel" (If you have no "admin panel" ask your host to do this.) -> Custom Httpd -> yourdomain.com -> In the text input area, just paste and "save" precisely the following: <pre>ServerAlias *.|DOMAIN|</pre> (If you ever need to un-do a custom Httpd: return here, delete text from input area, save.)
+
+* DirectAdmin.com: [http://help.directadmin.com/item.php?id=127 Apache Wildcard Documentation]... DirectAdmin.com forum: [http://www.directadmin.com/forum/showthread.php?p=195033 Wordpress wildcard subdomains].
+
+== Passo 3: Permitir Multisite ==
+Agora é só ativar o modo de [[pt-br:Ativando o Multisite|Mulitisite do WordPress]].
+
+
+== Coisas que precisa saber ==
+Conheça os [[pt-br:Recursos do Multisite|Recursos do Multisite]] que você precisa saber.
+
+== Artigos Relacionados ==
+
+* [[Debugging a WordPress Network]]
+* [[Migrating Multiple Blogs into WordPress 3.0 Multisite]]
+* [http://wordpress.org/extend/plugins/wordpress-mu-domain-mapping/ Setting up Top-Level Domains Using the Domain Mapping Plugin]
+* [http://www.lauragentry.com/wordpress/?p=517 Getting setup on Windows Servers]
+* [http://codex.wordpress.org/Hosting_WordPress Hosting Wordpress]
+
+{{Codex-pt}}
+{{DEFAULTSORT:R}}

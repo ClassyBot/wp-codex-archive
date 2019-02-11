@@ -1,0 +1,146 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="https://codex.wordpress.org/it:Riferimento_funzioni/wp_parse_args" title="it:Riferimento funzioni/wp parse args">Italiano</a> • 
+
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/関数リファレンス/wp_parse_args">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Example"><span class="tocnumber">4</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Change_Log"><span class="tocnumber">5</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Related"><span class="tocnumber">7</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_parse_args&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt><b>wp_parse_args</b></tt> is a generic utility for merging together an array of arguments and an array of default values. It can also be given a URL query type string which will be converted into an array (i.e. <tt>"id=5&amp;status=draft"</tt>).
+</p><p>It is used throughout WordPress to avoid having to worry about the logic of defaults and input, and produces a stable pattern for passing arguments around. Functions like <tt><a href="https://codex.wordpress.org/Template_Tags/query_posts" title="Template Tags/query posts" class="mw-redirect"> query_posts</a></tt>, <tt><a href="https://codex.wordpress.org/Template_Tags/wp_list_comments" title="Template Tags/wp list comments" class="mw-redirect"> wp_list_comments</a></tt> and <tt><a href="https://codex.wordpress.org/Function_Reference/get_terms" title="Function Reference/get terms"> get_terms</a></tt> are common examples of the simplifying power of <tt>wp_parse_args</tt>.
+</p><p>Functions that have an <tt><b>$args</b></tt> based setting are able to infinitely expand the number of values that can potentially be passed into them, avoiding the annoyance of super-long function calls because there are too many arguments to keep track of, many of whose only function is to override usually-good defaults on rare occasions.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_parse_args&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt><b>wp_parse_args()</b></tt> is used inside a function you are defining to process incoming arguments. Below is an example of how <tt>wp_parse_args()</tt> can merge an array of defaults with an array of mixed arguments.
+</p>
+<pre>
+/**
+ * Define the array of defaults
+ */ 
+$defaults = array(
+	'type' =&gt; 'post',
+	'before' =&gt; "&lt;p&gt;",
+	'after' =&gt; "&lt;/p&gt; \n",
+	'echo' =&gt; TRUE
+);
+
+/**
+ * Parse incoming $args into an array and merge it with $defaults
+ */ 
+$args = wp_parse_args( $args, $defaults );
+</pre>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_parse_args&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$args</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array.2Fstring" title="How to Pass Tag Parameters"><i>array/string</i></a>) (<i>required</i>) Query string or Array of mixed arguments that will override the values in <tt>$defaults</tt>. 
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<p>Can be passed URL-query style
+</p>
+<pre>type=post&amp;posts_per_page=5&amp;cat=1
+</pre>
+<p>Or as an array definition
+</p>
+<pre>array( 'type' =&gt; 'post', 'posts_per_page' =&gt; 5, 'cat' =&gt; '1' )
+</pre>
+<dl><dt> <tt>$defaults</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>optional</i>) Array of default values that will be overridden by <tt>$args</tt>
+<dl><dd> Default: </dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_parse_args&amp;action=edit&amp;section=4" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Below is an example function using the <tt>wp_parse_args</tt> system to manage its single <tt>$args</tt> argument, which could be given whatever values you wanted. In this case <tt>$args</tt> stores detailed display overrides, a pattern found in many WordPress functions.
+</p>
+<pre>
+/**
+ * Define a new function that uses $args and wp_parse_args()
+ */
+function explain_parse_args( $args ) {
+	$defaults = array (
+ 		'text' =&gt; 'wp_parse_args() merges $args into $defaults',
+ 		'before' =&gt; "&lt;p&gt;",
+ 		'after' =&gt; "&lt;/p&gt; \n",
+ 		'echo' =&gt; TRUE
+	);
+	
+	// Parse incoming $args into an array and merge it with $defaults
+	$args = wp_parse_args( $args, $defaults );
+	
+	$output = $args['before'] . $args['text'] . $args['after'];
+	
+	if (!$echo) 
+		return $output;
+	
+	echo $output;
+}
+
+/**
+ * Run our new function using the defaults (no $args)
+ * This would print out: 
+ * 	&lt;p&gt;wp_parse_args() merges $args into $defaults&lt;/p&gt;
+ */
+explain_parse_args();
+
+/**
+ * Run the function with some options overridden with an array
+ * This would echo the output with the modified text and before arguments:
+ * 	&lt;p class='specialclass'&gt;A better explanation&lt;/p&gt;
+ */
+explain_parse_args( array (
+	'text' =&gt; "A better explanation",
+	'before' =&gt; "&lt;p class='specialclass'&gt;"
+) );
+
+/**
+ * We can also pass in URL-style string-query and it will be converted
+ * This would set $args['echo'] to 1 and $args['text'] to 0	
+ */
+explain_parse_args( 'echo=1&amp;text=0' );
+
+</pre>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_parse_args&amp;action=edit&amp;section=5" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_2.2" title="Version 2.2">2.2.0</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_parse_args&amp;action=edit&amp;section=6" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>wp_parse_args()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/trunk/src/wp-includes/functions.php#L0">wp-includes/functions.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_parse_args&amp;action=edit&amp;section=7" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt><a href="https://codex.wordpress.org/Function_Reference/shortcode_atts" title="Function Reference/shortcode atts"> shortcode_atts()</a></tt>
+</p>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004009
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.381 seconds
+Preprocessor visited node count: 127/1000000
+Preprocessor generated node count: 555/1000000
+Post‐expand include size: 1725/2097152 bytes
+Template argument size: 685/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  211.155      1 - -total
+ 62.10%  131.128      1 - Template:Trac
+ 13.99%   29.542      1 - Template:Tag_Footer
+ 12.23%   25.824      1 - Template:Languages
+ 11.30%   23.855      2 - Template:Parameter
+  5.42%   11.438      1 - Template:it
+  2.97%    6.263      1 - Template:en
+  2.47%    5.209      1 - Template:ja
+  0.66%    1.387      1 - Template:Message
+-->

@@ -1,0 +1,109 @@
+{{Oldpage|2.5}}
+
+==Introduction==
+
+When a new major version of WordPress is released, such as WordPress 2.1 or 2.2, you may find that your Themes and Plugins no longer work the way you are used to. It could be that they are completely broken, because something in WordPress that was fundamental to them changed, but it's also possible that you can get them working again by updating some settings, or maybe just a small edit. 
+
+This article is part of a series on [[Migrating Plugins and Themes]]. It covers changes between WordPress [[Version 2.3]] and [[Version 2.5]], and what you need to do to Plugins and Themes to get them working in Version 2.5. (Note: There was no WordPress version 2.4 - it was skipped.)
+
+
+If you are the author of your Theme or Plugin, or if you have modified or customized your Theme, then this article will help you upgrade your Theme/Plugin for 2.5. If your Theme or Plugin is distributed publicly, after getting it working you may want to add it to the Compatibility lists above, so your users will know it is working and which version they should be running.
+
+==Fixing Up Your Theme or Plugin==
+
+There is one major new functionality addition in [[Version 2.5]] for Themes (Avatars), and several changes that affect plugins (the rest of the sections below).
+
+===Avatars===
+
+WordPress 2.5 introduced built-in support for "avatars", which are small icons for people who comment on your blog, retrieved from a web service. The default service is [http://gravatar.com Gravatar]; plugins can override this. 
+
+If avatar functionality is enabled in the administrative menus, the avatar can be displayed by the theme next to each comment. Theme authors can add lines like this inside the comment loop of the <tt>comments.php</tt> file, to support this new functionality (see the Default and Classic themes in WordPress 2.5 for examples):
+<pre>
+<?php if(function_exists('get_avatar')){
+  echo get_avatar($comment, '50');
+} ?> 
+</pre>
+The first input to the <tt>get_avatar</tt> function can be the comment author's email address, the author's WordPress user ID, or a complete comment data structure. The second argument is the size of avatar to display, up to 80 pixels. There is also an optional third argument giving the default avatar image file to display if the comment author doesn't have one. 
+
+===Admin Menu Changes===
+
+The main change affecting plugins in the (at time of writing) upcoming WordPress version 2.5 is the complete overhaul of the administration screens and menus of WordPress. The menus have been reorganized slightly; most plugins will probably still function correctly, if they used the standard methods of [[Adding Administration Menus]], but some may need to adjust.
+
+===Admin Screens===
+
+Any plugin that had added a section to the post editing screen, or other administration screen, will probably find that the formatting and markup changes on the administration screens in WordPress 2.5 have made their section so that it no longer "blends in" and looks like it belongs with the built-in WordPress sections on the screen. Also, some of the [[Plugin API|hooks]] that plugins would have used in versions 2.3 and earlier to add information to various screens have been removed, in favor of a new API which uses the function [[Function_Reference/add_meta_box|add_meta_box]] to define a section that can be added to the post, page, or link editing screen. (Until this function has its own documentation page, you can find it, and its documentation header, in <tt>wp-admin/includes/template.php</tt>).
+
+So, plugin authors will either need to release a new version of their plugins for WordPress 2.5, or (preferably) put some decision logic into their plugin that will detect the version and use the right formatting. A good way to do that is to detect whether the new function <tt>add_meta_box</tt> has been defined. For example:
+<pre>
+if (function_exists('add_meta_box')) {
+ // 2.5 logic, calling add_meta_box to define the screen
+} else {
+ // 2.3 logic, calling add_action( 'dbx_post_advanced' ) or similar
+} 
+</pre>
+
+Note: Be sure to run the function_exists test late in the WordPress initialization process! That function is not loaded at the time of plugin initialization. So it is suggested that you do this inside of an 'admin_menu' action, or the new 'admin_init' action.
+
+===Activation Global Scope===
+
+Another change that might affect some plugins is that in WordPress 2.5, the Activation hooks for plugins are run in non-global scope within a function (they used to be run in the global scope). This means that if your plugin has an activation hook, and the function it calls relies on global variables that are defined within your plugin file, you may find that they are not working properly. All you need to do is, at the global scope level in your plugin, add a "global" declaration for those variables, and you should be OK. For instance:
+<pre>
+global $my_plugin_variable;
+$my_plugin_variable = 3;
+
+function my_plugin_activation_function() {
+   global $my_plugin_variable;
+
+   // rest of activation function
+}
+</pre>
+
+===Hook Changed: restrict_manage_posts===
+
+The behavior of the <tt>restrict_manage_posts</tt> hook was changed between WordPress 2.3 and WordPress 2.5. See the March 2008 comments and attachments on http://trac.wordpress.org/ticket/6196 for an explanation of the change, and sample plugins for 2.3 and 2.5 illustrating the change.
+
+===TinyMCE Upgrade to Version 3===
+
+The upcoming WordPress version 2.5 includes TinyMCE 3 which is a complete rewrite of the editor. There are many changes in the API and all WordPress plugins that add button(s) to it have to be updated. Good places to start are:
+* http://wiki.moxiecode.com/index.php/TinyMCE:Create_plugin/3.x
+* http://wiki.moxiecode.com/index.php/TinyMCE:API 
+* http://codex.wordpress.org/TinyMCE_Custom_Buttons
+
+Of course adding a button that will insert some code at the cursor location is still quite easy. The "pagebreak" plugin can be used as an example.
+
+For loading the plugins there is a new filter $mce_external_plugins that takes an array 'name' => 'url' and inserts it in the zipped TinyMCE. It's best to use absolute url (with or without the host name), as using relative needs some settings in the init array to stay at the default values (that can be changed by a WordPress plugin), so it would be possible to break the loading of external plugins that use relative url. TinyMCE would still not load a plugin from another domain.
+
+The gzip compressor has changed too. Now it gathers all parts of TinyMCE and outputs the zipped file all in one step. The action "mce_options" is still supported, but deprecated. The action "tinymce_before_init" is replaced by a filter "tiny_mce_before_init" that is applied to the array with all settings for TinyMCE. Also the zipped file is cached on disk to save some memory/server resources. This cache is invalidated by any change to the init array or by changing the ver=[number] arg when calling tiny_mce_config. The version is filtered by "tiny_mce_version" defined in /wp-includes/script-loader.php, so a plugin can change it.
+
+There are changes in loading language files too. The language codes are only ISO 639-1, which is just the first 2 letters from WordPress locale, like de, fr, es, etc. TinyMCE will load langs/[lang].js when a plugin is loaded and if the plugin has a popup, it will load langs/[lang]_dlg.js when the popup is opened.
+
+The loading of the default language strings is different too. Now they all are defined in tinymce/langs/wp-langs.php, so they can be included in the main .pot file and translated to all languages available in WordPress. A plugin can use any of the strings there, check the tinyMCE.i18n js object when TinyMCE is loaded, to see how to reference them. 
+
+===Database changes===
+
+Changes to database schema from Version 2.3 to 2.5.
+
+*Table: comments
+:Changed ''comment_approved'' to varchar(20) NOT NULL default '1'
+:Added KEY ''comment_approved_date_gmt'' (comment_approved,comment_date_gmt)
+:Added KEY ''comment_date_gmt'' (comment_date_gmt)
+
+*Table: links
+:Changed ''link_visible'' to varchar(20) NOT NULL default 'Y'
+
+*Table: options
+:Changed ''autoload'' to varchar(20) NOT NULL default 'yes'
+
+*Table: posts
+:Changed ''post_status'' to varchar(20) NOT NULL default 'publish'
+:Changed ''comment_status'' to varchar(20) NOT NULL default 'open'
+:Changed ''ping_status'' to varchar(20) NOT NULL default 'open'
+
+*Table: term_relationships 
+:Added ''term_order'' int(11) NOT NULL default 0
+
+
+----
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Plugins]]

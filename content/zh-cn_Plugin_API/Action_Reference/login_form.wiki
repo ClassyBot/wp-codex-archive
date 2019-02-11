@@ -1,0 +1,67 @@
+{{Languages|
+{{en|Plugin API/Action Reference/login form}}
+{{zh-cn|Plugin API/Action Reference/login form}}
+}}
+==描述 Description==
+'<tt>login_form</tt>' [[Plugin_API/Action_Reference|action hook]] 用于自定义已内建在WordPress中的登陆表单（login form）。
+
+与[[Plugin_API/Filter_Reference/login_head|'login_head']]一起，起验证作用。
+
+
+==示例1 Example1==
+该例子展示了如何向登陆框添加一个新的域(field)。请记得，这不会被自动保存。你仍然需要设置验证规则，并且手动操作对你附加的域(field)的保存
+
+<pre>
+add_action('login_form','myplugin_add_login_fields');
+
+function myplugin_add_login_fields() {
+
+    //Get and set any values already sent
+    $user_extra = ( isset( $_POST['user_extra'] ) ) ? $_POST['user_extra'] : '';
+    ?>
+
+    <p>
+        <label for="user_extra"><?php _e('Extra Field','mydomain') ?><br />
+            <input type="text" name="user_extra" id="user_extra" class="input" value="<?php echo esc_attr(stripslashes($user_extra)); ?>" size="25" /></label>
+    </p>
+
+    <?php
+}
+</pre>
+
+如之前所说，为了验证，请使用 [[Plugin_API/Filter_Reference/login_head|'login_head']] 。
+
+==示例2 Example2==
+下面的示例展示了如何翻译登录表单(login form)、页面(page)、域(fields)或者标签(labels)。
+
+<pre>
+function my_translatorr2()
+{
+  $your_content=ob_get_contents();
+  $your_content= preg_replace('/\<label for="user_login"\>(.*?)\<br/',        'Usernumia: ',$content);
+  $your_content= preg_replace('/\<label for="user_pass"\>(.*?)\<br/',        'Passwiert:',$content);
+
+  ob_get_clean();
+  echo $our_content;
+}
+add_action( 'login_form', 'my_translatorr2' );
+</pre>
+
+P.S. 选择代码以准确地进行翻译，否则上述函数可能改变登陆页的局部，故而建议谨慎选择要翻译的地方。
+
+==示例3 Example3==
+添加一些note或者一小段文本到password框的下面：
+
+<pre>
+add_action('login_form','login_extra_note');
+
+function login_extra_note() {
+
+    //Adding the text
+
+    ?>
+    <p>You can type a little note to those logging in here.</p>
+
+    <?php
+}
+</pre>

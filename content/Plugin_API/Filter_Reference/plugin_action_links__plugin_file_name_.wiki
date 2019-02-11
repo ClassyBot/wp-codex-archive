@@ -1,0 +1,73 @@
+== Description ==
+Applied to the list of links to display on the plugins page (beside the activate/deactivate links). 
+
+== Basic Example ==
+add_filter accepts two parameters, one for the name of the filter (plugin_action_links) and one for the function to callback (add_action_links).
+
+<pre>
+add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'add_action_links' );
+
+function add_action_links ( $links ) {
+ $mylinks = array(
+ '<a href="' . admin_url( 'options-general.php?page=myplugin' ) . '">Settings</a>',
+ );
+return array_merge( $links, $mylinks );
+}
+
+</pre>
+
+== Example ==
+When the 'plugin_action_links_(plugin file name)' filter is called, it is passed one parameter: the links to show on the plugins overview page in an array.
+
+The (plugin file name) placeholder stands for the plugin name that you can normally get from the magic constant __FILE__.
+
+<pre>
+add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'my_plugin_action_links' );
+
+function my_plugin_action_links( $links ) {
+   $links[] = '<a href="'. esc_url( get_admin_url(null, 'options-general.php?page=gpaisr') ) .'">Settings</a>';
+   $links[] = '<a href="http://wp-buddy.com" target="_blank">More plugins by WP-Buddy</a>';
+   return $links;
+}
+</pre>
+
+Will result in something like this:
+[[Image:plugin-action-links-filter-example.png|||Plugin Action Links Filter Example]]
+
+We can also edit the link to put them in front of the deactivate and edit link. Here is an example:
+<pre>
+add_filter( 'plugin_action_links', 'ttt_wpmdr_add_action_plugin', 10, 5 );
+function ttt_wpmdr_add_action_plugin( $actions, $plugin_file ) 
+{
+	static $plugin;
+
+	if (!isset($plugin))
+		$plugin = plugin_basename(__FILE__);
+	if ($plugin == $plugin_file) {
+
+			$settings = array('settings' => '<a href="options-general.php#redirecthere">' . __('Settings', 'General') . '</a>');
+			$site_link = array('support' => '<a href="http://thetechterminus.com" target="_blank">Support</a>');
+		
+    			$actions = array_merge($settings, $actions);
+				$actions = array_merge($site_link, $actions);
+			
+		}
+		
+		return $actions;
+}
+</pre>
+
+This will work with both single file plugin and a folder plugin.
+[[Image:plugin-action-links-filter-example-1.png|||Plugin Action Links Filter Example - 1]]
+
+== Source File ==
+Triggered in {{Trac|wp-admin/includes/class-wp-plugins-list-table.php}}
+
+== Related ==
+=== Filters ===
+*[[Plugin API/Filter Reference/plugin_action_links|plugin_action_links]]
+*[[Plugin API/Filter Reference/network_admin_plugin_action_links|network_admin_plugin_action_links]]
+*[[Plugin API/Filter Reference/network_admin_plugin_action_links_(plugin file name)|network_admin_plugin_action_links_(plugin file name)]]
+
+{{Stub}} 
+[[Category:Filters]]

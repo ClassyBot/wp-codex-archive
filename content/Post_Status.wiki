@@ -1,0 +1,93 @@
+{{Languages|
+{{en|Post Status}}
+{{ja|投稿ステータス}}
+}}
+Posts in WordPress can have one of a number of statuses. The status of a given post determines how WordPress handles that post. For instance, public posts viewable by everyone are assigned the <code>[[#Publish|publish]]</code> status, while drafts are assigned the <code>[[#Draft|draft]]</code> status. The status is stored in the <code>post_status</code> field in the [[Database_Description#Table:_wp_posts|<code>wp_posts</code>]] table.
+
+WordPress provides [[#Default Statuses|8 built-in statuses]] you can use. [[Version 3.0|WordPress 3.0]] gave you the capability to add your own [[#Custom Status|custom post status]] and to use it in different ways.
+
+== Workflow ==
+
+WordPress provides built-in features that empower some users (based on their [[Roles and Capabilities]]) to review content submitted to the website before it is published. This is commonly called "workflow." WordPress's workflow features rely on the value of a post's <code>post_status</code> field to know which step in the workflow process the post is currently held in.
+
+Most users are already familiar with at least two workflow states:
+
+* Posts that are published and visible to everyone (including users who are logged out) are given [[#Publish|the <code>publish</code> status]].
+* Drafts that are not yet published are assigned [[#Draft|the <code>draft</code> status]].
+
+Internally, WordPress sets the post status to <code>publish</code> when you click the "Publish" button, and WordPress sets the post status to <code>draft</code> when you click the "Save Draft" button. Similarly, if your website has users granted [[Roles and Capabilities#edit_posts|the <code>edit_posts</code> capability]] but not [[Roles and Capabilities#publish_posts|the <code>publish_posts</code> capability]], then when those users start writing a new post, WordPress will display a "Submit for Review" button instead of a "Publish" button. Likewise, WordPress then assigns the post that user created [[#Pending|the <code>pending</code> status]] when they press that button.
+
+The status of a post can also be set in the [[Administration Screens|Administration Screen]] and [[Writing Posts|Add New Posts]] Screen by any user with the capability needed to assign the post to the given status. Internally, all of these posts are stored in the same place (the <tt>[[Database_Description#Table:_wp_posts|wp_posts]]</tt> table), and are differentiated by a column called <tt>post_status</tt>.
+
+== Default Statuses ==
+
+There are 8 major post statuses that WordPress uses by default.
+
+=== Publish ===
+
+Viewable by everyone. (publish)
+
+=== Future ===
+
+Scheduled to be published in a future date. (future)
+
+=== Draft ===
+
+Incomplete post viewable by anyone with proper [[Roles and Capabilities|user role]].  (draft)
+
+=== Pending ===
+
+Awaiting a user with the <code>publish_posts</code> capability (typically a user assigned [[Roles and Capabilities#Editor|the <code>Editor</code> role]]) to publish. (pending)
+=== Private ===
+
+Viewable only to WordPress users at Administrator level. (private)
+
+=== Trash ===
+
+Posts in the Trash are assigned the <code>trash</code> status. (trash)
+=== Auto-Draft ===
+
+[[Revisions]] that WordPress saves automatically while you are editing. (auto-draft)
+=== Inherit ===
+
+Used with a child post (such as [[Attachments]] and [[Revisions]]) to determine the actual status from the parent post.  (inherit)
+
+== Custom Status ==
+
+<div style="margin:10px; border:1px solid blue; padding:5px">
+'''NOTICE:'''<br />
+This function does NOT add the registered post status to the Administration Screen. This functionality is pending future development.  Please refer to [https://core.trac.wordpress.org/ticket/12706 Trac Ticket #12706].
+Consider the action hook [http://core.trac.wordpress.org/browser/tags/3.5.1/wp-admin/includes/meta-boxes.php#L183 post_submitbox_misc_actions] for adding this parameter.
+</div>
+
+A Custom Status is a Post Status you define. It should not be longer than 20 characters, otherwise the post could not insert or update into the database.
+
+Adding a custom status to WordPress is done via the [[Function_Reference/register_post_status|register_post_status()]] function. This function allows you to define the post status and how it operates within WordPress.
+
+Here's a basic example of adding a custom post status called "Unread":
+<pre>
+function custom_post_status(){
+	register_post_status( 'unread', array(
+		'label'                     => _x( 'Unread', 'post' ),
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Unread <span class="count">(%s)</span>', 'Unread <span class="count">(%s)</span>' ),
+	) );
+}
+add_action( 'init', 'custom_post_status' );
+</pre>
+
+== Resources ==
+
+* [http://generatewp.com/post-status/ WordPress Post Status Generator]
+* [https://www.nimbusthemes.com/register-post-status-wordpress-snippet-generator/ Register Post Status – WordPress Code Snippet Generator]
+
+== Related ==
+
+* [[Roles and Capabilities]]
+[[Category:Advanced Topics]]
+
+== Code Documentation ==
+* Function: [[Function_Reference/get_post_status | get_post_status()]] - Retrieve the post status based on the Post ID.

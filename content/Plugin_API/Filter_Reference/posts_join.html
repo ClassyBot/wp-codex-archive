@@ -1,0 +1,64 @@
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/posts_join&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>When you use the <tt>wp_query</tt> object to run a query not all tables are queried by default. For example, a query on the blog archive will only query the posts table. If you wanted to display posts that have specific meta value you will have to alter the <tt>wp_query</tt> object to include the required meta key. 
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/posts_join&amp;action=edit&amp;section=2" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>To include the required tables in the query use the <tt>posts_join</tt> filter.
+</p><p>The below example adds a meta field for use in displaying search results.
+</p>
+<pre>
+// Join for searching metadata
+function AIOThemes_joinPOSTMETA_to_WPQuery($join) {
+    global $wp_query, $wpdb;
+
+    if (!empty($wp_query-&gt;query_vars['s'])) {
+        $join .= "LEFT JOIN $wpdb-&gt;postmeta ON $wpdb-&gt;posts.ID = $wpdb-&gt;postmeta.post_id ";
+    }
+
+    return $join;
+}
+
+add_filter('posts_join', 'AIOThemes_joinPOSTMETA_to_WPQuery');
+</pre>
+<p>And then the specific search: 
+</p>
+<pre>
+function AIO_AlphabeticSearch_WhereString( $where, &amp;$wp_query )
+{
+    global $wpdb;
+    if(isset($_GET['aioAlphaSearchMode']) &amp;&amp; $_GET['aioAlphaSearchMode'] == 1){
+
+        $searchAlphabet = esc_sql($_GET['s']); 
+
+        $where .= ' AND ' . $wpdb-&gt;posts . '.post_title LIKE \''.$searchAlphabet.'%\' ';
+
+        // use only if the post meta db table has been joined to the search tables using posts_join filter
+        $where .= " AND ($wpdb-&gt;postmeta.meta_key = 'JDReview_CustomFields_ReivewOrNewsPostType' AND $wpdb-&gt;postmeta.meta_value = 'JDReview_PostType_ReviewPost') ";
+        return $where;
+    }
+}
+
+add_filter( 'posts_where', 'AIO_AlphabeticSearch_WhereString', 10, 2 );
+</pre>
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Filter_Reference/posts_join&amp;action=edit">expanding it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004104
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.007 seconds
+Preprocessor visited node count: 34/1000000
+Preprocessor generated node count: 158/1000000
+Post‐expand include size: 921/2097152 bytes
+Template argument size: 237/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.552      1 - -total
+100.00%    2.552      1 - Template:Stub
+ 56.74%    1.448      1 - Template:Message
+-->

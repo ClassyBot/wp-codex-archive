@@ -1,0 +1,68 @@
+{{Languages|
+{{en|Function_Reference/wp_schedule_event}}
+{{ja|関数リファレンス/wp_schedule_event}}
+{{zh-cn|函数/wp_schedule_event}}
+}}
+
+== Description ==
+
+Schedules a hook which will be executed by the WordPress actions core on a specific interval, specified by you. The action will trigger when someone visits your WordPress site, if the scheduled time has passed. See the [[Plugin API]] for a list of hooks.
+
+== Usage ==
+
+%%% <?php wp_schedule_event(time(), 'hourly', 'my_schedule_hook', $args); ?> %%%
+
+== Parameters ==
+{{Parameter|$timestamp|integer|The first time that you want the event to occur. This must be in a UNIX timestamp format. WP cron uses UTC/GMT time, not local time. Use time(), which is always GMT in WordPress.}}
+{{Parameter|$recurrence|string|How often the event should reoccur. Valid values:<ul><li><tt>hourly</tt></li><li><tt>twicedaily</tt></li><li><tt>daily</tt></li></ul>}}
+The recurrence must be in the return values from  [[Function_Reference/wp_get_schedules|wp_get_schedules]]. Use the filter [[Plugin_API/Filter_Reference/cron_schedules|cron_schedules ]] to add or change recurrences. Use [[Function_Reference/wp_schedule_single_event|wp_schedule_single_event]] for non-recurring events.
+{{Parameter|$hook|string|The name of an action hook to execute.}}
+{{Parameter|$args|array|Arguments to pass to the hook function(s).|optional}}
+
+== Examples ==
+
+=== Schedule an hourly event ===
+To schedule an hourly event in a plugin, call <tt>wp_schedule_event</tt> on activation (otherwise you will end up with a lot of scheduled events!):
+
+<pre>
+register_activation_hook(__FILE__, 'my_activation');
+
+function my_activation() {
+    if (! wp_next_scheduled ( 'my_hourly_event' )) {
+	wp_schedule_event(time(), 'hourly', 'my_hourly_event');
+    }
+}
+
+add_action('my_hourly_event', 'do_this_hourly');
+
+function do_this_hourly() {
+	// do something every hour
+}
+</pre>
+
+Don't forget to clean the scheduler on deactivation:
+<pre>
+register_deactivation_hook(__FILE__, 'my_deactivation');
+
+function my_deactivation() {
+	wp_clear_scheduled_hook('my_hourly_event');
+}
+</pre>
+
+== See Also ==
+
+* [[Function_Reference/wp_schedule_event|wp_schedule_event]]
+* [[Function_Reference/wp_schedule_single_event|wp_schedule_single_event]]
+* [[Function_Reference/wp_clear_scheduled_hook|wp_clear_scheduled_hook]]
+* [[Function_Reference/wp_next_scheduled|wp_next_scheduled]]
+* [[Function_Reference/wp_unschedule_event|wp_unschedule_event]]
+* [[Function_Reference/wp_get_schedule|wp_get_schedule]]
+
+== Further Reading ==
+
+* [https://GenerateWP.com/schedule_event/ WordPress Cron Job Event Generator]
+* [http://holisticnetworking.net/plugins/2008/10/18/scheduling-with-wordpress-cron-functions/ How cronjobs work in wordpress]
+* For a comprehensive list of functions, take a look at the [http://codex.wordpress.org/Category:Functions category Functions]
+
+[[Category:Functions]]
+[[Category:WP-Cron Functions]]

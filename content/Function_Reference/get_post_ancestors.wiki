@@ -1,0 +1,97 @@
+{{Languages|
+{{en|Function Reference/get post ancestors}}
+{{it|Riferimento_funzioni/get_post_ancestors}}
+{{ja|関数リファレンス/get post ancestors}}
+{{ru|Справочник_по_функциям/get_post_ancestors}}
+}}
+== Description ==
+Retrieve the parents of the post based on the post ID.
+
+== Usage ==
+%%%<?php get_post_ancestors( $post ) ?>%%%
+
+== Parameters ==
+{{Parameter|$post|mixed|Post ID or post object.|required}}
+
+== Return Values ==
+; <tt>(array)</tt> : Array of IDs or empty if no ancestors are found.  The direct parent is returned as the first value in the array. The highest level ancestor is returned as the last value in the array.
+
+== Examples ==
+
+=== Get Ancestors Page Slug ===
+
+This example returns the highest page {slug} in a tree and uses it as a Body_Class, so the parent and all children will have the same Body Class!  
+
+This example for a twenty eleven child theme in the header.php file 
+<pre>
+</head>
+
+<?php
+/* Get the Page Slug to Use as a Body Class, this will only return a value on pages! */
+$class = '';
+/* is it a page */
+if( is_page() ) { 
+	global $post;
+        /* Get an array of Ancestors and Parents if they exist */
+	$parents = get_post_ancestors( $post->ID );
+        /* Get the top Level page->ID count base 1, array base 0 so -1 */ 
+	$id = ($parents) ? $parents[count($parents)-1]: $post->ID;
+	/* Get the parent and set the $class with the page slug (post_name) */
+        $parent = get_post( $id );
+	$class = $parent->post_name;
+}
+?>
+
+<body <?php body_class( $class ); ?>>
+</pre>
+
+=== Get Ancestors Post Meta ===
+
+If we did not want to use the page slug, we could use a custom field eg: 'body_class', on the top level page and set the class in the post meta.
+
+<pre>
+</head>
+
+<?php
+$class = '';
+if( is_page() ) {
+	global $post;
+	$parents = get_post_ancestors( $post->ID );
+	$id = ($parents) ? $parents[count($parents)-1]: $post->ID;
+	$class = get_post_meta( $id, 'body_class', true );
+}
+?>
+
+<body <?php body_class( $class ); ?>>
+
+</pre>
+
+=== Get Ancestors Page Thumbnail ===
+
+Get the top level page thumbnail and display it!
+
+<pre>
+<?php
+global $post;
+$parents = get_post_ancestors( $post->ID );
+/* Get the ID of the 'top most' Page if not return current page ID */
+$id = ($parents) ? $parents[count($parents)-1]: $post->ID;
+if(has_post_thumbnail( $id )) {
+	get_the_post_thumbnail( $id, 'thumbnail');
+}
+?>
+</pre>
+
+== Notes ==
+
+== Change Log  ==
+Since: 2.5.0
+
+== Source File ==
+<tt>get_post_ancestors()</tt> is located in {{Trac|wp-includes/post.php}}.
+
+== Related ==
+
+{{Tag Footer}}
+
+[[Category:Functions]]

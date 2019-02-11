@@ -1,0 +1,95 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Return_Parameter"><span class="tocnumber">2</span> <span class="toctext">Return Parameter</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Example"><span class="tocnumber">4</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Change_Log"><span class="tocnumber">5</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Related"><span class="tocnumber">7</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#Action_Hooks"><span class="tocnumber">7.1</span> <span class="toctext">Action Hooks</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-9"><a href="#See_Also"><span class="tocnumber">8</span> <span class="toctext">See Also</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This filter is applied before a metadata gets updated. For example if a user metadata gets updated the hook would be 'update_user_metadata'.
+</p>
+<h2><span class="mw-headline" id="Return_Parameter">Return Parameter</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=2" title="Edit section: Return Parameter">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The filter must return null if the data should be saved to the database. If it returns anything else, the <tt>update_metadata</tt> (and therefore the <tt>update_user_meta</tt>) function will return what the filter returns.
+See <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/3.7.1/src/wp-includes/meta.php#L122">wp-includes/meta.php</a></code>, line 122 for more information on this.
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$null</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Null" title="How to Pass Tag Parameters"><i>null</i></a>) (<i>required</i>) Always null
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$object_id</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Int" title="How to Pass Tag Parameters"><i>int</i></a>) (<i>required</i>) ID of the object metadata is for
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$meta_key</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) Metadata key
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$meta_value</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Mixed" title="How to Pass Tag Parameters"><i>mixed</i></a>) (<i>required</i>) Metadata value. Must be serializable if non-scalar.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$prev_value</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Mixed" title="How to Pass Tag Parameters"><i>mixed</i></a>) (<i>required</i>) The previous metadata value.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=4" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+
+function myplugin_init() {
+	add_filter( 'update_user_metadata', 'myplugin_update_foo', 10, 5 );
+}
+
+function myplugin_update_foo( $null, $object_id, $meta_key, $meta_value, $prev_value ) {
+
+	if ( 'foo' == $meta_key &amp;&amp; empty( $meta_value ) ) {
+		return true; // this means: stop saving the value into the database
+	}
+
+	return null; // this means: go on with the normal execution in meta.php
+
+}
+
+add_action( 'init', 'myplugin_init' );
+
+</pre>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=5" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_3.1" title="Version 3.1">3.1</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=6" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <tt>update_(meta_type)_metadata</tt> hook is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/3.7.1/src/wp-includes/meta.php#L122">wp-includes/meta.php</a></code>, line 122
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=7" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Action_Hooks">Action Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=8" title="Edit section: Action Hooks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="/index.php?title=Plugin_API/Action_Reference/update_(meta_type)_meta&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/update (meta type) meta (page does not exist)">update_(meta_type)_meta</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/updated_(meta_type)_meta" title="Plugin API/Action Reference/updated (meta type) meta">updated_(meta_type)_meta</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/updated_postmeta" title="Plugin API/Action Reference/updated postmeta">updated_postmeta</a></li></ul>
+<h2><span class="mw-headline" id="See_Also">See Also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/update_(meta_type)_metadata&amp;action=edit&amp;section=9" title="Edit section: See Also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">Plugin_API/Filter_Reference</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004107
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.016 seconds
+Preprocessor visited node count: 140/1000000
+Preprocessor generated node count: 461/1000000
+Post‐expand include size: 926/2097152 bytes
+Template argument size: 372/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    4.547      1 - -total
+ 52.58%    2.391      5 - Template:Parameter
+ 33.60%    1.528      2 - Template:Trac
+-->

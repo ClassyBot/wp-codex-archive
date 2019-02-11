@@ -1,0 +1,83 @@
+<p>The following is the plugin's raw PHP code.  Simply copy the plugin code, paste it into a plain text document via a <a href="https://codex.wordpress.org/Glossary#Text_editor" title="Glossary">plain text editor</a>, and save the file as <tt>disemvoweler.php</tt>.
+</p>
+<h1><span class="mw-headline" id="Disemvoweler">Disemvoweler</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugins/Disemvoweler&amp;action=edit&amp;section=1" title="Edit section: Disemvoweler">edit</a><span class="mw-editsection-bracket">]</span></span></h1>
+<p>This plugin removes vowels from comments posted from an IP in the disemvoweler blacklist. The idea is to remove trolls through humiliation, and has worked quite well in some forums.
+</p>
+<pre>
+&lt;?php
+/*
+Plugin Name: Disemvoweler
+Plugin URI: http://wordpress.org/#
+Description: Removes vowels from comments posted from an IP in the disemvoweler blacklist.
+Version: 1.0
+Author: Ryan Boren
+Author URI: http://boren.nu/
+*/
+
+//
+// Add the IPS to disemvowel to this array.
+//
+$disemvowelIPs = array(
+                       "0.0.0.0"
+                       );
+
+function disemvowel($content) {
+    global $comment, $disemvowelIPs;
+
+    if (in_array($comment-&gt;comment_author_IP, $disemvowelIPs)) {
+        $content = preg_replace("/[aeiou]/i", '', $content);
+    }
+
+    return $content;
+}
+
+add_filter('comment_text', 'disemvowel');
+
+?&gt;
+</pre>
+<p>The following modification to the disemvowel function will replace the author's name with "troll" (just in case your trolls enter obscene names) and will remove his/her URL, if one was submitted. It also allows you to disemvowel a single comment (if disemvoweling all posts by an IP address is inappropriate) by editing the comment to include the string [troll] as the first part of the comment.
+</p>
+<pre>
+/* Modified disemvowel function from Ryan Boren's disemvoweler plugin.
+ *
+ * Replaces authors name with "troll" and removes the URL
+ * Also allows a single comment to be disemvoweled by inserting the
+ * string [troll] as the first line of the comment.
+ *
+ * Modified by Mark McIntyre
+ */
+function disemvowel($content) {
+    global $comment, $disemvowelIPs;
+
+        $troll = ereg("^\[troll\]", $content);
+    if (in_array($comment-&gt;comment_author_IP, $disemvowelIPs) || $troll) {
+          if($troll)
+             $content = substr($content, 7);
+        $content = preg_replace("/[aeiou]/i", '', $content);
+        $comment-&gt;comment_author = "troll";
+        $comment-&gt;comment_author_url = "";
+    }
+
+    return $content;
+}
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004110
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.004 seconds
+Real time usage: 0.004 seconds
+Preprocessor visited node count: 9/1000000
+Preprocessor generated node count: 48/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

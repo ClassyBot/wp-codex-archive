@@ -1,0 +1,249 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Opening_Question_.28quenting.29"><span class="tocnumber">1</span> <span class="toctext">Opening Question (quenting)</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#quenting"><span class="tocnumber">2</span> <span class="toctext">quenting</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#quenting_2"><span class="tocnumber">3</span> <span class="toctext">quenting</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#andrea_r"><span class="tocnumber">4</span> <span class="toctext">andrea_r</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#quenting_3"><span class="tocnumber">5</span> <span class="toctext">quenting</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#selad"><span class="tocnumber">6</span> <span class="toctext">selad</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#andrea_r_2"><span class="tocnumber">7</span> <span class="toctext">andrea_r</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#boetter"><span class="tocnumber">8</span> <span class="toctext">boetter</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#andrewbillits"><span class="tocnumber">9</span> <span class="toctext">andrewbillits</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#boetter_2"><span class="tocnumber">10</span> <span class="toctext">boetter</span></a></li>
+<li class="toclevel-1 tocsection-11"><a href="#andrewbillits_2"><span class="tocnumber">11</span> <span class="toctext">andrewbillits</span></a></li>
+<li class="toclevel-1 tocsection-12"><a href="#andrewbillits_3"><span class="tocnumber">12</span> <span class="toctext">andrewbillits</span></a></li>
+<li class="toclevel-1 tocsection-13"><a href="#quenting_4"><span class="tocnumber">13</span> <span class="toctext">quenting</span></a></li>
+<li class="toclevel-1 tocsection-14"><a href="#quenting_5"><span class="tocnumber">14</span> <span class="toctext">quenting</span></a></li>
+<li class="toclevel-1 tocsection-15"><a href="#bsdguru"><span class="tocnumber">15</span> <span class="toctext">bsdguru</span></a></li>
+<li class="toclevel-1 tocsection-16"><a href="#imagenow"><span class="tocnumber">16</span> <span class="toctext">imagenow</span></a></li>
+<li class="toclevel-1 tocsection-17"><a href="#quenting_6"><span class="tocnumber">17</span> <span class="toctext">quenting</span></a></li>
+<li class="toclevel-1 tocsection-18"><a href="#drmike"><span class="tocnumber">18</span> <span class="toctext">drmike</span></a></li>
+<li class="toclevel-1 tocsection-19"><a href="#Farseas"><span class="tocnumber">19</span> <span class="toctext">Farseas</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Opening_Question_.28quenting.29">Opening Question (quenting)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=1" title="Edit section: Opening Question (quenting)">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Being close to reach the dreaded 32000 blogs limit in wpmu, I've been studying a scaling architecture that would allow to scale virtually indefinitely an MU site.
+In this thread&#160;: <a rel="nofollow" class="external free" href="http://mu.wordpress.org/forums/topic.php?id=1343">http://mu.wordpress.org/forums/topic.php?id=1343</a> , Donncha explains some parts of wp.com setup. Matt on his blog has also given some clues as per their layout. Basically, from what I understand, a cluster of web servers, multiple rsync'ed nfs servers and database servers.
+I wasn't too looking forward to implementing such a thing, because NFS means UDP, means a lot of bandwidth, means a VPN, means expenses. And because the whole setup meant quite a few modifications to the code, and because to me it looks like there would be more and more problems when adding new servers.
+</p><p>So, I've been looking into implementing another solution. You're probably interested in reading the following (or at least i'm interested in you reading it&#160;;-) ) if:
+- you're a WP developper.
+- you have a sysadmin experience
+- you plan on having thousands, tens of thousands or more users in your service.
+</p><p>I'm looking for feedback on the architecture I plan, so that if someone spots a weakness I would have overlooked I can avoid wasting a lot of time on its implementation.
+</p><p>Here you have a graph of the solution I plan to implement:
+<a rel="nofollow" class="external free" href="http://www.creerunblog.fr/scaling.gif">http://www.creerunblog.fr/scaling.gif</a>
+</p><p>The idea is to receive all incoming requests on a single HTTP server.
+This server, using mod_proxy and mod_rewrite, will route requests to X backend servers, acting as a reverse proxy.
+This can be done very simply once mod_proxy is installed, by adding lines such as:
+</p>
+<pre>RewriteEngine on
+RewriteRule ^t(.*)$ <a rel="nofollow" class="external free" href="http://somewhere.com/">http://somewhere.com/</a> [P,L]
+</pre>
+<p>This would route all requests starting with a t to the site somewhere.com and present its contents to the user as if delivered by the front server.
+</p><p>In the following I'll give example with my own site urls ( <a rel="nofollow" class="external free" href="http://unblog.fr/">http://unblog.fr/</a> )
+So, with a set of directives like:
+</p>
+<pre>RewriteEngine on
+# redirects abc.unblog.fr to abc.unbloga.fr
+RewriteRule ^a(.*)\.unblog\.fr(.*)$ <a rel="nofollow" class="external free" href="http://a$1.unbloga.fr$2">http://a$1.unbloga.fr$2</a> [P,L]
+# redirects bcd.unblog.fr to bcd.unblogb.fr
+RewriteRule ^b(.*)\.unblog\.fr(.*)$ <a rel="nofollow" class="external free" href="http://b$1.unblogb.fr$2">http://b$1.unblogb.fr$2</a> [P,L]
+RewriteRule ^b(.*)\.unblog\.fr(.*)$ <a rel="nofollow" class="external free" href="http://c$1.unblogc.fr$2">http://c$1.unblogc.fr$2</a> [P,L]
+RewriteRule ^b(.*)\.unblog\.fr(.*)$ <a rel="nofollow" class="external free" href="http://d$1.unblogd.fr$2">http://d$1.unblogd.fr$2</a> [P,L]
+</pre>
+<p>etc.
+</p><p>And combined with the appropriate entries for unblogX.fr in bind, I can route requests to different servers based on the blog name.
+Then, on the backend servers, I have one instance of MU installed for each domain like "unblogX.fr", with the scripts, blog files and database located on the same server.
+Only the main set of tables is located on the front server (for instance), and needs to be modified so that queries on the main tables go to this database instead of the localhost.
+</p><p>Advantages of this solution over the wp.com one:
+- Much less code needs modification regarding database access and uploaded file access. Only the requests to the main tables need to be redirected to the main database, otherwise all requests are treated locally.
+- No need for NFS drives.
+- No need for dynamic sync of any member in the system. Every instance of MU acts as a normal one with its own set of bloggers, its own set of uploaded files, its own DB. This means optimal performance on the local machines, and very little overhead overall when compared to a simple MU installation, with just the data transfer between the proxy and the backend server added.
+- No problem with the 32000 bloggers limit anymore. If any letter reaches 32000 bloggers, you can split it with rewrite rules like:
+</p>
+<pre>RewriteRule ^aa(.*)\.unblog\.fr(.*)$ <a rel="nofollow" class="external free" href="http://aa$1.unblogaa.fr$2">http://aa$1.unblogaa.fr$2</a> [P,L]
+RewriteRule ^ab(.*)\.unblog\.fr(.*)$ <a rel="nofollow" class="external free" href="http://ab$1.unblogab.fr$2">http://ab$1.unblogab.fr$2</a> [P,L]
+RewriteRule ^ac(.*)\.unblog\.fr(.*)$ <a rel="nofollow" class="external free" href="http://ac$1.unblogac.fr$2">http://ac$1.unblogac.fr$2</a> [P,L]
+</pre>
+<p>etc.
+- One server gets overloaded&#160;? A disk gets full&#160;? Add a new server and split some of your users on it. Easy&#160;!
+- You can split in as many environments as needed. Smaller databases -&gt; easier backups, easier script updates, less downtime for users (particularly when upgrading DB.
+- It's easy to beta-test new features, just create a test environment like:
+RewriteRule ^test\.unblog\.fr(.*)$ <a rel="nofollow" class="external free" href="http://test.unblogtest.fr$2">http://test.unblogtest.fr$2</a> [P,L]
+and do your changes on the unblogtest environment. When yo're happy, push files to the other environments.
+</p><p>Drawbacks of the solution:
+- By default the environment unblogX.fr is meant to run on this domain and will generate html pages with this domain. Most requests in MU should be relative, but if there are some absolute paths the domain needs fixing. This can probably be done by cheating the HOST variable in mu.
+- The IP of incoming requests is always the proxy one. IP detection in MU needs to be replaced to check the HTTP_X_FORWARDED_FOR or HTTP_VIA variables.
+- wp-newblog.php needs to be modified to create the blog in the right environment.
+- Many entries need to be created in bind, and although you don't need to actually register the domains, I'm not too sure what happens if unblogX.fr exists.
+- A script to move users tables and files around is needed (would be in any multi-database setup).
+</p><p>That's about all I see. Please tell me if you think I overlooked something or about the big hidden drawback I didn't think about.
+</p>
+<h2><span class="mw-headline" id="quenting">quenting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=2" title="Edit section: quenting">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>If anyone's interested in implementing something similar, here's the correct set of rewrite rules to implement the proxy archtecture described above:
+</p>
+<pre>RewriteCond&#160;%{HTTP_HOST} ^a(.*)\.domain\.com$
+RewriteRule ^(.*) <a rel="nofollow" class="external free" href="http://a%1.domaina.fr/$1">http://a%1.domaina.fr/$1</a> [P,L]
+RewriteCond&#160;%{HTTP_HOST} ^b(.*)\.domain\.com$
+RewriteRule ^(.*) <a rel="nofollow" class="external free" href="http://a%1.domainb.fr/$1">http://a%1.domainb.fr/$1</a> [P,L]
+RewriteCond&#160;%{HTTP_HOST} ^c(.*)\.domain\.com$
+RewriteRule ^(.*) <a rel="nofollow" class="external free" href="http://a%1.domainc.fr/$1">http://a%1.domainc.fr/$1</a> [P,L]
+</pre>
+<p>...
+</p><p>domaina.com, domainb.com, domainc.com etc. need to be defined in bind and point to either the same server or another one.
+</p><p>Also, on secondary MU installations, you need to add something like this:
+$tmphost = explode('.',$_SERVER['HTTP_HOST']);
+$_SERVER['HTTP_HOST']=$tmphost[0].'.domain.com';
+</p><p>so that even though served from domainX.com, absolute URLs are generated with the correct domain name.
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="quenting_2">quenting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=3" title="Edit section: quenting">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>// just a log entry for those interested
+</p><p>follow up on the splitting of global and local DB.
+</p><p>In addition to the SK2 join query explained here:
+<a rel="nofollow" class="external free" href="http://mu.wordpress.org/forums/topic.php?id=1769&amp;page=2&amp;replies=47#post-13919">http://mu.wordpress.org/forums/topic.php?id=1769&amp;page=2&amp;replies=47#post-13919</a>
+</p><p>there is another query that is a problem around line 57 of links-manager.php&#160;:
+$results = $wpdb-&gt;get_results("SELECT link_id, link_owner FROM $wpdb-&gt;links LEFT JOIN $wpdb-&gt;users ON link_owner = ID WHERE link_id in ($all_links)");
+</p><p>Note: seems not to be there in 1.0 anymore.
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="andrea_r">andrea_r</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=4" title="Edit section: andrea r">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Just giving you some input now that my personal programmer/sql guru/hubbie extraordinaire/brains behind this outfit has had a chance to look at this thread.&#160;:D
+</p><p>First, he likes your diagram.&#160;:)
+Second, the short answer from him is "Yeah, that'll work".
+</p><p>In fact, we are working on a similar goal. We are not up to multiple servers or even thinking of rewrite rules yet, but we do need to have multiple dbs and your solution is slightly simpler than the one he was going to implement.
+</p><p>A way you could get around the join issue is to replicate the master (global) tables in all the child dbs.
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="quenting_3">quenting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=5" title="Edit section: quenting">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>thanks for your feedback&#160;:).
+I know for sure it works now, since it's working on my site&#160;;-).
+The setup is indeed not necessarily linked to multiple servers. You can just have the proxy/rewrite rules hit the local machine, and use this to have multiple environments locally. Many DBs mean easier updates, backups etc. at the small cost of an rsync script to run when you tweak te code / add plugins.
+</p><p>Regarding the joins, apart those 2 I mentionned, one of which is linked to SK2 and the other isn't there in latest MU builds, I'm now fairly positive there isn't any others. So keeping the global tables in only one place is feasible (no replication needed...).
+</p><p>if you're interested, I can post my modified wp-db file which splits requests to global/local DB. It's fairly straightforward.
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="selad">selad</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=6" title="Edit section: selad">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>quenting,
+I would be interested in the modified wp-db file.
+</p><p>Thanks!
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="andrea_r_2">andrea_r</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=7" title="Edit section: andrea r">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Yes, I would totally be interested. Hubby's overworked at the moment.
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="boetter">boetter</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=8" title="Edit section: boetter">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>I think this would make for a wpmudev.org howto, as we've talked about earlier.
+</p><p>Not to push it, but could andrew give an update on when the wiki at wpmudev will be up?
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="andrewbillits">andrewbillits</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=9" title="Edit section: andrewbillits">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>When andrew has time&#160;;)
+</p><p>i'm actually contemplating on a new site that would serve as a wiki for wpmu.
+</p><p>At the moment, the only real spare time I have is on weekends. Cleaning the house, car, cat and general errands take up saturdays. So unless is it's a paid gig (In which case the cat can wait), sunday is my only day for wpmu stuff.
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="boetter_2">boetter</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=10" title="Edit section: boetter">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>I'm sure we could work out some money andrew. How much would you need?
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="andrewbillits_2">andrewbillits</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=11" title="Edit section: andrewbillits">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Nah, wouldn't charge for it. It's just a matter of finding the time. It looks like this afternoon may be a bit slow at the office.
+Posted 1 year ago #
+</p>
+<h2><span class="mw-headline" id="andrewbillits_3">andrewbillits</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=12" title="Edit section: andrewbillits">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Alright, I just registered a domain. I handle all of my domains through 1and1 and they typically have a domain ready within six hours. So, I should be able to start playing with wiki scripts/software when I get home.
+</p>
+<h2><span class="mw-headline" id="quenting_4">quenting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=13" title="Edit section: quenting">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>WARNING: this is modified from the exact version i tested, USE AT YOUR OWN RISK. Do not use without much more testing on a prod environment. Note this has been modified from a wp-db file from a march nightly, so if you use a more recent build, you need to be specially careful with not missing out any changes.
+</p><p>here:
+<a rel="nofollow" class="external free" href="http://www.creerunblog.fr/wp-db.txt">http://www.creerunblog.fr/wp-db.txt</a>
+you can see a sample implementation.
+It's slightly different from what I have actually implemented regarding the settings mostly which are in an outside file for me but i put them inthere to make it clearer.
+Basically those lines:
+</p>
+<pre>define('MY_USE_MULTIPLE_DBS', true);
+define('MY_LOCAL_DB_NAME', 'xxx');
+define('MY_LOCAL_DB_USER', 'xxx');
+define('MY_LOCAL_DB_PASSWORD', 'xxx');
+define('MY_LOCAL_DB_HOST', 'xxx');
+define('MY_GLOBAL_DB_NAME', 'xxx');
+define('MY_GLOBAL_DB_USER', 'xxx');
+define('MY_GLOBAL_DB_PASSWORD', 'xxx');
+define('MY_GLOBAL_DB_HOST', 'xxx');
+</pre>
+<p>allow you to define database access. Global settings should always be the same, while the local settings will connect to each local database.
+</p><p>Then there is this line:
+</p>
+<pre>var $my_global_tables = "wp_blogs|wp_users|wp_site|wp_sitemeta|wp_sitecategories|wp_usermeta|sk2_blacklist|my_counter|my_cache|my_categories|my_categories_links|wp_1_(\S)*";
+</pre>
+<p>where you need to define the regexp pattern that when matched will tell the class to connect to the global DB.
+</p><p>you should add here all the global table names. Note mine has the admin tables inthere too because I use sometimes the admin settings as global settings for some plugins (like sk2).
+</p><p>Then I created the my_db_connect function, that creates a link to each of the 2 DBs.
+</p><p>Finally the most tweaked method is the query one, which basically parses the query and matches the regexp to figure if it should use the local or global DB.
+</p><p>Only the first part of the query is matched because in some cases table names might be used as parameter values, or when a query is embedded in a log message for instance.
+</p><p>Happy scaling&#160;:-).
+Posted 12 months ago #
+</p>
+<h2><span class="mw-headline" id="quenting_5">quenting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=14" title="Edit section: quenting">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>moderator , please delete the previous post.
+An issue was raised with its contents that should be sorted before I repost it. I will repost the code when it's working properly.
+Posted 12 months ago #
+</p>
+<h2><span class="mw-headline" id="bsdguru">bsdguru</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=15" title="Edit section: bsdguru">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>quenting take a look at Perlbal which is a reverse-proxy to on your web frontend server(s). That can reverse proxy to multiple webservers which serve up the content for the blogs. You can also run a couple instances of memcached instances instead of caching data to disk to reduce the load on your MySQL servers. Look at using mogilefs for storing user content.
+</p><p>Splitting users up into over database clusters with a global wpmu database is suggested. Look at the various presentations from LiveJournal on how they scaled their infrastructure and learn from their mistakes which they made in the past. Start using their tools like perlbal, memcached, etc.
+</p><p>NFS works over TCP or UDP. Personally I would prefer to use mogilefs over nfs as it automatically mirrors files to multiple machines.
+Posted 12 months ago #
+</p>
+<h2><span class="mw-headline" id="imagenow">imagenow</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=16" title="Edit section: imagenow">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>QUENTIN: the adsense in your blogs are drive by you or your users?
+Posted 12 months ago #
+</p>
+<h2><span class="mw-headline" id="quenting_6">quenting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=17" title="Edit section: quenting">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>ok i've reposted the file since it is in fact working fairly well, only a couple of things must be taken care of:
+</p><p>in my mu nightly, there is in wpmu-functions a function get_blog_details() that runs a couple of queries. The problem of that function is that if you're logged in as a user, and visit another user's blog, it tries to read info from your local tables in the blog's local database, which, if they're not the same, will produce a DB error.
+The thing is, I've checked carefully, and the "local calls" (on the options table) are never used anywhere in the rest of the script. So i just commented them out, and now things are working fine.
+</p><p>The only problem left is when you search for a blog in the MU admin, and then click edit/admin or any of the possible actions, it will try to run these actions off your main domain, which won't work if the localDB hosting the blog is different from your main blog's local DB. This is just solved by modifying those links so that the action is run off the target blogs'domain, instead of your main blog's.
+</p><p>Not sure if that's too clear hehehe.
+</p>
+<h2><span class="mw-headline" id="drmike">drmike</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=18" title="Edit section: drmike">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Something else you have to keep in mind (And I don't see it mentioned up above.  Please excuse me if I'm just to tired to see it) is uploads.  MD5ing the blogs.dir directory works pretty well and is discussed <a rel="nofollow" class="external text" href="http://mu.wordpress.org/forums/topic.php?id=2271&amp;page#post-13592">here</a>
+</p>
+<h2><span class="mw-headline" id="Farseas">Farseas</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_to_Scale_WPMS&amp;action=edit&amp;section=19" title="Edit section: Farseas">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Excuse my impertinence for commenting without thoroughly reading every single response really thoroughly.  If we have already crossed this path, then I apologize.
+</p><p>But let's start from the beginning here.  If we are talking about a WPMU site with that many blogs on it, we are talking about a CRITICAL application.  A critical application like this needs to be designed with a serious Business Continuity Plan. If you are talking about a BLOG site this large, then you need to start your design from the DNS level.  First you start with multiple DNS servers that monitor each other and dynamically update IP addresses as needed.
+</p><p>Next you create multiple redundant mirrored servers IN DIFFERENT DATA CENTERS ON DIFFERENT CONTINENTS.
+</p><p>Then you implement your application with load balancing between the different mirrored servers.
+</p><p>In the end, you should have at least three servers, on three continents, and you should be able to lose two of these servers without losing any data.  Processing would slow down, but you would lose nothing.
+</p><p>This does not have to be as expensive as it all sounds.  I was technical project manager for such an application for a telecom consortium and I have done this before .  Back then, it cost a fortune, but nowadays, with FOSS and commodity level hardware, with multiply redundant high speed connections available on every major continent, it can be done pretty reasonably.
+</p><p>Before we even think about doing anything like this though, it would be important to thoroughly examine the WPMU data model for such a deployment.  It may even be advantageous to create a data storage engine outside of MySQL.
+</p><p>Every single point of failure or bottleneck has to be addressed and eliminated.  We are talking about a GRID model here.
+</p><p>--<a href="/index.php?title=User:Farseas&amp;action=edit&amp;redlink=1" class="new" title="User:Farseas (page does not exist)">Farseas</a> 21:26, 13 Nov 2007 (UTC)
+</p><p>I thought that I would expand on my previous rant by talking about what I am doing now that has some of this same functionality.
+</p><p>I have two hosts - one in Dallas, and one in the UK.  I created a root domain that is a placeholder and admin login on both hosts.  Then I added all my other domain names that contain Wordpress blogs as add-on domains to both hosts.  Now I am about to add dynamic DNS.  Each host will monitor the other with a wget that downloads a webpage and runs md5sum on it to make sure that it correctly downloaded the whole page correctly. (Forget ping as an an availability checker.  I've seen hosts return pings when they would do nothing else).  If either host is unable to correctly download the test web page, it sends a message to dynamic DNS servers to change itself into the master server for all the add-on subdomains.  I run the wget every 5 minutes so the most that my site would be down would be 5 minutes.
+</p><p>This can later be used to do load balancing.  If the master host starts to get too busy, it can redirect requests to the other host.  It takes a lot less juice to process redirects than a normal blog interaction.  Updates that occur on one host can be transmitted to the other host in the background.
+</p><p>Comments appreciated.
+--<a href="/index.php?title=User:Farseas&amp;action=edit&amp;redlink=1" class="new" title="User:Farseas (page does not exist)">Farseas</a> 13:42, 13 Dec 2007 (UTC)
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004029
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.024 seconds
+Preprocessor visited node count: 74/1000000
+Preprocessor generated node count: 80/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

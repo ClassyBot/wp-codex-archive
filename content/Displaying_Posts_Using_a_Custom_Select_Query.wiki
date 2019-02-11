@@ -1,0 +1,264 @@
+== Description ==
+At some point in your WordPress development career you may be presented with the need to display one or more posts using [[Wikipedia:SELECT|SELECT]] criteria not provided by WordPress' [[Template Tags/query posts | query_posts]] architecture.  For instance, it may become necessary to [[Wikipedia:JOIN|JOIN]] WordPress tables to determine which posts should be displayed, or you may want to use data stored in your own tables to determine which [[Writing Posts|posts]] should be displayed.
+
+The practical example, outlined below, demonstrates a process of selecting all posts with a particular [[Custom_Fields|Custom Field]] value stored, and displaying them in a [[Pages|Page]] based on a [[Pages#Creating_your_own_Page_Templates|Page Template]]. Originally, this code was used to implement a post tagging [[Plugins|plugin]], which allowed organizing posts in less structured collections than the WordPress [[Manage_Categories_SubPanel|Categories]]. Your own usage may be very different, but the content and example should still give you a useful introduction to the general process involved.
+
+=== Assumptions made in this Article ===
+Generally, this article assumes you have a working knowledge of [[Glossary#PHP|PHP]], [[Glossary#MySQL|MySQL]]/[[Glossary#MariaDB|MariaDB]], and WordPress capabilities.
+
+Specific assumptions for the example, however, are:
+
+* You have at least one post with [[Custom Fields]] data.  The Custom Fields should have a key of 'tag' and a value of 'email'
+* You have created a [[Pages|Page]] and associated a [[Pages#Page_Templates|Page Template]] with that page.  For this example, assume the Template Name is 'Qbased' and was copied from the ''wp-content/themes/index.php'' template.  If you are not familiar with this process, follow the instructions in [[Pages#Creating_your_own_Page_Templates|Creating your own Page Templates]].
+* As this is a somewhat advanced developer topic, familiarity with the core WordPress concept of [[The Loop]] is suggested.
+
+== Code for the Page Template ==
+===The query===
+To begin with, it is necessary to retrieve the [[Glossary#Recordset|recordset]] containing the posts you want to display.  To do this, create a result set using the WordPress [[Class_Reference/wpdb|$wpdb database class]].  Note that the [[Glossary#MySQL|MySQL]]/[[Glossary#MariaDB|MariaDB]] [[Wikipedia:SELECT|SELECT]] statement illustrates a '''simple''' [[Wikipedia:JOIN|JOIN]].  Here, <tt>$pageposts</tt> will contain an [[Glossary#Array|array]] of objects. Each object will represent a '''published''' post that has custom field key-value pair - with the key being 'tag' and the value being 'email':
+<pre>
+ <?php
+
+ $querystr = "
+    SELECT $wpdb->posts.* 
+    FROM $wpdb->posts, $wpdb->postmeta
+    WHERE $wpdb->posts.ID = $wpdb->postmeta.post_id 
+    AND $wpdb->postmeta.meta_key = 'tag' 
+    AND $wpdb->postmeta.meta_value = 'email' 
+    AND $wpdb->posts.post_status = 'publish' 
+    AND $wpdb->posts.post_type = 'post'
+    AND $wpdb->posts.post_date < NOW()
+    ORDER BY $wpdb->posts.post_date DESC
+ ";
+
+ $pageposts = $wpdb->get_results($querystr, OBJECT);
+ 
+ ?>
+</pre>
+
+===The Revised Loop===
+Now, to display posts collected into <tt>$pageposts</tt> by the previous [[Wikipedia:SELECT|SELECT]] criteria, you need to replace [[The Loop]] with your own loop code in the ''Qbased'' Page Template.  This requires creating a revised loop that cycles through the posts stored in <tt>$pageposts</tt> and displays them. Note: the structure / markup in the loop below is taken from the WordPress '''default''' [[Using Themes|theme]].
+
+<pre>
+ <?php if ($pageposts): ?>
+ <?php global $post; ?>
+ <?php foreach ($pageposts as $post): ?>
+ <?php setup_postdata($post); ?>
+ 
+ <div class="post" id="post-<?php the_ID(); ?>">
+ <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>">
+    <?php the_title(); ?></a></h2>
+    <small><?php the_time('F jS, Y') ?> <!-- by <?php the_author() ?> --></small>
+    <div class="entry">
+       <?php the_content('Read the rest of this entry &raquo;'); ?>
+    </div>
+    <p class="postmetadata">Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  
+    <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
+ </div>
+ <?php endforeach; ?>
+ <?php else : ?>
+    <h2 class="center">Not Found</h2>
+    <p class="center">Sorry, but you are looking for something that isn't here.</p>
+    <?php include (TEMPLATEPATH . "/searchform.php"); ?>
+ <?php endif; ?>
+</pre>
+
+And that's it!
+
+To go through the important parts of the code, line by line, you have:
+
+* A test to make sure that the query that populated <tt>$pageposts</tt> actually found some posts that matched the [[Wikipedia:SELECT|SELECT]] criteria:
+<pre>
+<?php if ($pageposts): ?>
+</pre>
+* A [[Wikipedia:Foreach|foreach loop]] to go through the posts returned in <tt>$pageposts</tt> and display them:
+<pre>
+<?php foreach($pageposts as $post): ?>
+</pre>
+* A declaration that we are using the global WordPress variable <tt>$post</tt> in order to make the [[Template Tags]] work (they will not be populated by <tt>[[Function_Reference/setup_postdata|setup_postdata()]]</tt> properly otherwise):
+<pre>
+<?php global $post; ?>
+</pre>
+* And, a call to the WordPress post formatting function, <tt>[[Function_Reference/setup_postdata|setup_postdata()]]</tt>, that automatically populates the required variables: 
+<pre>
+<?php setup_postdata($post); ?>
+</pre> 
+
+==== Within the Loop ====
+Because <tt>setup_postdata($post);</tt> was called in our example, you can use the same [[Template Tags | template tags]] that can be included in a normal WordPress post loop, like <tt>the_content()</tt> and <tt>the_permalink()</tt>. This means that you can create your own post display results using a Page Template with a minimum amount of fuss, automatically taking advantage of the various plugins you may have activated in your WordPress blog to provide extra formatting and functionality.
+
+=== The Completed Page Template ===
+Here is a complete example of the new template that works with the WordPress '''default''' theme.
+<pre>
+<?php
+/*
+Template Name: Qbased
+*/
+?>
+
+<?php get_header(); ?>
+
+<div id="content" class="narrowcolumn">
+
+<?php
+
+ $querystr = "
+    SELECT $wpdb->posts.* 
+    FROM $wpdb->posts, $wpdb->postmeta
+    WHERE $wpdb->posts.ID = $wpdb->postmeta.post_id 
+    AND $wpdb->postmeta.meta_key = 'tag' 
+    AND $wpdb->postmeta.meta_value = 'email' 
+    AND $wpdb->posts.post_status = 'publish' 
+    AND $wpdb->posts.post_type = 'post'
+    AND $wpdb->posts.post_date < NOW()
+    ORDER BY $wpdb->posts.post_date DESC
+ ";
+
+ $pageposts = $wpdb->get_results($querystr, OBJECT);
+
+?>
+ <?php if ($pageposts): ?>
+  <?php global $post; ?>
+  <?php foreach ($pageposts as $post): ?>
+    <?php setup_postdata($post); ?>
+
+    <div class="post" id="post-<?php the_ID(); ?>">
+      <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>">
+      <?php the_title(); ?></a></h2>
+      <small><?php the_time('F jS, Y') ?> <!-- by <?php the_author() ?> --></small>
+      <div class="entry">
+         <?php the_content('Read the rest of this entry »'); ?>
+      </div>
+  
+      <p class="postmetadata">Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  
+      <?php comments_popup_link('No Comments »', '1 Comment »', '% Comments »'); ?></p>
+    </div>
+  <?php endforeach; ?>
+  
+  <?php else : ?>
+    <h2 class="center">Not Found</h2>
+    <p class="center">Sorry, but you are looking for something that isn't here.</p>
+    <?php include (TEMPLATEPATH . "/searchform.php"); ?>
+ <?php endif; ?>
+
+</div>
+
+<?php get_sidebar(); ?>
+
+<?php get_footer(); ?>
+</pre>
+It is important to note here that the above example will work '''only''' when OBJECT or OBJECT_K (for unique results) is passed as the "output_type" parameter for <tt>$wpdb->get_results()</tt>. <tt>setup_postdata()</tt> requires an object and will not work when ARRAY_A or ARRAY_N are passed into <tt>$wpdb->get_results()</tt>.
+
+==Query based on Custom Field and Category==
+This next example sets the $querystr variable used in the above example, to get all posts in Categories 1,2, and 3, that have the meta_key 'paragraf', and then sorted ascending by the meta_values.  This example gleaned from Otto42's response in [http://wordpress.org/support/topic/121011 Forum Topic 121011].
+
+'''Use this example for version prior to WordPress 2.3:'''
+<pre>
+ $querystr = "
+    SELECT $wpdb->posts.*
+    FROM $wpdb->posts
+    LEFT JOIN $wpdb->postmeta ON ($wpdb->posts.ID = $wpdb->postmeta.post_id)
+    LEFT JOIN $wpdb->post2cat ON ($wpdb->posts.ID = $wpdb->post2cat.post_id)
+    WHERE $wpdb->postmeta.meta_key = 'paragraf'
+    AND $wpdb->posts.post_status = 'publish'
+    AND $wpdb->posts.post_type = 'post'
+    AND $wpdb->post2cat.category_id IN (1,2,3)
+    ORDER BY $wpdb->postmeta.meta_value ASC
+    ";
+
+</pre>
+
+
+
+'''Use this example for WordPress Version 2.3:'''
+This example gleaned from kernow's response in [http://wordpress.org/support/topic/121011 Forum Topic 121011]
+
+<pre>
+SELECT * FROM $wpdb->posts
+LEFT JOIN $wpdb->postmeta ON($wpdb->posts.ID = $wpdb->postmeta.post_id)
+LEFT JOIN $wpdb->term_relationships ON($wpdb->posts.ID = $wpdb->term_relationships.object_id)
+LEFT JOIN $wpdb->term_taxonomy ON($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id)
+WHERE $wpdb->term_taxonomy.term_id IN (1,2,3)
+AND $wpdb->term_taxonomy.taxonomy = 'category'
+AND $wpdb->posts.post_status = 'publish'
+AND $wpdb->postmeta.meta_key = 'paragraf'
+ORDER BY $wpdb->postmeta.meta_value ASC
+</pre>
+
+
+'''Previous examples don't work with WordPress Version 2.5 or higher.'''
+
+This example, tested Wordpress 2.9.2, is made to get posts in selected categories that are after a date, sorted ascending.  It limits the number to just 4 items returned.
+
+<pre>
+<?php
+global $wpdb;
+global $post;
+$querystr = "
+SELECT DISTINCT wposts.* 
+FROM $wpdb->posts wposts
+	LEFT JOIN $wpdb->postmeta wpostmeta ON wposts.ID = wpostmeta.post_id 
+	LEFT JOIN $wpdb->term_relationships ON (wposts.ID = $wpdb->term_relationships.object_id)
+	LEFT JOIN $wpdb->term_taxonomy ON ($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id)
+WHERE wpostmeta.meta_key = 'customDateField'
+	AND wpostmeta.meta_value >= CURDATE()
+	AND $wpdb->term_taxonomy.taxonomy = 'category'
+	AND $wpdb->term_taxonomy.term_id IN(1,2)
+ORDER BY wpostmeta.meta_value ASC
+LIMIT 4
+";
+?>
+</pre>
+The <tt>global $wpdb;</tt> line stops the [http://wordpress.org/support/topic/240236#post-975256 Fatal error: Call to a member function get_var() on a non-object errors].
+
+==Query based on Custom Field and Sorted by Value==
+This example pulls pages with a certain custom field key, then sorts on the key's value.
+<pre>
+ $querystr = "
+    SELECT wposts.* 
+    FROM $wpdb->posts wposts, $wpdb->postmeta wpostmeta
+    WHERE wposts.ID = wpostmeta.post_id 
+    AND wpostmeta.meta_key = 'custom-key' 
+    AND wposts.post_type = 'page' 
+    ORDER BY wpostmeta.meta_value DESC
+    ";
+
+</pre>
+
+==Query by Category Name and Custom Field Key Sorted by Key's Value ==
+This example selects posts that have a common category name and custom field key, then sorts the selection by the custom key's value.
+<pre>
+$querystr = "
+	SELECT * FROM $wpdb->posts
+	LEFT JOIN $wpdb->postmeta ON($wpdb->posts.ID = $wpdb->postmeta.post_id)
+	LEFT JOIN $wpdb->term_relationships ON($wpdb->posts.ID = $wpdb->term_relationships.object_id)
+	LEFT JOIN $wpdb->term_taxonomy ON($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id)
+	LEFT JOIN $wpdb->terms ON($wpdb->term_taxonomy.term_id = $wpdb->terms.term_id)
+	WHERE $wpdb->terms.name = 'slides'
+	AND $wpdb->term_taxonomy.taxonomy = 'category'
+	AND $wpdb->posts.post_status = 'publish'
+	AND $wpdb->posts.post_type = 'post'
+	AND $wpdb->postmeta.meta_key = 'order'
+	ORDER BY $wpdb->postmeta.meta_value ASC
+";
+</pre>
+
+== Acknowledgements ==
+
+Many thanks to [http://wordpress.org/support/profile/6445 Kafkaesquii] for pointing out a simpler method of populating the appropriate global variables, etc, using [[Function_Reference/setup_postdata|setup_postdata()]].
+
+== Related ==
+* Class: [[Class Reference/wpdb|wpdb]] - Overview of using the $wpdb object
+* Tutorial: [[Displaying Posts Using a Custom Select Query]]
+* Tutorial: [[Making Advanced Taxonomy Queries]]
+* Action Hook: [[Plugin API/Action Reference/pre_get_posts|pre_get_posts]] - Modify WordPress queries before they are executed
+* Function: [[Function_Reference/query_posts|query_posts()]] - Make additional custom queries
+* Function: [[Function_Reference/setup_postdata|setup_postdata()]] - Setup query data for individual results within a loop
+
+== Resources ==
+* [http://www.nkuttler.de/paste/1lz/ Query for multiple post meta values/custom fields]
+
+[[Category:WordPress Lessons]]
+[[Category:Advanced Topics]]
+[[Category:Design and Layout]]
+[[Category:Templates]]
+{{Stub}}

@@ -1,0 +1,67 @@
+{{Draft}}
+
+Many CSS3 features do not work with earlier releases of Internet Explorer. This can cause your WordPress site to look unattractive for those that haven't or are unable to upgrade to a more current version.
+
+There is a work around but it's ugly. Add conditional CSS to your head for any version of IE less than 9 and reference [http://css3pie.com/download-latest PIE.htc] from [http://css3pie.com/ CSS3 PIE].
+
+This is easily done by adding some code to your theme's functions.php file.
+
+== Download the zip file for PIE ==
+
+As of this writing that is PIE-1.0beta5.zip. Head over to http://css3pie.com/download-latest and grab a copy.
+
+== Create a pie directory where your theme is and extract that zip file there ==
+
+In your theme directory, create a new folder called pie i.e. your-theme/pie. I like to make a separate directory to keep things organized. In 6 months I don't want to ask myself "what's that file again?"
+
+== Find the "offending" CSS ==
+
+In your theme's style.css look for any references for border radius, those are the elements you'll need to apply the fix to. The one's I've looked for are these.
+
+<pre>-moz-border-radius: 10px;
+-webkit-border-radius: 10px;
+border-radius: 10px;
+</pre>
+
+Those are the elements that need this hack for IE 8. For my theme those elements (separated by commas) are
+
+<pre>#header, .post-nav span span, .number, .back-top a,
+input[type=reset], input[type=submit], input[type=text],
+input[type=password], textarea, input[type=search]
+</pre>
+
+== Add code to your functions.php file ==
+
+What we want to do is add to the head a conditional so that if the Internet Explorer browser is less than version 9, add the behavior tag to those CSS elements. We could do if via editing the theme's header.php but that's an even uglier solution.
+
+<pre>add_filter( 'wp_head' , 'mh_ie_lt_9_hack' );
+function mh_ie_lt_9_hack() { ?>
+<!-- child theme hack for versions of IE 8 or less -->
+<!--[if lt IE 9]>
+<style type="text/css" media="screen">
+#header, .post-nav span span, .number, .back-top a,
+input[type=reset], input[type=submit], input[type=text],
+input[type=password], textarea, input[type=search] {
+        behavior: url("<?php echo get_stylesheet_directory_uri() . '/pie/PIE.htc'; ?>");
+        position: relative;
+        zoom: 1;
+}
+</style>
+<![endif]-->
+<!-- /child theme hack for versions of IE 8 or less -->
+<?php }
+</pre>
+
+To get it work you may have to add position and zoom. Not sure why, my CSS is often lacking.
+
+Now visit your site via Internet Explorer 8 or even 7. The site should now enjoy it's CSS3 radius glory for those elements you've identified.
+
+== I don't have Internet Explorer 8 installed, how can I test this? ==
+
+If you have patience you can check out your site via [http://browsershots.org/ Browser Shots] or via [https://browserlab.adobe.com/ Adobe's Browser Lab].
+
+This is something to make your WordPress site look spiffy for older browsers. In IE 8 and IE 9 a problem site may render well. Even in version 7 it will look mostly okay. 
+
+IE version 6 and below need not apply.
+
+People should be encouraged to upgrade to the latest version of their browser. Even Microsoft get's that and is trying to stomp out version 6. But this will permit some of the newer CSS functionality to work for those other users.

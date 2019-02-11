@@ -1,0 +1,193 @@
+{{Languages|
+{{en|Custom Fields}}
+{{es|Using Custom Fields}}
+{{nl|Custom Fields}}
+{{ja|カスタムフィールドの使い方}}
+{{mk|Посебни Полиња}}
+{{pt-br|Campos Personalizados}}
+{{ru|Произвольные поля}}
+{{zh-cn|自定义栏目}}
+}}
+
+{{ru:Stub}}
+__TOC__
+WordPress позволяет авторам добавлять произвольные поля к записям. Содержимое этих полей называют '''meta-data'''. Поля могут включать некоторое количество дополнительной информации. Например:
+
+* '''Настроение:''' Счастлив
+* '''Читаю:''' Золушка
+* '''Слушаю:''' Modern Talking
+* '''Погода:''' Солнечно и жарко
+
+С помощью программирования можно добавить к произвольным полям более сложные функции. Например, они могут содержать "срок годности" записи.
+
+Данные хранятся парами - '''ключ/значение'''. '''Ключ''' - это название произвольного поля.  А '''значение''' - это содержимое поля, которое будет индивидуальным для каждой записи.
+
+Один и тот же '''ключ''' может быть использован в записи несколько раз. Например, если вы читаете две разные книги (техническое руководство на работе и фантастику дома), вы могли бы создать поле "Читаю" и использовать его дважды в одной записи (по одному разу для каждой книги).
+
+Вот пример того, как эта информация может выглядеть в записи:
+
+<div style="border:1px solid blue; width:50%; margin: 20px; padding:20px">'''Читаю''': ''Кальвин и Гоббс''
+'''Настроение''': ''Бодр и весел''
+</div>
+
+== Справочник по функциям ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Добавить, обновить, удалить'''
+|-
+|
+* <tt>[[Справочник_по_функциям/add_post_meta | add_post_meta()]]</tt>
+* <tt>[[Справочник_по_функциям/update_post_meta | update_post_meta()]]</tt>
+* <tt>[[Справочник_по_функциям/delete post meta | delete_post_meta()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Вернуть значение ключа/значения'''
+|-
+|
+* <tt>[[Справочник_по_функциям/get post custom | get_post_custom()]]</tt>
+* <tt>[[Справочник_по_функциям/get post custom values | get_post_custom_values()]]</tt>
+* <tt>[[Справочник_по_функциям/get post custom keys | get_post_custom_keys()]]</tt> 
+|}
+
+|- valign="top"
+| colspan="2" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Теги шаблона'''
+|-
+|
+* <tt>[[Справочник_по_функциям/the meta | the_meta()]]</tt>
+* <tt>[[Справочник_по_функциям/get post meta | get_post_meta()]]</tt>
+|}
+
+|}
+
+==Использование==
+Основываясь на примере выше, попробуем его в действии. Добавим два настраиваемых поля, одно называется "Читаю сейчас", а другое "Сегодняшнее настроение". Следующие инструкции покажут, как добавить эту информацию в публикацию используя "Произвольные поля".
+
+# After you have written your post, scroll down to the area titled '''Custom Fields'''.<br>'''Note:''' As of WordPress [[Version 3.1|version 3.1]], some [[Administration Panels#Screen_Options|screen options]] on the Post & Page edit Administration Panels are hidden by default. Custom Fields are hidden by default if they have not been used before.
+# To create a new '''Custom Field''' called "Currently Reading", enter the text "Currently Reading" (without the quotes) in the text entry field titled '''Name'''.
+# The newly created '''Key''' ("Currently Reading") should now be assigned a '''Value''', which in our case is the name of the book currently being read, "Calvin and Hobbes". Type "Calvin and Hobbes" in the ''Value'' field, again without the quotes.
+# Click '''Add Custom Field''' button to save this custom information for that post.
+
+[[File:custom_field_example.jpeg]]
+
+To add your "Today's Mood", repeat the process and add "Today's Mood" to the '''key''' and a description of your mood in the '''value''' text boxes and click '''Add Custom Field ''' to save this information with the post.
+
+On your next post, you can add a new book and mood to your meta-data.  In the '''Custom Fields''' section, the '''Key''' will now feature a pull down list with the previously entered Custom Fields. Choose "Currently Reading" and then enter the new book you are reading in the '''value'''.  Click '''Add Custom Field''' and then repeat the process to add "Today's Mood".
+
+You only need to create a new "KEY" '''once''', after which you can assign a value to that key for every post, if you so desire. You can also assign more than one ''Value'' to a key, for a post. This will come in handy for people who read more than one book at a time.
+
+==Displaying Custom Fields==
+
+With a Custom Field added to the post, it's time to display your books and mood to the world.  To display the Custom Fields for each post, use the <tt>[[Template_Tags/the_meta|the_meta()</tt>]] template tag. The tag must be put within [[The Loop]] in order to work.  Many people add <tt>the_meta()</tt> template tag to the end of their post or in their [[Post Meta Data Section]]. Here is a basic example of using the tag:
+
+ <?php the_meta(); ?>
+
+It might look like this in the source code:
+
+<pre>&lt;ul class='post-meta'&gt;
+&lt;li&gt;&lt;span class='post-meta-key'&gt;Curently Reading:&lt;/span&gt; Calvin and Hobbes&lt;/li&gt;
+&lt;li&gt;&lt;span class='post-meta-key'&gt;Today's Mood:&lt;/span&gt; Jolly and Happy&lt;/li&gt;
+&lt;/ul&gt;</pre>
+
+The template tag automatically puts the entire meta-data into a CSS style called <tt>post-meta</tt>. The '''key''' is in a <tt>span</tt> called <tt>post-meta-key</tt> so you can style it in your style sheet.  All of this is showcased in an unordered list.
+
+To customize the look of the post-meta list, change the characteristics in your style sheet.  For instance, let's add some style to our example from the top.  The style sheet elements would look like this:
+
+<pre>.post-meta {font-variant: small-caps; color: maroon; }
+.post-meta-key {color: green; font-weight: bold; font-size: 110%; }</pre>
+
+<div style="border:1px solid blue; width:50%; margin: 20px; padding:20px">
+* <span style="font-size:110%; color: green; font-weight:bold; font-variant: small-caps">Currently  Reading</span>: <span style="font-style:italic; color: maroon; font-variant: small-caps">Calvin and Hobbes</span>
+* <span style="font-size:110%; color: green; font-weight:bold; font-variant: small-caps">Today's Mood</span>: <span style="font-style:italic; color: maroon; font-variant: small-caps">Jolly and Happy</span>
+</div>
+
+There are also many WordPress Plugins in the [http://wordpress.org/extend/plugins/ Official WordPress Plugin Directory] that add some nice features to the job of displaying meta tags. A search for [http://www.google.com/search?hl=en&q=custom+fields+plugin+wordpress&btnG=Google+Search Custom Field plugins at Google] should help you find even more.
+
+To register support for custom fields within a custom post type, simply list it in your 'supports' $args using 'custom-fields'.
+<pre>
+'supports' => array('title','editor','thumbnail','custom-fields')
+</pre>
+
+==Advanced Techniques for Custom Fields==
+
+The following are more advanced techniques for getting and customizing meta-data and custom fields.
+
+===Getting Custom Fields===
+To fetch meta values use the <tt>[[Function Reference/get post meta|get_post_meta()]]</tt> function:
+
+  get_post_meta($post_id, $key, $single);
+
+*<tt>$post_id</tt> is the ID of the post you want the meta values for. Use <tt>$post->ID</tt> to get a post's ID within the $post variable scope. Use <tt>[[Function_Reference/get_the_ID|get_the_ID()]]</tt> to retrieve the ID of the current item in the WordPress Loop.
+*<tt>$key</tt> is a string containing the name of the meta value you want.
+*<tt>$single</tt> can either be <tt>true</tt> or <tt>false</tt>. If set to true then the function will return a single result, as a '''string'''. If false, or not set, then the function returns an '''array''' of the custom fields.
+
+====Implementation Details====
+The PostMeta information is stored in a new table, <tt>$wpdb->postmeta</tt>. This table has four fields:
+
+:'<tt>meta_id</tt>' - A unique id for each entry.
+:'<tt>post_id</tt>' - The ID of the post for this metadata.
+:'<tt>meta_key</tt>' - The name of the 'key'.
+:'<tt>meta_value</tt>' - The value associated with the key.
+
+The values from this table are pulled into a structured multi-dimensional array called <tt>$post_meta_cache</tt>, just after the <tt>$posts</tt> array is fetched in <tt>wp-blog-header.php</tt>. This variable will only contain values for the list of posts fetched for the current page build. The structure of the array will look something like this:
+
+ [
+ 	postid1 => [
+ 		key1 => [ val1, val2, ... ],
+ 		key2 => [ val1, val2, ... ],
+ 		...
+ 	],
+ 	postid2 => [
+ 		key1 => [ val1, val2, ... ],
+ 		key2 => [ val1, val2, ... ],
+ 		...
+ 	],
+ 	...
+ ]
+
+So, if you wanted to fetch the "reading" values from post number 256, you use this PHP code:
+
+ // Fetch an array of values for what I'm reading:
+ $readinglist = $post_meta_cache[256]['reading'];
+
+'''Note:''' Don't forget that <tt>$readinglist</tt> will be an array, not a single value.
+
+===PostMeta Functions===
+
+====Internal Functions====
+
+These functions are intended for use inside [[The Loop]], and all return arrays.
+
+;<tt>[[Function Reference/get post custom|get_post_custom()]]</tt>: Get all key/value data for the current post.
+;<tt>[[Function Reference/get post custom keys|get_post_custom_keys()]]</tt>: Get a list of all key names for the current post.
+;<tt>[[Function Reference/get post custom values|get_post_custom_values($key)]]</tt>: Get the list of values for a particular key on the current post.
+;<tt>[[Function Reference/get post meta|get_post_meta($post_id, $key, $single = false)]]</tt>: In WP 1.5 and beyond, this function returns the meta information without cache problems. The function requires the post id, the key, and if <tt>$single</tt> is set to TRUE, it returns only the first result (NOT as an array) for PHP use.
+
+<pre>This will output the resulting meta value (notice the addition of "echo"):
+<?php $key="mykey"; echo get_post_meta($post->ID, $key, true); ?></pre>
+
+====Template Functions====
+
+Any Post Meta function can be used in Wordpress template files. For example:
+
+;<tt>[[Template Tags/the_meta|the_meta()]]</tt>:Echoes an unordered list containing the current post's meta-data with a class for the UL as ''post-meta'' and the LI as ''post-meta-key''.
+
+;<tt><?php echo get_post_meta($post->ID, 'key', true); ?></tt>: will echo the value for a single key as a string wherever it is used in a template file.
+
+[[Category:ru:Getting Started]]
+[[Category:ru:Design and Layout]]
+[[Category:ru:WordPress Lessons]]
+[[Category:ru:Advanced Topics]]
+[[Category:ru:UI Link]]

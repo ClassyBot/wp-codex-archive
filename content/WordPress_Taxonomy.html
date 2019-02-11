@@ -1,0 +1,87 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="https://codex.wordpress.org/es:Taxonom%C3%ADas" title="es:Taxonomías">Español</a> • 
+
+<a href="https://codex.wordpress.org/it:Tassonomia_in_WordPress" title="it:Tassonomia in WordPress">Italiano</a> • 
+
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/WordPress_タクソノミー">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>WordPress 2.3 first introduced the current taxonomy schema. Any plugin that queries against the old WordPress 2.2 table structure will break horribly; plugins that use the category API should be fine.
+</p><p>This new schema replaced the categories, post2cat, and link2cat tables with three new tables that are much more flexible. 
+</p>
+<ol><li> wp_terms</li>
+<li> wp_term_relationships</li>
+<li> wp_term_taxonomy</li></ol>
+<h2><span class="mw-headline" id="wp_terms">wp_terms</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=WordPress_Taxonomy&amp;action=edit&amp;section=1" title="Edit section: wp terms">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The first table is the terms table. It holds the basic information about single terms.
+</p>
+<pre> term_id bigint(20) unsigned NOT NULL auto_increment,
+ name varchar(200) NOT NULL default '',
+ slug varchar(200) NOT NULL default '',
+ term_group bigint(10) NOT NULL default 0,
+ PRIMARY KEY  (term_id),
+ UNIQUE KEY slug (slug),
+ KEY name (name)</pre>
+<ul><li> <code>term_id</code> is a unique ID for the term.</li>
+<li> <code>name</code> is simply the name of the term.</li>
+<li> <code>slug</code> is unique and is the name reduced to a URL friendly form.</li>
+<li> <code>term_group</code> is a means of grouping together similar terms.</li></ul>
+<h2><span class="mw-headline" id="wp_term_taxonomy">wp_term_taxonomy</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=WordPress_Taxonomy&amp;action=edit&amp;section=2" title="Edit section: wp term taxonomy">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A term is not a category or tag on its own. It must be given context via the term_taxonomy table.
+</p>
+<pre> term_taxonomy_id bigint(20) unsigned NOT NULL auto_increment,
+ term_id bigint(20) unsigned NOT NULL default 0,
+ taxonomy varchar(32) NOT NULL default '',
+ description longtext NOT NULL,
+ parent bigint(20) unsigned NOT NULL default 0,
+ count bigint(20) NOT NULL default 0,
+ PRIMARY KEY  (term_taxonomy_id),
+ UNIQUE KEY term_id_taxonomy (term_id,taxonomy),
+ KEY taxonomy (taxonomy)</pre>
+<p>The term_taxonomy table places a term within a taxonomy. This is what makes a term a category, a tag or part of a custom taxonomy (or in a combination of taxonomies). 
+</p>
+<ul><li> <code>term_id</code> is the ID of a term in the terms table. </li>
+<li> <code>taxonomy</code> designates the taxonomy in which the term resides. The default taxonomies are <code>category</code>, <code>link_category</code>, and <code>post_tag</code>. </li>
+<li> <code>term_taxonomy_id</code> is a unique ID for the term+taxonomy pair. </li></ul>
+<p>The rest of the fields provide information about the term in the context of the taxonomy. 
+</p>
+<ul><li> The <code>parent</code> field keeps track of hierarchical relationships between terms in the taxonomy. </li>
+<li> <code>description</code> provides a taxonomy specific description of the term. </li>
+<li> <code>count</code> tracks how many objects are associated with the term+taxonomy pair. For example, given a term of the <code>category</code> taxonomy, <code>count</code> tracks how many posts are in that specific category.</li></ul>
+<h2><span class="mw-headline" id="wp_term_relationships">wp_term_relationships</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=WordPress_Taxonomy&amp;action=edit&amp;section=3" title="Edit section: wp term relationships">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The final table, term_relationships, relates objects such as posts or links to a term_taxonomy_id from the term_taxonomy table.
+</p>
+<pre> object_id bigint(20) unsigned NOT NULL default 0,
+ term_taxonomy_id bigint(20) unsigned NOT NULL default 0,
+ term_order int(11) NOT NULL default 0,
+ PRIMARY KEY  (object_id,term_taxonomy_id),
+ KEY term_taxonomy_id (term_taxonomy_id)</pre>
+<ul><li> <code>object_id</code> is the ID of a post or link. </li>
+<li> <code>term_taxonomy_id</code> is an ID from the term_taxonomy table designating a particular term+taxonomy pair.</li>
+<li> <code>term_order</code> allows an ordering of terms for an object (see <a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/ticket/5857">ticket #5857</a>)</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004228
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 63/1000000
+Preprocessor generated node count: 319/1000000
+Post‐expand include size: 659/2097152 bytes
+Template argument size: 262/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    7.052      1 - Template:Languages
+100.00%    7.052      1 - -total
+ 20.84%    1.470      1 - Template:ja
+ 19.60%    1.382      1 - Template:es
+ 18.99%    1.339      1 - Template:en
+ 16.21%    1.143      1 - Template:it
+-->

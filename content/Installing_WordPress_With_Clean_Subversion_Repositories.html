@@ -1,0 +1,105 @@
+<p>Many people have used <a href="https://codex.wordpress.org/Installing/Updating_WordPress_with_Subversion" title="Installing/Updating WordPress with Subversion">Subversion to install WordPress</a> or have <a href="https://codex.wordpress.org/Giving_WordPress_Its_Own_Directory" title="Giving WordPress Its Own Directory">installed WordPress into its own directory</a>. You can combine these techniques to create a "clean"  Subversion installation in which the user's custom files (<tt>wp-config.php</tt> and <tt>wp-content/</tt>) are stored outside of the WordPress application directory, so that user files and files under version control never overlap. (Original credit to <b>Sam Bauers</b> for presenting these instructions at WordCampUK.) 
+</p><p>In the example below we will use <tt>wordpress</tt> as the directory for the core WordPress files and <tt>wordpress-content</tt> for the new location of the <tt>wp-content</tt> directory; the home directory will be the Document Root (<tt>http://example.com</tt>). The finished installation will include files in these locations:
+</p>
+<pre>/.htaccess
+/wordpress/
+/wordpress/index.php
+/wordpress-content/
+/wp-config.php</pre>
+<p>There are a few basic steps (explained in detail below):
+</p>
+<ol><li>	Check out a branch or tag of the WordPress application into the <tt>wordpress</tt> directory (and complete a new installation)</li>
+<li>	Change the <strong>Site address</strong> to the URL of the home directory</li>
+<li>	In an <tt>.htaccess</tt> file in the home directory, edit WordPress's mod_rewrite rules to pass requests to the <tt>index.php</tt> file in the <tt>wordpress</tt> directory. Remove WordPress's write access to the <tt>.htaccess</tt> file.</li>
+<li>	Move the new content directory and set <tt>WP_CONTENT_DIR</tt> and <tt>WP_CONTENT_URL</tt> to the new location</li>
+<li>	Create symbolic links to the Akismet plugin and the default theme in the new content directory</li></ol>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Check_out_a_working_copy_and_install"><span class="tocnumber">1</span> <span class="toctext">Check out a working copy and install</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Change_Site_address"><span class="tocnumber">2</span> <span class="toctext">Change Site address</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#In_the_settings_panel"><span class="tocnumber">2.1</span> <span class="toctext">In the settings panel</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#In_wp-config"><span class="tocnumber">2.2</span> <span class="toctext">In wp-config</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Edit_.htaccess"><span class="tocnumber">3</span> <span class="toctext">Edit .htaccess</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Move_the_content_directory"><span class="tocnumber">4</span> <span class="toctext">Move the content directory</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Check_out_a_working_copy_and_install">Check out a working copy and install</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Installing_WordPress_With_Clean_Subversion_Repositories&amp;action=edit&amp;section=1" title="Edit section: Check out a working copy and install">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Create the new location for the core WordPress files to be stored (we will use <tt>/wordpress</tt> in the examples).
+</p><p>Following the <a href="https://codex.wordpress.org/Installing/Updating_WordPress_with_Subversion" title="Installing/Updating WordPress with Subversion">New Install using Subversion instructions</a>, <i>check out</i> (Subversion command <tt>co</tt>) the stable version of WordPress you have chosen. Do not type the <tt>$</tt> characters -- they are just indications of the command prompt. Here is the command (assuming the version you want is 5.0.3):
+</p><p><code>$ svn co http://core.svn.wordpress.org/tags/5.0.3 .</code>
+</p><p>When the download is complete, edit the <tt>wp-config.php</tt> (see <a href="https://codex.wordpress.org/Editing_wp-config.php" title="Editing wp-config.php">editing wp-config.php</a>) ignoring the Advanced Options and save the file within the root directory (http://example.com/).
+</p><p>Access your blog URL (http://example.com/wordpress) to complete the installation, as in the <a href="https://codex.wordpress.org/Installing_WordPress" title="Installing WordPress">standard WordPress installation instructions</a>.
+</p>
+<h2><span class="mw-headline" id="Change_Site_address">Change <em>Site address</em></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Installing_WordPress_With_Clean_Subversion_Repositories&amp;action=edit&amp;section=2" title="Edit section: Change Site address">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Change the <strong>Site address</strong> to the URL of the home directory. This can be done in the Settings panel or in wp-config.
+</p>
+<h3><span class="mw-headline" id="In_the_settings_panel">In the settings panel</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Installing_WordPress_With_Clean_Subversion_Repositories&amp;action=edit&amp;section=3" title="Edit section: In the settings panel">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ol><li>	Go to the <a href="https://codex.wordpress.org/Administration_Panels#Options_-_Configuration_Settings" title="Administration Panels" class="mw-redirect">Options</a> panel.</li>
+<li>	In the box for <b>Site address (URL):</b> change the address to the root directory's URL. Example: <tt>http://example.com</tt></li>
+<li>	Click <b>Update Options</b>. (Do not worry about any error message and do not try to see your blog at this point!)</li></ol>
+<h3><span class="mw-headline" id="In_wp-config">In <tt>wp-config</tt></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Installing_WordPress_With_Clean_Subversion_Repositories&amp;action=edit&amp;section=4" title="Edit section: In wp-config">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>(This method avoids the error message and is more easily reversible.)
+</p><p><a href="https://codex.wordpress.org/Editing_wp-config.php#Blog_address_.28URL.29" title="Editing wp-config.php">Set the WP_HOME constant in wp-config</a> like so:
+</p>
+<pre> define( 'WP_HOME', 'http://example.com' );
+</pre>
+<h2><span class="mw-headline" id="Edit_.htaccess">Edit <tt>.htaccess</tt></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Installing_WordPress_With_Clean_Subversion_Repositories&amp;action=edit&amp;section=5" title="Edit section: Edit .htaccess">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Instead of moving WordPress's <tt>index.php</tt> file into the home directory (as in <a href="https://codex.wordpress.org/Giving_WordPress_Its_Own_Directory" title="Giving WordPress Its Own Directory">Giving_WordPress_Its_Own_Directory</a>), we leave it in the application directory and change the mod_rewrite rules to pass requests there.
+</p><p>Set up <a href="https://codex.wordpress.org/Using_Permalinks" title="Using Permalinks">Permalinks</a> on the <a href="https://codex.wordpress.org/Administration_Panels#Permalinks" title="Administration Panels" class="mw-redirect">Permalinks panel</a> and update your Permalink structure. WordPress will automatically update your <tt>.htaccess</tt> file if it has the appropriate file permissions. Don't worry if WordPress can't write to your <tt>.htaccess</tt> file; we will be overwriting the contents anyway.
+</p><p>If the file exists move the <tt>.htaccess</tt> file from the <tt>wordpress</tt> directory into the root directory of your site (Blog address).
+</p><p>Open your root directory's <tt>.htaccess</tt> file in a <a href="https://codex.wordpress.org/Glossary#Text_editor" title="Glossary">text editor</a> (or create it if necessary).
+</p><p>Edit the contents of the file to match the following lines, using your directory name for the WordPress core files:
+</p>
+<pre># BEGIN WordPress
+&lt;IfModule mod_rewrite.c&gt;
+	# Hey-ho let's go!
+	RewriteEngine On
+	# Base is the URL path of the home directory
+	RewriteBase /
+	# Base goes to WordPress
+	RewriteRule ^$ /wordpress/index.php [L]
+	# Skip real files and directories
+	RewriteCond&#160;%{REQUEST_FILENAME}&#160;!-f
+	RewriteCond&#160;%{REQUEST_FILENAME}&#160;!-d
+	# Otherwise send it to WordPress
+	RewriteRule .* /wordpress/index.php [L]
+&lt;/IfModule&gt;
+# END WordPress</pre>
+<p>Edit the <tt>.htaccess</tt> file permissions to ensure WordPress can't overwrite it. 
+</p><p>Note: If working in your development environment on a Windows machine (e.g. using XAMPP), file permissions can be modified by: <tt>right-click =&gt; Properties =&gt; 'Security' tab.</tt>
+</p><p>You should now be able to view the site via the root URL (<tt>http://example.com</tt>).
+</p>
+<h2><span class="mw-headline" id="Move_the_content_directory">Move the content directory</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Installing_WordPress_With_Clean_Subversion_Repositories&amp;action=edit&amp;section=6" title="Edit section: Move the content directory">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Create the new location for the <tt>wp-content</tt> directory (we will use <tt>/wordpress-content</tt> in our examples).
+</p><p>In that directory create two further directories called <tt>plugins</tt> and <tt>themes</tt>.
+</p><p>Edit the <tt>wp-config.php</tt> adding the following lines:
+</p>
+<pre> define('WP_CONTENT_DIR', dirname(__FILE__) . '/wordpress-content');
+ define('WP_CONTENT_URL', 'http://example.com/wordpress-content');
+</pre>
+<p>Create soft links of <tt>wp-content/plugins/akismet/</tt> into <tt>wordpress-content/plugins/</tt> and <tt>wp-content/themes/default/</tt> into <tt>wordpress-content/themes/</tt>. This will ensure that WordPress uses any SVN updates to the default theme or Akismet plugin. Running XAMPP on a Windows machine, you can follow these instructions for creating symlinks: <a rel="nofollow" class="external free" href="http://www.inkplant.com/code/how-to-create-a-symbolic-link-in-windows-vista.php">http://www.inkplant.com/code/how-to-create-a-symbolic-link-in-windows-vista.php</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004037
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 113/1000000
+Preprocessor generated node count: 246/1000000
+Post‐expand include size: 10/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    1.070      1 - -total
+ 85.05%    0.910      2 - Template:CurrentVersion
+-->

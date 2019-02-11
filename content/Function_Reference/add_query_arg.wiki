@@ -1,0 +1,88 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/add_query_arg/}}
+
+{{Languages|
+{{en|Function Reference/add_query_arg}}
+{{ja|関数リファレンス/add_query_arg}}
+}}
+
+== Description ==
+Retrieve a modified URL (with) query string.
+
+You can rebuild the URL and append a new query variable to the URL query by using this function. You can also retrieve the full URL with query data.
+
+Adding a single key & value or an associative array. Setting a key value to <tt>false</tt> removes it from the query. Omitting the old query or the uri (second or third parameter) uses the <tt>$_SERVER</tt> value.
+
+== Usage ==
+%%%<?php
+// Parameters as separate arguments
+add_query_arg( $param1, $param2, $old_query_or_uri );
+
+// Parameters as array of key => value pairs
+add_query_arg( array('key1' => 'value1', ...), $old_query_or_uri );
+?>%%%
+
+== Parameters ==
+{{Parameter|$param1|integer&#124;string&#124;array|Either newkey or an associative array.}}
+{{Parameter|$param2|integer&#124;string&#124;boolean|Either newvalue (or the old query or the uri if first parameter is an associative array).|optional}}
+{{Parameter|$old_query_or_uri|string&#124;boolean|The old query or the uri.|optional|<tt>$_SERVER['REQUEST_URI']</tt>}}
+
+== Return Values ==
+; (string) : New URL query string. Note that this string may contain unescaped data not intended for a URL, especially if the data added comes from user input. The result should be passed through esc_url() before being output as HTML, in a link.
+
+== Examples ==
+Assuming we're at the WordPress URL <tt><nowiki>"http://blog.example.com/client/?s=word"</nowiki></tt>... Note the use of esc_url() before outputting the link. This is necessary because this function does not escape urls and if output without escaping would make the page vulnerable to XSS scripting.
+
+<pre>
+// This would output '/client/?s=word&foo=bar'
+echo esc_url( add_query_arg( 'foo', 'bar' ) );
+
+// This would output '/client/?s=word&foo=bar&baz=tiny'
+$arr_params = array( 'foo' => 'bar', 'baz' => 'tiny' );
+echo esc_url( add_query_arg( $arr_params ) );
+</pre>
+
+More often than not you'll probably find yourself creating URLs using the following method within the page you're currently on. In these cases you can use the URL you want to affect as the last parameter. The use of esc_url() is not required here, because the value is known to be safe.
+
+<pre>
+// This would output 'http://blog.example.com/2009/04/16/?hello=world'
+echo esc_url( add_query_arg( 'hello', 'world', 'http://blog.example.com/2009/04/16/' ) );
+</pre>
+
+Since <tt>[[Template Tags/get_permalink|get_permalink()]]</tt> returns a full URL, you could use that when you want to add variables to a post's page.
+
+<pre>
+// This would output whatever the URL to post ID 9 is, with 'hello=there' appended with either ? or &, depending on what's needed
+echo esc_url( add_query_arg('hello', 'there', get_permalink(9)) );
+</pre>
+
+Removing values and setting via an associative array:
+<pre>
+$query = 'http://example.com/link?foo=bar';
+$new_query = add_query_arg( array('foo' => false, 'baz' => 'qux'), $query );
+// result: http://example.com/link?baz=qux
+</pre>
+
+== Notes ==
+* Uses: [[Function_Reference/build_query|<tt>build_query()</tt>]]
+* Uses: [[Function_Reference/urlencode_deep|<tt>urlencode_deep()</tt>]]
+* Uses: [[Function_Reference/wp_parse_str|<tt>wp_parse_str()</tt>]]
+
+== Change Log ==
+* [[Version_3.5|3.5.0]]: Simplify protocol stripping in add_query_arg() by avoiding a regular expression.
+* Since: [[Version 1.5|1.5.0]]
+
+== Source File ==
+<tt>add_query_arg()</tt> is located in {{Trac|wp-includes/functions.php}}.
+
+== Related ==
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+[[Function Reference/remove_query_arg|remove_query_arg()]]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

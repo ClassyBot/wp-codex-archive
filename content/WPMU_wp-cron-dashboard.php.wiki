@@ -1,0 +1,64 @@
+<pre>
+<?php
+/*
+Plugin Name: WP-Cron-Dashboard
+Plugin URI: http://
+Description: 
+Author: Martin Cleaver and Joost de Valk
+Version: 1.0
+Author URI: http://martin.cleaver.org/ 
+Author URI: http://www.joostdevalk.nl/
+*/
+
+// Based on http://blog.slaven.net.au/archives/2007/02/01/timing-is-everything-scheduling-in-wordpress/
+
+function wp_cron_add_pages($s) {
+        add_submenu_page('index.php', 'wp-cron', 'WP-Cron', 1, __FILE__, 'wp_cron_menu');
+        return $s;
+}
+add_action('admin_menu', 'wp_cron_add_pages');
+
+function wp_cron_menu() {
+	if (isset($_POST['submit'])) {
+		wp_unschedule_event($_POST['time'], $_POST['procname']);
+		$success = true;
+	}
+	echo '<div class="wrap">'."\n";
+	echo '<h2>Overview of tasks scheduled for WP-Cron</h2>'."\n";
+	if ($success) {
+		echo "Sucessfully unscheduled ".$_POST['procname']."<br/>\n";
+	}
+	global $wp_filter;
+	print mrjc_show_cron_schedules();
+	echo '<br/>'."\n";
+	echo "Current date/time is: ".strftime("%c",time());
+	echo "</div>";
+}
+
+function mrjc_show_cron_schedules() {
+	$timeslots = _get_cron_array();
+	if ( empty($timeslots) ) {
+		return $ans+"Nothing scheduled";
+	}
+	$ans = '';
+	$count = 1;
+	foreach ( $timeslots as $time => $tasks ) {
+		$ans .= "Entry #$count: Anytime after ".strftime("%c",$time)." execute tasks: ";
+		foreach ($tasks as $procname => $task) {
+			$ans .= $procname." \n";
+			// Add in delete button for each entry.
+			$ans .= '<form method="post">'."\n".'<input type="hidden" name="procname" value="'.$procname.'"/>'."\n";
+			$ans .= '<input type="hidden" name="time" value="'.$time.'"/>'."\n";
+			$ans .= '<input name="submit" style="float:right; margin-top: -20px;" type="submit" value="Delete"/>'."\n".'</form>'."\n";
+			$count++;
+		}
+		
+		$ans .= "<br/>\n";
+	}
+	return $ans;
+}
+
+?>
+</pre>
+
+[[Category:WPMU]]

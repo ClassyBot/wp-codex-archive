@@ -1,0 +1,109 @@
+{{Languages|
+{{en|Rewrite_API/add_rewrite_rule}}
+{{ja|Rewrite_API/add_rewrite_rule}}
+}}
+
+== Description ==
+
+add_rewrite_rule() allows you to specify additional rewrite rules for WordPress. It is most commonly used in conjunction with [[Rewrite_API/add_rewrite_tag|add_rewrite_tag()]] (which allows WordPress to recognize custom post/get variables).
+
+== Usage ==
+%%%<?php add_rewrite_rule($regex, $redirect, $after); ?>%%%
+
+== Arguments ==
+
+{{Parameter|$regex|string|A regular expression to match against a requested URL. This can optionally use one or more capture groups.|required}}
+
+{{Parameter|$redirect|string|The URL you would like to actually fetch (when the $regex is matched). You can use the $matches[] array to insert capture group matches here.|required}}
+
+{{Parameter|$after|string|This can either be ''''top'''' or ''''bottom''''. 'top' will take precedence over WordPress's existing rules, where 'bottom' will check all other rules match first.|optional|"bottom"}}
+
+== Example ==
+
+=== Basic Usage ===
+
+You can retrieve any page by specifying ID in URL as following:
+%%%http://example.com/?p=95%%%
+If you add the following rule to the ''[[Functions File Explained|functions.php]]'' file, you can provide custom formed URL to access.
+<pre>
+function custom_rewrite_basic() {
+  add_rewrite_rule('^leaf/([0-9]+)/?', 'index.php?page_id=$matches[1]', 'top');
+}
+add_action('init', 'custom_rewrite_basic');
+</pre>
+'''NOTE:''' When using <em>$matches[]</em> to retrieve the values of a matched URL, capture group data starts at 1, not 0.
+
+'''IMPORTANT:''' Do not forget to flush and regenerate the rewrite rules database after modifying rules. From WordPress [[Administration_Screens|Administration Screens]], Select Settings -> Permalinks and just click Save Changes without any changes.
+
+Now, you can access the same page as 
+%%%http://example.com/leaf/95%%%
+
+=== Using Custom Templates with custom querystring ===
+
+Let's assume you are creating a "Nutrition" page for showing nutritional information. This page uses a custom template and takes two variables, '''food''' and '''variety'''. 
+Create a file named ''my-custom-template.php'' in your themes root directory as following:
+
+<pre>
+/**
+ * Template Name: Nutritional Information
+ */
+get_header(); 
+
+global $wp_query;
+echo 'Food : ' . $wp_query->query_vars['food'];
+echo '<br />';
+echo 'Variety : ' . $wp_query->query_vars['variety'];
+// ... more ...
+get_footer(); 
+</pre>
+
+Using this template, create a page. In Add New of Pages screen, select "Nutritional Information" from Template dropdown box. You may leave blank for title or contents. Click Publish to publish the page.
+Write down the ID of created page from All Pages screen. Move a mouse cursor on the page title to show the link information in status bar of Web browser. You will see the ID after the '''POST=''' in URL. In this example, assume the ID is 12.
+
+Use [[Rewrite_API/add_rewrite_tag|add_rewrite_tag()]] to make WordPress aware of custom querystring variables '''food''' and '''variety'''. Add the following code to the ''[[Functions File Explained|functions.php]]'' file,
+
+<pre>
+function custom_rewrite_tag() {
+  add_rewrite_tag('%food%', '([^&]+)');
+  add_rewrite_tag('%variety%', '([^&]+)');
+}
+add_action('init', 'custom_rewrite_tag', 10, 0);</pre>
+
+You can call the page as following:
+%%%http://example.com/index.php?page_id=12&food=milkshake&variety=strawberry%%%
+The page will show two values passed by querystring variables.
+
+Now, instead of passing ugly querystring variables to the page, you can set up a rewrite rule to create some custom pretty URLs. Add the following rule to the ''[[Functions File Explained|functions.php]]'' file and replace the page ID <em>12</em> by the ID that you investigated in above step. Don't forget to click Save Changes in Permalinks Settings. (refer above IMPORTANT)
+
+<pre>
+  function custom_rewrite_rule() {
+    add_rewrite_rule('^nutrition/([^/]*)/([^/]*)/?','index.php?page_id=12&food=$matches[1]&variety=$matches[2]','top');
+  }
+  add_action('init', 'custom_rewrite_rule', 10, 0);
+</pre>
+
+User can access the same page with following URL:
+%%%http://example.com/nutrition/milkshakes/strawberry/%%%
+
+=== Using rewrite rules to redirect to scripts other than index.php ===
+
+The $redirect argument works slightly differently when redirecting to a custom PHP script because WordPress delegates these redirects to .htaccess instead of processing them itself. For this reason, querystring variables should be written like $1 instead of $matches[1]. Given we're redirecting to a custom PHP script, adding the same rewrite rule from our previous example would look like this:
+
+<pre>
+  function custom_rewrite_rule() {
+    add_rewrite_rule('^nutrition/([^/]*)/([^/]*)/?','url/to/my/script.php?food=$1&variety=$2','top');
+  }
+  add_action('init', 'custom_rewrite_rule', 10, 0);
+</pre>
+
+== Source File ==
+
+<tt>add_rewrite_rule()</tt> is located in {{Trac|wp-includes/rewrite.php}}
+
+== Related ==
+
+{{Rewrite API}}
+
+== External Resources ==
+
+* [https://carlalexander.ca/wordpress-adventurous-rewrite-api/ WordPress for the Adventurous: Rewrite API]

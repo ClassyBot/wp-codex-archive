@@ -1,0 +1,80 @@
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Filter_Reference/attachment_fields_to_save&amp;action=edit">expanding it</a></b>.</div>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Parameters"><span class="tocnumber">2</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Example_Usage"><span class="tocnumber">3</span> <span class="toctext">Example Usage</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#External_Resources"><span class="tocnumber">5</span> <span class="toctext">External Resources</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#See_Also"><span class="tocnumber">6</span> <span class="toctext">See Also</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/attachment_fields_to_save&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <code>attachment_fields_to_save</code> filter is used to filter the associated data of images. By default, it receives the input from the Media Upload screen and provides default values to the <code>post_title</code>, in case the user hasn't done so.
+</p><p>It returns the <code>$post</code> array to be handled by the <code>media_upload_form_handler</code> function.
+</p><p>A plugin (or theme) can register as a content filter with the code:
+</p><p><code>&lt;?php add_filter( 'attachment_fields_to_save', 'filter_function_name', 10, 2 )&#160;?&gt;</code>
+</p><p>Where 'filter_function_name' is the function WordPress should call when an attachment is being saved. Note that the filter function <b>must</b> return the <code>$post</code> array after it is finished processing.
+</p><p><b>NOTE:</b> per <a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/ticket/30687">ticket #30687</a>, any validation errors passed in via <code>$post['errors']</code> array are silently unset and the attachment is processed without notifying the user
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/attachment_fields_to_save&amp;action=edit&amp;section=2" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$post</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>required</i>) Post attributes.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$attachment</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>required</i>) Attachment fields.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example_Usage">Example Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/attachment_fields_to_save&amp;action=edit&amp;section=3" title="Edit section: Example Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>To insert a default caption for images:
+</p>
+<pre>
+function insert_custom_default_caption($post, $attachment) {
+if ( substr($post['post_mime_type'], 0, 5) == 'image' ) {
+    if ( strlen(trim($post['post_title'])) == 0 ) {
+        $post['post_title'] = preg_replace('/\.\w+$/', '', basename($post['guid']));
+        $post['errors']['post_title']['errors'][] = __('Empty Title filled from filename.');
+    }
+    // captions are saved as the post_excerpt, so we check for it before overwriting
+    // if no captions were provided by the user, we fill it with our default
+    if ( strlen(trim($post['post_excerpt'])) == 0 ) {
+        $post['post_excerpt'] = 'default caption';
+    }
+}
+
+return $post;
+}
+
+add_filter('attachment_fields_to_save', 'insert_custom_default_caption', 10, 2);
+</pre>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/attachment_fields_to_save&amp;action=edit&amp;section=4" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/attachment_fields_to_edit" title="Plugin API/Filter Reference/attachment fields to edit">attachment_fields_to_edit</a></li>
+<li> Filter: <strong class="selflink">attachment_fields_to_save</strong></li></ul>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/attachment_fields_to_save&amp;action=edit&amp;section=5" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://net.tutsplus.com/tutorials/wordpress/creating-custom-fields-for-attachments-in-wordpress/">Creating Custom Fields for Attachments (NetTuts+) </a></li></ul>
+<h2><span class="mw-headline" id="See_Also">See Also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/attachment_fields_to_save&amp;action=edit&amp;section=6" title="Edit section: See Also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API#Create_a_Filter_Function" title="Plugin API">Creating a Filter Function</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/add_filter" title="Function Reference/add filter">add_filter()</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004057
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.024 seconds
+Preprocessor visited node count: 83/1000000
+Preprocessor generated node count: 277/1000000
+Post‐expand include size: 1239/2097152 bytes
+Template argument size: 322/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    7.579      1 - -total
+ 70.47%    5.341      1 - Template:Stub
+ 26.89%    2.038      1 - Template:Message
+ 26.56%    2.013      2 - Template:Parameter
+-->

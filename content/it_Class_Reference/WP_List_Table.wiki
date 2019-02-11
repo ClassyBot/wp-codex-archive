@@ -1,0 +1,199 @@
+{{Languages|
+{{en|Class_Reference/WP_List_Table}}
+{{ja|関数リファレンス/WP_List_Table}}
+{{it|Class_Reference/WP_List_Table}}
+}}
+
+{{Private_Class_Alt}}
+
+==Scopo della classe WP_List_Table==
+Questa classe viene usata per generare le List Tables che si trovano in tante pagine del pannello di amministrazione di WordPress. Il vantaggio rispetto alle precedenti implementazioni è che può essere modificata dinamicamente con AJAX e potrebbe essere agganciata con hooks nelle future versioni di WordPress.
+
+===Uso da parte degli sviluppatori e Classificazione privata===
+Il 27 Marzo 2012, [http://profiles.wordpress.org/nacin Andrew Nacin] [http://wpengineer.com/2426/wp_list_table-a-step-by-step-guide/#comment-9617 ha avvertito gli sviluppatori] che questa classe è stata creata [http://codex.wordpress.org/Category:Private_Classes solo per uso privato da parte del core] e che potrebbe essere sottoposta a modifiche nelle versioni future di WordPress.
+
+Nonostante ciò, [http://kovshenin.com/2012/wp_list_table-tutorial/#comment-10362 la classe WP_List_Table è stata largamente usata dagli sviluppatori di WordPress e di Plugin] poiché fornisce un modo affidabile e semanticamente consistente per creare liste tabellari personalizzate in WordPress. Nel corso del tempo non sono stati fatte modifiche importanti a questa classe e nemmeno si prevede di farne, quindi testare i tuoi Plugin con la versione beta/RC di WordPress, dovrebbe essere più che sufficiente per evitare problemi.
+
+Se non desideri assumerti questo rischio, un sistema comune (e sicuro ) per aggirare il problema è quello di '''fare una copia della classe WP_List_Table ( {{Trac|/wp-admin/includes/class-wp-list-table.php}} ) da usare e distribuire con il tuo Plugin''' invece di usare la classe originale contenuta nel core. In questo modo anche se la classe contenuta nel core cambia, il tuo plugin continua a funzionare.
+
+In ogni caso gli sviluppatori che desiderano usare questa classe lo fanno a proprio rischio.
+
+==Utilizzo==
+Questa classe è stata pensata per essere usata come una specie di framework, essendo che i dati devono essere caricati, ordinati e filtrati manualmente. Nonostante ciò è potenzialmente un tool molto potente per gli sviluppatori dato che crea liste tabellari standard di WordPress che rendono facile implementare funzioni avanzate come paginazioni, azioni, azioni cumulative e filtri.
+
+Per usare WP_List_Table, prima di tutto devi creare una classe derivata da quella originale. La nuova classe deve essere istanziata ed i metodi <tt>prepare_items()</tt> e <tt>display()</tt> dovranno essere chiamati esplicitamente. Per i dettagli leggi la descrizione dei metodi più avanti.
+
+===Nel Core di WordPress===
+Il core di WordPress carica e restituisce le proprie classi dinamicamente usando la funzione [[Function_Reference/_get_list_table|_get_list_table()]] che automaticamente carica la giusta classe derivata e la istanzia. ''Questa comunque è una funzione privata e non dovrebbe essere usata dagli sviluppatori.''
+
+===Uso da parte degli sviluppatori===
+Siccome questa classe è marcata come privata, gli sviluppatori la usano a proprio rischio perché potrebbe essere sottoposta a cambiamenti nelle prossime versioni di WordPress. Ogni sviluppatore che la usa viene '''fortemente''' incoraggiato a testare i propri plugin con la versione beta/RC di WordPress per mantenere la compatibilità.
+
+Poiché i sviluppatori non possono usare la funzione <tt>_get_list_table()</tt> direttamente, la classe deve essere estesa ed istanziata manualmente ad esempio in questo modo...
+
+<pre>class Example_List_Table extends WP_List_Table {}
+$example_lt = new Example_List_Table();
+</pre>
+
+Questo esempio non visualizza niente, si DEVONO aggiungere alcuni metodi ed i dati per rendere la WP_List_Table utilizzabile.
+
+==Metodi e Proprietà==
+
+
+===Proprietà===
+Le seguenti proprietà sono integrate nella classe base WP_List_Table. Nota che i metodi magici __get e __set di WP_List_Table impediscono di impostare variabili istanza diverse nelle sottoclassi di WP_List_Table, per favore usate le variabili raccomandate:
+;	<tt>$items</tt>
+:		Questa viene usata per memorizzare i dati grezzi che vuoi visualizzare. Di solito i dati vengono caricati direttamente con il metodo prepare_items().
+;	<tt>$_args</tt>
+:		Contiene varie informazioni sulla tabella corrente (in formato array). di solito non viene manipolata direttamente.
+;	<tt>$_pagination_args</tt>
+:		Contiene informazioni necessarie per gestire la paginazione (in formato array). Di solito non viene manipolata direttamente, ma utilizzando i comandi get_pagination_arg( string ) o set_pagination_args(array).
+;	<tt>$screen</tt>
+:		Questo viene usato per memorizzare la videata corrente, quando è necessario per renderla consistente con la intera istanza.
+;	<tt>$_actions</tt>
+:		Contiene la cache delle azioni cumulative. Solitamente non viene manipolata direttamente.
+;	<tt>$_pagination</tt>
+:		Contiene la cache della paginazione. Solitamente non viene manipolata direttamente.
+
+===Proprietà estese===
+Queste proprietà non solo integrate nella classe principale, ma sono attese da alcuni metodi. Devono essere definite manualemente nelle classi derivate.
+;	<tt>$_column_headers</tt>
+:		Nel core questa proprietà viene assegnata automaticamente. Gli sviluppatori '''devono''' definirla manualmente nei propri metodi prepare_items() ''o'' __construct(). 
+:Questa proprietà richiede un array con 4 valori : 
+:* Il primo valore contiene gli slug ed i titoli delle colonne (vedi il metodo <tt>get_columns()</tt> ). 
+:* Il secondo valore è un array che contiene i valori del campi da nascondere. 
+:* Il terzo valore è un array di colonne che abilità l'ordinamento (vedi il metodo <tt>get_sortable_columns()</tt>).
+:* Il quarto valore è una stringa che indica quale colonna utilizzare come primaria per visualizzare le azioni di riga (edit, visualizza, ecc.). Il valore deve corrispondere con uno degli slug di colonna del primo valore.
+
+===Metodi===
+;	<tt>[[Class_Reference/WP_List_Table/__construct|__construct( $args=array() )]]</tt>
+:		Il Costruttore. Questo imposta gli argomenti ed i filtri di default. Gli sviluppatori dovrebbero ridefinirlo, chiamado il costruttore parent per fornire valori per singolari e plurali e per consentire alla classe di supportare AJAX.
+-;	<tt>ajax_user_can()</tt>
+:		Può essere sovrascritta per attivare alcune funzionalità di permessi alla tua tabella.
+;	<tt>[[Class_Reference/WP_List_Table/prepare_items|prepare_items()]]</tt>
+:		Gli sviluppatori devono usare questo metodo per filtrare i dati, gestire ordinamenti, paginazioni e ogni altro tipo di manipolazione dei dati da fare prima del rendering. Questo comando deve essere chiamato esplicitamente dopo l'istanziazione della classe e prima del rendering.
+;	<tt>[[Class_Reference/WP_List_Table/set_pagination_args|set_pagination_args( $args )]]</tt>
+:		Questo metodo deve essere chiamato internamente (di solito da <tt>prepare_items()</tt>) per impostare gli argomenti di base della paginazione che sono:
+:* '''total_items''' - il numero totale di elementi da visualizzare. Di solito semplicemente <tt>count($data)</tt>
+:* '''per_page''' - il numero di elementi per pagina
+:* '''total_pages''' - il nunero di pagine. Può essere lasciato in bianco o calcolato manualmente ad esempio: <tt>ceil($total_items/$per_page)</tt>
+;	<tt>get_pagination_arg( $key )</tt>
+:		Restituisce il singolo argomento di paginazione identificato dalla chiave.
+;	<tt>has_items()</tt>
+:		Indica se la proprietà <tt>items</tt> è vuota.
+;	<tt>no_items()</tt>
+:		Restituisce il messaggio da visualizzare quando <tt>items</tt> è vuoto.
+;	<tt>search_box( $text, $input_id )</tt>
+:		Questo prepara una casella di ricerca, però è necessario inserire manualmente la tabella (compresa la casella di ricerca) in una form.
+;	<tt>get_views()</tt>
+:		Restituisce un array associativo che elenca tutte le viste che possono essere usate con la tabella.
+;	<tt>views()</tt>
+:		Prepara l'elemento <tt>&lt;ul></tt> che contiene i nomi delle viste.
+;	<tt>get_bulk_actions()</tt>
+:		Sovrascrivi questo metodo per restituire un array associativo nella forma ( action_slug => action_title ) contenente tutte le azioni cumulative disponibili per la tabella.
+;	<tt>bulk_actions()</tt>
+:		Quando viene chiamato prepara un drop-down con le azioni cumulative, però è necessario inserire manualmente la tabella (compresa la casella di ricerca) in una form.
+will still need to manually wrap your list table (including search box) in a form. 
+;	<tt>current_action()</tt>
+:		Restituisce l'azione corrente selezionata con il drop-down delle azioni cumulative.
+;	<tt>row_actions( $actions, $always_visible = false )</tt>
+:		Chiama questo metodo (di solito da uno dei metodi di colonna) per inserire la div con le azioni di riga. il parametro $actions deve essere un array associativo in cui la chiave è il nome della azione ed il valore è un link.
+;	<tt>months_dropdown( $post_type )</tt>
+:		Chiama questo metodo per preaparare un drop-down per le date, per filtrare gli <tt>items</tt> per mese.
+;	<tt>view_switcher( $current_mode )</tt>
+:		Chama questo metodo per preparare un pulsante per passare alla view post-type oppure (List View e Excerpt View)
+;	<tt>comments_bubble( $post_id, $pending_comments )</tt>
+:		Chiama questo per preparare un pop-up di tipo commento.
+;	<tt>get_pagenum()</tt>
+:		Restituisce il numero di pagina corrente.
+;	<tt>get_items_per_page( $option, $default = 20 )</tt>
+:		Restituisce il numero di <tt>items</tt> da visualizzare nella pagina, come scelto dagli utenti.
+;	<tt>pagination( $which )</tt>
+:		Crea l'HTML di paginazione e lo assega alla proprietà _pagination. Di solito non è necessario chiamare questo metodo perché lo fa per noi il metodo <tt>display()</tt>.
+;	<tt>get_columns()</tt>
+:		Questo metodo deve essere sovrascritto per restuire un array associativo di colonne. L'array associativo deve essere nella forma <tt>'slug' => array( 'Title', true )</tt>. Tipicamente userai questo nel metodo <tt>prepare_items()</tt> per costurire parte della proprietà <tt>_column_headers</tt>.
+;	<tt>get_sortable_columns()</tt>
+:		Questo metodo deve essere sovrascritto per restituire un array associativo delle colonne che vuoi rendere ordinabili. L'array associativo deve essere nella forma <tt>'column_slug'=>array('sortby',true)</tt>, in cui il secondo parametro indica se il campo è preordinato. Questo si usa spesso per fornire una parte della proprità <tt>_column_headers</tt>.
+;	<tt>get_column_info()</tt>
+:		Viene usato da WordPRess per costruire la proprietà <tt>_column_headers</tt>. Di solito non dovrebbe essere usato dagli sviluppatori. Invece si deve assegnare la proprietà <tt>_column_headers</tt> direttamente dal metodo <tt>prepare_items()</tt>.
+;	<tt>get_column_count()</tt>
+:		Restituisce semplicemente il numero delle colonne visibili. 
+;	<tt>print_column_headers( $with_id = true )</tt>
+:		Questo metodo prepara le intestazioni delle colonne. Di solito non è necessario chiamare questo metodo perché lo fa per noi il metodo <tt>display()</tt>.
+;	<tt>[[Class_Reference/WP_List_Table/display|display()]]</tt>
+:		Questo comando si usa per inviare tutta la tabella alla pagina.
+;	<tt>get_table_classes()</tt>
+:		Restituisce la lista delle classi css da aggiungere a tutti gli elementi della tabella. Sovrascrivi per personalizzare le classi della tabella.
+;	<tt>display_tablenav( $which )</tt>
+:		Questo genera i comandi di navigazione ''sopra'' o ''sotto'' la tabella. Di solito non è necessario chiamare questo metodo perché lo fa per noi il metodo <tt>display()</tt>.
+;	<tt>extra_tablenav( $which )</tt>
+:		Questo metodo può essere sovrascritto per visualizzare controlli addizionali tra le azioni cumulative ed i controlli di navigazione.
+;	<tt>display_rows_or_placeholder()</tt>
+:		Questo genera la parte tbody della tabella. Di solito non è necessario chiamare questo metodo perché lo fa per noi il metodo <tt>display()</tt>.
+
+;	<tt>display_rows()</tt>
+:		Questo itera gli elementi dalla proprietà <tt>items</tt> e li invia alla pagina in forma di righe della tabella. Di solito non è necessario chiamare questo metodo perché lo fa per noi il metodo <tt>display()</tt>.
+;	<tt>single_row( $item )</tt>
+:		Questo invia alla pagina un singolo elemento (dalla proprietà <tt>items</tt>). Di solito non è necessario chiamare questo metodo perché lo fa per noi il metodo <tt>display()</tt>.
+;	<tt>single_row_columns( $item )</tt>
+:		Questo prepara tutte le colonne per una singola riga. È importante capire che questo metodo si aspetta l'esistenza i alcuni metodi di colonna(es <tt>column_mycolumn()</tt>) e/o un metodo '''<tt>column_default()</tt>'''. Nessuno di questi viene fornito dalla classe base e deve essere scritto nella classe derivata. Di solito non è necessario chiamare questo metodo perché lo fa per noi il metodo <tt>display()</tt>.
+;	<tt>ajax_response()</tt>
+:		Elabora le richieste AJAX in arrivo.
+;	<tt>_js_vars()</tt>
+:		Invia le variabili Javascript che vengono generate dinamicamente dalla classe.
+
+===Metodi estesi===
+Questi metodi non sono inclusi nella classe base ma possono, e dovrebbero, essere definiti nelle tue classi derivate!
+;	<tt>[[Class_Reference/WP_List_Table/column_default|column_default( $item, $column_name )]]</tt>
+:		Questo è il metodo che viene usato per costruire una colonna quando non esiste un altro metodo specifico per quella colonna. Quando <tt>WP_List_Tables</tt> prova a costruire la colonna (in <tt>single_row_columns()</tt>), prima cerca un metodo specifico per la colonna. Se non esiste usa ''questo''
+metodo. Questo metodo accetta due argomento, un singolo array '''<tt>$item</tt>''' e il '''<tt>$column_name</tt>''' (il suo slug).
+
+:'''ATTENZIONE''': Dalla versione [[Version 3.5.1|WordPress 3.5.1]], nel core il <tt>$item</tt> viene passato come Object, e non come array.
+
+;	<tt>[[Class_Reference/WP_List_Table/column_custom|column_$custom( $item )]]</tt>
+:		Le colonne personalizzate devono essere fornite dallo sviluppatore e possono essere usate per gestire ogni tipo di colonna individualmente. Per esempio: se viene fornito un metodo di none ''<tt>column_movie_title()</tt>'', verrà usato per preparare qualsiasi colonna che ha lo slug  "<tt>movie_title</tt>". Questa funzione accetta come argomento un singolo array '''<tt>$item</tt>'''.
+
+:'''ATTENZIONE''': Dalla versione [[Version 3.5.1|WordPress 3.5.1]], nel core il <tt>$item</tt> viene passato come Object, e non come array.
+
+==Esempi==
+Per un dettagliato e funzionale esempio, scarica il plugin [http://wordpress.org/extend/plugins/custom-list-table-example Custom List Table Example].
+
+===Usare nei Meta Boxes===
+'''Attenzione''' Quando si usa la classe <tt>WP_List_Table</tt> dentro ad un '''Meta Box''':
+
+Se non vieme impostato <tt>$this->_column_headers</tt> nella propria classe con il metodo <tt>prepare_items()</tt> (come ad esempio nel blocco di codice che segue), allora tutto il <tt><thead></tt> e <tt><tfoot></tt> scompare!
+<pre>
+$this->_column_headers = array( 
+	 $this->get_columns(),		// columns
+	 array(),			// hidden
+	 $this->get_sortable_columns(),	// sortable
+);
+</pre>
+
+====Come mai succede?====
+
+Se non imposti <tt>$this->_column_headers;</tt> manualmente nella classe estesa, le colonne ordinabili vengono impostate dalla classe ''parent'' e dalla funzione <tt>$this->get_columns();</tt>.
+
+Sfortunatamente, quando succede l'intestazione della tua colonna è vuota anche se le hai definite con il metodo <tt>get_columns();</tt> della tua classe derivata.
+
+====La soluzione====
+
+Usa il filtro <tt>$GLOBALS['wp_filter']["manage_{$GLOBALS['screen']->id}_screen_columns"];</tt> per recuperarli nuovamente!
+
+''Nota collaterale:'' La funzione <tt>get_column_headers()</tt> che applica questo filtro è definita in <tt>/core_root/wp-admin/includes/template.php</tt>
+
+''''C'è un problema importante:'''' Facendo questo, nessun altro meta box può contenere una estensione per
+la classe <tt>WP_List_Table</tt>, perché questo romperebbe le colonne dei meta box addizionali perché si può usare solo un filtro per le colonne per una videata.
+
+==Versione==
+WP_List_Table è stata implementata nella versione [[Version 3.1|WordPress 3.1]].
+
+==Sorgenti==
+<tt>WP_List_Table()</tt> si trova in {{Trac|/wp-admin/includes/class-wp-list-table.php}}.
+
+==Vedi anche==
+* [http://wordpress.org/extend/plugins/custom-list-table-example Custom List Table Example Plugin] - Un esempio pratico di come implementare WP_List_Table in una form di un plugin
+
+{{Class Footer}}
+
+[[Category:Classes]]

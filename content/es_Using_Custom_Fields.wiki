@@ -1,0 +1,137 @@
+{{Languages|
+{{en|Custom Fields}}
+{{es|Usando Campos personalizados}}
+{{nl|Custom Fields}}
+{{ja|カスタムフィールドの使い方}}
+{{mk|Посебни Полиња}}
+{{pt-br|Campos Personalizados}}
+{{ru|Произвольные поля}}
+{{zh-cn|自定义栏目}}
+}}
+__TOC__
+
+WordPress tiene la habilidad de permitirle a los autores asignar campos personalizados a una entrada. Esta información arbitraria es conocida como '''metadatos''', y pueden incluir información como:
+
+* '''Humor: Feliz y alegre'''
+* '''Actualmente leyendo: Las mil y una noches'''
+* '''Escuchando: Te solté la rienda'''
+* '''Clima: Caluroso'''
+
+Con algo más de esfuerzo, es posible llevar a cabo acciones mas complejas, como usar los '''metatados''' para guardar la fecha de expiración de una entrada.
+
+Los metadatos se manejan en pares de clave/valor ('''Key/Value'''). La '''clave''' es el nombre el elemento del metadato, mientras que el '''valor''' es la información que aparecerá en la lista de metadatos de cada entrada individual a la que la información esté asociada. 
+
+Las '''claves''' pueden ser usadas más de una vez por entrada. Por ejemplo, si estuvieses leyendo dos libros diferentes (un libro técnico en el trabajo y uno de ficción en casa) podrías crear una clave "leyendo" y usarla dos veces en la misma entrada, una vez para cada libro.
+
+Aquí hay un ejemplo de como se vería esta información en una entrada:
+
+<div style="border:1px solid blue; width:50%; margin: 20px; padding:20px">'''Actualmente  Leyendo''': ''Las mil y una noches''
+'''Humor de hoy''': ''Feliz y alegre''
+</div>
+
+== Uso ==
+Vamos a poner en acción el ejemplo anterior. Añadiremos dos campos personalizados, uno llamado «Actualmente leyendo» y el otro «Humor de hoy». Las siguientes instrucciones mostrarán como añadir esta información a una entrada usando campos personalizados ('''Custom Fields''').
+
+# Después de haber escrito la entrada del blog, ve al área titulada '''Custom Fields'''.
+# Para crear un '''nuevo campo personalizado''' (''Custom Field'') llamado "Actualmente leyendo", introduce el texto "Actualmente leyendo" (sin las comillas) en el campo de texto titulado '''Key'''.
+# La clave ('''Key''') recién creada ahora necesita que se le asigne un valor ('''Value'''), que en nuestro caso sera el nombre del libro que estamos leyendo, "Las mil y una noches". Introduce "Las mil y una noches en el campo '''Value''', una vez más sin usar las comillas.
+# Haz clic en el botón '''Add Custom Field''' para guardar esta información acerca de la entrada de blog.
+
+Para agregar tu "Humor de hoy" simplemente repite el proceso, añadiendo "Humor de hoy" al campo '''Key''' y una descripción del humor en '''Value''' , haciendo clic en ''Add Custom Field'' y finalizando con un clic en '''SAVE''', para guardar toda la entrada incluyendo los metadatos.
+
+En tu siguiente entrada del blog podrás agregar un nuevo libro y humor a tus metadatos. En la sección '''Custom Fields''' el campo '''Key''' ahora tendrá un menú con los campos previamente introducidos. Selecciona "Actualmente leyendo" y solamente introduce el nombre del nuevo libro que estas leyendo en el campo '''Value'''. Haz clic en '''Add Custom Field''' y repite el proceso para agregar el '''Humor de hoy'''.
+
+Solamente necesitas crear una clave ''una sola vez'' y después puedes asignar un valor a esa clave por cada entrada de blog si así lo deseas. También puedes asignar mas de un valor a una llave para una entrada. Esto puede ser útil para aquellos que leen mas de un libro a la vez por ejemplo.
+
+== Mostrando los campos personalizados ==
+Con un "campo personalizado" añadido a la entrada, es hora de mostrar tus libros y humor al mundo. Para mostrar el campo personalizado en cada entrada, usa la función de plantilla <tt>[[Template_Tags/the_meta|the_meta()</tt>]]. La función debe ir dentro del [[The Loop|Loop]] para funcionar como debe. Mucha gente la agrega <tt>the_meta()</tt> al final de sus entradas o en su sección de [[Post Meta Data Section|metadatos de la entrada]]. Aquí esta un ejemplo básico de uso del tag:
+
+ <?php the_meta(); ?>
+
+Puede que se vea de la siguiente manera en el código fuente:
+
+<pre>&lt;ul class='post-meta'&gt;
+&lt;li&gt;&lt;span class='post-meta-key'&gt;Actualmente leyendo:&lt;/span&gt; Las mil y una noches&lt;/li&gt;
+&lt;li&gt;&lt;span class='post-meta-key'&gt;Humor de hoy:&lt;/span&gt; Feliz y alegre&lt;/li&gt;
+&lt;/ul&gt;</pre>
+
+La función de plantilla automáticamente encierra los metadatos en una lista sin ordenar a la que se le asigna la clase CSS <tt>post-meta</tt>. La clave ('''Key''') a su vez, va en un <tt>span</tt> con la clase CSS <tt>post-meta-key</tt> para que se le pueda dar estilo a través de tu hoja CSS.
+
+Para personalizar la forma en que se muestra la lista de metadatos, cambia las reglas de tu hoja de estilos (CSS). Por ejemplo, agreguemos algunos estilos a nuestro ejemplo de arriba. Los añadidos en la hoja de estilos serían estos:
+
+<pre>.post-meta {font-variant: small-caps; color: maroon; }
+.post-meta-key {color: green; font-weight: bold; font-size: 110%; }</pre>
+
+<div style="border:1px solid blue; width:50%; margin: 20px; padding:20px">
+* <span style="font-size:110%; color: green; font-weight:bold; font-variant: small-caps">Actualmente leyendo</span>: <span style="font-style:italic; color: maroon; font-variant: small-caps">Las mil y una noches</span>
+* <span style="font-size:110%; color: green; font-weight:bold; font-variant: small-caps">Humor de hoy</span>: <span style="font-style:italic; color: maroon; font-variant: small-caps">Feliz y alegre</span>
+</div>
+
+También existen muchos plugins de WordPress en el [http://wordpress.org/extend/plugins/ Directorio Oficial de Plugins de WordPress] que añaden funciones al trabajo de mostrar metadatos. Una búsqueda de los términos "Custom Field Plugins" en un motor de búsqueda debe arrojar todavía más resultados.
+
+== Técnicas avanzadas ==
+Las siguientes son técnicas más avanzadas para obtener y personalizar metadatos y campos personalizados.
+
+=== Obtener campos personalizados ===
+Para obtener metadatos hay que usar la función <tt>get_post_meta()</tt>:
+
+  get_post_meta($post_id, $key, $single);
+
+* <tt>$post_id</tt> es el número identificador de la entrada de la cual quieres obtener los metadatos. Usa <tt>$post->ID</tt> para obtener el número de identificación de la entrada.
+* <tt>$key</tt> es una cadena que contiene el nombre del metadato que deseas obtener.
+* <tt>$single</tt> puede ser verdadero (<tt>true</tt>) o falso <tt>false</tt>. Si se declara como verdadero la función retornará un solo resultado como una cadena. Si es declarado falso (o no se declara) la función retornara una '''matriz''' con los campos personalizados.
+
+==== Detalles de implementación ====
+La información '''PostMeta''' es guardada en una tabla en la base de datos, <tt>$wpdb->postmeta</tt>. Esta tabla contiene cuatro campos:
+
+* <tt>meta_id</tt>: Un ID único por cada entrada.
+* <tt>post_id</tt>: El ID de la entrada para estos metadatos.
+* <tt>meta_key</tt>: El nombre de la clave ('''Key''').
+* <tt>meta_value</tt>: El valor asociado a dicha clave ('''Value''').
+
+Los valores de esta tabla se distribuyen en una matriz multidimensional llamada <tt>$post_meta_cache</tt> justo después de que la matriz <tt>$posts</tt> sea llamada en <tt>wp-blog-header.php</tt>. Esta variable solamente contendrá valores para la lista de entradas llamados para la construcción de la pagina actual. La estructura de la matriz se asemejará a algo como esto:
+  [
+    postid1 => [
+      [
+        key1 => [val1, val2, ...],
+        key2 => [val1, val2, ...],
+        ...
+      ],
+    postid2 => [ ... ],
+    ...
+  ]
+
+Si quisieras obtener los valores de "Leyendo Actualmente" para la entrada 256 usarías el siguiente código PHP:
+
+  // Llamar array de valores acerca de lo que estoy leyendo
+  $readinglist = $post_meta_cache[256]['Actualmente leyendo'];
+
+:No olvides que <tt>$readinglist</tt> ''no'' sera un valor único, sino un array.
+:Desde WordPress 2.1, $post_meta_cache ya no se rellena. Obtén los valores usando las funciones mencionadas abajo.
+
+=== Funciones PostMeta ===
+==== Funciones internas ====
+Está pensado que estas funciones se usen dentro del [[The Loop|Loop]] y todas retornen matrices.
+
+;<tt>[[Function Reference/get post custom|get_post_custom()]]</tt>: Obtener todos los metadatos llave/valor para la entrada actual.
+;<tt>[[Function Reference/get post custom keys|get_post_custom_keys()]]</tt>: Obtener listado de los nombres de las llaves para la entrada actual.
+;<tt>[[Function Reference/get post custom values|get_post_custom_values($key)]]</tt>: Obtener listado de valore para una llave en particular, para la entrada actual.
+;<tt>get_post_meta($post_id, $key, $single = false)</tt>: De WordPress 1.5 en adelante, esta función regresa los metadatos sin problemas de cacheo. La función requiere la ID de la entrada, la llave, y si <tt>$single</tt> es declarado verdadero ('''true'''), regresara solamente el primer resultado como un valor ('''no como un array''') para ser usado por PHP.
+
+<pre>Este código retornará el metadato resultante (observa la añadidura de "echo"):
+<?php echo get_post_meta($post->ID, 'mykey', true); ?></pre>
+
+==== Funciones de plantilla ====
+Al tiempo de este escrito solamente hay una función de plantilla:
+
+;<tt>[[Template Tags/the_meta|the_meta()]]</tt>: Regresa una lista sin ordenar conteniendo los metadatos de la entrada actual, usando la clase ''post-meta'' para la etiqueta UL, y usando la clase ''post-meta-key'' para las etiquetas LI.
+
+Esperamos que desarrolladores independientes logren crear muchos usos interesantes para metadatos de las entradas en forma de plugins. La función <tt>the_meta()</tt> es solo un ejemplo básico.
+
+Actualmente solamente puedes agregar y eliminar entradas. La habilidad de modificar entradas existentes será implementadas después.
+
+[[Category:es:Getting Started]]
+[[Category:es:Design and Layout]]
+[[Category:es:WordPress Lessons]]
+[[Category:es:Advanced Topics]]
+[[Category:es:UI Link]]

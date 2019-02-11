@@ -1,0 +1,144 @@
+{{Rename}}
+__TOC__
+On computer filesystems, files and directories have a set of permissions assigned to them that specify who can '''R'''ead, '''W'''rite, or e'''X'''ecute each file. 
+
+This permissions system is one of the basic concepts that provide security for your web site. A default WordPress installation comes with permissions settings for its files and folders (i.e. directories) that can be regarded as [[Changing File Permissions|very secure]], utilizing your servers already present permission/umask setting determine the most secure permissions that still allow access.  
+
+However, in some cases there can be a trade-off between security and functionality: Some wordpress plugins require more lenient security settings for directories they read from or write to in order to work properly.
+
+== An Example ==
+
+There are plugins that provide uploading, editing and managing image files for WordPress. It writes to and reads from a base image directory which can be set up in the plugin's options panel. This directory needs to be writeable by the process running the php/server (chmod 777) in order to work properly on some server installations. However, any directory whose permissions have been set to '777' present a (real) security hole: a malicious visitor could upload a script to that directory and hack your site. 
+
+{{Note|From a security standpoint, even a small amount of protection is preferable to a world-writeable directory.  Start with low permissive settings like 744, working your way up until it works.  Only use 777 if necessary, and hopefully only for a temporary amount of time.
+}}
+
+== What is suEXEC ==
+
+The [http://httpd.apache.org/docs/trunk/suexec.html suEXEC] feature provides Apache users the ability to run CGI and SSI programs under user IDs different from the user ID of the calling web server. Normally, when a CGI or SSI program executes, it runs as the same user who is running the web server.
+
+Used properly, this feature can reduce considerably the security risks involved with allowing users to develop and run private CGI or SSI programs. However, if suEXEC is improperly configured, it can cause any number of problems and possibly create new holes in your computer's security. If you aren't familiar with managing setuid root programs and the security issues they present, we highly recommend that you not consider using suEXEC.
+
+== The Question ==
+
+How can you secure your WordPress installation while still enjoying the extended functionality that WordPress plugins provide? 
+
+== Securing individual directories with .htaccess ==
+
+One possible solution for this problem is provided by '''.htaccess'''. You can add a .htaccess file to any directory that requires lenient permissions settings (such as 760, 766, 775 or 777). You can prevent the execution of scripts inside the directory and all its sub-directories. You can also prevent any files other than those of a certain type to be written to it.
+
+=== Securing Specific Filetypes ===
+
+The following snippet of code prevents any files other than .jpeg, .jpg, .png, .webp, or .gif to be served from the directory:
+
+<pre>
+Order Allow,Deny
+<FilesMatch "\.(jpe?g|png|gif|webp)$">
+   Allow From All
+</FilesMatch>
+</pre>
+
+This example uses the FilesMatch directive to specifically '''deny''' the following types of files from being accessed. This could be used to prevent PHP files from running in the uploads directory.
+
+<pre>
+<FilesMatch "\.(php|exe|flv|cgi)$">
+Deny from All
+</FilesMatch>
+</pre>
+
+=== Prevent Script Execution ===
+
+The following code helps prevent executable scripts like .pl, .cgi or .php scripts from being executed when requested by a browser.  This instructs the Web Server to treat them as text files instead of executables.  The result is they will be displayed as plain text inside the browser window:
+
+<pre>
+AddType text/plain .pl .cgi .php
+</pre>
+
+The <tt>Options -ExecCGI</tt> directive is one of the more powerful directives allowed in .htaccess files.  This directive controls what is allowed in .htaccess files by all the other Apache modules.  The -ExecCGI specifies that NO files that are registered to be handled by the <tt>cgi-script</tt> handler are allowed.  The <tt>AddHandler</tt> directive on the next line registers all those file extensions as cgi-scripts, thus making any attempts to access them results in a '''403 Forbidden - Access is Denied''' message. 
+
+<pre>
+Options -ExecCGI
+AddHandler cgi-script .php .pl .py .jsp .asp .htm .shtml .sh .cgi
+</pre>
+
+Finally, you can use one more directive to force the type of the document, which is different than a handler. This directive removes all handlers and actions normally associated with these extensions and forces them to be used as text/plain, but it does not override the previous example in scope. 
+
+<pre>
+<FilesMatch "\.(php|pl|py|jsp|asp|htm|shtml|sh|cgi)$">
+ForceType text/plain
+</FilesMatch>
+</pre>
+
+== Control Based on Remote vs Local Requests ==
+
+=== When REDIRECT_STATUS Environment Variable ===
+
+By using the <tt>AddHandler</tt> and <tt>Action</tt> directives below, we configure Apache to set the <tt>REDIRECT_STATUS</tt> environment variable.  The reason is when a request is made for a file ending in <tt>.php</tt> Apache doesn't just serve the file, instead it serves the file to the <tt>/cgi-bin/php.cgi</tt> script, which can either be a real php-cgi interpreter, or it could just be a shell script that executes your real php interpreter.  
+
+ AddHandler php-cgi .php
+ Action php-cgi /cgi-bin/php.cgi
+This sets an environment variable PHPRC, then executes the php.cgi file.
+ #!/bin/sh -p
+ export PHP_FCGI_CHILDREN=3
+ export PHPRC=/home/custom-ini
+ exec /home/bin/php.cgi
+This example just executes the php interpreter (if found) located in the current path of the executing script owner
+ #!/bin/sh -p
+ exec php
+
+We can use this information to lock down htaccess directories, files, and even requests with this one simple variable.  That is possible because the REDIRECT_ cgi environment variables are only set for local requests.  Remember, it is Apache that is requesting the /cgi-bin/php.cgi file, so that is defined as a local request.  If someone requests a webpage that ends in .php, the REDIRECT_ variable is only set for Apache when it transfers control over to the /cgi-bin/php.cgi file, therefore, you can block ALL requests to the /cgi-bin/php.cgi file that do not have the REDIRECT_STATUS variable set.
+
+=== REDIRECT_STATUS ===
+
+This variable is created from an internal request, and was created originally ''(its much older than even php, its from CGI)'' to be used to process ErrorDocuments.   An ErrorDocument ''like a 404 page''' is triggered by a user caused action like requesting a non-existant page, but then it is Apache that redirects the request to the ErrorDocument, just like it redirected requests for .php files above.  This feature enables ErrorDocuments to be aware of the environment settings and variables from the request that caused the error.  REDIRECT_STATUS is just one of the many REDIRECT_ variables that is created, basically all ''safe'' variables get passed to the redirected script prefixed with '''REDIRECT_'''.
+
+=== Using Access Control ===
+
+Since we now know that we only want requests that have the <tt>REDIRECT_STATUS</tt> environment variable set, we can issue a 403 Forbidden to anything else. You can place this in your <tt>/cgi-bin/.htaccess</tt> file.
+
+ Order Deny,Allow
+ Deny from All
+ Allow from env=REDIRECT_STATUS
+
+'''Combined Access and  with FilesMatch'''
+
+This can go in your <tt>/.htaccess</tt> file and uses regex to apply to php[0-9].(ini|cgi)</tt>
+
+ <FilesMatch "^php5?\.(ini|cgi)$">
+ Order Deny,Allow
+ Deny from All
+ Allow from env=REDIRECT_STATUS
+ </FilesMatch>
+
+'''Only Deny REDIRECT_STATUS Not 200'''
+
+You may also use mod_rewrite's power to further tighten the access by only allowing for redirects with a 200 Status code. This could come into play if your default ErrorDocuments are themselves php scripts. An 
+ ErrorDocument 403 /error.php
+will have a <tt>REDIRECT_STATUS</tt> itself of 403.
+
+'''Denying Requests with mod_rewrite'''
+ RewriteEngine On
+ RewriteCond %{ENV:REDIRECT_STATUS} !=200
+ RewriteRule /cgi-bin/path/to/php - [F]
+
+== See Also ==
+
+* [[Changing File Permissions]]
+* [[UNIX Shell Skills#chmod and file permissions|chmod and file permissions]]
+
+== External Links ==
+* [https://www.askapache.com/htaccess/php-cgi-redirect_status/ Locking down scripts and files]
+* [http://tips-scripts.com/block_traffic Blocking traffic to your web site]
+* [http://httpd.apache.org/docs/trunk/howto/htaccess.html Official Apache Docs: htaccess files]
+* [http://httpd.apache.org/docs/trunk/howto/auth.html Official Apache Docs: Authentication, Authorization and Access Control]
+* [http://www.securityfocus.com/infocus/1368 Hardening htaccess] Robert Hansen, SecurityFocus
+* [https://www.askapache.com/htaccess/ .htaccess tutorials] Detailed .htaccess Examples
+
+=== Relevant Forum Threads ===
+
+* [http://wordpress.org/support/topic/93343 Securing 777 directories] (WordPress forum)
+* [http://wordpress.org/support/topic/95881 Using .htaccess to secure 777 directories] (WordPress forum)
+* [http://wordpress.org/support/topic/28085 Preventing hot-linking with .htaccess] (WordPress forum)
+
+[[Category:Advanced Topics]]
+{{copyedit}}

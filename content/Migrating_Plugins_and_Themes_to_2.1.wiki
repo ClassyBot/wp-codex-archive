@@ -1,0 +1,96 @@
+{{Languages|
+{{en|Migrating Plugins and Themes to 2.1}}
+{{ja|プラグインとテーマの 2.1 への移行}}
+}}
+
+{{Oldpage|2.1}}
+
+==Introduction==
+
+When a new major version of WordPress is released, such as WordPress 2.1 or 2.2, you may find that your Themes and Plugins no longer work the way you are used to. It could be that they are completely broken, because something in WordPress that was fundamental to them changed, but it's also possible that you can get them working again by updating some settings, or maybe just a small edit. 
+
+This article is part of a series on [[Migrating Plugins and Themes]]. It covers changes between WordPress Version 2.0 and [http://wordpress.org/development/2007/01/ella-21/ Version 2.1], and what you need to do to Plugins and Themes to get them working in Version 2.1.
+
+If you are the author of your Theme or Plugin, or if you have modified or customized your Theme, then this article will help you upgrade your Theme/Plugin for 2.1. If your Theme or Plugin is distributed publicly, after getting it working you may want to add it to the Compatibility lists above, so your users will know it is working and which version they should be running.
+
+==Fixing Up Your Theme or Plugin==
+
+The starting point for upgrading your Theme or Plugin is to understand the changes to WordPress in Version 2.1. There is an overview of the changes in the [http://wordpress.org/development/2007/01/ella-21/ WordPress Development Blog article on the release of Version 2.1]. If your plugin or theme was relying on a feature that has changed, you may need to re-think it completely. 
+
+===Core WordPress Database Changes===
+
+One fairly significant change in WordPress Version 2.1 is the WordPress database structure. The main change is that in version 2.1, the categories for links (i.e. blogroll) and posts have been combined into one table. So, if your plugin does something special with the link or post category tables, you may need to modify it. 
+
+Also, when a user upgrades from a previous version, the upgrade script will take their blogroll categories and merge them into the post category table. Since you cannot now have a post category and a blogroll category with the same ID numbers, the result is that the blogroll category ID numbers will all change during the update. So, if you have a Theme or Plugin that does something special with a particular blogroll category, by knowing its ID number, you will need to change the ID number(s) cited in the Theme or Plugin to the new ID numbers. To see what the current numbers are, go to the Categories section of the Manage panel in WordPress, and they will be listed in the table there. 
+
+Another database change is that the WordPress "posts" table now has a new field called "post_type", which you can use in your Plugin to distinguish better between Posts and Pages. This will not cause any compatibility problems, but you might want to use it in your Plugin to improve its logic.
+
+===Core WordPress File Changes===
+
+Many of the core WordPress files were either reorganized or had their names changed between Version 2.0.x and 2.1. For most Themes and Plugins, this is not a problem, but some Plugins that need access to a particular WordPress function may be loading a specific PHP file name, in order to make sure that that function is defined. If the function you are using is located in a new file now, you'll need to change the reference.
+
+===Deprecated Functions and Variables===
+
+Some Plugins and Themes may be using functions and global variables that are "deprecated", which means that they were present in previous versions of WordPress, but are being phased out. They could be deleted in a future version of WordPress, without warning, and then your Plugin or Theme would stop working.
+
+So, It is a good idea to check your Themes and Plugins for these functions, and make a substitution. Here is a (hopefully complete) list of deprecated functions (including ones deprecated in previous versions of WordPress). Replacement suggestions are also included (if they are missing and you know what they should be, feel free to jump in and edit!):
+* dropdown_cats
+* get_archives (use [[Template_Tags/wp_get_archives|wp_get_archives]])
+* get_author_link (use get_author_posts_url)
+* get_autotoggle
+* get_linkobjects (use get_linkz)
+* get_linkobjectsbyname (use get_linkz)
+* get_linkswithrating
+* get_linksbyname
+* get_linksbyname_withrating
+* get_postdata (use get_post)
+* get_settings (use get_option as direct replacement)
+* link_pages (use [[Template_Tags/wp_link_pages|wp_link_pages]])
+* list_authors
+* list_cats (use [[Template_Tags/wp_list_categories|wp_list_categories]])
+* next_post (use [[Template_Tags/next_post_link|next_post_link]])
+* previous_post (use [[Template_Tags/previous_post_link|previous_post_link]])
+* start_wp
+* the_category_ID
+* the_category_head
+* tinymce_include (use wp_print_scripts or WP_Scripts)
+* user_can_create_draft (use current_user_can)
+* user_can_create_post (use current_user_can)
+* user_can_delete_post (use current_user_can)
+* user_can_delete_post_comments (use current_user_can)
+* user_can_edit_post (use current_user_can)
+* user_can_edit_post_comments (use current_user_can)
+* user_can_edit_post_date (use current_user_can)
+* user_can_edit_user (use current_user_can)
+* user_can_set_post_date (use current_user_can)
+* wp_get_linksbyname
+* wp_get_post_cats
+* wp_list_cats (use [[Template_Tags/wp_list_categories|wp_list_categories]])
+* wp_set_post_cats
+
+Also, the following global variables are deprecated:
+* $tableposts  (use $wpdb->posts)
+* $tableusers  (use $wpdb->users)
+* $tablecategories (use $wpdb->categories)
+* $tablepost2cat (use $wpdb->post2cat)(Gone in ver 2.3 $wpdb->terms)
+* $tablecomments (use $wpdb->comments)
+* $tablelinks (use $wpdb->links)
+* $tablelinkcategories (does not exist - all categories are in the main categories table now, and there is not a separate link categories table)
+* $tableoptions (use $wpdb->options)
+* $tablepostmeta (use $wpdb->postmeta)
+
+==Further Reading==
+
+Here is a list of internal and external articles that may be of use in upgrading Themes or Plugins to Version 2.1 of WordPress:
+* [http://wordpress.org/development/2007/01/ella-21/ WordPress Development Blog article on the release of Version 2.1]
+* [[Version 2.1|WordPress Codex article on Version 2.1]]
+* [http://wordpress.org/development/2006/12/naughty-or-nice/ WordPress Blog article "Is Your Plugin Naughty or Nice"]
+* [[Template Tags]] - list of Template Tags for using in Themes, including information on deprecated and new tags by WordPress version
+* [http://lorelle.wordpress.com/2007/01/26/wordpress-21-template-tag-and-function-changes/ Lorelle's article on Template Tag updates for 2.1]
+* [http://lorelle.wordpress.com/2007/01/25/fear-not-wordpress-21-and-wordpress-plugins/ Lorelle's article on upgrading to 2.1]
+* [http://lorelle.wordpress.com/2006/08/02/when-the-blog-breaks-fixing-your-broken-blog/ Lorelle's article on fixing a broken blog]
+* [http://markjaquith.wordpress.com/2007/01/28/authorization-and-intentionorigination-verification-when-using-the-edit_post-hook/ Mark Jaquith's article on Authorization and intention/origination verification when using the edit_post hook] - affects editing plugins that do special things with tags or other Custom Fields
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Plugins]]

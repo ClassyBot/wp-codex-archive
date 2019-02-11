@@ -1,0 +1,312 @@
+{{Languages|
+{{en|FAQ Troubleshooting}}
+{{ja|FAQ/トラブルシューティング}}
+{{pt-br|FAQ Resolvendo Problemas}}
+{{th|FAQ Troubleshooting}}
+{{zh-cn|错误问题跟踪常见问题解答}}
+}}
+[[FAQ|Back to FAQ]]
+__TOC__
+==Why can't I see my posts? All I see is ''Sorry, no posts match your criteria''?==
+
+Clearing your browser cache and cookies may resolve this problem.  Also, check your <tt>search.php</tt> and <tt>index.php</tt> template files for errors.
+
+See also:
+
+* [[I Make Changes and Nothing Happens]]
+
+==How do I find more help?==
+
+There are various resources that will help you find more help with WordPress, in addition to these [[FAQ]].  
+
+* [[Troubleshooting]]
+* [[Finding WordPress Help]]
+* [[Using the Support Forums]]
+* [[Technical Articles|Resources and Technical Articles about WordPress]]
+* [[Troubleshooting#Installation_Problems|Installation Problems]]
+
+===Where can I find help with the CSS problems I'm having?===
+
+The following are articles that will help you troubleshoot and solve many of your [[CSS]] problems:
+
+* [[Blog Design and Layout]]
+* [[Finding Your CSS Styles]]
+* [[CSS Fixing Browser Bugs]]
+* [[CSS Troubleshooting]]
+* [[CSS|WordPress CSS Information and Resources]]
+
+==Why do I get an error message about ''Sending Referrers''?==
+If you got this message when trying to save a post, consider checking [[Administration_Screens|Administration]] > [[Administration_Screens#General|Settings]] > [[Settings_General_Screen|General]] and make sure both your '''WordPress address (URI)'''  and the '''Blog address (URI)''' do not use 'www'.  For example, instead of '''<nowiki>http://www.sample.com</nowiki>''' use '''<nowiki>http://sample.com</nowiki>''' in those fields.  This information originally reported via http://wordpress.org/support/topic/72235
+
+See also:
+* [[Enable Sending Referrers]]
+
+==How do I empty a database table?==
+See  also:
+* [[Emptying a Database Table]]
+
+==How do I fix the following error ''SQL/DB Error errcode 13 Can't create/write to file''?==
+'''Problem:''' The MySQL variable <tt>tmpdir</tt> is set to a directory that cannot be written to when using PHP to access MySQL.
+
+To verify this, enter MySQL at the command line and type <tt>show variables</tt>;
+
+You'll get a long list and one of them will read: '''tmpdir = /somedir/''' (whatever your setting is.)
+
+'''Solution:''' Alter the '''tmpdir''' variable to point to a writable directory.
+
+'''Steps:'''
+<ol>
+<li>Find the '''my.cnf''' file. On *nix systems this is usually in '''/etc/'''. On Windows system, Find the '''my.ini'''.</li>
+<li>Once found, open this in a simple text editor and find the '''[mysqld]''' section.</li>
+<li>Under this section, find the '''tmpdir''' line. If this line is commented (has a '''#''' at the start), delete the '''#''' and edit the line so that it reads: '''tmpdir = /writable/dir''' where '''/writable/dir''' is a directory to which you can write. Some use '''/tmp''', or you might also try '''/var/tmp''' or '''/usr/tmp'''. On Windows, use '''C:/Windows/tmp'''.
+</li>
+<li>Save the file.</li>
+<li>Shutdown MySQL by typing <tt>mysqlshutdown -u -p shutdown</tt>.</li>
+<li>Start MySQL by going to the MySQL directory and typing <tt>./bin/safe_mysqld &</tt>. Usually the MySQL directory is in '''/usr/local''' or sometimes in '''/usr/''' on Linux systems.
+</li>
+</ol>
+If none of this make sense and you have someone to administrate your system for you, show the above to them and they should be able to figure it out.
+
+==How do I solve the ''Headers already sent'' warning problem?==
+
+'''Description:''' You get a warning message on your browser that says:
+
+<tt>Warning: Cannot modify header information - headers already sent by
+(output started at</tt>
+
+'''Reason and Solution:'''
+
+It is usually because there are spaces, new lines, or other stuff before an opening '''<tt><?php</tt>''' tag or after a closing '''<tt>?></tt>''' tag, typically in '''wp-config.php'''. This could be true about some other file too, so please check the error message, as it will list the specific file name where the error occurred (see "Interpreting the Error Message" below).  Replacing the faulty file with one from your most recent backup or one from a fresh WordPress download is your best bet, but if neither of those are an option, please follow the steps below.
+
+Just because you cannot see anything does not mean that PHP sees the same.
+
+# Download the file mentioned in the error message via [[FTP Clients|FTP]] or the file manager provided in your host's control panel.
+# Open that file in a [[Glossary#Text editor|plain text editor]] ('''NOT''' MS Word or similar. Notepad or BBEdit are fine).
+# Check that the ''very'' first characters are '''<tt><?php</tt>'''
+# Check that the ''very'' last characters are either '''NOT''' a PHP closing tag or a closing tag '''<tt>?></tt>''' with no blank lines or spaces after it.
+# Before saving, or use the Save as dialog, ensure the file encoding is not '''<tt>UTF-8 BOM</tt>''' but plain '''<tt>UTF-8</tt>''' or any without the '''<tt>BOM</tt>''' suffix.
+
+To be sure about the end of the file, do this:
+#Place the cursor between the ? and >
+#Now press the DELETE key on your computer
+#*Note to MAC users: The "DELETE" key on a PC deletes characters to the ''right'' of the cursor.  That is the key noted here.
+#Keep that key pressed
+#For at least 15 seconds
+#Now type > and
+#'''save''' without pressing any other key at all.
+#If you press another key, you will bring the problem back.
+# DO '''NOT''' PUT CODE IN UNNECESSARY CODE BLOCKS, PUT THEM IN A SINGLE PHP BLOCK.
+Wrong:<pre>
+<?php
+some code;
+?>
+
+<?php
+some other codes;
+?>
+</pre>
+
+Correct:<pre>
+<?php
+code;
+
+some other code;
+?>
+</pre>
+
+
+Upload the file back to your server after editing and saving the file. 
+
+'''Note''': Also check the encoding of the file. If the file is encoded as UTF-8 with BOM, the BOM is seen as a character which starts the output.
+
+
+'''Interpreting the Error Message:'''
+
+If the error message states: <code>Warning: Cannot modify header information - headers already sent by (output started at /path/blog/wp-config.php:34) in /path/blog/wp-login.php on line 42</code>, then the problem is at line #34 of <code>wp-config.php</code>, not line #42 of <code>wp-login.php</code>.  In this scenario, line #42 of <code>wp-login.php</code> is the victim.  It is being affected by the excess whitespace at line #34 of <code>wp-config.php</code>.
+
+If the error message states: <code>Warning: Cannot modify header information - headers already sent by (output started at /path/wp-admin/admin-header.php:8) in /path/wp-admin/post.php on line 569</code>, then the problem is at line #8 of <code>admin-header.php</code>, not line #569 of <code>post.php</code>.  In this scenario, line #569 of <code>post.php</code> is the victim.  It is being affected by the excess whitespace at line #8 of <code>admin-header.php</code>.
+
+'''Other issues that might cause that error:'''
+
+In case you've used the function: wp_redirect() or tried to use a header redirect after the header (or any content at all was sent) that error message will pop. Instead use javascript redirection if needed.
+
+==Why doesn't my "Publish" or "Save Draft" button work?==
+
+To resolve this and similar issues, disable your plugins one at a time until you find the source of the issue. Generally, this will be due to two or more plugins trying to use the same resources (for example, JQuery or other Java-based tools).
+
+In addition, it could be that there is a problem with your browser. A common resolution is to empty the browser's cache. Please consult the documentation for your preferred browser to learn how to do this.
+
+==Why can't I see the visual rich editor or Quicktag buttons when using Apple's Safari browser?==
+
+Update your Safari browser. Early versions of Safari are not supported.
+
+==E-mailed passwords are not being received==
+
+'''Description:''' When users try to register with your blog or change their passwords by entering their username and/or email, WordPress indicates that their password has been emailed to them, but it is never received.
+
+'''Reason and Solutions:''' WordPress uses the standard PHP mail() function, which uses sendmail. No account information is needed. This is not generally a problem if you are using a hosting service, but if you are using your own box and do not have an SMTP server, the mail will never send. If you are using a *NIX box, you should have either postfix or sendmail on your machine; you will just need to set them up (search the Internet for how-to's). If you do not want to go through setting up a complete mail server on your *NIX box you may find [http://packages.debian.org/stable/mail/ssmtp ssmtp] useful -- it provides ''"A secure, effective and simple way of getting mail off a system to your mail hub"''. On a Windows machine, try a sendmail emulator like [http://glob.com.au/sendmail/ Glob SendMail].
+
+More help can be found on this thread of the WordPress Support Forums: http://wordpress.org/support/topic.php?id=24981 For a plugin based alternative, you could try [http://coffee2code.com/wp-plugins/configure-smtp/ Configure SMTP]: ''"Configure SMTP mailing in WordPress, including support for sending e-mail via SSL/TLS (such as GMail)."''
+
+'''Windows Host Server Specific:''' Check your "Relay" settings on the SMTP Virtual Server. Grant access to <tt>127.0.0.1</tt> . Then in your ''php.ini'' file, set the <tt>SMTP</tt> setting to the same IP address. Also set  <tt>smtp_port</tt> to <tt>25</tt>.
+
+'''Ensure Proper Return Address is Used:''' By default, the WordPress mailer fills in the From: field with ''wordpress@yourdomain.com'' and the From: name as ''WordPress''.
+
+This is fine if this is a valid e-mail address. For example, if your real e-mail is ''wordpress@yourdomain.com'', your host should pass the email on for delivery. It will probably send your mail as long as ''yourdomain.com'' is setup to send and receive mail, even if ''wordpress'' is not a valid mail box. But if you set you real email as the From: address and it's something like ''wpgod@gmail.com'', the mail may not send because ''gmail.com'' is not a domain handled by the mail server.
+
+'''Treated as Spam:''' Your email message may have been routed to a spam folder or even worse, simply discarded as malicious. There are a couple measures you can use to convince recipient's mail servers that your message is legitimate and should be delivered as addressed.
+
+'''SPF:''' (Sender Policy Framework) This is the most common anti-spam measure used. If you are on a hosted system, there is a good chance your host has set this up for the mail server you are using. Have Wordpress email you and check the message headers for evidence that the message passed the SPF check. You can get a message sent by following the Forgot Password link on the login page. To keep your old password, do not follow the link in the message.
+If your system email failed the SPF check, you can set up the credentials if you have access to your DNS records and your mail server's domain belongs to you. Check the return path of the email your system sent. If the mail server listed there has your domain name, you can set up SPF credentials. There are several how-tos on the Internet.
+
+'''DKIM:''' (Domain Key Identified Mail) This system is also used. You can use both SPF and DKIM in the same message. Again, just as with SPF, you can check if your receiving mailserver verified your host's domain key by examining the mail header. There is a fair chance no signature key was provided, indicating your host chose to not use this protocol. Also as with SPF, if you can edit your DNS records and the mail server belongs to your domain, you can set up DKIM credentials yourself. Some how-tos exist if you search the Internet.
+
+To get WordPress to send the proper DKIM keys, hook the <tt>'phpmailer_init'</tt> action. You are passed the <tt>$phpmailer</tt> object. Set the necessary properties and return the object. See the class source code for more information. It's on ''wp-includes/class-phpmailer.php'' .
+
+==I used the Quicktag <nowiki><!--nextpage--></nowiki> in a post so why doesn't it work?==
+In some [[Using Themes|Themes]], such as the WordPress Classic Theme, you may see the <nowiki><!--nextpage--></nowiki> work properly on your main page, but other [[Using Themes|Themes]], such as the WordPress default Theme,  may only show the ''page break'' when viewing the posts individually.  It may be necessary to change your Theme's [[Templates|template]] ''page.php'' or ''index.php'' file to make this feature work according to your wishes.  You'll need to add the following:
+<pre><?php wp_link_pages(); ?></pre>
+
+== MySQL Error 28 ==
+
+It could be because:
+* you are out of space on /tmp (wherever tmpdir is), or,
+* you have too many files in /tmp (even if there is lots of free space)
+
+This is a MySQL error and has nothing to do with WordPress directly; you should contact your host about it. Some users have reported that running a "repair table" command in [[phpMyAdmin]] fixed the problem.
+
+==Why are the Quote Marks escaped or not escaped?==
+
+If you write plugins or make advanced custom templates, you may eventually find yourself dealing with data in the database.  WordPress <em>usually</em> manages this data for you in such a way that it is immediately usable.  There are circumstances though (especially if you are dealing directly with the database without using WordPress) where you will experience weirdness.
+
+For example, quote marks cannot be stored directly in the MySQL database. MySQL uses quote marks in its SQL language. When a quote mark is used, for example, in a post, when the post is saved to the database, every quote mark gets escaped. That means a backslash character is prepended, which signifies that the next character should be taken as part of the input, and not as part of the SQL command.  
+
+For example, if you are adding the following in your post:
+
+<pre>...an article about "Happiness" is at 
+<a href="http://example.com/happy" title="Happiness">Happiness</a>
+if you would like to read it...</pre>
+
+Is actually imported into the database looking like this:
+
+<pre>...an article about \"Happiness\" is at 
+<a href=\"http://example.com/happy\" title=\"Happiness\">Happiness</a>
+if you would like to read it...</pre>
+
+When pulling data out of the database, the backslashes may not always be automatically removed. If this becomes an issue, you can use the [http://php.net/stripslashes stripslashes()] PHP function on the text.
+
+==Why do I get a blank page when I submit a comment?==
+'''Description:''' When anyone tries to comment on a post, the window goes blank and the comment doesn't appear to have been recognised by WordPress.
+
+'''Reason and Solution:'''
+The Theme that you are using is missing a critical part of the comment form so WordPress doesn't know which post the comment refers to.  You need to check the comment.php in your Theme and ensure that the following code appears within the form.
+<pre>
+<input type="hidden" name="comment_post_ID" value="<?php echo $id; ?>" />
+</pre>
+
+Relevant discussion threads:
+
+* http://wordpress.org/support/topic/38683
+
+==How to deactivate all plugins without affecting your site for visitors==
+Install the [https://wordpress.org/plugins/health-check/ “Health Check”] plugin. On the troubleshooting tab, you can click the button to disable all plugins for you, while you’re still logged in, without affecting normal visitors to your site.
+
+To restore your view of the site with plugins, log out.  Plugins are deactivated only for the logged-in session in which you clicked the button.
+
+==How to deactivate all plugins when not able to access the administrative menus?==
+Sometimes it may be necessary to deactivate all plugins, but you can't access the administrative menus to do so.  One of two methods are available to deactivate all plugins.
+
+Use [[phpMyAdmin]] to deactivate all plugins.
+# In the table wp_options, under the ''option_name'' column (field) find the ''active_plugins'' row
+# Change the ''option_value'' field to: '''a:0:{}'''
+
+Or reset your plugins folder via [[FTP Clients|FTP]] or the file manager provided in your host's control panel.  This method preserves plugin options but requires plugins be manually reactivated.
+
+# Via FTP or your host's file manager, navigate to the wp-contents folder (directory) 
+# Via FTP or your host's file manager, rename the folder "plugins" to "plugins.hold"
+# Login to your WordPress administration plugins page (/wp-admin/plugins.php) - this will disable any plugin that is "missing".
+# Via FTP or your host's file manager, rename "plugins.hold" back to "plugins"
+
+==How to clear the "Briefly unavailable for scheduled maintenance" message after doing automatic upgrade?==
+As part of the automatic upgrade WordPress places a file named <tt>.maintenance</tt> in the blog '''base''' folder (folder that contains the wp-admin folder).  If that file exists, then vistors will see the message '''Briefly unavailable for scheduled maintenance. Check back in a minute.'''  
+
+To stop that message from being displayed to vistors, just delete the <tt>.maintenance</tt> file.  The automatic upgrade should be executed again, just in case it failed.
+
+Note the core automatic upgrade feature was added with [[Version 2.7]].
+
+==How to fix 404 error when using Pretty Permalinks?==
+
+If an error 404 occurs when using the [[Introduction_to_Blogging#Pretty_Permalinks|Pretty Permalink]] choices such as '''Day and Name''' in [[Administration_Screens|Administration]] > [[Administration_Screens#Permalinks|Settings]] > [[Settings_Permalinks_Screen]] it could be a result of the '''mod_rewrite''' module not being activated/installed.  The solution is to activate '''mod_rewrite''' for the Apache web-server.  Check the apache\conf\httpd.conf file for the line ''# LoadModule rewrite_module modules/mod_rewrite.so''
+and delete the # in front of the line.  Then stop Apache and start it again.  '''Note:''' you may have to ask your host to activate mod_rewrite. 
+
+See also:
+* [[Using Permalinks]]
+
+Relevant discussion thread:
+* http://wordpress.org/support/topic/234726
+
+==Why isn't the admin user listed as an author when editing posts?==
+Not sure why this problem happens, but here's a couple of things to try one of these two solutions.
+
+This usually fixes the problem:
+#Create new admin user (e.g. newadmin) with Administrator Role
+#Login as 'newadmin'
+#Degrade the old 'admin' user to Role of Subscriber and Save
+#Promote the old 'admin' back to Administrator Role and Save
+#Login as the old 'admin'
+
+If that doesn't work, try:
+#Create a new admin user (e.g. newadmin) with Administrator Role
+#Login as 'newadmin'
+#Delete the old 'admin' user and assign any posts to 'newadmin'
+#Create 'admin' user with Administrator Role
+#Login as 'admin'
+#Delete 'newadmin' user and assign posts to 'admin'
+
+==Why is the wrong author name displayed for a post on a blog?==
+This problem is usually solved by the same solution as is presented in the question right before this one:
+[[FAQ_Troubleshooting#Why_isn.27t_the_admin_user_listed_as_an_author_when_editing_posts.3F|Why isn't the admin user listed as an author when editing posts?]]
+
+==An update was just released, so why does my blog not recognize the update is available?==
+When an update is released, notification of that release is displayed at the top administration screens saying '''WordPress x.x.x is available! Please update now.'''  Not every blog will see that message at the same time.  Your blog is programmed to check for updates every 12 hours, but the timing of that check is purely random.  So if your blog just checked for updates minutes before an update was released, you won't see the update message until your blog checks for updates 12 hours later.
+
+If you want your blog to check right now for updates, you can delete the '''update_core''' option name record in your ''wp_options'' table.  Note that plugins and themes each have their own check and update cycle, controlled by the records '''update_plugins''' and '''update_themes''', in ''wp_options''.
+
+Relevant discussion thread:
+* http://wordpress.org/support/topic/242485 
+
+
+==Why did I lose custom changes to the WordPress Default Theme during the last automatic upgrade?==
+A core upgrade copies all the new files from the distribution over the old ones, so if you changed existing files in the WordPress default theme (e.g. ''wp-content/themes/twentysixteen/style.css''), those changes got overwritten with the new version of that file.   
+
+Please note, a core upgrade goes through a list of "old files", as defined in ''wp-admin/includes/update-core.php'', and deletes those files. Any files not on the list, and not in the distribution, are preserved.  
+
+'''Remember, that before upgrades, whether automatic or manual, both the WordPress Files and database should be backed-up as explained in [[WordPress Backups]].'''
+
+A better way to modify the default theme is by using a [[Child Themes|child theme]]. It's a little more work to set up, but worth the effort because your customizations will be safe when the main theme is updated. 
+
+See also:
+*[[WordPress Backups]]
+*[[Child Themes]]
+
+==How do you repair a MySQL database table?==
+Every once in a while, it may be necessary to repair one or more MySQL database tables. According to the [http://dev.mysql.com/doc/refman/5.7/en/myisam-repair.html How to Repair MyISAM Tables at dev.mysql.com] there are a number of reasons to repair a table including errors such as "tbl_name.frm is locked against change",  "Can't find file tbl_name.MYI (Errcode: nnn)", "Unexpected end of file", "Record file is crashed", or "Got error nnn from table handler".
+
+Here are the steps to repair a table in a MySQL database using [[phpMyAdmin]]:  
+# Login to hosting account.
+# Login to [[phpMyAdmin]].
+# Choose the affected database. If you only have one database, it should choose it by default so you don't need to do anything.
+# In the main panel, you should see a list of your database tables. Check the boxes by the tables that need repair.
+# At the bottom of the window just below the list of tables, there is a drop down menu. Choose "Repair Table" 
+
+'''Remember, that it is advisable to have a current backup of your database at all times.
+
+See also:
+* [[WordPress Backups]]  
+
+
+
+[[FAQ|Back to FAQ]]
+
+[[Category:Troubleshooting]]
+[[Category:WordPress Help]]

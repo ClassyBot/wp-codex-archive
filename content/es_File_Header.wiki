@@ -1,0 +1,160 @@
+{{es:Stub}}
+{{Languages|
+{{en|File Header}}
+{{es|File Header}}
+}}
+__TOC__
+En WordPress los [[Themes]] [[es:Temas|temas]] y los [[Plugins]] [[es:Plugins|plugins]] consisten de uno o mas ficheros de los cuales uno tiene (''Drop-Ins'', ''Must-Use-Plugins'': puede tener) los asi denominados '''File Headers''' o '''Encabezamientos de fichero''' conteniendo metainformacion (Nombre, Versión, Autor, ...) relativa al Tema o plugin en concreto.
+
+''File Headers'' are placed inside a block in the beginning of the file (not necessarily starting on the very first line), one header per line. A Header consists of a ''Name'' and a ''Value''.
+
+health-check.php == File Header Examples ==
+The following ''file header examples'' are taken out of example theme and plugin files that do ship with WordPress or are closely related to the WordPress project (Default Theme and Core Plugin):
+
+health-check.php== Plugin File Header Example ===
+health-check.php
+These are the very first lines of a the <code>health-check.php</code> file part of the health check plugin:
+
+ <?php
+ /*
+ 	Plugin Name: Health Check
+ 	Plugin URI: http://wordpress.org/extend/plugins/health-check/
+ 	Description: Checks the health of your WordPress install
+ 	Author: The Health Check Team
+ 	Version: 0.1-alpha
+ 	Author URI: http://wordpress.org/extend/plugins/health-check/
+ 	Text Domain: health-check
+ 	Domain Path: /lang
+  */
+ 
+ class HealthCheck {
+ [...]
+
+style.css== Theme File Header Example ===
+These are the very first lines of a the <code>style.css</code> file part of the Twenty Thirteen theme:
+<pre>
+/*
+Theme Name: Twenty Thirteen
+Theme URI: http://wordpress.org/themes/twentythirteen
+Author: the WordPress team
+Author URI: http://wordpress.org/
+Description: The 2013 theme for WordPress takes us back to the blog, featuring a full range of post formats, each displayed beautifully in their own unique way. Design details abound, starting with a vibrant color scheme and matching header images, beautiful typography and icons, and a flexible layout that looks great on any device, big or small.
+Version: 1.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Tags: black, brown, orange, tan, white, yellow, light, one-column, two-columns, right-sidebar, flexible-width, custom-header, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, translation-ready
+Text Domain: twentythirteen
+
+This theme, like WordPress, is licensed under the GPL.
+Use it to make something cool, have fun, and share what you've learned with others.
+*/
+</pre>
+
+== List of Header Names ==
+
+The following is a list of Header-Names that are currently used by Themes and Plugins in the current concrete File Header default implementation (02 Jun 2010). Headers can be extended, so this is a subset, not the superset:
+
+=== Plugin ===
+
+* ''Author'' (Plugin)
+* ''Author URI'' (Plugin)
+* ''Description'' (Plugin)
+* ''Domain Path'' (Plugin)
+* ''Network'' (Plugin)
+* ''Plugin Name'' (Plugin)
+* ''Plugin URI'' (Plugin)
+* ''Site Wide Only'' (Plugin; deprecated in favor of ''Network'')
+* ''Text Domain'' (Plugin)
+* ''Version'' (Plugin)
+
+=== Theme ===
+
+* ''Author'' (Theme)
+* ''Author URI'' (Theme)
+* ''Description'' (Theme)
+* ''Domain Path'' (Theme)
+* ''Status'' (Theme)
+* ''Tags'' (Theme)
+* ''Template'' (Theme)
+* ''Text Domain'' (Theme)
+* ''Theme Name'' (Theme)
+* ''Theme URI'' (Theme)
+* ''Version'' (Theme)
+
+=== [[Pages#Creating_Your_Own_Page_Templates|Page Template]] ===
+
+* Template Name
+* Description (cf. [http://core.svn.wordpress.org/trunk/wp-content/themes/twentyeleven/showcase.php twentyeleven])
+
+For a description of some of the Plugin Headers, please see [[Writing_a_Plugin#File_Headers|Plugin File Headers]], For Theme Headers please see [[Theme_Development#Theme_Stylesheet|Theme Stylesheet]].
+
+If you are unable to find a concrete specification for the one or other header, you need to read the WordPress source-code to find out more specific information about them (please see ''File Header Related Functions'' below for a list of related functions and hooks).
+
+== File Header Filenames ==
+Since multiple files in a plugin/theme can contain meta information, the following are the file-names and the order (from top to bottom) of which files are parsed for headers.
+
+=== Plugin ===
+# Each PHP-file in the directory order. If a file does not contain the ''Name'' header, it won't be treated as a plugin.
+
+=== Theme ===
+# The <code>style.css</code> CSS-file
+
+=== Must-Use Plugin ===
+# The concrete PHP-file
+
+=== Drop-In ===
+# The concrete PHP-file
+
+== File Header Specification ==
+Per de-facto implementation, ''File Headers'' can be specified as the following:
+
+# Header are written in a block in the beginning of a PHP or CSS file.
+# A block might be placed in a files comment, like a PHP or CSS comment.
+# The whole header block must be placed inside the first 8 192 bytes of the file.
+# Headers follow up to each other, one on it's own line.
+# A header consists of a name and a value.
+# Name and value are separated by the ':' character.
+# The name has a minimum of one, and a maximum of three words.
+# The minimum length of a word is three, the maximum length is 12 characters.
+# A word consists of the characters a-z and A-Z.
+# Words are separated by a single space (d32/x20)
+# A name starts after the beginning of a line or after a whitespace character.
+# A name ends before the ':' character.
+# A value starts after the ':' character.
+# Sometimes the ':' character is suffixed by a space. This space is considered to not be part of the value.
+# A header-value can contain any characters but not a newline.
+# Header values might become filtered before they are used.
+# Header values can but must not contain HTML code in form of certain XHTML Elements or HTML Tags.
+
+'''Note:''' Because of the nature that there are individual headers, the maximum number of words as well as the minimum and maximum number of characters per word are based on default headers. Because this is a subset and not the superset of all header names, this might vary depending on the implementation and plugins you are using.
+
+== File Header Related Functions ==
+
+The '''File Header API''' consists of all functions regarding theme and plugin file headers and related hooks (actions, filters).
+
+* [[Function_Reference/get_file_data|get_file_data()]]
+* [[Function_Reference/wp_get_theme|wp_get_theme()]]
+* [[Function_Reference/get_plugin_data|get_plugin_data()]]
+* [[Function_Reference/_get_plugin_data_markup_translate|_get_plugin_data_markup_translate()]]
+* [[Function_Reference/_cleanup_header_comment|_cleanup_header_comment()]]
+* Filter:  <code>extra_*_headers</code> (e.g.: <code>extra_theme_headers</code>, <code>extra_plugin_headers</code>)
+
+=== Header Context ===
+Some of the API functions provide the possibility to add a context to headers. There are two contexts defined in the wordpress core code: Themes (<code>'theme'</code>) and Plugins (<code>'plugin'</code>).
+
+== File Headers in readme.txt ==
+Some plugins contain the readme.txt file which might contain look-a-like headers as well. Those files are not handled by WordPress but by third-party applications. Because those applications can be quite popular, I note down here those tags from an example readme file:
+
+ Contributors: markjaquith, mdawaffe (this should be a list of wordpress.org userid's)
+ Donate link: http://example.com/
+ Tags: comments, spam
+ Requires at least: 2.0.2
+ Tested up to: 2.1
+ Stable tag: 4.3
+
+As [http://core.trac.wordpress.org/ticket/12260 ticket #12260] suggests, the headers from readme.txt are used through remote WP.org API calls. This is a good example of how third party applications use has direct impact on wordpress core code usage.
+
+[[Category:Design and Layout]][[Category:es:Diseño y disposición]]
+[[Category:Plugins]] [[Category:es:Plugins]]
+[[Category:WordPress Development]] [[Category:es:Desarrollo de Wordpress]]
+[[Category:File Header API]] [[Category:es:File Header API]]

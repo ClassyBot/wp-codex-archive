@@ -1,0 +1,61 @@
+{{Languages|
+{{en|Function Reference/esc sql}}
+{{ja|Function Reference/esc sql}}
+}}
+== Description ==
+
+Prepares a string for use as an SQL query. This function is a glorified <tt>[http://php.net/manual/en/function.addslashes.php addslashes()]</tt> that works with arrays.
+
+'''In 99% of cases, you can use <tt>[[Class_Reference/wpdb#Protect_Queries_Against_SQL_Injection_Attacks | $wpdb->prepare()]]</tt> instead''', and that is the recommended method. This function is only for use in those rare cases where you can't easily use <tt>$wpdb->prepare()</tt>. One example is preparing an array for use in an IN clause.
+
+'''Note:''' Be careful to use this function correctly. It '''will only escape values to be used in strings in the query'''. That is, it only provides escaping for values that will be within quotes in the SQL (as in <tt>field = '{$escaped_value}'</tt>). If your value is not going to be within quotes, your code will still be vulnerable to SQL injection. For example, this is vulnerable, because the escaped value is not surrounded by quotes in the SQL query: <tt>ORDER BY {$escaped_value}</tt>. As such, '''this function does not escape unquoted numeric values, field names, or SQL keywords.'''
+
+== Usage ==
+
+%%% <?php esc_sql( $sql ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$data|string&#124;array|An unescaped string or array that needs to be put into a SQL statement.}}
+
+== Return Value ==
+
+{{Return||string&#124;array| Escaped value appropriate for use in a SQL query, within quotes (as a string). Notably, this result is NOT safe for use in an SQL statement without quotes surrounding it.}}
+
+== Example ==
+<pre>
+<?php
+
+$name   = esc_sql( $name );
+$status = esc_sql( $status );
+
+$wpdb->get_var( "SELECT something FROM table WHERE foo = '$name' and status = '$status'" );
+
+?>
+</pre>
+
+== Notes ==
+
+* <tt>[[Class_Reference/wpdb#Protect_Queries_Against_SQL_Injection_Attacks|$wpdb->prepare()]]</tt> is generally preferred as it corrects some common formatting errors.
+* This function was formerly just an alias for <tt>[[Class_Reference/wpdb|$wpdb->escape()]]</tt>, but that function has now been deprecated.
+*It should be noted that this function will only escape values to be used in strings in the query, as shown in the above example. That is, it only provides escaping for values that will be within quotes (as in <tt>field = '{$escaped_value}'</tt>). If your value is not going to be within quotes, your code will still be vulnerable to SQL injection. For example, this is vulnerable, because the escaped value is not surrounded by quotes in the SQL query: <tt>ORDER BY {$escaped_value}</tt>.
+
+== Change Log ==
+
+Since: [[Version 2.8|2.8.0]]
+
+== Source File ==
+
+<tt>esc_sql()</tt> is located in {{Trac|wp-includes/formatting.php}}.
+
+== Related ==
+
+[[Function Reference/like escape|like_escape()]], [[Function Reference/tag escape|tag_escape()]], [[Function Reference/urlencode|urlencode()]], [[Function Reference/urlencode_deep|urlencode_deep()]]
+
+{{Esc Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+
+{{Copyedit}}

@@ -1,0 +1,73 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Return_Values"><span class="tocnumber">3</span> <span class="toctext">Return Values</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Examples"><span class="tocnumber">4</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Notes"><span class="tocnumber">5</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Change_Log"><span class="tocnumber">6</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">7</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2 tocsection-9"><a href="#Functions"><span class="tocnumber">8.1</span> <span class="toctext">Functions</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Filters"><span class="tocnumber">8.2</span> <span class="toctext">Filters</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Fetch a filtered list of user roles that the current user is allowed to edit.
+</p><p><code>get_editable_roles()</code> is a simple function whose main purpose is to allow filtering of the list of roles in the global <var>$wp_roles</var> object. Plugins can hook this filter to remove inappropriate roles depending on the situation or user making edits. Specifically because without filtering anyone with the <tt><a href="https://codex.wordpress.org/Roles_and_Capabilities#edit_users" title="Roles and Capabilities">edit_users</a></tt> capability can edit others to be administrators, even if they themselves are only editors or authors. This is mitigated by the fact that normally only administrators have the <tt>edit_users</tt> capability.
+</p><p>Which roles a user can assign are determined by passing all roles through the <code><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/editable_roles" title="Plugin API/Filter Reference/editable roles">editable_roles</a></code> filter. The filter and function allow administrators to delegate user management.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;$roles&#160;</span><span style="color: #007700">=&#160;</span><span style="color: #0000BB">get_editable_roles</span><span style="color: #007700">()&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Return_Values">Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=3" title="Edit section: Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt>array</dt>
+<dd>Array of role information, indexed by role name. Each entry is itself an array containing the role name and capabilities of the form <code>array('name'=&gt;'...', 'capabilities'=&gt;array('read'=&gt;true, ...))</code>.</dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=4" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+Currently,&#160;you&#160;can&#160;assign&#160;the&#160;following&#160;roles:<br />&lt;dl&gt;<br />&#160;&#160;<span style="color: #0000BB">&lt;?php&#160;</span><span style="color: #007700">foreach&#160;(</span><span style="color: #0000BB">get_editable_roles</span><span style="color: #007700">()&#160;as&#160;</span><span style="color: #0000BB">$role_name&#160;</span><span style="color: #007700">=&gt;&#160;</span><span style="color: #0000BB">$role_info</span><span style="color: #007700">):&#160;</span><span style="color: #0000BB">?&gt;<br /></span>&#160;&#160;&#160;&#160;&lt;dt&gt;<span style="color: #0000BB">&lt;?php&#160;</span><span style="color: #007700">echo&#160;</span><span style="color: #0000BB">$role_name&#160;?&gt;</span>&lt;/dt&gt;<br />&#160;&#160;&#160;&#160;&lt;dd&gt;<br />&#160;&#160;&#160;&#160;&#160;&#160;&lt;ul&gt;<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span style="color: #0000BB">&lt;?php&#160;</span><span style="color: #007700">foreach&#160;(</span><span style="color: #0000BB">$role_info</span><span style="color: #007700">[</span><span style="color: #DD0000">'capabilities'</span><span style="color: #007700">]&#160;as&#160;</span><span style="color: #0000BB">$capability&#160;</span><span style="color: #007700">=&gt;&#160;</span><span style="color: #0000BB">$_</span><span style="color: #007700">):&#160;</span><span style="color: #0000BB">?&gt;<br /></span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&lt;li&gt;<span style="color: #0000BB">&lt;?php&#160;</span><span style="color: #007700">echo&#160;</span><span style="color: #0000BB">$capability&#160;?&gt;</span>&lt;/li&gt;<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<span style="color: #0000BB">&lt;?php&#160;</span><span style="color: #007700">endforeach;&#160;</span><span style="color: #0000BB">?&gt;<br /></span>&#160;&#160;&#160;&#160;&#160;&#160;&lt;/ul&gt;<br />&#160;&#160;&#160;&#160;&lt;/dd&gt;<br />&#160;&#160;<span style="color: #0000BB">&lt;?php&#160;</span><span style="color: #007700">endforeach;&#160;</span><span style="color: #0000BB">?&gt;<br /></span>&lt;/dl&gt;</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=5" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The file that defines this function (wp-admin/includes/user.php) is only loaded in the admin sections.
+</p>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=6" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">Version 2.8</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>get_editable_roles()</code> is defined in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-admin/includes/user.php#L0">wp-admin/includes/user.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Functions">Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=9" title="Edit section: Functions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/wp_dropdown_roles" title="Function Reference/wp dropdown roles">wp_dropdown_roles()</a></li></ul>
+<h3><span class="mw-headline" id="Filters">Filters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_editable_roles&amp;action=edit&amp;section=10" title="Edit section: Filters">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/editable_roles" title="Plugin API/Filter Reference/editable roles">editable_roles</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003828
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.067 seconds
+Preprocessor visited node count: 100/1000000
+Preprocessor generated node count: 204/1000000
+Post‐expand include size: 131/2097152 bytes
+Template argument size: 52/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   18.587      1 - -total
+100.00%   18.587      1 - Template:Trac
+ 85.47%   15.887      1 - Template:CurrentVersion
+-->

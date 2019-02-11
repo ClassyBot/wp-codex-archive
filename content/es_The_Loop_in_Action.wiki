@@ -1,0 +1,381 @@
+{{Languages|
+{{en|The Loop in Action}}
+{{es|The Loop in Action}}
+{{ja|The Loop in Action}}
+{{zh-cn|The Loop in Action}}
+}}
+
+<h1> El Bucle (The Loop) en acci&oacute;n </h1>
+<br>
+==Introducci&oacute;n==
+
+[[es:The_Loop|"El Bucle (The Loop)"]] es un t&eacute;rmino que se refiere al proceso principal de WordPress. Ud. hace uso de "El Bucle" en sus [[es:Templates|Archivos de Plantilla]] para mostrar los art&iacute;culos a los visitantes. Puede crear Plantillas sin El Bucle, pero podr&aacute; mostrar datos solamente de un art&iacute;culo. 
+
+La primera cosa que hace WordPress es comprobar que todos los archivos que necesita est&eacute;n presentes. Luego, colecta desde la Base de Datos los valores predeterminados definidos por el [[es:Registered_User_Features|administrador del blog]]. Esto incluye cosas como el n&uacute;mero de art&iacute;culos a mostrar por p&aacute;gina, si los comentarios est&aacute;n activados y cosas similares. Una vez que estos valores quedan establecidos, WordPress comprueba para ver que es lo que ha solicitado el usuario. Esta informaci&oacute;n es usada para determinar cuales art&iacute;culos recuperar de la Base de Datos. 
+
+Si el usuario no solicit&oacute; un art&iacute;culo, categor&iacute;a, p&aacute;gina o fecha espec&iacute;fica, WordPress utiliza los valores predeterminados recolectados previamente para determinar cuales art&iacute;culos preparar para el usuario. Por ejemplo, si el administrador del blog ha elegido [[es:Reading_Options_SubPanel|mostrar 5 art&iacute;culos por p&aacute;gina]], entonces WordPress recuperar&aacute; los cinco art&iacute;culos m&aacute;s recientes de la Base de Datos. Si el usuario solicit&oacute; un art&iacute;culo, categor&iacute;a, p&aacute;gina o fecha espec&iacute;fica, entonces WordPress usar&aacute; esa informaci&oacute;n para especificar cual(es) art&iacute;culo(s) recuperar de la Base de Datos. 
+
+Una vez realizado todo esto, WordPress se conecta a la Base de Datos, recupera la informaci&oacute;n especificada y almacena los resultados en una variable. Es el Bucle quien accesa esta variable y utiliza los valores para mostrarlos en sus plantillas. 
+
+De manera predeterminada, si el visitante no seleccion&oacute; ning&uacute;n art&iacute;culo, categor&iacute;a, p&aacute;gina o fecha espec&iacute;fica, WordPress usa la plantilla index.php para mostrar todo. Para la primera parte de esta discusi&oacute;n acerca del Bucle nos enfocaremos solamente en index.php y la apariencia predeterminada del blog. M&aacute;s adelante, una vez comprenda como funcionan las cosas, investigaremos algunos trucos con El Bucle en otros Archivos de Plantilla.
+
+==La P&aacute;gina Index m&aacute;s Sencilla del Mundo==
+La siguiente es una p&aacute;gina index totalmente funcional que mostrar&aacute; el contenido (y solamente el contenido) de cada art&iacute;culo, de acuerdo a las condiciones usadas para preparar El Bucle (The Loop). El &uacute;nico prop&oacute;sito de mostr&aacute;rselo es demostrarle lo poco realmente necesario para el funcionamiento del Bucle. La mayor&iacute;a de los elementos en su <tt>index.php</tt> son declaraciones CSS, HTML, y PHP para hacer que El Bucle luzca atractivo.
+<pre>
+&lt;?php
+get_header();
+if (have_posts()) :
+   while (have_posts()) :
+      the_post();
+      the_content();
+   endwhile;
+endif;
+get_sidebar();
+get_footer(); 
+?&gt;
+</pre>
+
+Ahora, echemos un vistazo al grueso de los elementos que hacen que El Bucle se vea atractivo.
+
+==El Bucle Predeterminado==
+La siguiente es una mirada paso-a-paso al uso predeterminado del Bucle que viene con los temas ''predeterminado'' y ''cl&aacute;sico'' en la instalaci&oacute;n est&aacute;ndar de WordPress v1.5.
+
+===Inicio del Bucle===
+En la parte superior del archivo de plantilla predeterminado <tt>index.php</tt> se encuentra el c&oacute;digo de inicio de [[es:The_Loop|El Bucle]]. 
+<pre>&lt;?php if (have_posts()) : ?&gt;<br />
+<?php while (have_posts()) : the_post(); ?></pre>
+
+#Primero comprueba si se recolect&oacute; alg&uacute;n art&iacute;culo con la funci&oacute;n <tt>have_posts()</tt>.
+#Si hay alg&uacute;n art&iacute;culo, un bucle <tt>[http://www.php.net/while while]</tt> de PHP es iniciado.  El bucle <tt>while</tt> continuar&aacute; ejecut&aacute;ndose mientras la condici&oacute;n en el par&eacute;ntesis sea true. Por lo que mientras la funci&oacute;n <tt>have_posts()</tt> retorne un valor true, El Bucle seguir&aacute; ejecut&aacute;ndose.
+#La funci&oacute;n <tt>have_posts()</tt> simplemente comprueba el siguiente item en la colecci&oacute;n de art&iacute;culos: si hay alg&uacute;n otro item, retorna true; si no hay un item a continuaci&oacute;n, retorna false.
+
+===Generando el Art&iacute;culo===
+La funci&oacute;n <tt>the_post()</tt> toma el elemento actual en la colecci&oacute;n de art&iacute;culos y lo hace disponible para el uso dentro de esta iteraci&oacute;n del Bucle. Sin <tt>the_post()</tt>, muchas de las [[es:Template Tags|Etiquetas de Plantilla]] usadas en su tema no funcionar&iacute;an.
+
+Una vez que los datos del art&iacute;culo se hacen disponibles, la plantilla puede comenzar a mostrar los datos del art&iacute;culo al visitante.
+
+====T&iacute;tulo, Fecha y Autor====
+Las siguientes [[es:Template Tags|etiquetas de plantilla]] obtienen el t&iacute;tulo del art&iacute;culo actual, as&iacute; como la fecha y hora en que fue publicado y quien lo public&oacute;.
+<pre>
+&lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?>" rel="bookmark" title="Permanent Link to &lt;?php the_title(); ?&gt;"&gt;
+&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;small&gt;&lt;?php the_time('F jS, Y') ?&gt; &lt;!-- by &lt;?php the_author() ?&gt; --&gt;&lt;/small&gt;
+</pre>
+
+====Contenido del Art&iacute;culo====
+La etiqueta de plantilla <tt>[[es:Template_Tags/the_content|the_content()]]</tt> muestra el contenido del art&iacute;culo. Esta es la carne en cada pasada a trav&eacute;s del Bucle:
+<pre>
+&lt;div class="entry"&gt;
+&lt;?php the_content('Leer el resto de este art&iacute;culo &amp;raquo;'); ?&gt;
+&lt;/div&gt;
+</pre>
+Si incluye el bot&oacute;n [[es:Write_Post_SubPanel#Quicktags|Quicktag]] llamado '''m&aacute;s''', mostrado como <tt>[[es:Customizing_the_Read_More|&lt;!--m&aacute;s--&gt;]]</tt>, en el cuerpo de su art&iacute;culo, s&oacute;lo la porci&oacute;n <em>sobre</em> esa l&iacute;nea ser&aacute; mostrada a los lectores.  Por lo tanto, si quiere que su p&aacute;gina de inicio muestre s&oacute;lo las primeras dos oraciones de cada art&iacute;culo, inserte simplemente <tt>&lt;!--m&aacute;s--&gt;</tt> luego de la segunda l&iacute;nea en cada art&iacute;culo que cree.
+
+Cuando ve el art&iacute;culo individual, el delimitador <tt>&lt;!-- m&aacute;s --&gt;</tt> es obviado.  Por consiguiente, colocar el delimitador <tt>&lt;!-- m&aacute;s--&gt;</tt> en todos sus art&iacute;culos fuerza a los lectores a hacer click en cada art&iacute;culo individual si desean leer el art&iacute;culo completo.
+
+====Detalles adicionales====
+Debajo del contenido de cada art&iacute;culo en el archivo de plantilla <tt>index.php</tt> hay un lugar para mostrar m&aacute;s informaci&oacute;n acerca del art&iacute;culo, como las informaci&oacute;n de categor&iacute;as, fecha y comentarios. Conocida como la [[es:Post_Meta_Data_Section|secci&oacute;n de meta datos del art&iacute;culo]], si ha ingresado como usuario con suficientes privilegios (o como autor del art&iacute;culo), tambi&eacute;n ver&aacute; un enlace "Editar", gracias a la funci&oacute;n de etiqueta de plantilla  <tt>[[es:Template_Tags/edit_post_link|edit_post_link()]]</tt>.
+<pre>
+&lt;p class="postmetadata"&gt;
+Publicado en &lt;?php the_category(', ') ?&gt; 
+&lt;strong&gt;|&lt;/strong&gt;
+&lt;?php edit_post_link('Edit','','<strong>|</strong>'); ?&gt;  
+&lt;?php comments_popup_link('Sin Comentarios &#187;', '1 Comentario &#187;', '% Comentarios &#187;'); ?&gt;&lt;/p&gt;
+</pre>
+
+Si los comentarios se encuentran activados o si el art&iacute;culo tiene comentarios, la etiqueta de plantilla <tt>[[es:Template_Tags/comments_popup_link|comments_popup_link()]]</tt> mostrar&aacute; un enlace a los comentarios. Si est&aacute; usando la [[es:Template_Tags/comments_popup_script|ventana emergente de comentarios]], este enlace abrir&aacute; la ventana de comentarios; de otra manera ir&aacute; directo a los comentario de este art&iacute;culo.
+
+Si el visitante est&aacute; viendo un &iacute;ndice de art&iacute;culos (''ej.:'' m&aacute;s de un art&iacute;culo en el Bucle), el enlace <tt>comments_popup_link()</tt> llevar&aacute; al lector a la p&aacute;gina individual de este art&iacute;culo.
+
+====Autodetecci&oacute;n de Trackback====
+
+La funci&oacute;n de la etiqueta de plantilla <tt>[[es:Template_Tags/trackback_rdf|trackback_rdf]]</tt> es retornar c&oacute;digo legible para la m&aacute;quina usado para la auto-detecci&oacute;n de [[es:Glossary#Trackback|trackback]].
+
+<pre>
+&lt;!--
+&lt;?php trackback_rdf(); ?&gt;
+--&gt;
+</pre>
+
+'''Nota:''' Es de esperar que la etiqueta <tt>trackback_rdf()</tt> se utilice con [[es:Commenting_Code|comentarios]] alrededor.  Esto no significa que est&aacute; "desactivada".
+
+===Finalizando El Bucle===
+
+La siguiente instrucci&oacute;n finaliza el Bucle. Despu&eacute;s de esto, las distintas etiquetas de plantilla relacionadas con el art&iacute;culo no funcionar&aacute;n como se espera (o si lo hacen, utilizar&aacute;n el &uacute;ltimo art&iacute;culo del Bucle). Esto significa, que si necesita usar una etiqueta de plantilla que funciona '''Dentro de El Bucle''', necesita colocarla antes de este punto.
+
+<pre>
+&lt;?php endwhile; ?&gt;
+</pre>
+
+Esta secci&oacute;n, inmediatamente posterior al final del Bucle, muestra controles de navegaci&oacute;n para desplazarse hacia adelante y hacia atr&aacute;s por cada p&aacute;gina web.
+
+<pre>
+&lt;div class="navigation"&gt;
+&lt;div class="alignleft"&gt;&lt;?php posts_nav_link('','','&amp;laquo; Art&iacute;culos Anteriores')?&gt;&lt;/div&gt;
+&lt;div class="alignright"&gt;&lt;?php posts_nav_link('','Art&iacute;culos Siguientes &amp;raquo;','')?&gt;&lt;/div&gt;&lt;/div&gt;
+</pre>
+
+Si se configura el blog para que muestre 10 art&iacute;culos por p&aacute;gina y las condiciones usadas por el Bucle recuperan 25 art&iacute;culos, habr&aacute; tres p&aacute;ginas para navegar: dos p&aacute;ginas de 10 art&iacute;culos cada una y una p&aacute;gina de 5 art&iacute;culos. Los enlaces de navegaci&oacute;n le permitir&aacute;n al visitante desplazarse hacia adelante y hacia atr&aacute;s a trav&eacute;s de la colecci&oacute;n de art&iacute;culos.
+
+Los controles de navegac&oacute;n son incluidos <em>fuera</em> del Bucle, pero <em>dentro</em> de la condici&oacute;n <tt>if</tt>, de manera que  s&oacute;lo se muestran si hay alg&uacute;n art&iacute;culo. Las funciones de navegaci&oacute;n comprueban por s&iacute; mismas si hay o no algo a lo que deben enlazar bas&aacute;ndose en el Bucle actual y s&oacute;lo muestran enlaces si hay algo a que enlazar.
+
+<pre>
+&lt;?php else : ?&gt;
+ &lt;h2 class="center"&gt;No se encontr&oacute;&lt;/h2&gt;
+ &lt;p class="center"&gt;
+&lt;?php _e("Sorry, but you are looking for something that isn't here."); ?&gt;&lt;/p&gt;
+</pre>
+
+La cl&aacute;usula <tt>else :</tt> determina que hacer si <tt>have_posts()</tt> es false.  Esto quiere decir, que los elementos que se encuentren luego del '''else''' s&oacute;lamente ser&aacute;n ejecutados/mostrados si El Bucle no tiene ning&uacute;n art&iacute;culo. Ning&uacute;n art&iacute;culo se mostrar&aacute; si, por ejemplo, el visitante solicit&oacute; un d&iacute;a espec&iacute;fico en el cual no se cre&oacute; ning&uacute;n art&iacute;culo o una b&uacute;squeda realizada no arroj&oacute; resultados.
+
+<pre>
+  &lt;?php endif; ?&gt;
+</pre>
+
+Esta instrucci&oacute;n finaliza la prueba condicional de "Si hay art&iacute;culos haz esto, si por el contrario, no hay art&iacute;culos, haz esto".  Una vez la prueba condicional es finalizada, la plantilla predeterminada index.php incluye a continuaci&oacute;n la barra lateral y finalmente el pie de p&aacute;gina.
+
+==El Bucle en otras Plantillas==
+
+WordPress puede utilizar diferentes archivos de plantilla para mostrar su blog de diferentes maneras. En el tema predeterminado de WordPress hay [[es:Templates|archivos de plantilla]] para la vista principal, vista de categor&iacute;a y vista de archivo, as&iacute; como una plantilla para ver los art&iacute;culos individualmente. Cada una de ellas utiliza [[es:The_Loop|El Bucle]], pero lo hace con un formato ligeramente diferente, as&iacute; como tambi&eacute;n con diferentes usos de las [[es:Template_Tags|etiquetas de plantilla]].
+
+Para cualquiera de las vistas que no tenga un archivo de plantilla separado, WordPress usar&aacute; <tt>index.php</tt> de manera predeterminada. Si un visitante solicita un art&iacute;culo individual, WordPress primero buscar&aacute; un archivo llamado  <tt>single.php</tt>.  Si ese archivo existe, ser&aacute; utilizado para presentar el art&iacute;culo al visitante. Si ese archivo no existe, WordPress utilizar&aacute; <tt>index.php</tt> para presentar el art&iacute;culo al visitante. Esto es llamado [[es:Template_Hierarchy|Jerarqu&iacute;a de Plantillas]].
+
+Si est&aacute; creando su propio [[es:Using_Themes|Tema]], con frecuencia es muy &uacute;til revisar los [[es:Templates|archivos de plantilla]] del Tema predeterminado como punto de referencia. Tambi&eacute;n es &uacute;til usar el archivo <tt>index.php</tt> de su tema como plantilla para sus otros archivos de plantilla. Hacer esto puede proporcionarle una p&aacute;gina conocida y funcional desde la cual comenzar a realizar cambios para crear m&aacute;s archivos de plantilla.
+
+===Formato de Archivo Diferente===
+
+Un <em>archivo</em> es una colecci&oacute;n hist&oacute;rica de art&iacute;culos. De manera predeterminada, los art&iacute;culos mostrados en su p&aacute;gina de inicio son los art&iacute;culos cronol&oacute;gicamente m&aacute;s recientes.  Cuando un visitante hace click en uno de los enlaces de su archivo, o si solicita manualmente una fecha espec&iacute;fica  (<nowiki>http://www.example.com/blog/index.php?m=200504</nowiki> o 
+<nowiki>http://www.example.com/blog/2005/04</nowiki> para seleccionar todos los art&iacute;culos de Abril de 2005), WordPress mostrar&aacute; una vista de <em>archivo</em>. De manera predeterminada, el archivo utilizar&aacute; <tt>index.php</tt> y por lo tanto lucir&aacute; igual a su p&aacute;gina de inicio, pero mostrar&aacute; s&oacute;lamente los art&iacute;culos de Abril de 2005.
+
+Cuando WordPress prepara una [[es:Creating_an_Archive_Index|vista de archivo]] para un visitante, busca espec&iacute;ficamente un archivo llamado <tt>archive.php</tt> en el directorio de su tema actual. Si desea eliminar ambiguedades visuales entre el archivo y su p&aacute;gina de inicio, simplemente copie <tt>index.php</tt> y ren&oacute;mbrelo a <tt>archive.php</tt> y edite <tt>archive.php</tt> como sea necesario.
+
+Por ejemplo, si desea mostrar solamente los t&iacute;tulos y no el contenido de los art&iacute;culos para su lista de archivos, podr&iacute;a utilizar algo parecido a lo siguiente:
+
+<pre>
+&lt;?php get_header(); ?&gt;
+ &lt;div id="content" class="narrowcolumn"&gt;
+
+  &lt;?php if (have_posts()) : ?&gt;
+   &lt;?php while (have_posts()) : the_post(); ?&gt;
+     &lt;div class="post"&gt;
+     &lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?&gt;" rel="bookmark" title="Permanent Link to &lt;?php the_title(); 
+
+?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+     &lt;small&gt;&lt;?php the_time('F jS, Y') ?&gt; &lt;!-- by &lt;?php the_author() ?&gt; 
+
+--&gt;&lt;/small&gt;
+      &lt;/div&gt;
+    &lt;?php endwhile; ?&gt;
+&lt;div class="navigation"&gt;
+&lt;div class="alignleft"&gt;
+&lt;?php posts_nav_link('','','&amp;laquo; Previous Entries') ?&gt;
+&lt;/div&gt;
+&gt;div class="alignright"&gt;
+&lt;?php posts_nav_link('','Next Entries &amp;raquo;','') ?&gt;
+&lt;/div&gt;
+  &lt;/div&gt;
+&lt;?php else : ?&gt;
+  &lt;h2 class="center"&gt;Not Found&lt;/h2&gt;
+ &lt;p class="center"&gt;&lt;?php _e("Sorry, but you are looking for something that isn't here."); 
+
+?&gt;&lt;/p&gt;
+  &lt;?php endif; ?&gt;
+&lt;/div&gt;
+&lt;?php get_sidebar(); ?&gt;
+&lt;?php get_footer(); ?&gt;
+</pre>
+
+===Formato de Categor&iacute;as Diferente===
+
+Como con la vista de archivo, WordPress busca un archivo de plantilla separado para la 
+[[es:Category_Templates|vista de categor&iacute;a]]. Si un visitante hace click en un enlace  de una 
+categor&iacute;a en su blog, ser&aacute; llevado a la vista categor&iacute;a. WordPress preparar&aacute; El Bucle s&oacute;lamente con los art&iacute;culos de esa categor&iacute;a, limitando el n&uacute;mero de art&iacute;culos indicados en la configuraci&oacute;n establecida para el blog.
+
+Para hacer su vista de categor&iacute;as diferente de su vista principal, copie <tt>index.php</tt> y
+ren&oacute;mbrelo como <tt>category.php</tt>. Para una vista de categor&iacute;a probablemente no es necesario listar las categor&iacute;as a las cuales est&aacute; asignado un art&iacute;culo, por lo que vamos a remover esa secci&oacute;n. En su lugar, anunciaremos la categor&iacute;a en la parte superior de la p&aacute;gina:
+
+<pre>
+&lt;?php get_header(); ?&gt;
+ &lt;div id="content" class="narrowcolumn"&gt;
+ &lt;p&gt;
+ &lt;strong&gt;
+  &lt;?php single_cat_title('Currently browsing '); ?&gt;
+  &lt;/strong&gt;&lt;br /&gt;
+ &lt;?php echo category_description(); ?&gt;
+ &lt;/p&gt;
+ &lt;?php if (have_posts()) : ?&gt;
+   &lt;?php while (have_posts()) : the_post(); ?&gt;
+     &lt;div class="post"&gt;
+      &lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?&gt;" rel="bookmark" title="Permanent Link to &lt;?php the_title(); 
+
+?&gt;"&gt;
+&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+   &lt;small&gt;
+     &lt;?php the_time('F jS, Y') ?&gt; 
+        &lt;!-- by &lt;?php the_author() ?&gt; --&gt;
+   &lt;/small&gt;
+ &lt;/div&gt;
+&lt;?php endwhile; ?&gt;
+ &lt;div class="navigation"&gt;
+   &lt;div class="alignleft"&gt;
+    &lt;?php posts_nav_link('','','&amp;laquo; Previous Entries') ?&gt;
+   &lt;/div&gt;
+   &gt;div class="alignright"&gt;
+    &lt;?php posts_nav_link('','Next Entries &amp;raquo;','') ?&gt;
+   &lt;/div&gt;
+ &lt;/div&gt;
+&lt;?php else : ?&gt;
+  &lt;h2 class="center"&gt;Not Found&lt;/h2&gt;
+&lt;p class="center"&gt;&lt;?php _e("Sorry, but you are looking for something that isn't here."); 
+
+?&gt;&lt;/p&gt;
+ &lt;?php endif; ?&gt;
+&lt;/div&gt;
+&lt;?php get_sidebar(); ?&gt;
+&lt;?php get_footer(); ?&gt;
+</pre>
+
+===Diferentes Formatos para Diferentes Categor&iacute;as===
+
+Como se explica en la [[es:Template Hierarchy|Jerarqu&iacute;a de Plantillas]], es posible [[es:Category_Templates|crear archivos de plantilla separados para cada categor&iacute;a]]. Simplemente nombre el archivo <tt>category-<b><u>X</u></b>.php</tt>, donde <b><u>X</u></b> es el ID num&eacute;rico de la categor&iacute;a.  
+
+Considere cuidadosamente si necesita una plantilla totalmente nueva para una categor&iacute;a espec&iacute;fica. Veamos dos categor&iacute;as, "Plantas" y "Flores", con los IDs 3 y 4, respectivamente.  Junto al t&iacute;tulo de cada articulo Ud. quiere tener una imagen de una planta o una flor, dependiendo de que categor&iacute;a est&aacute; siendo mostrada.  Ud. podr&iacute;a:
+* Usar dos archivos separados, <tt>category-3.php</tt> y <tt>category-4.php</tt>, cada uno con una etiqueta <tt>img</tt> diferente para cada t&iacute;tulo del art&iacute;culo.
+* Usar un condicional dentro de su archivo <tt>category.php</tt> para comprobar si la categor&iacute;a actual es "Plantas" o "Flores" (o ninguna) y mostrar la imagen adecuada:
+<pre>
+&lt;?php if (in_category('3') ):
+ // we're in the Plants category, so show a plant ?&gt;
+ &lt;img src='/images/plant.png' alt='a plant' /&gt;
+&lt;?php } elseif (in_category('4') ):
+ // we're in the Flowers category, so show a flower ?&gt;
+ &lt;img src='/images/flower.png' alt='a pretty flower' /&gt;
+&lt;?php endif; // end the if, no images for other other categories ?&gt;
+</pre>
+
+Si a&ntilde;adi&oacute; otra categor&iacute;a "Carros" que quer&iacute;a mostrar de una manera <em>significativamente</em> diferente, ser&iacute;a m&aacute;s adecuado un archivo <tt>category-<b><u>X</u></b>.php</tt> separado.
+
+====Diferentes Hojas de Estilo CSS Para Diferentes Categorìas====
+
+Muchos usuarios quieren crear archivos CSS separados para una categor&iacute;a espec&iacute;fica. Esto, tambi&eacute;n puede lograrse f&aacute;cilmente.  Es importante recordar que las hojas de estilo son definidas y cargadas en la secci&oacute;n <tt>&lt;head&gt;</tt> del documento HTML. WordPress usa el archivo <tt>header.php</tt> para esto.  En el archivo <tt>header.php</tt> predeterminado, busque esta l&iacute;nea:
+<pre>
+&lt;link rel="stylesheet" href="&lt;?php bloginfo('stylesheet_url'); ?&gt;" type="text/css" media="screen" 
+/&gt;
+</pre>
+Y c&aacute;mbiela a algo as&iacute;:
+<pre>
+&lt;?php if ( in_category('5') ) { // Carga una Hoja de Estilos CSS especial para la categor&iacute;a "Carros"  ?&gt;
+  <link rel="stylesheet" href="<?php get_template_directory(); ?>/category-5.css" type="text/css" media="screen" />
+&lt;?php } else { ?&gt;
+   <link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" media="screen" />
+&lt;?php } ?&gt;
+</pre>
+<strong>Nota:</strong> La plantilla Carros usa el archivo <tt>category-5.php</tt> para cambiar el dise&ntilde;o predeterminado. 
+En este ejemplo se le da nombre al archivo CSS dependiendo del archivo de plantilla de categor&iacute;a al cual ser&aacute; aplicado, en lugar de el nombre real de la categor&iacute;a.  Por lo tanto, Ud. sabe que <tt>category-5.css</tt> pertenece a <tt>category-5.php</tt>.
+
+===Formato de Art&iacute;culo Individual Diferente===
+
+Cuando visualiza un art&iacute;culo individual (o [[es:Glossary#Permalink|permalink]]), WordPress utilizar&aacute; <tt>single.php</tt>, si est&aacute; presente. Esta porci&oacute;n, del archivo predeterminado de WordPress single.php, proporciona la [[es:Post_Meta_Data_Section|informaci&oacute;n de meta datos del art&iacute;culo]] del art&iacute;culo actual:
+<pre>
+<p class="postmetadata alt">
+<small>
+Este art&iacute;culo fue publicado el &lt;?php the_time('l, F jS, Y') ?&gt; a la(s) &lt;?php the_time() ?&gt; 
+y se encuentra archivado en las categor&iacute;as &lt;?php the_category(', ') ?&gt;.
+Puede hacer seguimiento a los comentarios de este art&iacute;culo mediante el canal &lt;?php comments_rss_link('RSS 2.0'); ?&gt;.
+&lt;?php
+if (('open' == $post-&gt;comment_status) && ('open' == $post->ping_status)) {
+// Tanto los Comrentarios como los Pings est&aacute;n activados
+?&gt;
+  Puede &lt;a href="#respond"&gt;dejar un comentario&lt;/a&gt;, o 
+  &lt;a href="&lt;?php trackback_url(display); ?&gt;"&gt;trackback&lt;/a&gt; 
+desde su propio sitio.
+&lt;?php 
+} elseif (!('open' == $post-&gt;comment_status) && ('open' == $post->ping_status)) {
+// S&oacute;lo los Pings est&aacute;n activados 
+?&gt;
+  Los comentarios se encuentran actualmente desactivados, pero puede 
+  &lt;a href="&lt;?php trackback_url(display); ?&gt; "&gt;trackback&lt;/a&gt; 
+desde su propio sitio.
+&lt;?php
+} elseif (('open' == $post-&gt;comment_status) && !('open' == $post->ping_status)) { 
+// Los comentarios est&aacute;n activados, pero los Pings est&aacute;n desactivados 
+?&gt;
+  Puede ir al final del art&iacute;culo y dejar un comentario. Los Pings est&aacute;n actualmente desactivados.
+&lt;?php
+} elseif (!('open' == $post-&gt;comment_status) && !('open' == $post->ping_status)) { 
+// Ni los Comentarios ni los Pings est&aacute;n activados 
+?&gt;
+  Tanto los Comentarios como los Pings est&aacute;n desactivados actualmente.
+&lt;?php 
+} 
+edit_post_link('Edit this entry.','',''); ?&gt;
+&lt;/small&gt;
+&lt;/p&gt;
+</pre>
+Este tipo de informaci&oacute;n -- tanto si los comentarios est&aacute;n activados o desactivados -- es inadecuado en una p&aacute;gina de vista principal, de archivo o de categor&iacute;a; lo que explica por qu&eacute; s&oacute;lamente se incluy&oacute; en el archivo de plantilla <tt>single.php</tt>.
+
+==Otros Trucos del Bucle==
+
+Ahora que ha tenido una buena introducci&oacute;n a los usos b&aacute;sicos del Bucle de WordPress, le presentaremos efectos y trucos adicionales del Bucle.
+
+===P&aacute;gina Inicial Fija===
+
+¿Puede mostrar algo especial <em>s&oacute;lamente</em> en la p&aacute;gina de inicio de su blog? Eso es correcto, solamente en la p&aacute;gina de inicio o p&aacute;gina principal y puede hacer que no se muestre en ninguna otra parte en su sitio. ¡F&aacute;cil! Nosotros llamamos a esto ''p&aacute;gina inicial fija''.  El inicio de la primera p&aacute;gina de su sitio realmente no es fija. Solamente est&aacute; usando El Bucle para hacerla ver de la manera que se ve.
+
+Para hacer que este truco funcione, use la funci&oacute;n de etiqueta de plantilla conditional [[Conditional_Tags#The_Main_Page|is_home()]].
+
+En su archivo <tt>index.php</tt>, use un <tt>if ()</tt> para retornar contenido adicional condicionalmente:
+
+<pre>
+&lt;?php get_header(); ?&gt;
+&lt;?php if (is_home()) {
+ // Estamos en la P&aacute;gina de Inicio, entonces ¡mostremos una foto de nuestro gatito!
+ echo "&lt;img src='/images/new_kitty.jpg' alt='Nuestro nuevo gato, Rufus!' /&gt;";
+ // y ahora regresamos a nuestra p&aacute;gina de inicio regular
+} ?&gt; 
+</pre>
+
+La funci&oacute;n <tt>is_home()</tt> s&oacute;lo producir&aacute; un valor true si el visitante no est&aacute; solicitando un art&iacute;culo, categoria o fecha espec&iacute;fica, por lo que s&oacute;lo se muestra en la "p&aacute;gina de inicio".
+
+Para mayor informaci&oacute;n, lea [[es:Creating a Static Front Page|Creando una P&aacute;gina de Inicio Fija]].
+
+===S&oacute;lamente Extractos===
+
+La manera m&aacute;s f&aacute;cil de mostrar extractos, en lugar del contenido completo de los art&iacute;culos, es reemplazar todas las instancias de <tt>[[es:Template_Tags/the_content|the_content]]()</tt> con <tt>[[es:Template_Tags/the_excerpt|the_excerpt()]]</tt>. 
+
+Si no ha creado extractos expec&iacute;ficamente para sus art&iacute;culos, esta funci&oacute;n autom&aacute;ticamente mostrar&aacute; las primeras 120 palabras del art&iacute;culo.
+<pre>
+&lt;div class="entry"&gt;
+&lt;?php the_excerpt(); ?&gt;
+&lt;/div&gt;
+</pre>
+
+===Diferentes Encabezados/Barras Laterales/Pies de P&aacute;gina===
+
+WordPress proporciona las [[es:Include Tags|Etiquetas de Inclusi&oacute;n]] <tt>get_header()</tt>, <tt>get_sidebar()</tt> y <tt>get_footer()</tt> para usarlas en sus [[es:Templates|archivos de plantilla]].  Estas funciones hacen f&aacute;cil definir un encabezado/barra lateral/pie de p&aacute;gina est&aacute;ndar que sea f&aacute;cilmente editable.  Cualquier cambio realizado a estos archivos inmediatamente se har&aacute; visible a los usuarios, sin ning&uacute;n trabajo de su parte.
+
+Pero a veces, puede que <em>no quiera</em> una barra lateral. Si no quiere una barra lateral, simplemente excluya el llamado a la funci&oacute;n <tt>get_sidebar()</tt> de su plantilla. Por ejemplo, la plantilla <tt>single.php</tt> en el tema predeterminado de WordPress no incluye una barra lateral.
+
+Para crear su propia barra lateral <strong>diferente</strong>, tiene dos opciones.
+# Incluir el contenido de la Barra Lateral directamente en el archivo de plantilla en el que est&aacute; trabajando. Si desea que category-3 tenga una barra lateral diferente, edite <tt>category-3.php</tt> e incluya el HTML y PHP necesario para generar su propia barra lateral.
+# Usar la funci&oacute;n PHP <tt>[http://www.php.net/include include]</tt> para incluir otro archivo.  La funci&oacute;n <tt>get_sidebar()</tt> de WordPress <em>s&oacute;lo</em> carga <tt>sidebar.php</tt>. Si crea un archivo llamado <tt>sideleft.php</tt>, deber&iacute;a incluirlo de la siguiente manera:
+<pre>
+&lt;?php include(TEMPLATEPATH . '/sideleft.php'); ?&gt;
+</pre>
+
+Bas&aacute;ndose en la [[Template Hierarchy|Jerarqu&iacute;a de Plantillas]] predeterminada de WordPress, si quiere utilizar los mismos elementos en m&uacute;ltiples o diferentes plantillas, probablemente es mejor colocarlas en archivos de plantilla separados y utilizar la funci&oacute;n PHP <tt>include()</tt>. Si el elemento que est&aacute; a&ntilde;adiendo es espec&iacute;fico para un archivo de plantilla, probablemente es mejor incluirlo directamente en el archivo de plantilla.
+
+==Res&uacute;men==
+
+S&oacute;lamente hemos explorado la superficie de lo que puede hacerse con El Bucle. Como recordatorio, los siguientes son recursos que le ayudar&aacute;n a personalizar su propio [[es:The Loop|Bucle de WordPress]].
+
+* [[es:Templates|Archivos de Plantilla]]
+* [[es:Template Tags|Etiquetas de Plantilla]]
+* [[es:Template Hierarchy|Jerarqu&iacute;a de Plantillas]]
+* [[es:Conditional Tags|Etiquetas Condicionales]]
+
+[[Category:WordPress Lessons]]
+[[Category:Design and Layout]]
+[[Category:Advanced Topics]]

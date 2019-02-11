@@ -1,0 +1,116 @@
+{{Languages|
+{{en|Moving WordPress}}
+{{ja|Moving WordPress}}
+{{ru|Перемещение WordPress}}
+}}
+
+{{ru:Stub}}
+__TOC__
+Могут возникнуть ситуации, когда вам надо будет переместить WordPress в другое место на том же самом сервере или переместить его на другой сервер. В этом случае Вам не надо переинсталлировать WordPress. WordPress достаточно гибкий для того, чтобы обработать эти ситуации.
+
+Простой ответ для большинства инсталляций:
+* Если база данный и URL остаются теми же, вы можете переместить блог, просто скопировав файлы и базу данных.
+* Если изменились имя пользователя или базы данных, отредактируйте wp-config.php, что бы соответствующие данные совпадали.
+* Если вы хотите '''протестировать взможности нового сервера''' перед полным переходом? вы должны временно изменить поля "siteurl" и "home" в таблице "wp_options" вашей новой базе данных (через phpMyAdmin или что-то подобное).  <br /> Если вы используете любые способы перенаправлений (постоянных ссылок), вы должны отключить .htaccess и перенастроить постоянные ссылки так, что бы они "ожили".
+
+
+==Перемещение WordPress в пределах сайта==
+
+Перемещение файлов WordPress из одного места в другое на вашем сервере - изменение их URL - требует некоторых специальных действий.
+
+Вот пошаговая инструкция:
+
+# Создайте новое расположение (location), используя одну из этих двух возможностей:
+## Если вы будете перемещать ваши [[WordPress Files|файлы ядра WordPress]] в новую папку - создайте новую папку.
+## Если вы хотите переместить WordPress в вашу корневую директорию, убедитесь, что все [[WordPress Files|index.php]], [[Glossary#.htaccess|.htaccess]], и другие файлы, которые могут быть заменнены копиями, имеют резервные копии и/или перемещены, и тогда корневая папка готова для новых файлов WordPress.
+# Авторизуйтесь в вашем блоге.
+# Перейдите на панель [[Administration Panels|Administration]] > [[Administration_Panels#Options_-_Configuration_Settings|Settings]] > [[Settings_General_SubPanel|General]].
+# В поле '''WordPress address (URI):''' измените адрес для вашего нового расположения основных файлов WordPress.
+# В поле '''Blog address (URI):''' измените адрес вашего сайта на новый.
+# Щелкните '''Update Options'''.
+# (Не пытайтесь открыть/просмотреть ваш блог прямо сейчас!)
+# ''Только для WordPress 2.0:'' Удалите папку ''wp-content/cache''.
+# Переместите основные файлы WordPress в новое место. Вы должны переместить как файлы из оригинальной директории, такой как <tt><nowiki> http://example.com/wordpress</nowiki></tt>, так и файлы из ее поддиректорий. 
+# Если вы используете [[Using Permalinks|Постоянные ссылки]], перейдите в панель [[Administration Panels|Administration]] > [[Administration_Panels#Options_-_Configuration_Settings|Settings]] > [[Settings_Permalinks_SubPanel|Permalinks]] и обновите структуру ваших ссылок в вашем  [[Glossary#.htaccess|.htaccess]] файле, который должен быть в том фе каталоге, что и основной файл <tt>index.php</tt>.
+# Если у вас возникли проблемы с отсутствующими рисунками, которые вы точно загрузили, вам необходимо изменить пути к рисункам в каждом посте непосредственно в SQL базе данных. 
+
+Важно, что бы вы установили расположение URI ДО того, как переместите файлы.
+
+Предположим, вы случайно переместили файлы до того, как изменили URI. Предположим, что исходно файлы хранились в папке /path/to/old/ и вы переместили их в папку /path/to/new до того, как изменили URI. Что бы исправить ситуацию, создайте символьную ссылку по пути /path/to/old/ (для пользователей Windows "Символьная ссылка" эвивалентна ярлыку) на папку /path/to/new/, т.е. отдайте команду   
+<pre>ln -s /path/to/new /path/to/old</pre>
+и пройдите еще раз шаги, указанные [[Moving WordPress#Moving WordPress Within Your Site | выше]] по-нормальному. После этого можете удалить ссылку, если хотите.
+
+Все готово. Протестируйте ваш сайт для того, что бы убедиться, что все работает нормально. Если изменения включали новый адрес для вашего блога, убедитесь, что люди знают новый адрес, и рассмотрите возможность добавления некоторых перенаправлений в ваш файл <tt>.htaccess</tt> для отправки пользователей по новому адресу.You're done.  Test your site to make sure that it works right.  If the change involves a new address for your blog, make sure you let people know the new address, and consider adding some redirection instructions in your <tt>.htaccess</tt> file to guide visitors to the new location.
+
+[[Changing The Site URL]] так же содержит детали данного процесса!
+
+== Giving WordPress its Own Directory While Leaving the WordPress Index File in the Root Directory==
+Please see this article, [[Giving_WordPress_Its_Own_Directory|Giving WordPress Its Own Directory]], for detailed instructions.
+
+==Перемещение WordPress на новый сервер==
+
+Перемещение WordPress с одного сервера на другой начинается с резервного сохранения Ваших данных. Этот шаг включает в себя сохранение Вашей базы данных WordPress, а также файлов, картинок, плагинов и всего остального содержимого Вашего сайта. Для уточнения смотрите [[WordPress Backups]] и [[Backing Up Your Database]] . 
+
+*Памятка: Если Вы меняете лишь сервер, сохраняя доменное имя, все что Вам нужно - подправить wp-config.php и загрузить все на новый сервер в таком виде, в котором оно есть.
+
+'''If You Don't Care If Your Old Blog Works'''
+
+#Download a copy of the main wordpress files from your OLD blog to your hard drive and edit wp-config.php to suit the new server.
+#Go back to your OLD blog and go to options and change the url (both of them) to that of your new site.
+#Again, download your database (but keep the old one just in case), upload this new database and the copy of the wordpress core files with the edited wp-config.php to your new server. Thats it!
+
+'''If You Want Your Old Blog To Still Work'''
+
+Caution: Make sure you have a backup of your old blog's WordPress database before proceeding!
+
+''Part A - Activating Your New Blog''
+#Download your entire WordPress installation to your hard drive.  Name the folder appropriately to indicate that this is your OLD blog's installation.
+#Go back to your OLD blog and go to options and change the url (both of them) to that of your new site.
+#Again, download your entire WordPress installation to your hard drive.  Name the folder appropriately to indicate that this is your NEW blog's installation.
+#Download your database once again (but keep the old one).  Upload this database to your new server.  It will be easiest if you use the same database name and you create a user with the same login credentials on your new server as on your old server.
+#If you used a different database name and/or user (see previous step), edit wp-config.php in your NEW blog's installation folder appropriately.
+#Upload the NEW blog's installation folder to your new site.  Presto, your NEW blog should be working!
+
+''Part B - Restoring Your Old Blog''
+#On the original server, delete your OLD blog's database (remember, you should have a copy on your local computer that you made at the very beginning).
+#Upload your OLD blog's installation folder to your original server, overwriting the files that are currently there (you may also delete the installation folder on the server and simply re-upload the OLD blog's files).
+#Upload your OLD blog's database from your local computer to the server.  That should do it!
+
+
+Another procedure for making copies of posts, comments, pages, categories and custom field (post status, data, permalinks, ping status...) easy to follow:
+#Install a new Wordpress blog
+#Go on old blog Admin panel. Here, in  Manage > Export select "all" in menu Restrict Author.
+#Click on Download Export File
+#In new blog go on Manage > Import, choose Wordpress item.
+#In the page that will be shown, select the file just exported. Click on Upload file and Import
+#It will appear a page. In Assign Authors, assign the author to users that already exist or create new ones.
+#Click on Submit
+#At the end, click on Have fun
+
+Note: using this method if there are some articles in new blog (like hello world, info page...), these will not be erased. Articles are only added. Using the former procedure the article in new blog will be deleted.
+
+==Moving WordPress to a New Server with Fantastico==
+
+Some webhosts use a service called [http://netenberg.com/fantastico.php Fantastico], which can install a vanilla WordPress web with just a few clicks. You can transfer your blog to one of these webs, but the steps are slightly different.
+
+Begin by backing up your data. This includes backing up your WordPress database as well as all the core files, images, plugins, and 
+other files on your site. See [[WordPress Backups]] and [[Backing Up Your Database]] for more details. 
+
+'''Make a copy of your database. You will need to edit the <code>.sql</code> file, and in case of errors, it is important that you work on a copy.'''
+
+Begin the process of working from copies of your backups.
+
+#'''If''' you have changed domain, edit the backed up database file to reflect this. A simple way to do this is:
+## Using a [[Glossary#Text editor|text editor]], open a '''copy''' of the <code>.sql</code> database file.
+## Using the search and replace function, find all instances of the blog's old [[Glossary#URL|URL]] and replace it with the new URL.
+## Repeat the process with your old email address. (For example, replacing <tt>someone@example.com</tt> with <tt>someone@tutorial.com</tt>)
+## Save your changes.
+#Upload your plugins and themes from your old site to the new one.
+#Drop (delete) the database tables of the pre-installed Fantastico web.
+#[[Restoring Your Database From Backup|Restore the database]].
+
+When you are ready to check your site, make sure to [[I Make Changes and Nothing Happens|clear your cache]] and cookies so you will see the changes in your web browser.
+
+[[Category:Russian Codex]]
+
+{{Copyedit}}

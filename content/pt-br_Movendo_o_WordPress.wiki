@@ -1,0 +1,142 @@
+{{Languages|
+{{en|Moving WordPress}}
+{{ja|Moving WordPress}}
+{{pt-br|Movendo o WordPress}}
+{{ru|Перемещение WordPress}}
+{{sk|Presun WordPressu}}
+{{zh-cn|WordPress博客搬家}}
+}}
+
+{{Avançado}}
+__TOC__
+Há momentos em que você precisa mover o WordPress em seu servidor e momentos em que você precisa mover p WordPress de um servidor para outro. Você não precisa re-instalar o WordPress, ele é suficientemente flexível para lidar com todas essas situações.
+
+Para a maioria das instalações:
+
+* Se o banco de dados e URL permanecem os mesmos, você pode mover apenas copiando os arquivos e banco de dados.
+* Se o nome do banco de dados ou usuário alterar, edite <tt>wp-config.php</tt> para ter os valores corretos.
+* Se você quer '''testar antes de mudar''', você deve alterar temporariamente '''siteurl''' e '''home''' na tabela ''wp_options'' do banco de dados (através do [[pt-br:Glossário#phpMyAdmin|phpMyAdmin]] ou similar). <br /> Se você teve qualquer tipo de modelo de re-escrita [[pt-br:Usando Links Permanentes| links permanentes]] você deve desabilitar o <tt>.htaccess</tt> e reconfigurar links permanentes quando estiver on-line.
+
+== Movendo WordPress em seu SERVIDOR ==
+
+Movendo os arquivos do WordPress a partir de um local em seu servidor para outro - mudando sua URL - requer alguns cuidados especiais.
+
+Aqui estão as instruções passo-a-passo:
+
+'''Não tente visitar seu site durante a mudança!'''
+
+# Crie o novo local usando uma dessas duas opções:
+## Se você esta movendo os arquivos principais do WordPress para um novo diretório, crie o novo diretório.
+## Se você quiser mover o WordPress para o diretório raiz, certifique-se que todos os <tt>index.php</tt>, [[pt-br:Glossário#.htaccess|.htaccess]] e outros arquivos que podem ser copiados/movidos e que o diretório raiz está pronto para os arquivos do WordPress.
+# Entre em seu SITE.
+# Vá para Painel  > Configurações > [[pt-br:SubPainel Geral|Geral]].
+#No campo '''Endereço do WordPress (URL):'''altere o endereço para a nova localização dos arquivos principais do WordPress.
+#No campo '''Endereço do site (URL)'''altere o endereço para a nova localização, que deve coincidir com o endereço (URI) do Wordpress.
+#Clique em ''Salvar Alterações''.
+#'''Não tente visitar seu site agora'''
+#Mova os arquivos principais do WordPress para o novo lugar. Isto inclui os arquivos dentro do diretório original, como <tt><nowiki> http://exemplo.com/wordpress</nowiki></tt> e  todos os subdiretórios, para o novo lugar.
+#Se estiver usando [[pt-br:Usando Links Permanentes|links permanentes]] vá em Painel > Configurações > [[pt-br:SubPainel Links Permanentes|Links Permanentes]] e atualize sua estrutura para recriar um novo arquivo .htaccess. O arquivo <tt>.htaccess</tt> deve ficar no mesmo diretório que o arquivo <tt>index.php</tt>.
+
+#Verifique também o caminho para arquivos enviados em Painel > Configurações >[[pt-br:SubPainel Mídia|Mídia]], no campo ''Armazenar arquivos enviados nesta pasta''.
+
+'''NOTAS'''
+'''As imagens das postagens e páginas podem não aparecer''' porque o caminho e a pasta mudaram de lugar, você terá então que atualizar o caminho das imagens referenciadas nas postagens e páginas. Há plugins que permitem fazer isso em todas as postagens e páginas, automaticamente, e você pode alterar em massa, diretamente no banco de dados também.
+
+Plugin recomendado: [http://wordpress.org/extend/plugins/search-and-replace/ Search and Replace] (faça backup antes de toda alteração drástica como essa!)
+
+'''É importante que você defina os locais URI ''antes'' de mover os arquivos.'''
+
+==Problemas Comuns==
+Aqui estão alguns problemas comuns que podem acontecer.
+
+;Esqueci de mudar os locais!
+Ou seja, você acidentalmente moveu os arquivos ''antes'' de alterar o URIs, nesta caso você tem duas opções.
+
+'''Opção 1'''
+Suponha que os arquivos estavam originalmente em <tt>/path/to/old/</tt> e você moveu-os para <tt>/path/to/new/</tt> ''antes'' de trocar a URIs. A maneira de corrigir isso seria fazer de <tt>/path/to/old/</tt> um ''link simbólico'' para  <tt>/path/to/new/</tt>, ou seja:
+<pre>ln -s /path/to/new /path/to/old</pre>
+E siga os passos [[#Movendo o WordPress| acima]] normalmente. Depois exclua o link simbólico, se quiser.
+'''Obs.:'''Para usuários do Windows, ''Link Simbólico'' é o mesmo que ''Atalho''.
+
+'''Opção 2'''
+Se você esqueceu de mudar o endereço do site e o endereço do blog WordPress, você não será capaz de mudá-lo usando a interface do WordPress, não é mesmo? No entanto, você pode corrigi-lo se tiver acesso ao Banco de Dados do seu WordPress. Vá para o banco de dados de seu blog e encontre a tabela <tt>wp_options</tt>. Esta tabela armazena todas as opções que você pode definir através da interface. 
+Os campos '''Endereço do WordPress (URL)''' e '''Endereço do site (URL)''' são armazenados respectivamente como '''siteurl''' e '''home'''.
+Você só precisa mudar o valor ou ''option_value'' para os URSl corretos com ''option_name=’siteurl‘'' ou ''option_name=’home‘''.
+
+;Mudei o Endereço do WordPress (URL) por engano!
+Ou seja, acidentalmente mudou os URIs para onde não conseguirá mover arquivos, mas ainda consegue acessar a página de login, através de redirecionamento ou algo parecido.
+
+O arquivo <tt>wp-login.php</tt> pode ser usado para (re)definir as URIs. Logo após a linha:
+
+<pre>
+require( dirname(__FILE__) . '/wp-load.php' );
+</pre>
+
+Adicione o seguinte:
+
+<pre>
+//FIXME: comente/remova estas linhas. (depois que o banco de dados for atualizado)
+update_option('siteurl', 'http://nome.doseu.site/seu/caminho' );
+update_option('home', 'http://nome.doseu.site/seu/caminho' );
+</pre>
+
+E pronto! Teste o seu site para ter certeza de que ele funciona direito. Se a mudança envolve um novo endereço de seu blog, certifique-se que as pessoas saibam o novo endereço e considere a adição de algumas instruções de redirecionamento em seu <tt>.htaccess </tt> para guiar os visitantes para a nova localização.
+
+O artigo [[pt-br:Mudando o URL do Site|Mudando o URL do Site]] oferece mais informações sobre isso.
+
+== WordPress em Diretório Próprio==
+Há um artigo completo sobre isso em [[pt-br:WordPress em Diretório Próprio|WordPress em Diretório Próprio]]
+
+==Movendo o WordPress para um novo Servidor==
+Se você estiver movendo WordPress para outro servidor, comece por fazer o backup de seus dados. Isto inclui guardar os seus dados do WordPress, bem como todos os arquivos do núcleo, imagens, plugins, e outros arquivos em seu site. Veja [[pt-br:Backups no WordPress|Backups no WordPress]] e [[pt-br:Backups do Banco de Dados|Backups do Banco de Dados]] para mais detalhes.
+
+Se você está mudando para um '''novo servidor''', mas '''mesmo domínio''', tudo que você precisa fazer é editar o arquivo <tt>wp-config.php</tt> e enviar tudo como está para o novo servidor.
+
+===Importando, Exportando Conteúdo===
+Você não precisa lidar com arquivos de banco de dados, apenas instale o WordPress no servidor novo e importe suas postagens, páginas, etc para lá:
+
+# Instale o WordPress no seu novo servidor, configure e teste tudo para ver se está funcionando corretamente. Isso é para o caso do servidor novo não tiver suporte a algum recurso, poderá mudar de serviço.
+# No seu blog '''Antigo''' vá em Painel > Ferramentas > [[pt-br:SubPainel Exportar|Exportar]]
+# Escolha os conteúdos que quer exportar para o novo site e depois clique no botão '''Download do Arquivo de Exportação'''. Uma tela aparecerá para que salve o arquivo em seu disco local.
+# No '''Novo''' blog vá em Painel > Ferramentas > [[pt-br:SubPainel Importar|Importar]]. Se não há nenhum plugin disponível, procure no repositório clicando no link ''pesquise no diretório de plugins ''.
+# Na página que será exibida, selecione o arquivo guardado em seu disco local. Clique em '''Upload e importar'''.
+# Irá aparecer uma página. Em '''Atribuir Autores''', atribua ao autor ou usuários que já existem ou crie novos.
+# Clique em '''Enviar'''.
+# No final, clique no '''Divirta-se'''.
+
+'''NOTAA''': Se o seu blog novo possuir alguma postagem, ela será adicionada, nunca sobre-escrita.
+Algumas vezes, a quantidade de postagens e páginas pode ser muito grande gerando erros na importação, nestes casos, as intruções a seguir podem ser a melhor opção.
+
+===Banco de dados e pastas===
+Por algum motivo, você pode precisar ou querer lidar com o banco de dados em vez da ferramenta de exportação/importação do WordPress. 
+
+Você pode mover seu WordPress de duas formas:
+
+;Se o antigo site não precisar funcionar
+# Faça download de uma cópia dos arquivos principais do WordPress no seu blog ''antigo'' para seu disco rígido e edite <tt>wp-config.php</tt> para se adequar ao novo servidor.
+# Volte para o seu ''antigo'' blog e vá para o Painel > Configurações > [[pt-br:SubPainel Geral |Geral]] e mude ambas URLs para a de seu novo site.
+# Mais uma vez, faça donwload do banco de dados (mantenha o antigo intacto por segurança), faça upload deste banco de dados e a cópia dos arquivos principais com o <tt>wp-config.php</tt> editado para seu novo servidor. É isso!
+
+;Se o antigo site deve funcionar ainda
+'''Atenção:''' sempre faça backups de seus arquivos antes de continuar!
+''1 - Ativar seu novo Blog''
+# Faça download da sua instalação WordPress inteira para seu disco rígido. Nomeie a pasta apropriadamente para indicar que esta é a instalação '''Antiga'''.
+# Volte para o seu antigo blog e em Painel > Configurações > [[pt-br:SubPainel Geral |Geral]]  mude ambas as URLs para as de seu novo site.
+# Mais uma vez, faça download da instalação do WordPress inteira para seu disco rígido. Nomeie a pasta apropriadamente para indicar que se trata de instalação de seu blog '''Novo'''.
+# Faça download do seu banco de dados, mais uma vez (mas mantenha o antigo). Faça upload seste banco de dados para o novo servidor. Será mais fácil se você usar o mesmo nome de banco de dados e criar um usuário com as mesmas credenciais de login em seu novo servidor como no servidor antigo.
+# Se você usou um nome de banco de dados diferentes e/ou do usuário (veja o passo anterior), edite <tt>wp-config.php</tt> na pasta do seu '''Novo''' blog de instalação.
+# Faça upload da pasta de instalação do seu '''Novo''' blog para seu novo site. Pronto, o seu novo blog deve estar funcionando!
+
+''2 - Restaurar seu Blog Antigo''
+# No servidor original, excluia seu banco de dados do '''Antigo''' blog (lembre-se, você deve ter uma cópia em seu computador local que você fez no começo!).
+# Faça upload da instalação do seu antigo blog para o servidor original, substituindo os arquivos que estão lá (você também pode excluir a pasta de instalação no servidor e simplesmente re-enviar os arquivos do blog antigo).
+# Faça upload do banco de dados do seu '''Antigo''' blog para o servidor. 
+
+== Links Externos ==
+*[http://www.tudoparawordpress.com.br/dicas-wordpress/migracao-wordpress-movendo-wordpress-phpmyadmin/  Movendo o WordPres com o phpMyAdmin]
+*[http://ajudawp.com/tutorias-e-dicas/mover-o-wordpress Movendo o WordPress para outras pasta]
+*[http://www.celsojunior.net/blog/2008/12/17/como-mover-o-wordpress-do-diretorio-para-a-raiz-em-10-passos/ Como mover o WordPress do diretório para a raiz em 10 passos]
+*[http://chame.com.br/movendo-o-wordpress-de-um-diretorio-para-a-raiz-do-ftp/ Movendo o WordPress de um diretório para a raiz do FTP]
+
+{{Codex-pt}}
+{{DEFAULTSORT:M}}

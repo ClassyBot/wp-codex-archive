@@ -1,0 +1,354 @@
+{{Languages|
+{{en|Version 4.1}}
+{{ja|Version 4.1}}
+}}
+
+On December 18, 2014, WordPress [[Version 4.1]], named for jazz musician Dinah Washington, was released to the public. For more information on this enhancement and bug-fix release, read the [http://wordpress.org/news/ WordPress Blog], and see the [[Changelog/4.1|Changelog for 4.1]].
+
+* [http://trac.wordpress.org/query?status=closed&milestone=4.1 View Closed Tickets]
+
+==Highlights==
+
+* '''New Default Theme - [http://codex.wordpress.org/Twenty_Fifteen Twenty Fifteen]'''
+** Clean, blog-focused theme, designed for clarity.
+** Your content always takes center stage, whether viewed on a phone, tablet, laptop, or desktop computer.
+** Great language support, with help from [http://www.google.com/get/noto/ Google’s Noto font family]. The straightforward typography is readable on any screen size.
+** Designed to maximize tools available in the Customizer.
+
+* '''The Finer Points'''
+** Distraction-free writing: Just write. Sometimes, you just need to concentrate on putting your thoughts into words. Try turning on distraction-free writing mode. When you start typing, all the distractions will fade away, letting you focus solely on your writing. All your editing tools instantly return when you need them.
+** Choose your language - Right now, WordPress 4.1 is already translated into 44 languages, with more always in progress. You can switch to any translation on the [[Settings General Screen|General Settings]] screen.
+** If you’ve ever worried you forgot to sign out from a shared computer, you can now go to your [[Users Your Profile Screen|profile]] and log out everywhere.
+** Inline toolbar gives you quicker access to image editing tools.
+** Plugin installer suggests plugins for you to try. Recommendations are based on the plugins you and other users have installed.
+** [http://codex.wordpress.org/Embeds Embedding] videos from [https://vine.co/ Vine] is as simple as pasting a URL onto its own line in a post.
+
+* '''For Developers'''
+** Complex queries - Meta, date, and term queries now support advanced conditional logic, like nested clauses and multiple operators - <tt>A OR ( B AND C )</tt>.
+** <tt><title></tt> tags in themes - [[Function_Reference/add_theme_support#Title_Tag | <tt>add_theme_support( 'title-tag' )</tt> ]] tells WordPress to handle the complexities of [[Title Tag|document titles]].
+** [[Theme Customization API|Customizer API]] - Expanded JavaScript APIs in the customizer enable a new media experience as well as dynamic and contextual controls, sections, and panels.
+** [https://developer.wordpress.org/reference Developer reference] - Continued improvements to inline code documentation have made the developer reference more complete than ever.
+
+==What's New==
+
+
+===General===
+* Show the number of approved comments, instead of total comments, in the “At A Glance” section in the dashboard.
+* Site Language: Install translations on the fly on the General Settings screen. The language drop down now includes installed languages and all available translations when the filesystem is writable by WordPress.
+* Admin notices: There are now four types of notices: success (green), warning (orange), error (red), and info (blue).
+
+===Posts===
+* Spellchecking is enabled for the post title field on the Edit Post screen.
+
+===Media===
+* Disable multi-file uploading in iOS 7.x Safari as it prevents uploading of videos.
+* Allow PSDs (Photoshop documents) to be uploaded.
+* [[Embeds|oEmbed]]: Add support for the Vine endpoint.
+* Display error message when Media Library upload fails.
+
+===Appearance===
+* [[Custom Headers|Custom Header]] and [[Custom Backgrounds|Custom Background]] screens removed. Admin menu links now go to the Customizer.
+* Widgets screen now has a '''Manage in Customizer''' link at top of screen.
+* Themes: Make "Live Preview" the primary action and “Activate” secondary.
+
+===Users===
+* Introduce a button on the user profile screen which clears all other sessions, and on the user editing screen which clears all sessions.
+
+===Accessibility===
+* Admin menu separators are now hidden from screen readers.
+* Improved keyboard control of Edit Selection mode in the media manager.
+* Improved keyboard accessibility on Custom Header and Custom Background screen.
+* Improved text contrast against dark backgrounds in the admin menu and toolbar.
+* When switching to the Text editor, make the textarea visible to screen readers.
+* Use <tt><button></tt> instead of <tt><a></tt> for the Visual/Text buttons to make them focusable.
+* Improve the focus style for review links in the plugin info modal.
+* TinyMCE:
+** Return focus to the editor on pressing Escape while the image toolbar is focused.
+** Add a Close button to the Help modal and close it on Escape.
+** Override the title on the editor iframe (read by screen reader apps), replace with the <tt>Alt+Shift+H</tt> shortcut.
+** Add focus shortcuts descriptions to the Help modal.
+
+===Multisite===
+* Set the default network language on the [[Network_Admin_Settings_Screen|Network Settings]] screen.
+
+==Under The Hood==
+
+=== General ===
+* Lots of new unit tests added, reorganization of Multisite unit tests, and review/removal of failing tests. The base PHPUnit tests now take less than half the time to run than in 4.0, despite the improved coverage.
+
+=== JavaScript ===
+* Formal adoption of JSDoc3 for documentation
+* Improvements to documentation in media views
+* Heartbeat: Use the page visibility API (when available) and <tt>document.hasFocus()</tt> instead of <tt>window.onfocus/onblur</tt>
+
+=== Customizer ===
+* “Theme Customizer” is now just “Customizer”, since it isn’t necessarily theme-specific.
+* Expanded JavaScript APIs in the Customizer enable support for dynamic and contextual controls, sections, and panels.
+* Only changed settings are now sent to preview for better performance.
+* Alternative API that allows controls to be written as JavaScript templates extending [https://developer.wordpress.org/reference/classes/wp_customize_control/content_template WP_Customize_Control::content_template()] and render these controls on the client without any server-side call.
+* Color control listens to other controls that might change color settings (like Color Scheme select in TwentyFifteen) and updates <tt>wpColorPicker</tt> value accordingly.
+* Screen reader users receive feedback when moving widgets up or down.
+* Panels and sections have their type added as CSS class in their HTML container using <tt>WP_Customize_Panel::$type</tt> and <tt>WP_Customize_Section::$type</tt> respectively.
+* Sections added to a panel are now rendered in its own method, <tt>WP_Customize_Panel::render_content()</tt>, separated from the panel container, allowing to override a panel and its contents independently.
+* When an object value is updated, a change event is no longer incorrectly triggered if the object value was unchanged. Uses Underscore's <tt>_.isEqual()</tt> to compare the object values.
+* Introduces <tt>customize_preview_{$setting->type}</tt> action hook to handle preview of multiple settings of the same type when they're not a <tt>theme_mod</tt> or an <tt>option</tt>. Hooked Functions receive the <tt>WP_Customize_Setting</tt> instance as parameter.
+* Customizer elements are now JS-rendered, so a stable sorting for panels, sections and controls was added in JS. Sorting in PHP was improved and section, panels and controls store their instantiation order in <tt>$instance_number</tt> property in each class.
+* Controls of <tt>range</tt> type now listen for <tt>input</tt> and <tt>propertychange</tt> events so the value is updated on mouse drag and not only on mouse release.
+
+=== Bug Fixes ===
+* Fix setting default quality in <tt>WP_Image_Editor</tt>.
+* Always sanitize <tt>user_nicename</tt> in [https://developer.wordpress.org/reference/functions/wp_insert_user wp_insert_user()] to avoid broken author archive permalinks.
+* Don’t list delete or trash as bulk actions for the relevant context of Post list table if current user does not have the <tt>delete_posts</tt> cap on the current post type.
+* Don’t print an empty HTML markup when [https://developer.wordpress.org/reference/functions/comment_reply_link comment_reply_link()] returns no link.
+* Avoid a PHP notice in [https://developer.wordpress.org/reference/functions/list_plugin_updates list_plugin_updates()] if [https://developer.wordpress.org/reference/functions/plugins_api plugins_api()] returned a [https://developer.wordpress.org/reference/classes/wp_error WP_Error] object.
+* Plugin search: Wrap results in a form to fix pagination’s paged input field.
+* Use correct links for filtering plugin reviews.
+* Quicktags: move focusing the editor after inserting content to the end of the code blocks.
+* Add size to the UI for Gallery Settings in the media modal. Ensure that the TinyMCE view is refreshed when size changes.
+
+* Theme Install: Fix some theme install style issues:
+** Move the "based on" string below the rating to avoid wrapping to a second line.
+** Reduce the gap between the theme screenshot and description.
+** Fix Install button height on mobile.
+
+* TinyMCE:
+** When pasting/inserting content before a view, add new paragraph above it and insert the content there.
+** Fix the <tt>wpgallery</tt> plugin to use a placeholder for galleries when either the <tt>wpview</tt> plugin or wp.mce is not loaded.
+** Update the default styles: increase the font size, and ensure it is the same size in tables.
+
+* Full-height editor:
+** Reset the editor height after the window is resized.
+** Better calculation for the caret position when auto-scrolling while typing. Fix auto-scrolling for non-WebKit browsers when the caret is above the top of the editor.
+
+=== Bundled Themes ===
+* Prevent the arrow in “Continue reading” links from wrapping to a second line.
+* Add an alt attribute with the site title for header images linked to the home page.
+
+==== Twenty Fourteen ====
+* Include Latin Extended font subset for Lato.
+* Improve post thumbnail HTML output
+* Add aria-hidden attribute to reduce verbosity on archive pages
+* Add alt text in archives to avoid confusing link texts
+* Replace ellipses appended to automatically generated excerpts with both ellipses and a “Continue Reading” link to meet accessibility-ready requirements
+* Make featured content in Customizer contextual to the front page
+
+==== Twenty Thirteen ====
+* Replace ellipses appended to automatically generated excerpts with both ellipses and a “Continue Reading” link to meet accessibility-ready requirements
+* Fix non-responsive layout in IE8.
+* Use proper method for retrieving Customizer settings values
+* Add bottom margin to audio and video players
+
+==== Twenty Twelve ====
+* Fix jQuery selector for menu items with submenus on mobile
+* Use proper method for retrieving Customizer settings values
+
+==== Twenty Eleven ====
+* Add bottom margin to audio and video players
+
+==== Twenty Ten ====
+* Add bottom margin to audio and video players
+
+=== Themes ===
+* Introduce a new means of outputting a <tt><title></tt> tag in the theme head. Requires a theme to add support by calling <tt>add_theme_support( 'title-tag' )</tt>.
+
+* Introduce some new template functions for navigation, reducing the need for themes to define their own sets of navigation functions:
+** [https://developer.wordpress.org/reference/functions/get_the_post_navigation get_the_post_navigation()] and [https://developer.wordpress.org/reference/functions/the_post_navigation the_post_navigation()] for navigation to the next and previous post.
+** [https://developer.wordpress.org/reference/functions/get_the_posts_navigation get_the_posts_navigation()] and [https://developer.wordpress.org/reference/functions/the_posts_navigation the_posts_navigation()] for navigation to the next and previous page of posts.
+** [https://developer.wordpress.org/reference/functions/get_the_posts_navigation get_the_posts_pagination()] and [https://developer.wordpress.org/reference/functions/the_posts_pagination the_posts_pagination()] for paginated navigation between pages of posts. Uses [https://developer.wordpress.org/reference/functions/paginate_links paginate_links()].
+
+* Improve body class for page templates:
+** Also convert slash to dash.
+** Add sub-folder name as a separate body class.
+** New classes are additional classes, old syntax will persists for backwards compatibility.
+** For example, <tt>/page-templates/full-width.php</tt> will produce <tt>page-template</tt>, <tt>page-template-page-templates</tt>, <tt>page-template-full-width</tt>, and <tt>page-template-page-templatesfull-width-php</tt>.
+
+=== Media ===
+* Media Grid/List Table parity: when <tt>MEDIA_TRASH</tt> is true and <tt>trash</tt> is the current filter for the grid, add a second bulk action button: "Delete Selected".
+* Account for orphan sizes in [https://developer.wordpress.org/reference/functions/wp_delete_attachment wp_delete_attachment()] by looping over the sizes stored in metadata, instead of relying on the current sizes stored in <tt>$_wp_additional_image_sizes</tt>.
+* Don't hardcode height for videos so responsive videos work properly.
+
+=== Revisions ===
+* Allow revision Backbone classes to be used on pages other than revision.php.
+* Add a single responsibility function for outputting Revisions JS templates: [https://developer.wordpress.org/reference/functions/wp_print_revision_templates wp_print_revision_templates()]. Use it in <tt>wp-admin/revision.php</tt>.
+* Revisions modules should not rely on global settings; only pass in global settings on init, this allows the classes to be used agnostically elsewhere.
+
+=== Translations ===
+* Remove translations when deleting a theme or a plugin.
+
+=== Multisite ===
+* Don't send a welcome notification when <tt>noconfirmation</tt> has been flagged.
+* Don’t display update count for Themes when the user doesn’t have the update_themes cap.
+* Don’t display update count for Plugins when there aren’t any or the count is 0.
+* Properly check if the theme is active on the main site to avoid deleting it via bulk actions.
+* Include the login URL in the [https://developer.wordpress.org/reference/functions/wp_new_blog_notifications wp_new_blog_notification()] email template.
+* In [https://developer.wordpress.org/reference/functions/activate_plugin activate_plugin()], do not re-run the activation routine for already-active network-wide plugins.
+* Optimize site query when performing network database upgrades.
+* Improve width of input fields on Add New Site and Edit Site screens in Network admin.
+
+=== Query ===
+* <tt>WP_Meta_Query</tt>, <tt>WP_Tax_Query</tt>, and <tt>WP_Date_Query</tt> now support a nested query syntax, allowing for much more complex and comprehensive queries. 
+* The efficiency of meta and tax queries has been improved, with redundant table joins having been eliminated in many cases.
+* 'orderby=meta_value' now works properly when used in a meta query with the relation 'OR'.
+* Tax queries now support the 'EXISTS' and 'NOT EXISTS' operator.
+* Date queries can now be used properly in conjunction with meta and tax queries.
+* The parameters passed to date queries are now checked to ensure that they contain valid date values, generating errors for developers when invalid dates are detected.
+* Users can now be queried by date queries against the 'user_registered' column.
+* "Inclusive" logic for date queries has been improved when using the 'before' or 'after' parameters.
+
+=== Comments ===
+* Add a class attribute for submit button in comment form.
+* Add an aria-label attribute with commenter’s name to [https://developer.wordpress.org/reference/functions/get_comment_reply_link get_comment_reply_link()].
+* Add <tt>aria-describedby</tt> attributes to [https://developer.wordpress.org/reference/functions/comment_form comment_form()].
+* [https://developer.wordpress.org/reference/functions/comments_template comments_template()] now uses [https://developer.wordpress.org/reference/classes/wp_comment_query WP_Comment_Query] when fetching comments, rather than making a direct query to the database. This simplifies and standardizes the techniques required to customize comment queries across front- and back-end interfaces.
+* New parameters for [https://developer.wordpress.org/reference/classes/wp_comment_query/query/ WP_Comment_Query::query()]:
+** <tt>'comment__in'</tt>
+** <tt>'comment__not_in'</tt>
+** <tt>'post_author__in'</tt>
+** <tt>'post_author__not_in'</tt>
+** <tt>'author__in'</tt>
+** <tt>'author__not_in'</tt>
+** <tt>'post__in'</tt>
+** <tt>'post__not_in'</tt>
+** <tt>'include_unapproved'</tt>
+** <tt>'type__in'</tt>
+** <tt>'type__not_in'</tt>
+
+=== Classes ===
+
+* [https://developer.wordpress.org/reference/classes/wpdb/has_cap/ wpdb::has_cap()] - Added <tt>case 'utf8mb4'</tt> to the switch statement.
+
+==== What's New ====
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_sidebar_section WP_Customize_Sidebar_Section]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_control/get_content WP_Customize_Control::get_content()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_control/json WP_Customize_Control::json()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_control/print_template WP_Customize_Control::print_template()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_color_control/content_template WP_Customize_Color_Control::content_template()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_upload_control/content_template WP_Customize_Upload_Control::content_template()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_manager/register_control_type WP_Customize_Manager::register_control_type()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_manager/render_control_templates WP_Customize_Manager::render_control_templates()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_panel/active WP_Customize_Panel::active()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_panel/active_callback WP_Customize_Panel::active_callback()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_panel/get_content WP_Customize_Panel::get_content()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_panel/json WP_Customize_Panel::json()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_section/active WP_Customize_Section::active()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_section/active_callback WP_Customize_Section::active_callback()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_section/get_content WP_Customize_Section::get_content()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_customize_section/json WP_Customize_Section::json()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_error/remove WP_Error::remove()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_date_query/sanitize_query WP_Date_Query::sanitize_query()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_meta_query/get_sql_for_clause WP_Meta_Query::get_sql_for_clause()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_meta_query/sanitize_query WP_Meta_Query::sanitize_query()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_query/setup_postdata WP_Query::setup_postdata()]
+
+* Introduce [https://developer.wordpress.org/reference/classes/wp_tax_query/get_sql_for_clause WP_Tax_Query::get_sql_for_clause()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_tax_query/sanitize_query WP_Tax_Query::sanitize_query()]
+* Introduce [https://developer.wordpress.org/reference/classes/wp_tax_query/sanitize_relation WP_Tax_Query::sanitize_relation()]
+
+=== Functions ===
+* [https://developer.wordpress.org/reference/functions/count_user_posts count_user_posts()] - Added the <tt>$post_type</tt> argument.
+* [https://developer.wordpress.org/reference/functions/get_ancestors get_ancestors()] - Added the <tt>$resource_type</tt> argument.
+* [https://developer.wordpress.org/reference/functions/wp_die wp_die()] - The <tt>$title</tt> and <tt>$args</tt> parameters were changed to optionally accept an integer to be used as the response code.
+* [https://developer.wordpress.org/reference/functions/wp_get_nav_menus wp_get_nav_menus()] - Default value of the <tt>'orderby'</tt> argument was changed from <tt>'none'</tt> to <tt>'name'</tt>.
+* [https://developer.wordpress.org/reference/functions/wp_make_link_relative wp_make_link_relative()] - Support was added for relative URLs.
+* [https://developer.wordpress.org/reference/functions/wp_send_json_error wp_send_json_error()] - The <tt>$data</tt> parameter is now processed if a <tt>WP_Error</tt> object is passed in.
+
+==== What's New ====
+* Introduce [https://developer.wordpress.org/reference/functions/get_the_archive_title get_the_archive_title()]
+* Introduce [https://developer.wordpress.org/reference/functions/get_the_archive_description get_the_archive_description()]
+* Introduce [https://developer.wordpress.org/reference/functions/get_the_post_navigation get_the_post_navigation()]
+* Introduce [https://developer.wordpress.org/reference/functions/get_the_posts_navigation get_the_posts_navigation()]
+* Introduce [https://developer.wordpress.org/reference/functions/get_the_posts_pagination get_the_posts_pagination()]
+* Introduce [https://developer.wordpress.org/reference/functions/network_settings_add_js network_settings_add_js()]
+* Introduce [https://developer.wordpress.org/reference/functions/the_archive_description the_archive_description()]
+* Introduce [https://developer.wordpress.org/reference/functions/the_archive_title the_archive_title()]
+* Introduce [https://developer.wordpress.org/reference/functions/the_post_navigation the_post_navigation()]
+* Introduce [https://developer.wordpress.org/reference/functions/the_posts_navigation the_posts_navigation()]
+* Introduce [https://developer.wordpress.org/reference/functions/the_posts_pagination the_posts_pagination()]
+* Introduce [https://developer.wordpress.org/reference/functions/wp_ajax_destroy_sessions wp_ajax_destroy_sessions()]
+* Introduce [https://developer.wordpress.org/reference/functions/wp_clean_update_cache wp_clean_update_cache()]
+* Introduce [https://developer.wordpress.org/reference/functions/wp_get_password_hint wp_get_password_hint()]
+* Introduce [https://developer.wordpress.org/reference/functions/wp_json_encode wp_json_encode()]
+* Introduce [https://developer.wordpress.org/reference/functions/wp_print_revision_templates wp_print_revision_templates()]
+
+==== Deprecated ====
+* [https://developer.wordpress.org/reference/classes/wp_customize_image_control/prepare_control WP_Customize_Image_Control::prepare_control()]
+* [https://developer.wordpress.org/reference/classes/wp_customize_image_control/add_tab WP_Customize_Image_Control::add_tab()]
+* [https://developer.wordpress.org/reference/classes/wp_customize_image_control/remove_tab WP_Customize_Image_Control::remove_tab()]
+* [https://developer.wordpress.org/reference/classes/wp_customize_image_control/print_tab_image WP_Customize_Image_Control::print_tab_image()]
+
+=== Actions & Filters ===
+* The <tt>$comment_ID</tt> parameter was added to the following filters:
+** [https://developer.wordpress.org/reference/hooks/author_email author_email]
+** [https://developer.wordpress.org/reference/hooks/comment_author comment_author]
+** [https://developer.wordpress.org/reference/hooks/comment_excerpt comment_excerpt]
+** [https://developer.wordpress.org/reference/hooks/comment_url comment_url]
+** [https://developer.wordpress.org/reference/hooks/get_comment_ID get_comment_ID]
+
+* The <tt>$comment</tt> parameter was added to the [https://developer.wordpress.org/reference/hooks/comment_email comment_email] filter.
+* The <tt>$author</tt> and <tt>$comment_ID</tt> parameters were added to the [https://developer.wordpress.org/reference/hooks/get_comment_author_link get_comment_author_link] filter.
+* <tt>user_registered</tt> was added to the default recognized columns in the [https://developer.wordpress.org/reference/hooks/date_query_valid_columns date_query_valid_columns] filter.
+
+* The <tt>$comment_ID</tt> and <tt>$comment</tt> parameters were added to the following filters:
+** [https://developer.wordpress.org/reference/hooks/get_comment_author get_comment_author]
+** [https://developer.wordpress.org/reference/hooks/get_comment_author_email get_comment_author_email]
+** [https://developer.wordpress.org/reference/hooks/get_comment_author_IP get_comment_author_IP]
+** [https://developer.wordpress.org/reference/hooks/get_comment_author_url get_comment_author_url]
+** [https://developer.wordpress.org/reference/hooks/get_comment_excerpt get_comment_excerpt]
+** [https://developer.wordpress.org/reference/hooks/get_comment_type get_comment_type]
+
+* The <tt>$post_type</tt> argument was added to the [https://developer.wordpress.org/reference/hooks/get_usernumposts get_usernumposts] filter.
+
+* The <tt>$depth</tt> parameter was added to the following filters:
+** [https://developer.wordpress.org/reference/hooks/nav_menu_css_class nav_menu_css_class]
+** [https://developer.wordpress.org/reference/hooks/nav_menu_item_id nav_menu_item_id]
+** [https://developer.wordpress.org/reference/hooks/nav_menu_link_attributes nav_menu_link_attributes]
+
+* The <tt>$user_login</tt> and <tt>$user_data</tt> parameters were added to the [https://developer.wordpress.org/reference/hooks/retrieve_password_message retrieve_password_message] filter.
+* The <tt>$this</tt> parameter was added to the [https://developer.wordpress.org/reference/hooks/the_post the_post] action.
+* The <tt>$post_type</tt> parameter was added to the [https://developer.wordpress.org/reference/hooks/wp_editor_expand wp_editor_expand] filter.
+* The <tt>$size</tt> parameter was added to the [https://developer.wordpress.org/reference/hooks/wp_get_attachment_image_attributes wp_get_attachment_image_attributes] filter.
+
+==== New Actions ====
+* Introduce [https://developer.wordpress.org/reference/hooks/customize_preview_this-type customize_preview_{$this->type}]
+* Introduce [https://developer.wordpress.org/reference/hooks/edit_form_before_permalink edit_form_before_permalink]
+* Introduce [https://developer.wordpress.org/reference/hooks/pre_delete_term pre_delete_term]
+* Introduce [https://developer.wordpress.org/reference/hooks/wp_creating_autosave wp_creating_autosave]
+
+==== New Filters ====
+* Introduce [https://developer.wordpress.org/reference/hooks/comment_reply_link_args comment_reply_link_args]
+* Introduce [https://developer.wordpress.org/reference/hooks/customize_panel_active customize_panel_active]
+* Introduce [https://developer.wordpress.org/reference/hooks/customize_section_active customize_section_active]
+* Introduce [https://developer.wordpress.org/reference/hooks/default_page_template_title default_page_template_title]
+* Introduce [https://developer.wordpress.org/reference/hooks/get_the_archive_description get_the_archive_description]
+* Introduce [https://developer.wordpress.org/reference/hooks/get_the_archive_title get_the_archive_title]
+* Introduce [https://developer.wordpress.org/reference/hooks/image_add_caption_text image_add_caption_text]
+* Introduce [https://developer.wordpress.org/reference/hooks/meta_query_find_compatible_table_alias meta_query_find_compatible_table_alias]
+* Introduce [https://developer.wordpress.org/reference/hooks/password_hint password_hint]
+* Introduce [https://developer.wordpress.org/reference/hooks/pre_get_col_charset pre_get_col_charset]
+* Introduce [https://developer.wordpress.org/reference/hooks/pre_get_table_charset pre_get_table_charset]
+* Introduce [https://developer.wordpress.org/reference/hooks/process_text_diff_html process_text_diff_html]
+* Introduce [https://developer.wordpress.org/reference/hooks/revision_text_diff_options revision_text_diff_options]
+* Introduce [https://developer.wordpress.org/reference/hooks/script_loader_tag script_loader_tag]
+* Introduce [https://developer.wordpress.org/reference/hooks/wp_get_revision_ui_diff wp_get_revision_ui_diff]
+* Introduce [https://developer.wordpress.org/reference/hooks/wp_save_post_revision_post_has_changed wp_save_post_revision_post_has_changed]
+
+=== External Libraries ===
+* Update to TinyMCE 4.1.7
+* Update to getID3 1.9.8
+* Update to MediaElement 2.16.2
+* Update to Iris 1.0.7
+
+{{Versions}}
+
+[[Category:Versions]]

@@ -1,0 +1,143 @@
+{{Languages|
+{{en|Function Reference/the_post_thumbnail}}
+{{it|Riferimento funzioni/the_post_thumbnail}}
+{{ja|テンプレートタグ/the_post_thumbnail}}
+{{mk|Функција: the_post_thumbnail}}
+}}
+
+== Опис ==
+
+Прикажете главна (ударна) фотографија за моменталниот напис.
+
+Ознаката мора да се користи внатре во [http://codex.wordpress.org/The_Loop loop циклусот]. Користете ја фунцијата <code>[[Function Reference/get_the_post_thumbnail|get_the_post_thumbnail]]($id, $size, $attr )</code> за да ја земете главната слика на написот.
+
+За да ги овозможите сликичките (<em>thumbnails</em>) за написите, темата што ја користите мора да ја има вклучено функцијата <code>[[Function Reference/add theme support|add_theme_support]]( 'post-thumbnails' );</code> во својата <tt>[[Theme_Development#Functions_File|functions.php]]</tt> датотека.
+
+== Користење ==
+
+%%% <?php the_post_thumbnail( $size, $attr ); ?> %%%
+
+== Параметри ==
+
+{{Parameter|$size|string/array|Големина на сликата. Клучен збор од типот: thumbnail, medium, large или full, или сопствена големина дефинирана со [[Function Reference/add image size|add_image_size()]], или низа од 2 елементи за ширина и висина на сликата, пр:. array(32,32)
+|Optional|'post-thumbnail', што темата ја поставува користејќи [[Function Reference/set_post_thumbnail_size|set_post_thumbnail_size]]. }}
+
+<font color="red">Забелешка</font>: Кратењето на сликите не работи во WordPress 3.0+. Се што треба да се направи за WordPress 3.0 е да се повика функцијата за поставување на сликичка. Потоа, преку библиотеката со мултимедијална содржина се крати сликата.
+
+{{Parameter|$attr|array|Низа од атрибути. За повеќе детали, разгледајте го изворниот код на функцијата врз која се заснова <code>the_post_thumbnail</code: <code>wp_get_attachment_image</code>|Optional|None}}
+
+<pre>
+$default_attr = array(
+	'src'	=> $src,
+	'class'	=> "attachment-$size",
+	'alt'	=> trim(strip_tags( $wp_postmeta->_wp_attachment_image_alt )),
+);
+</pre>
+
+== Примери ==
+
+=== Стандардна употреба ===
+
+ <?php 
+ if ( has_post_thumbnail() ) { // check if the post has a Post Thumbnail assigned to it.
+   the_post_thumbnail();
+ } 
+ ?>
+ <?php the_content(); ?>
+
+'''Забелешка:''' За да ја вратите сликичката во вашиот PHP код, наместо да се прикаже, користете ја функцијата: [[Function Reference/get_the_post_thumbnail|get_the_post_thumbnail()]]
+
+=== Големина на сликичките  ===
+
+Стандардната големина на сликичките во WordPress се „thumbnail“, „medium“, „large“, и „full“. Овие големини може да бидат конфигурирани на страницата за [http://codex.wordpress.org/Settings_Media_SubPanel Мултимедија]] од менито „Поставувања“. Ова е како можете да ја користите функцијата the_post_thumbnail() за дефинирање на големината на сликичките:
+
+ the_post_thumbnail();                  // without parameter -> 'post-thumbnail'
+ 
+ the_post_thumbnail('thumbnail');       // Thumbnail (default 150px x 150px max)
+ the_post_thumbnail('medium');          // Medium resolution (default 300px x 300px max)
+ the_post_thumbnail('large');           // Large resolution (default 640px x 640px max)
+ the_post_thumbnail('full');            // Full resolution (original size uploaded)
+ 
+ the_post_thumbnail( array(100,100) );  // Other resolutions
+
+За регистрирање на нови големини за сликичките се користи функцијата: [[Function Reference/add_image_size|add_image_size()]].
+<br />
+За да поставите стандардна големина на сликичките, погледнете ја функцијата: [[Function Reference/set_post_thumbnail_size|set_post_thumbnail_size()]].
+
+=== Post Thumbnail Linking to the Post Permalink ===
+
+'''Забелешка:''' Не ги користете двата примери во една иста тема.
+
+'''ПРИМЕР 1'''
+За да ја поврзите сликичката со линкот до написот, користете го следнит код во соодветниот циклус (лупа):
+
+ <pre>
+ <?php if ( has_post_thumbnail()) : ?>
+   <a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>" >
+   <?php the_post_thumbnail(); ?>
+   </a>
+ <?php endif; ?></pre>
+
+'''ПРИМЕР 2'''
+За да ги поврзите сите сликички на вашиот сајт со соодветните написи, следниот код псотавете го во [[Theme_Development#Functions_File|functions.php]] датотеката на вашата тема:
+
+<pre>add_filter( 'post_thumbnail_html', 'my_post_image_html', 10, 3 );
+
+function my_post_image_html( $html, $post_id, $post_image_id ) {
+
+  $html = '<a href="' . get_permalink( $post_id ) . '" title="' . esc_attr( get_post_field( 'post_title', $post_id ) ) . '">' . $html . '</a>';
+  return $html;
+
+}</pre>
+
+=== Врска на сликичката до големата(large) големина на сликата ===
+
+Овој пример ќе ја поврзи сликичката од нејзината голема (large) големина. Мора да се користи во циклусот (лупата).
+
+ <pre>
+ <?php 
+ if ( has_post_thumbnail()) {
+   $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id(), 'large');
+   echo '<a href="' . $large_image_url[0] . '" title="' . the_title_attribute('echo=0') . '" >';
+   the_post_thumbnail('thumbnail');
+   echo '</a>';
+ }
+ ?></pre>
+
+=== Стилување на сликичките ===
+
+Сликичките ја добиваат класата "wp-post-image". Исто така, тие ја добиваат и класата според нивната големина. Нивниот изглед можете да го стилувате со некој од следните CSS селектори:
+
+ img.wp-post-image
+ img.attachment-thumbnail
+ img.attachment-medium
+ img.attachment-large
+ img.attachment-full
+
+Покрај тоа, на сликичките можете да им давате и посебни класи.
+<br>
+Прикажување на сликичката со класа "alignleft":
+<pre><?php the_post_thumbnail('thumbnail', array('class' => 'alignleft')); ?></pre>
+
+== Лог на промени ==
+
+* Од: [[Version 2.9|2.9.0]]
+
+== Изворна датотека ==
+
+<tt>the_post_thumbnail()</tt> се наоѓа во {{Trac|wp-includes/post-thumbnail-template.php}}.
+
+== Ресурси ==
+
+* [http://justintadlock.com/archives/2009/11/16/everything-you-need-to-know-about-wordpress-2-9s-post-image-feature Everything you need to know about WordPress 2.9’s post image feature], by JustinTadlock.com
+* [http://wpengineer.com/the-ultimative-guide-for-the_post_thumbnail-in-wordpress-2-9/ The Ultimative Guide For the_post_thumbnail In WordPress 2.9], by wpEngineer.com
+* [http://markjaquith.wordpress.com/2009/12/23/new-in-wordpress-2-9-post-thumbnail-images/ New in WordPress 2.9: Post Thumbnail Images], by Mark Jaquith
+* [http://www.prelovac.com/vladimir/simple-wordpress-thumbnail-function Simple WordPress thumbnail function], by Vladimir Prelovac
+
+== Поврзано ==
+
+{{Post Thumbnail Tags}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

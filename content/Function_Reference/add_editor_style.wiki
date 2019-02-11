@@ -1,0 +1,156 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/add_editor_style/}}
+
+{{Languages|
+{{en|Function Reference/add_editor_style}}
+{{ja|関数リファレンス/add_editor_style}}
+}}
+
+== Description ==
+
+Allows theme developers to link a custom stylesheet file to the [[TinyMCE]] visual editor. The function tests for the existence of the relative path(s) given as the <tt>$stylesheet</tt> argument against the current [[Theme_Development#Anatomy_of_a_Theme|theme directory]] and links the file(s) on success. If no <tt>$stylesheet</tt> argument is specified, the function will test for the existence of the default editor stylesheet file, <tt>editor-style.css</tt>, against the current theme directory, and link that file on success.
+
+If a [[Child Themes|child theme]] is used, both the current child and parent theme directories are tested and both the files with the same relative path are linked with this single call if they are found.
+
+To link a stylesheet file from a location other than the current theme directory, such as under your plugin directory, use a [[Glossary#Filter|filter]] attached to the [[Plugin API/Filter Reference/mce_css|mce_css]] hook instead.
+
+Note that the behavior of this function with respect to child themes was changed in [[Version 3.4]] and changed back in [[Version 3.5]], see the [[#Notes|Notes]] section below.
+
+== Usage ==
+
+%%% <?php add_editor_style( $stylesheet ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$stylesheet|string/array|Path to a stylesheet file, relative to the current [[Theme_Development#Anatomy_of_a_Theme|theme directory]], or an array thereof to link multiple stylesheet files.|optional|"editor-style.css"}}
+
+If a [[Child Themes|child theme]] is used, both the current child and parent theme directories are considered (see [[#Description|Description]]). 
+
+As of version 3.6, http or https URLs (e.g., <code>http://example/style.css</code>) can be used. Root-relative URLs will not work: e.g., <code>/editor-style.css</code> is treated the same as <code>editor-style.css</code>.
+
+Paths with a query string (e.g., <code>editor-style?ver=…</code>) will fail to be added. You can work around that by using the equivalent http(s) URL, e.g. , <code>http://example/editor-style.css?ver=…</code>. (<tt>get_stylesheet_directory_uri()</tt> and <tt>home_url()</tt> can help you build "full" URLs.)
+
+Call <tt>get_editor_stylesheets()</tt> to see which styles have been added.
+
+== Return Values ==
+
+{{Return||void|This function does not return a value.}}
+
+== Examples  ==
+
+=== Basic Usage ===
+
+Add the following to the ''[[Functions File Explained|functions.php]]'' file of your theme.
+<pre>
+<?php
+function my_theme_add_editor_styles() {
+    add_editor_style( 'custom-editor-style.css' );
+}
+add_action( 'admin_init', 'my_theme_add_editor_styles' );
+?></pre>
+
+Next, create a file named ''custom-editor-style.css'' in your themes root directory. Any CSS rules added to that file will be reflected within the TinyMCE visual editor. The contents of the file might look like this:
+<pre>
+body#tinymce.wp-editor { 
+    font-family: Arial, Helvetica, sans-serif; 
+    margin: 10px; 
+}
+
+body#tinymce.wp-editor a {
+    color: #4CA6CF;
+}
+</pre>
+
+=== Using Google Fonts ===
+
+Google Fonts API provides a single URL for a CSS file that can include multiple variants of a type face, separated by commas. Commas in a URL need to be encoded before the string can be passed to <em>add_editor_style</em>.
+
+<pre>
+<?php
+function my_theme_add_editor_styles() {
+    $font_url = str_replace( ',', '%2C', '//fonts.googleapis.com/css?family=Lato:300,400,700' );
+    add_editor_style( $font_url );
+}
+add_action( 'after_setup_theme', 'my_theme_add_editor_styles' );
+?>
+</pre>
+
+=== Reusing Your Theme Styles  ===
+
+You can reuse the styles from your [[Theme_Development#Theme_Stylesheet|theme stylesheet]] file in your custom editor stylesheet file using the <tt>@import</tt> CSS rule. Working on the [[#Basic Usage|previous example]], put the following instead into the ''custom-editor-style.css'' file. 
+
+<pre>
+@import url( 'style.css' );
+
+/* Add overwrites as needed so that the content of the editor field is attractive and not broken */
+body { padding: 0; background: #fff; } 
+</pre>
+
+If necessary, change '' 'style.css' '' to the path to your theme stylesheet, relative to the ''custom-editor-style.css'' file.
+
+
+
+=== Choosing Styles Based on Post Type   ===
+
+To link a custom editor stylesheet file based on the [[Post Types|post type]] being edited, you can use the following in the ''[[Functions File Explained|functions.php]]'' file of your theme. This assumes the stylesheet files with names in the form of ''editor-style-'''{post_type}'''.css'' are present directly under your [[Theme_Development#Anatomy_of_a_Theme|theme directory]].
+
+<pre>
+<?php
+function my_theme_add_editor_styles() {
+    global $post;
+
+    $my_post_type = 'posttype';
+
+    // New post (init hook).
+    if ( stristr( $_SERVER['REQUEST_URI'], 'post-new.php' ) !== false
+            && ( isset( $_GET['post_type'] ) === true && $my_post_type == $_GET['post_type'] ) ) {
+        add_editor_style( get_stylesheet_directory_uri()
+            . '/css/editor-style-' . $my_post_type . '.css' );
+    }
+
+    // Edit post (pre_get_posts hook).
+    if ( stristr( $_SERVER['REQUEST_URI'], 'post.php' ) !== false
+            && is_object( $post )
+            && $my_post_type == get_post_type( $post->ID ) ) {
+        add_editor_style( get_stylesheet_directory_uri()
+            . '/css/editor-style-' . $my_post_type . '.css' );
+    }
+}
+add_action( 'init', 'my_theme_add_editor_styles' );
+add_action( 'pre_get_posts', 'my_theme_add_editor_styles' );
+?></pre>
+
+Note that the [[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]] action [[Glossary#Hook|hook]] is used to ensure that the post type is already determined but, at the same time, that TinyMCE has not been configured yet. That hook is not run when creating new posts, that is why we need to use it in combination with the init hook to achieve a consistent result.
+
+== Notes ==
+
+* As of [[Version 3.4]], WordPress will link the stylesheet file only if its path determined by the <tt>$stylesheet</tt> argument passes the <tt>[http://php.net/manual/en/function.file-exists.php file_exists()]</tt> test, so arguments like "''editor.css?version=1.0''" will not work. Prior to [[Version 3.4]], this will apply only to [[Child Themes|child themes]].
+* In [[Version 3.4]], using this function by a [[Child Themes|child theme]] to add a stylesheet file will not link the file if a stylesheet file on the same relative path was already added by a parent theme. As of [[Version 3.5]], this was fixed and WordPress will look for the file in both the parent and child theme directories, as was the case before [[Version 3.4]]. See the [http://core.trac.wordpress.org/ticket/21026 ticket #21026] for details about these changes.
+
+== Change Log ==
+
+* Since: [[Version 3.0|3.0.0]]
+
+== Source File ==
+
+<tt>add_editor_style()</tt> is located in {{Trac|wp-includes/theme.php}}.
+
+== References ==
+
+* [http://php.net/manual/en/function.file-exists.php PHP: file_exists() - Manual]
+* [http://core.trac.wordpress.org/ticket/21026 #21026 (add_editor_style() in child theme not working for editor_style.css) – WordPress Trac]
+
+== Resources ==
+
+* [http://generatewp.com/theme-support/ WordPress Theme Support Generator]
+
+== Related ==
+{{TinyMCE API}}
+
+* [[Editor Style]]
+
+{{Theme Support}}
+
+
+{{Tag Footer}}
+
+[[Category:Functions]]

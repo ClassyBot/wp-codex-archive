@@ -1,0 +1,110 @@
+<p>The <tt>login_redirect</tt> filter is used to change the location redirected to after logging in. This could be the location set by the "redirect_to" parameter sent to the login page.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Parameters"><span class="tocnumber">1</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Examples"><span class="tocnumber">2</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Notes"><span class="tocnumber">3</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Changelog"><span class="tocnumber">4</span> <span class="toctext">Changelog</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Source_File"><span class="tocnumber">5</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Resources"><span class="tocnumber">6</span> <span class="toctext">Resources</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Related"><span class="tocnumber">7</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/login_redirect&amp;action=edit&amp;section=1" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$redirect_to</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The redirect destination URL.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$requested_redirect_to</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) The requested redirect destination URL passed as a parameter.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$user</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#WP_User_or_WP_Error" title="How to Pass Tag Parameters"><i>WP_User or WP_Error</i></a>) (<i>optional</i>) WP_User object if login was successful, WP_Error object otherwise.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/login_redirect&amp;action=edit&amp;section=2" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This example redirects admins to the dashboard and other users to the homepage. Make sure you use add_filter outside of is_admin(), since that function is not available when the filter is called.
+</p>
+<pre>
+/**
+ * Redirect user after successful login.
+ *
+ * @param string $redirect_to URL to redirect to.
+ * @param string $request URL the user is coming from.
+ * @param object $user Logged user's data.
+ * @return string
+ */
+
+function my_login_redirect( $redirect_to, $request, $user ) {
+    //is there a user to check?
+    if (isset($user-&gt;roles) &amp;&amp; is_array($user-&gt;roles)) {
+        //check for subscribers
+        if (in_array('subscriber', $user-&gt;roles)) {
+            // redirect them to another URL, in this case, the homepage 
+            $redirect_to =  home_url();
+        }
+    }
+
+    return $redirect_to;
+}
+
+add_filter( 'login_redirect', 'my_login_redirect', 10, 3 );
+</pre>
+<p>Redirect all logins to the homepage with an anonymous function (php 5.3+).
+</p>
+<pre>
+add_filter( 'login_redirect', function( $url, $query, $user ) {
+	return home_url();
+}, 10, 3 );
+</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/login_redirect&amp;action=edit&amp;section=3" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>You can register the login_redirect filter to use all 3 parameters like this:
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_filter</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'login_redirect'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'filter_function_name'</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">10</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">3&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p>In the example, 'filter_function_name' is the function WordPress should call during the login process.  Note that <b>filter_function_name</b> should be unique function name. It cannot match any other function name already declared.
+</p><p>The $current_user global may not be available at the time this filter is run. So you should use the $user global or the $user parameter passed to this filter.
+</p>
+<h2><span class="mw-headline" id="Changelog">Changelog</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/login_redirect&amp;action=edit&amp;section=4" title="Edit section: Changelog">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_3.0" title="Version 3.0">Version 3.0</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/login_redirect&amp;action=edit&amp;section=5" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>login_redirect</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-login.php#L0">wp-login.php</a></code>
+</p>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/login_redirect&amp;action=edit&amp;section=6" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://wpscholar.com/blog/wordpress-user-login-redirect/">WP Scholar - WordPress User Login Redirect ( by role or user meta )</a></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/login_redirect&amp;action=edit&amp;section=7" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/login_url" title="Plugin API/Filter Reference/login url">login_url</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/logout_url" title="Plugin API/Filter Reference/logout url">logout_url</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/register_url" title="Plugin API/Filter Reference/register url">register_url</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/lostpassword_url" title="Plugin API/Filter Reference/lostpassword url">lostpassword_url</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/edit_profile_url" title="Plugin API/Filter Reference/edit profile url">edit_profile_url</a></li>
+<li> <strong class="selflink">login_redirect</strong></li>
+<li> <a href="/index.php?title=Plugin_API/Filter_Reference/logout_redirect&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/logout redirect (page does not exist)">logout_redirect</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/registration_redirect" title="Plugin API/Filter Reference/registration redirect">registration_redirect</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/lostpassword_redirect" title="Plugin API/Filter Reference/lostpassword redirect">lostpassword_redirect</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004101
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.022 seconds
+Preprocessor visited node count: 114/1000000
+Preprocessor generated node count: 345/1000000
+Post‐expand include size: 1249/2097152 bytes
+Template argument size: 297/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    6.527      1 - -total
+ 40.25%    2.627      1 - Template:Trac
+ 36.17%    2.361      3 - Template:Parameter
+ 15.32%    1.000      1 - Template:CurrentVersion
+ 14.83%    0.968      1 - Template:User_Link_Filters
+-->

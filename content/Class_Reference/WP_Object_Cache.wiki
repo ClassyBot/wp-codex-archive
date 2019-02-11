@@ -1,0 +1,106 @@
+== Role of the WordPress Object Cache ==
+<tt>WP_Object_Cache</tt> is WordPress' class for caching data which may be computationally expensive to regenerate, such as the result of complex database queries. The object cache is defined in {{Trac|wp-includes/cache.php}}.
+
+Do not use the class directly in your code when writing plugins, but use the wp_cache functions listed below.
+
+By default, the object cache is non-persistent. This means that data stored in the cache resides in memory only and only for the duration of the request. Cached data will not be stored persistently across page loads unless you install a [[#Persistent Caching|persistent caching]] plugin.
+
+Use the [[Transients API]] instead of these functions if you need to guarantee that your data will be cached. If persistent caching is configured, then the transients functions will use the wp_cache functions described in this document. However if persistent caching has not been enabled, then the data will instead be cached to the options table.
+
+== wp_cache functions ==
+
+Most of these functions take a:
+* $key: the key to indicate the value.
+* $data: the value you want to store.
+* $group: (optional) this is a way of grouping data within the cache. Allows you to use the same key across different groups.
+* $expire: (optional) this defines how many seconds to keep the cache for. Only applicable to some functions. Defaults to 0 (as long as possible).
+
+[https://developer.wordpress.org/reference/functions/wp_cache_add/ wp_cache_add]
+
+ wp_cache_add( $key, $data, $group, $expire )
+
+This function adds data to the cache if the cache key doesn't already exist. If it does exist, the data is not added and the function returns <tt>false</tt>. 
+
+[https://developer.wordpress.org/reference/functions/wp_cache_set/ wp_cache_set]
+
+ wp_cache_set( $key, $data, $group, $expire )
+
+Adds data to the cache. If the cache key already exists, then it will be overwritten; if not then it will be created.
+
+[https://developer.wordpress.org/reference/functions/wp_cache_get/ wp_cache_get]
+
+ wp_cache_get( $key, $group )
+ wp_cache_get( $key, $group = <nowiki>''</nowiki>, $force = false, $found = null )
+Returns the value of the cached object, or <tt>false</tt> if the cache key doesn't exist.
+
+To disambiguate a cached <tt>false</tt> from a non-existing key, you should do absolute testing of <tt>$found</tt>, which is passed by reference, against <tt>false</tt>: if <tt>$found === false</tt>, the key does not exist.
+
+[https://developer.wordpress.org/reference/functions/wp_cache_delete/ wp_cache_delete]
+
+ wp_cache_delete( $key, $group )
+
+Clears data from the cache for the given key.
+
+[https://developer.wordpress.org/reference/functions/wp_cache_replace/ wp_cache_replace]
+
+ wp_cache_replace( $key, $data, $group, $expire )
+
+Replaces the given cache if it exists, returns <tt>false</tt> otherwise. This is similar to <tt>wp_cache_set()</tt> except the cache object is not added if it doesn't already exist.
+
+[https://developer.wordpress.org/reference/functions/wp_cache_flush/ wp_cache_flush]
+
+ wp_cache_flush()
+
+Clears all cached data.
+
+
+[https://developer.wordpress.org/reference/functions/wp_cache_add_non_persistent_groups/ wp_cache_add_non_persistent_groups]
+
+ wp_cache_add_non_persistent_groups($groups)
+
+Hints to the object cache that the group or list of groups should not be cached in persistent storage. This is useful when adding items to the cache that should only be available for the duration of a script session, and not beyond. $groups can be an array of strings, or a single group name. NB: only some caching plugins implement this function!
+
+== Examples ==
+
+The most common use for the object cache is caching the results of expensive SQL queries so they're not performed multiple times within a page load. In the below example, imagine the <tt>$query</tt> variable is an expensive SQL query.
+
+ $result = wp_cache_get( 'my_result' );
+ if ( false === $result ) {
+ 	$result = $wpdb->get_results( $query );
+ 	wp_cache_set( 'my_result', $result );
+ } 
+ // Do something with $result;
+
+== Persistent Caching ==
+
+Prior to [[Version 2.5|WordPress 2.5]], data stored using the wp_cache functions was stored persistently if you added <tt>define('WP_CACHE', true)</tt> to your <tt>wp-config.php</tt> file.
+
+This is no longer the case, '''and adding the define will have no effect''' unless you install a persistent cache plugin (see list below).
+
+== Persistent Cache Plugins ==
+
+* [http://wordpress.org/extend/plugins/w3-total-cache/ W3 Total Cache] provides object level caching using disk, opcode or memcache(d) memory stores. W3TC also provides: browser, page and database caching, in addition to Content Delivery Network Support, Mobile Support, Minification and more.
+* [http://wordpress.org/extend/plugins/memcached/ Memcached Object Cache] provides a persistent backend for the WordPress object cache. A memcached server and the PECL memcached extension are required.
+* [https://github.com/l3rady/WordPress-APC-Object-Cache APC Object Cache] / [https://github.com/l3rady/WordPress-APCu-Object-Cache APCu Object Cache] provides a persistent backend for the WordPress object cache using [http://php.net/manual/en/book.apc.php APC] / [https://secure.php.net/manual/en/book.apcu.php APCu], a PHP key/value store saved in memory.
+* [https://github.com/ericmann/Redis-Object-Cache Redis Object Cache] uses [http://pecl.php.net/package/redis Redis PECL module] to provide a persistent backend for the WordPress object cache. [http://redis.io/ Redis] is required.
+* [https://wordpress.org/plugins/redis-cache/installation/ Redis Object Cache] supports the use of [https://github.com/nrk/predis Predis] (PHP client library), [https://github.com/facebook/hhvm/blob/master/hphp/system/php/redis/Redis.php HHVM's Redis extension] and the [https://pecl.php.net/package/redis PECL Redis extension] to provide a persistent backend for the WordPress object cache. [http://redis.io/ Redis] is required.
+* [http://wordpress.org/extend/plugins/wp-file-cache/ WP File Cache] implements object level persistent caching by shifting the load from your database to your disk/file system.
+* [http://neosmart.net/dl.php?id=14 File-Based Caching for WordPress] re-implements the file-based object caching mechanism found in WordPress 2.1 - 2.3.
+* [https://wordpress.org/plugins/litespeed-cache/ LiteSpeed Cache for WordPress] supports the use of Redis, Memcached, and LSMCD object caches. LSCWP also provides server-level full-page caching, support for browser cache and CDN, and other optimization features. [https://en.wikipedia.org/wiki/LiteSpeed_Web_Server LiteSpeed Web Server] required.
+
+== Related ==
+
+The [[Transients_API]] provides persistent but temporary data caching by giving it a custom name and a timeframe after which it will be expired and regenerated.
+
+''Note: Transients only get deleted when a request is made. So, until someone visits your page and calls up the Transient, it will stay in the DB. In short: It's not a real persistent cache and not equal to stuff running on cron jobs.''
+
+== Resources ==
+
+* The [https://wordpress.org/plugins/debug-bar/ Debug Bar] plugin helps you analyze the object cache.
+* Scott Taylor's article [http://scotty-t.com/2012/01/20/wordpress-memcached/ WordPress + Memcached] explains various cache plugins and concepts.
+
+== Related ==
+
+{{Class Footer}}
+
+[[Category:Classes]]

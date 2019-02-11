@@ -1,0 +1,767 @@
+{{Languages|
+{{en|Roles and Capabilities}}
+{{es|Roles y Capacidades}}
+{{fr|Rôles et Capacités}}
+{{ja|ユーザーの種類と権限}}
+{{pt-br|Papéis e Capacidades}}
+{{zh-cn|用户角色和权限}}
+}}
+==Description==
+
+WordPress uses a concept of [[#Roles|Roles]], designed to give the [[Glossary#Site|site]] owner the ability to control what users can and cannot do within the site. A site owner can manage the user access to such tasks as [[Writing_Posts|writing and editing posts]], [[Pages|creating Pages]], [[Links Manager|defining links]], [[Manage_Categories_SubPanel|creating categories]], [[Comment Moderation|moderating comments]], [[Managing_Plugins|managing plugins]], [[Themes|managing themes]], and [[Authors_and_Users_SubPanel|managing other users]], by assigning a specific role to each of the users.
+
+WordPress has six pre-defined roles: [[#Super Admin|Super Admin]], [[#Administrator|Administrator]], [[#Editor|Editor]], [[#Author|Author]], [[#Contributor|Contributor]] and [[#Subscriber|Subscriber]].  Each role is allowed to perform a set of tasks called [[Glossary#Capabilities|Capabilities]]. There are many capabilities including "[[#publish_posts|publish_posts]]", "[[#moderate_comments|moderate_comments]]", and "[[#edit_users|edit_users]]". [[#Capability vs. Role Table|A default set]] of capabilities is pre-assigned to each role, but other capabilities can be assigned or removed using the [[Function Reference/add_cap|<tt>add_cap()</tt>]] and  [[Function Reference/remove_cap|<tt>remove_cap()</tt>]] functions. New roles can be introduced or removed using the [[Function Reference/add_role|<tt>add_role()</tt>]] and [[Function Reference/remove_role|<tt>remove_role()</tt>]] functions.
+
+The [[#Super Admin|Super Admin]] role allows a user to perform all possible capabilities. Each of the other roles has a decreasing number of allowed capabilities.  For instance, the [[#Subscriber|Subscriber]] role has just the "[[#read|read]]" capability.  One particular role should not be considered to be senior to another role.  Rather, consider that roles define the user's responsibilities within the site.
+
+==Summary of Roles==
+
+* [[Super_Admin_Menu|Super Admin]] – somebody with access to the site network administration features and all other features. See the [[Create A Network|Create a Network]] article.
+* [[#Administrator|Administrator]] (<em>slug: 'administrator'</em>) – somebody who has access to all the administration features within a single site.
+* [[#Editor|Editor]] (<em>slug: 'editor'</em>) – somebody who can publish and manage posts including the posts of other users.
+* [[#Author|Author]] (<em>slug: 'author'</em>)  – somebody who can publish and manage their own posts.
+* [[#Contributor|Contributor]] (<em>slug: 'contributor'</em>) – somebody who can write and manage their own posts but cannot publish them.
+* [[#Subscriber|Subscriber]] (<em>slug: 'subscriber'</em>) – somebody who can only manage their profile.
+
+Upon installing WordPress, an Administrator account is automatically created.
+
+The default role for new users can be set in [[Administration Panels]] > [[Administration Panels#Settings|Settings]] > [[Administration Panels#General|General]].
+
+You can see a listing of all defined roles by accessing the <tt>role_names</tt> property of the global <tt>WP_Roles</tt> object (which you can retrieve with <tt>wp_roles()</tt>, or, prior to version 4.3, with <tt>global $wp_roles;</tt>).
+
+==Roles==
+
+A Role defines a set of tasks a user assigned the role is allowed to perform. For instance, the [[Super_Admin_Menu|Super Admin]] role encompasses every possible task that can be performed within a [[Glossary#Network|Network]] of virtual WordPress [[Glossary#Site|site]]s. The [[#Administrator|Administrator]] role limits the allowed tasks only to those which affect a single site. On the other hand, the [[#Author|Author]] role allows the execution of just a small subset of tasks.
+
+The following sections list the default Roles and their capabilities:
+
+===Super Admin===
+
+Multisite Super Admins have, by default, all capabilities. The following Multisite-only capabilities are therefore only available to Super Admins:
+
+:*[[#create_sites|create_sites]]
+:*[[#delete_sites|delete_sites]]
+:*[[#manage_network|manage_network]]
+:*[[#manage_sites|manage_sites]]
+:*[[#manage_network_users|manage_network_users]]
+:*[[#manage_network_plugins|manage_network_plugins]]
+:*[[#manage_network_themes|manage_network_themes]]
+:*[[#manage_network_options|manage_network_options]]
+:*[[#upgrade_network|upgrade_network]]
+:*[[#setup_network|setup_network]]
+
+In the case of single site WordPress installation, Administrators are, in effect, Super Admins. As such, they are the only ones to have access to [[#Additional Admin Capabilities| additional admin capabilities]].
+
+===Administrator===
+
+The capabilities of Administrators differs between single site and [[Glossary#Multisite|Multisite]] WordPress installations. All administrators have the following capabilities:
+
+:*[[#activate_plugins|activate_plugins]]
+:*[[#delete_others_pages|delete_others_pages]]
+:*[[#delete_others_posts|delete_others_posts]]
+:*[[#delete_pages|delete_pages]]
+:*[[#delete_posts|delete_posts]]
+:*[[#delete_private_pages|delete_private_pages]]
+:*[[#delete_private_posts|delete_private_posts]]
+:*[[#delete_published_pages|delete_published_pages]]
+:*[[#delete_published_posts|delete_published_posts]]
+:*[[#edit_dashboard|edit_dashboard]]
+:*[[#edit_others_pages|edit_others_pages]]
+:*[[#edit_others_posts|edit_others_posts]]
+:*[[#edit_pages|edit_pages]]
+:*[[#edit_posts|edit_posts]]
+:*[[#edit_private_pages|edit_private_pages]]
+:*[[#edit_private_posts|edit_private_posts]]
+:*[[#edit_published_pages|edit_published_pages]]
+:*[[#edit_published_posts|edit_published_posts]]
+:*[[#edit_theme_options|edit_theme_options]]
+:*[[#export|export]]
+:*[[#import|import]]
+:*[[#list_users|list_users]]
+:*[[#manage_categories|manage_categories]]
+:*[[#manage_links|manage_links]]
+:*[[#manage_options|manage_options]]
+:*[[#moderate_comments|moderate_comments]]
+:*[[#promote_users|promote_users]]
+:*[[#publish_pages|publish_pages]]
+:*[[#publish_posts|publish_posts]]
+:*[[#read_private_pages|read_private_pages]]
+:*[[#read_private_posts|read_private_posts]]
+:*[[#read|read]]
+:*[[#remove_users|remove_users]]
+:*[[#switch_themes|switch_themes]]
+:*[[#upload_files|upload_files]]
+:*[[#customize|customize]]
+:*[[#delete_site|delete_site]]
+
+==== Additional Admin Capabilities====
+Only Administrators of single site installations have the following capabilities. In [[Glossary#Multisite|Multisite]], only the Super Admin has these abilities:
+
+:*[[#update_core|update_core]]
+:*[[#update_plugins|update_plugins]]
+:*[[#update_themes|update_themes]]
+:*[[#install_plugins|install_plugins]]
+:*[[#install_themes|install_themes]]
+:*[[#upload_plugins|upload_plugins]]
+:*[[#upload_themes|upload_themes]]
+:*[[#delete_themes|delete_themes]]
+:*[[#delete_plugins|delete_plugins]]
+:*[[#edit_plugins|edit_plugins]]
+:*[[#edit_themes|edit_themes]]
+:*[[#edit_files|edit_files]]
+:*[[#edit_users|edit_users]]
+:*[[#create_users|create_users]]
+:*[[#delete_users|delete_users]]
+:*[[#unfiltered_html|unfiltered_html]]
+
+===Editor===
+
+:*[[#delete_others_pages|delete_others_pages]]
+:*[[#delete_others_posts|delete_others_posts]]
+:*[[#delete_pages|delete_pages]]
+:*[[#delete_posts|delete_posts]]
+:*[[#delete_private_pages|delete_private_pages]]
+:*[[#delete_private_posts|delete_private_posts]]
+:*[[#delete_published_pages|delete_published_pages]]
+:*[[#delete_published_posts|delete_published_posts]]
+:*[[#edit_others_pages|edit_others_pages]]
+:*[[#edit_others_posts|edit_others_posts]]
+:*[[#edit_pages|edit_pages]]
+:*[[#edit_posts|edit_posts]]
+:*[[#edit_private_pages|edit_private_pages]]
+:*[[#edit_private_posts|edit_private_posts]]
+:*[[#edit_published_pages|edit_published_pages]]
+:*[[#edit_published_posts|edit_published_posts]]
+:*[[#manage_categories|manage_categories]]
+:*[[#manage_links|manage_links]]
+:*[[#moderate_comments|moderate_comments]]
+:*[[#publish_pages|publish_pages]]
+:*[[#publish_posts|publish_posts]]
+:*[[#read|read]]
+:*[[#read_private_pages|read_private_pages]]
+:*[[#read_private_posts|read_private_posts]]
+:*[[#unfiltered_html|unfiltered_html]] (not with Multisite. See [http://wordpress.org/extend/plugins/unfiltered-mu/ Unfiltered MU] & [http://wordpress.org/extend/plugins/removekses/ RemoveKses])
+:*[[#upload_files|upload_files]]
+
+===Author===
+
+:*[[#delete_posts|delete_posts]]
+:*[[#delete_published_posts|delete_published_posts]]
+:*[[#edit_posts|edit_posts]]
+:*[[#edit_published_posts|edit_published_posts]]
+:*[[#publish_posts|publish_posts]]
+:*[[#read|read]]
+:*[[#upload_files|upload_files]]
+
+===Contributor===
+
+:*[[#delete_posts|delete_posts]]
+:*[[#edit_posts|edit_posts]]
+:*[[#read|read]]
+
+===Subscriber===
+
+:*[[#read|read]]
+
+===Special Cases===
+
+The following capabilities are special cases:
+
+:*[[#unfiltered_upload|unfiltered_upload]] - This capability is not available to any role by default (including Super Admins). The capability needs to be enabled by defining the following constant:
+
+<pre>define( 'ALLOW_UNFILTERED_UPLOADS', true );</pre>
+
+With this constant defined, all roles on a single site install can be given the unfiltered_upload capability, but only Super Admins can be given the capability on a Multisite install.
+
+===Capability vs. Role Table===
+<!-- Using "text-align !important" rather than "align" because the sitewide css stupidly aligns left using !important.  Someone needs to see http://www.slideshare.net/stubbornella/our-best-practices-are-killing-us. -->
+
+Note that the capabilities of Administrators '''differs''' between single site and [[Glossary#Multisite|Multisite]] WordPress installations, [[#Additional Admin Capabilities|as described above]] .
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! Capability!!Super Admin!!Administrator!!Editor!!Author!!Contributor!!Subscriber
+|-
+|create_sites||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|delete_sites||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|manage_network||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|manage_sites||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|manage_network_users||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|manage_network_plugins||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|manage_network_themes||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|manage_network_options||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|upload_plugins||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|upload_themes||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|upgrade_network||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|-
+|setup_network||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||||
+|- style="background:#464646; color:#d7d7d7;"
+! Capability!!Super Admin!!Administrator!!Editor!!Author!!Contributor!!Subscriber
+|-
+|activate_plugins||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y <br/>(single site or <br/>enabled by network setting) ||||||||
+|-
+|create_users||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|delete_plugins||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|delete_themes||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|delete_users||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|edit_files||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|edit_plugins||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|edit_theme_options||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|edit_themes||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|edit_users||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|export||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|import||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|- style="background:#464646; color:#d7d7d7;"
+! Capability!!Super Admin!!Administrator!!Editor!!Author!!Contributor!!Subscriber
+|-
+|install_plugins||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|install_themes||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|list_users||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|manage_options||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|promote_users||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|remove_users||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|switch_themes||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|update_core||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|update_plugins||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|update_themes||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||||
+|-
+|edit_dashboard||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|customize||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|-
+|delete_site||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||||
+|- style="background:#464646; color:#d7d7d7;"
+! Capability!!Super Admin!!Administrator!!Editor!!Author!!Contributor!!Subscriber
+|-
+|moderate_comments||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|manage_categories||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|manage_links||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|edit_others_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|edit_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|edit_others_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|edit_published_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|publish_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|delete_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|delete_others_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|delete_published_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|delete_others_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|delete_private_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|edit_private_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|read_private_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|delete_private_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|edit_private_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|read_private_pages||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||||
+|-
+|unfiltered_html||bgcolor="#ABCDEF" style="text-align:center !important"| Y  ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||bgcolor="#ABCDEF" style="text-align:center !important"| Y (single site) ||||||
+|- style="background:#464646; color:#d7d7d7;"
+! Capability!!Super Admin!!Administrator!!Editor!!Author!!Contributor!!Subscriber
+|-
+|edit_published_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||
+|-
+|upload_files||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||
+|-
+|publish_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||
+|-
+|delete_published_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||||
+|-
+|edit_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||
+|-
+|delete_posts||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||
+|- style="background:#464646; color:#d7d7d7;"
+! Capability!!Super Admin!!Administrator!!Editor!!Author!!Contributor!!Subscriber
+|-
+|read||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y ||bgcolor="#ABCDEF" style="text-align:center !important"| Y 
+|}
+
+==Capabilities==
+
+===switch_themes===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options: 
+** Appearance
+** Appearance > Themes
+
+===edit_themes===
+
+* Since 2.0
+* Allows access to Appearance > [[Appearance Editor SubPanel|Theme Editor]] to edit theme files.
+
+===edit_theme_options===
+
+* Since 3.0
+* Allows access to [[Administration_Panels|Administration Panel]] options: 
+** Appearance > [[Appearance Widgets SubPanel|Widgets]]
+** Appearance > [[Appearance Menus SubPanel|Menus]]
+** Appearance > [[Appearance Customize Screen|Customize]] if they are supported by the current theme
+** Appearance > [[Appearance Background SubPanel|Background]]
+** Appearance > [[Appearance Header SubPanel|Header]]
+
+===install_themes===
+
+* Since 2.8
+* Allows access to [[Administration_Panels|Administration Panel]] options:
+** Appearance > Add New Themes
+
+===activate_plugins===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** [[Administration_Panels#Plugins_-_Add_Functionality_to_your_Blog|Plugins]]
+
+===edit_plugins===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** [[Administration_Panels#Plugins_-_Add_Functionality_to_your_Blog|Plugins]] > [[Administration_Panels#Plugin_Editor|Plugin Editor]]
+
+===install_plugins===
+
+* Since 2.7
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** [[Administration_Panels#Plugins_-_Add_Functionality_to_your_Blog|Plugins]] > Add New
+
+===edit_users===
+
+* Since 2.0
+* Allows editing other users' profiles.
+** This allows changing roles independently of '[[Roles_and_Capabilities#promote_users|promote_users]]' capability.
+
+===edit_files===
+
+* Since 2.0
+* '''Note:''' No longer used.
+
+===manage_options===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** Settings > General
+** Settings > Writing
+** Settings > Reading
+** Settings > Discussion
+** Settings > Permalinks
+** Settings > Miscellaneous
+
+===moderate_comments===
+
+* Since 2.0
+* Allows users to moderate comments from the Comments SubPanel (although a user needs the [[#edit_posts|edit_posts]] Capability in order to access this)
+
+===manage_categories===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** Posts > Categories
+** Links > Categories
+
+===manage_links===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** Links
+** Links > Add New
+
+===upload_files===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** Media
+** Media > Add New
+
+===import===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** Tools > Import
+** Tools > Export
+
+===unfiltered_html===
+
+* Since 2.0
+* Allows user to post HTML markup or even JavaScript code in pages, posts, comments and widgets.
+* '''Note:''' Enabling this option for untrusted users may result in their posting malicious or poorly formatted code.
+* '''Note:''' In WordPress Multisite, only Super Admins have the <code>unfiltered_html</code> capability.
+
+===edit_posts===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** Posts
+** Posts > Add New
+** Comments
+** Comments > Awaiting Moderation
+
+===edit_others_posts===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** Manage > Comments (''Lets user delete and edit every comment, see edit_posts above'')
+* user can edit other users' posts through function get_others_drafts()
+* user can see other users' images in inline-uploading [no? see [http://trac.wordpress.org/file/trunk/wp-admin/inline-uploading.php inline-uploading.php]]
+* See [[#Exceptions|Exceptions]]
+
+===edit_published_posts===
+
+* Since 2.0
+* User can edit their published posts. ''This capability is off by default.''
+* The core checks the capability '''edit_posts''', but on demand this check is changed to '''edit_published_posts'''.
+* If you don't want a user to be able to edit their published posts, remove this capability.
+
+===publish_posts===
+
+* Since 2.0
+* See and use the "publish" button when editing their post ''(otherwise they can only save drafts)''
+* Can use XML-RPC to publish ''(otherwise they get a "Sorry, you can not post on this weblog or category.")''
+
+===edit_pages===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** Pages
+** Pages > Add New
+
+===read===
+
+* Since 2.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:
+** [[Dashboard Dashboard SubPanel|Dashboard]]
+** Users > Your Profile
+* ''Used nowhere in the core code except the menu.php''
+
+===publish_pages===
+
+* Since 2.1
+
+===edit_others_pages===
+
+* Since 2.1
+
+===edit_published_pages===
+
+* Since 2.1
+
+===delete_pages===
+
+* Since 2.1
+
+===delete_others_pages===
+
+* Since 2.1
+
+===delete_published_pages===
+
+* Since 2.1
+
+===delete_posts===
+
+* Since 2.1
+
+===delete_others_posts===
+
+* Since 2.1
+
+===delete_published_posts===
+
+* Since 2.1
+
+===delete_private_posts===
+
+* Since 2.1
+
+===edit_private_posts===
+
+* Since 2.1
+
+===read_private_posts===
+
+* Since 2.1
+
+===delete_private_pages===
+
+* Since 2.1
+
+===edit_private_pages===
+
+* Since 2.1
+
+===read_private_pages===
+
+* Since 2.1
+
+===delete_users===
+
+* Since 2.1
+* Allows deleting users from the blog.
+
+===create_users===
+
+* Since 2.1
+* Allows creating new users.
+** Without other capabilities, created users will have your blog's [[Settings_General_Screen|New User Default Role]].
+
+===unfiltered_upload===
+
+* Since 2.3
+
+===edit_dashboard===
+
+* Since 2.5
+
+===customize===
+
+* Since 4.0
+* Allows access to the [[Appearance_Customize_Screen|Customizer]].
+
+===delete_site===
+
+* Since 3.1
+* Allows the user to delete the current site (Multisite only).
+
+===update_plugins===
+
+* Since 2.6
+
+===delete_plugins===
+
+* Since 2.6
+
+===update_themes===
+
+* Since 2.7
+
+===update_core===
+
+* Since 3.0
+
+===list_users===
+
+* Since 3.0
+* Allows access to [[Administration_Panels|Administration Panel]] options:  
+** [[Administration_Panels#Users_-_Your_Blogging_Family|Users]]
+
+===remove_users===
+
+* Since 3.0
+
+===add_users===
+
+* Since 3.0
+* Replaced in 4.4 with [[#promote_users|promote_users]]
+
+===promote_users===
+
+* Since 3.0
+* Enables the "Change role to..." dropdown in the admin user list.
+** This does not depend on '[[Roles_and_Capabilities#edit_users|edit_users]]' capability.
+* Enables the 'Add Existing User' to function for multi-site installs.
+
+===delete_themes===
+
+* Since 3.0
+
+===export===
+
+* Since 3.0
+
+===edit_comment===
+
+* Since 3.1
+
+===create_sites===
+
+* Since 3.1
+* Multi-site only
+* Allows user to create sites on the network
+
+===delete_sites===
+
+* Since 3.1
+* Multi-site only
+* Allows user to delete sites on the network
+
+===manage_network===
+
+* Since 3.0
+* Multi-site only
+* Allows access to [[Network_Admin|Super Admin]] menu
+* Allows user to upgrade network
+
+===manage_sites===
+
+* Since 3.0
+* Multi-site only
+* Allows access to [[Network_Admin#Sites|Network Sites]] menu
+* Allows user to edit, archive, unarchive, activate, deactivate, spam, and unspam sites on the network
+
+===manage_network_users===
+
+* Since 3.0
+* Multi-site only
+* Allows access to [[Network_Admin#Users|Network Users]] menu
+
+===manage_network_themes===
+
+* Since 3.0
+* Multi-site only
+* Allows access to [[Network_Admin#Themes|Network Themes]] menu
+
+===manage_network_options===
+
+* Since 3.0
+* Multi-site only
+* Allows access to [[Network_Admin#Settings|Network Options]] menu
+
+===manage_network_plugins===
+
+* Multi-site only
+* Allows access to [[Network_Admin#Plugins|Network Plugins]] menu
+
+===upload_plugins===
+
+* Since 4.0
+* Multi-site only
+* Allows user to upload plugin ZIP files from the [[Network_Admin#Plugins|Network Plugins]] -> Add New menu
+
+===upload_themes===
+
+* Since 4.0
+* Multi-site only
+* Allows user to upload theme ZIP files from the [[Network_Admin#Themes|Network Themes]] -> Add New menu
+
+===upgrade_network===
+
+* Since 4.8
+* Multi-site only
+* is used to determine whether a user can access the Network Upgrade page in the network admin. Related to this, the capability is also checked to determine whether to show the notice that a network upgrade is required. The capability is not mapped, so it is only granted to network administrators. See [https://core.trac.wordpress.org/ticket/39205 #39205] for background discussion.
+
+===setup_network===
+
+* Since 4.8
+* Multi-site only
+* is used to determine whether a user can setup multisite, i.e. access the Network Setup page. Before setting up a multisite, the capability is mapped to the `manage_options` capability, so that it is granted to administrators. Once multisite is setup, it is mapped to `manage_network_options`, so that it is granted to network administrators. See [https://core.trac.wordpress.org/ticket/39206 #39206] for background discussion.
+
+==User Levels==
+
+Prior to version 2.0, WordPress used a user [[User Levels]] system. This was replaced in version 2.0 with the much improved and more extensible Roles and Capabilities system you see today. To maintain backwards compatibility with plugins that still use the user levels system (although this is very much discouraged), the default Roles in WordPress also include Capabilities that correspond to these levels. '''User Levels were finally deprecated in version 3.0.'''
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! Capability!!Administrator!!Editor!!Author!!Contributor!!Subscriber
+|-
+|level_10||bgcolor="#ABCDEF"| ||||||||
+|-
+|level_9||bgcolor="#ABCDEF"| ||||||||
+|-
+|level_8||bgcolor="#ABCDEF"| ||||||||
+|-
+|level_7||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||||||
+|-
+|level_6||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||||||
+|-
+|level_5||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||||||
+|-
+|level_4||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| || || ||
+|-
+|level_3||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| || || ||
+|-
+|level_2||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| || ||
+|-
+|level_1||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||
+|-
+|level_0||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| ||bgcolor="#ABCDEF"| 
+|}
+
+===User Level to Role Conversion===
+
+*User Level 0 converts to [[#Subscriber|Subscriber]]
+*User Level 1 converts to [[#Contributor|Contributor]] 
+*User Level 2 converts to [[#Author|Author]]
+*User Level 3 converts to [[#Editor|Editor]]
+*User Level 4 converts to [[#Editor|Editor]]
+*User Level 5 converts to [[#Editor|Editor]]
+*User Level 6 converts to [[#Editor|Editor]]
+*User Level 7 converts to [[#Editor|Editor]]
+*User Level 8 converts to [[#Administrator|Administrator]]
+*User Level 9 converts to [[#Administrator|Administrator]]
+*User Level 10 converts to [[#Administrator|Administrator]]
+
+== Change Log  ==
+
+* [[Version 1.5|1.5]]: User Levels system was introduced.
+* [[Version 2.0|2.0]]: Roles and Capabilities system was introduced.
+* [[Version 3.0|3.0]]: User Levels system deprecated & Multisite Super Admins introduced.
+
+==Resources==
+
+===Plugins===
+* [http://wordpress.org/extend/plugins/members/ Members Plugin]
+* [http://wordpress.org/extend/plugins/role-scoper/ Role Scoper Plugin] 
+* [http://wordpress.org/extend/plugins/user-access-manager/ User Access Manager]
+* [http://wordpress.org/extend/plugins/advanced-access-manager/ Advanced Access Manager]
+* [http://wordpress.org/extend/plugins/user-role-editor/ User Role Editor]
+* [http://wordpress.org/extend/plugins/wpfront-user-role-editor/ WordPress User Role Editor]
+* [https://wordpress.org/plugins/simple-membership/ Simple Membership Plugin]
+* [https://wordpress.org/plugins/view-admin-as/ View Admin As] (manage & test roles)
+
+===Information===
+* [https://boren.blog/2005/12/01/whats-new-in-20-roles-and-capabilities/ Ryan Boren's What's New in 2.0: Roles and Capabilities]
+* [https://wpfront.com/wordpress-plugins/user-role-editor-plugin/wordpress-capabilities/ WordPress Capabilities]
+* [https://exygy.com/wordpress-roles-and-capabilities-at-a-glance/ WordPress Roles and Capabilities at a Glance] - A simplified visual representation of WordPress roles and capabilities
+
+===Dev===
+* [http://lists.automattic.com/pipermail/wp-hackers/2005-July/001707.html Hackers email list Original User Capability discussion]
+* related functions: [[Function Reference/current_user_can|<tt>current_user_can()</tt>]], [[Function Reference/user_can|<tt>user_can()</tt>]]
+* You can set and get a user's role and capabilities programmatically using the [[Class Reference/WP_User|<tt>WP_User</tt>]] class.
+===Other Codex Articles===
+{{Role and Capability Tags}}
+
+[[Category:Getting Started]]
+[[Category:Installation]]
+[[Category:UI Link]]

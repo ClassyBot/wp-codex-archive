@@ -1,0 +1,48 @@
+==Description==
+<code>wp_enqueue_scripts</code> is the proper hook to use when enqueuing items that are meant to appear on the front end. Despite the name, it is used for enqueuing '''both''' scripts and styles.
+
+== Example ==
+<code><pre>
+function themeslug_enqueue_style() {
+	wp_enqueue_style( 'core', 'style.css', false ); 
+}
+
+function themeslug_enqueue_script() {
+	wp_enqueue_script( 'my-js', 'filename.js', false );
+}
+
+add_action( 'wp_enqueue_scripts', 'themeslug_enqueue_style' );
+add_action( 'wp_enqueue_scripts', 'themeslug_enqueue_script' );
+</pre></code>
+
+To make a theme compatible with child themes, you can use functions to determine the correct path to the core stylesheets ( without using @import in the CSS ):
+
+<code><pre>
+function themeslug_enqueue_style() {
+    if ( is_child_theme() ) {
+        // load parent stylesheet first if this is a child theme
+	wp_enqueue_style( 'parent-stylesheet', trailingslashit( get_template_directory_uri() ) . 'style.css', false );
+    }
+    // load active theme stylesheet in both cases
+    wp_enqueue_style( 'theme-stylesheet', get_stylesheet_uri(), false );
+}
+
+add_action( 'wp_enqueue_scripts', 'themeslug_enqueue_style' );
+
+</pre></code>
+
+== See also ==
+* <code>[[Plugin_API/Action_Reference/admin_enqueue_scripts|admin_enqueue_scripts]]</code> - for enqueuing on admin pages
+* <code>[[Plugin_API/Action_Reference/login_enqueue_scripts|login_enqueue_scripts]]</code> - for enqueuing on the login page
+
+== Resources ==
+* [http://generatewp.com/register_script/ WordPress Script Registration Generator]
+* [http://generatewp.com/register_style/ WordPress Style Registration Generator]
+
+== External Links ==
+* [http://make.wordpress.org/core/2011/12/12/use-wp_enqueue_scripts-not-wp_print_styles-to-enqueue-scripts-and-styles-for-the-frontend/ Use wp_enqueue_scripts() not wp_print_styles()]
+
+== Related ==
+{{Enqueue Functions Related}}
+
+[[Category:Actions]]

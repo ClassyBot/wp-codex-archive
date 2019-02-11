@@ -1,0 +1,81 @@
+{{Languages|
+{{en|Function Reference/wp_generate_attachment_metadata}}
+{{ja|関数リファレンス/wp_generate_attachment_metadata}}
+}}
+== Description ==
+This function generates metadata for an image attachment.  It also creates a thumbnail and other intermediate sizes of the image attachment based on the sizes defined on the [[Settings_Media_Screen]].
+
+== Usage ==
+%%% <?php wp_generate_attachment_metadata( $attachment_id, $file ); ?> %%%
+
+== Parameters ==
+{{Parameter|$attachment_id|int|Attachment Id to process.}}
+{{Parameter|$file|string|Location of the file on the server. Use absolute path and not the URI of the file. The file MUST be in the uploads directory. See [[Function_Reference/wp_upload_dir|wp_upload_dir()]]}}
+
+== Return Values ==
+; <tt>(array)</tt> : attachment metadata in the format required by [[Function_Reference/wp_update_attachment_metadata|wp_update_attachment_metadata()]]
+
+The elements returned in the array are:
+
+; <tt>["width"]</tt> : (''string'') Horizontal size of image attachment, in pixels.
+; <tt>["height"]</tt> : (''string'') Vertical size of image attachment, in pixels.
+; <tt>["file"]</tt> : (''string'') Path to image attachment, relative to the currently configured uploads directory.
+; <tt>["hwstring_small"]</tt> : (''string'') Height/width string for HTML img tag used to display the Small size of this image.<br />For example: <tt>height='96' width='126'</tt>
+; <tt>["sizes"]["thumbnail"]["file"]</tt> : (''string'') File name of Thumbnail-sized copy of image attachment.
+; <tt>["sizes"]["thumbnail"]["width"]</tt> : (''string'') Horizontal size of Thumbnail-sized copy of image attachment, in pixels.
+; <tt>["sizes"]["thumbnail"]["height"]</tt> : (''string'') Vertical size of Thumbnail-sized copy of image attachment, in pixels.
+; <tt>["sizes"]["medium"]</tt> : (''array'') Same three elements as <tt>["sizes"]["thumbnail"]</tt> but for Medium-sized copy of image attachment.
+; <tt>["sizes"]["large"]</tt> : (''array'') Same three elements as <tt>["sizes"]["thumbnail"]</tt> but for Large-sized copy of image attachment.
+; <tt>["sizes"]["post-thumbnail"]</tt> : (''array'') Same three elements as <tt>["sizes"]["thumbnail"]</tt> but for Post Thumbnail-sized copy of image attachment.
+; <tt>["sizes"]["large-feature"]</tt> : (''array'') Same three elements as <tt>["sizes"]["thumbnail"]</tt> but for Large Feature-sized copy of image attachment.
+; <tt>["sizes"]["small-feature"]</tt> : (''array'') Same three elements as <tt>["sizes"]["thumbnail"]</tt> but for Small Feature-sized copy of image attachment.
+; <tt>["image_meta"]</tt> : (''array'') Image attachment Metadata returned by [[Function_Reference/wp_read_image_metadata#Return_Values|wp_read_image_metadata()]]
+
+== Example ==
+To generate attachment metadata for attachment with parent post ID 37:
+<pre>
+<?php
+  $attach_id = wp_insert_attachment( $attachment, $filename, 37 );
+  $attach_data = wp_generate_attachment_metadata( $attach_id, $filename );
+  wp_update_attachment_metadata( $attach_id,  $attach_data );
+?>
+</pre>
+
+== Notes ==
+This function can be used to regenerate thumbnail and intermediate sizes of the image after changes have been made on the [[Settings_Media_Screen]] but it does not check or delete intermediate sizes it previously created for the same image.
+
+Thumbnail and intermediate sizes of the image, and ["sizes"] elements in the array returned by this function, are only generated when the intermediate size is smaller than the size of the image.
+
+The function should be used in conjunction with [[Function_Reference/wp_update_attachment_metadata|wp_update_attachment_metadata()]].
+
+If this function is undefined in the environment where it is to be used, such as within a Shortcode, use the include function: 
+<pre>
+<?php 
+if ( ! function_exists( 'wp_crop_image' ) ) {
+	include( ABSPATH . 'wp-admin/includes/image.php' );
+}
+?>
+</pre>
+
+== Source File ==
+<tt>wp_generate_attachment_metadata()</tt> is located in
+{{Trac|wp-admin/includes/image.php|tags/3.8.1|72}}.
+
+== Related ==
+[[Function Reference/wp_update_attachment_metadata|wp_update_attachment_metadata()]],
+[[Function Reference/wp_get_attachment_metadata|wp_get_attachment_metadata()]],
+[[Function Reference/wp_read_image_metadata|wp_read_image_metadata()]],
+[[Function Reference/wp_get_attachment_image|wp_get_attachment_image()]],
+[[Function Reference/wp_get_attachment_image_src|wp_get_attachment_image_src()]],
+[[Function Reference/wp_get_attachment_thumb_file|wp_get_attachment_thumb_file()]],
+[[Function Reference/wp_get_attachment_thumb_url|wp_get_attachment_thumb_url()]],
+[[Function Reference/wp_attachment_is_image|wp_attachment_is_image()]],
+[[Function Reference/wp_insert_attachment|wp_insert_attachment()]],
+[[Function Reference/wp_delete_attachment|wp_delete_attachment()]],
+[[Function Reference/wp_get_attachment_link|wp_get_attachment_link()]],
+[[Function Reference/wp_get_attachment_url|wp_get_attachment_url()]],
+[[Function Reference/is_attachment|is_attachment()]],
+[[Function Reference/wp_insert_post|wp_insert_post()]]
+
+[[Category:Functions]]
+[[Category:Attachments]]

@@ -1,0 +1,102 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Parameters"><span class="tocnumber">2</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Examples"><span class="tocnumber">3</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Notes"><span class="tocnumber">4</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Change_Log"><span class="tocnumber">5</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Related"><span class="tocnumber">7</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_mail_content_type&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The default content type for email sent through the <tt><a href="https://codex.wordpress.org/Function_Reference/wp_mail" title="Function Reference/wp mail">wp_mail</a></tt> function is 'text/plain' which does not allow using HTML. However, you can use the <tt>wp_mail_content_type</tt> filter to change the default content type of the email.
+</p><p>In general, content type is going to be 'text/plain' as the default, or 'text/html' for HTML email; but other MIME types are possible.
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_mail_content_type&amp;action=edit&amp;section=2" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$content_type</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The email content type
+<dl><dd> Default: text/plain</dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_mail_content_type&amp;action=edit&amp;section=3" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This example will change the default content (mime) type for the <tt>wp_mail()</tt> function to 'text/html':
+</p>
+<pre>add_filter( 'wp_mail_content_type', 'set_content_type' );
+function set_content_type( $content_type ) {
+	return 'text/html';
+}</pre>
+<p>It is not necessary to call another method if you can use anonymous functions (PHP 5.3.0+): 
+</p>
+<pre>add_filter( 'wp_mail_content_type', function( $content_type ) {
+	return 'text/html';
+});</pre>
+<p>You could use different MIME types for different purposes by building some conditional logic into your filter:
+</p>
+<pre>add_filter( 'wp_mail_content_type', 'my_mail_content_type' );
+function my_mail_content_type( $content_type ) {
+
+    if ( $some_condition ) {
+        return 'multipart/mixed';
+    } else {
+        return 'text/plain';
+    }
+}</pre>
+<p>If you change the content type to `text/html` for all system emails this will cause problems with your password reset emails. Consider also filtering `retrieve_password_message` if you want to force all system emails to use HTML:
+</p>
+<pre>// adding support for html emails
+add_filter( 'wp_mail_content_type','mycustom_set_content_type' );
+function mycustom_set_content_type() {
+        return "text/html";
+}
+
+// also filter the password reset email for compatibility with the HTML format
+add_filter( 'retrieve_password_message', 'mycustom_retrieve_password_message', 10, 1 );
+function mycustom_retrieve_password_message( $message ) {
+        $message = str_replace('&lt;','',$message);
+        $message = str_replace('&gt;','',$message);
+        $message = str_replace("\n",'&lt;br&gt;',$message);
+        return $message;
+}</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_mail_content_type&amp;action=edit&amp;section=4" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>While there are other MIME types available, plain text and HTML are the most common.
+</p><p>If you are looking for a way to embed images in emails sent from via <tt>wp_mail()</tt>, such as a logo included in a signature, you need to send an HTML formatted email.  You will need the <tt>wp_mail_content_type</tt> filter to set that up.
+</p><p>Setting the default to "text/html" can cause problems with default WordPress emails such as password reset.  Line breaks will not appear and Gmail will strip out the reset link.  See <a rel="nofollow" class="external free" href="https://core.trac.wordpress.org/ticket/21095">https://core.trac.wordpress.org/ticket/21095</a> for more info.
+</p>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_mail_content_type&amp;action=edit&amp;section=5" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_2.3" title="Version 2.3">Version 2.3</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_mail_content_type&amp;action=edit&amp;section=6" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>wp_mail_content_type</code> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/pluggable.php#L0">wp-includes/pluggable.php</a></code>
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/wp_mail_content_type&amp;action=edit&amp;section=7" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_mail" title="Function Reference/wp mail">wp_mail()</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/wp_mail" title="Plugin API/Filter Reference/wp mail">wp_mail</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/wp_mail_from" title="Plugin API/Filter Reference/wp mail from">wp_mail_from</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/wp_mail_from_name" title="Plugin API/Filter Reference/wp mail from name">wp_mail_from_name</a></li>
+<li> Filter: <strong class="selflink">wp_mail_content_type</strong></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/wp_mail_charset" title="Plugin API/Filter Reference/wp mail charset">wp_mail_charset</a></li>
+<li> Action: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/phpmailer_init" title="Plugin API/Action Reference/phpmailer init">phpmailer_init</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004109
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 91/1000000
+Preprocessor generated node count: 285/1000000
+Post‐expand include size: 759/2097152 bytes
+Template argument size: 115/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    4.777      1 - -total
+ 42.94%    2.051      1 - Template:Trac
+ 28.97%    1.384      1 - Template:Parameter
+ 18.05%    0.862      1 - Template:Email_Tags
+ 17.06%    0.815      1 - Template:CurrentVersion
+-->

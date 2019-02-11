@@ -1,0 +1,482 @@
+{{Languages|
+{{bn|থিম ডেভলপমেন্ট}}
+{{en|Theme Development}}
+{{es|Desarrollo de Temas}}
+{{ja|テーマの作成}}
+{{ko|Theme Development}}
+{{pt-br|Desenvolvimento de Temas}}
+{{ru|Создание тем}}
+{{th|Theme Development}}
+{{zh-cn|主题开发}}
+{{zh-tw|主題開發}}
+}}
+
+__TOC__
+
+本文將介紹如何開發、設計 WordPress 主題。如果您先了解更多關於安裝與使用主題的部分，，請參閱[[Using Themes|使用佈景主題]]。本文的內容與[[Using Themes|使用佈景主題]]不同，因為這裡所討論的是透過編寫程式碼來建立專屬您的主題這樣的技術內容，而非如何去開啟主題或者是告訴您哪裡可以獲得新主題。
+
+==為什麼要開發 WordPress 主題==
+
+WordPress 布景主題是由一系列的檔案互相配合，構成一個富有美感以及實用性的 WordPress 網站。每個主題不盡相同，這也提供了站長能立即變更網站樣式的多樣化選擇。
+
+您可能也想試著製作一個布景主題給自己用、給客戶的案子用，或是[[Theme_Review|提交到WordPress佈景主題目錄]]。那麼為什麼您要自己動手做布景主題呢？
+
+* 您的 WordPress 網站會顯得獨一無二。
+* 利用[[Stepping Into Templates|範本]]、[[zh-tw:範本標籤|範本標籤]]，以及 [[The Loop in Action| WordPress 迴圈]] 以便產生不同的效果。
+* 提供另類的功能，例如[[Category Templates|分類頁面]]與搜尋結果網頁。
+* 快速在兩種網站佈局之間切換，或者利用 [[zh-tw:外掛|主題或樣式切換器]] 來變更網站的外觀。
+
+
+WordPress 主題也有很多優點。
+
+* WordPress 主題將 CSS 樣式表與[[Stepping Into Templates|範本檔]]與系統檔獨立出來，因此在升級部落格時就不會搞壞了您的主題。
+* 您可以自由地定制主題風格以及功能。
+* 您可以迅速地改變 WordPress 網站的版面配置以及樣式設計。
+* 您甚至不必深入理解 HTML、CSS 以及 PHP 等等就可以製作一個美麗的主題。
+
+為什麼要自己製作主題呢？這個問題比較重要。
+
+* 這是一個學習 CSS、HTML 以及 PHP 的好機會。
+* 如此一來可以累積您的 CSS、HTML 以及 PHP 經驗。
+* 極具創意。
+* 有趣（大多數情況下）。
+* 如果您 [[Designing Themes for Public_Release|公開主題給大眾使用]]，我相信您會非常愉快，因為您 [[Contributing to WordPress|為 WordPress 社群做出了貢獻]]（好吧，可以去炫耀一下了。）
+
+== 主題開發標準 ==
+
+WordPress 主題應該按照如下標準開發：
+
+* 使用結構良好以及沒有錯誤的 PHP ，再加上有效的HTML 。請參閱 [[WordPress Coding Standards|WordPress 程式碼標準(英文)]].
+* 使用簡潔、有效的 CSS。 [[CSS Coding Standards|CSS 程式碼標準(英文)]].
+* 遵循[[Site Design and Layout|網站設計以及版面配置(英文)]] 中的設計指南
+
+===剖析主題===
+
+WordPress 主題放在 <tt>wp-content/themes/</tt> 。主題的子資料夾中包含了主題的樣式表檔案、範本檔，以及選擇性功能檔案(<tt>functions.php</tt>) 、JavaScript 檔案以及圖片。例如：一個名叫「taiwan」的主題會放在 <tt>wp-content/themes/taiwan/</tt> 資料夾中。請避免使用數字來為主題命名，因為這可能會導致該主題不在可用主題列表中顯示。
+
+新安裝的 WordPress 包含了預設的主題。請仔細看一下預設主題中檔案，這樣您才會更加瞭解如何建立您自己的主題。
+
+關於視覺指南的部分，請參考[http://yoast.com/wordpress-theme-anatomy/ infographic on WordPress Theme Anatomy(英文)]。
+
+除了圖片和 JavaScript 之外，WordPress 主題通常會由三種類型的檔案構成。
+
+# <tt>style.css</tt> ，也就是樣式表，控制著整個網站網頁的呈現方式（視覺設計以及版面配置）。
+# [[Stepping Into Templates|WordPress 範本檔(英文)]]控制著網站要如何將 WordPress 資料庫中的資訊顯示在您的網頁中。
+# 選擇性功能檔案(<tt>functions.php</tt>) 為 WordPress 主題檔案中的一部分。
+
+接著，讓我們一個個瞭解這些檔案。
+
+==== 子主題 ====
+
+子主題可能是最簡單的主題，只包含了一個 <tt>style.css</tt> 檔案，加上任一圖片。這是可行的，因為它是另一個上級主題的「子」主題。
+
+關於子主題的詳細指南，請參考[[Child Themes|子主題(英文)]]。
+<!--這是英文文件中的註釋，我就不翻譯了，請之後的編輯者也幫忙一下： We need to improve the Child Theme rather than link to an external site like this: http://op111.net/53 this tutorial by op111 -->
+
+===主題CSS===
+CSS 樣式表中除了提供主題的樣式設計，<tt>style.css</tt> 中也會以註釋的方式寫出該主題的詳細資訊。
+樣式表'''''必須'''''以註釋的方式提供該主題的詳細資訊。
+兩個主題的[[File Header|檔案標頭]]中'''''不可以有相同的資訊'''''，因為這會導致[[Administration_Panels#Design_-_Change_the_Look_of_your_Blog|主題選擇]]出問題。
+如果您是透過複製一個現有的主題來製作的，您必須先更改這些資訊。
+
+下面是一個範例主題「Twenty Thirteen」的樣式表中開始的幾行，叫做樣式表標頭：
+
+<pre>
+/*
+Theme Name: Twenty Thirteen
+Theme URI: http://wordpress.org/themes/twentythirteen
+Author: the WordPress team
+Author URI: http://wordpress.org/
+Description: The 2013 theme for WordPress takes us back to the blog, featuring a full range of post formats, each displayed beautifully in their own unique way. Design details abound, starting with a vibrant color scheme and matching header images, beautiful typography and icons, and a flexible layout that looks great on any device, big or small.
+Version: 1.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Tags: black, brown, orange, tan, white, yellow, light, one-column, two-columns, right-sidebar, flexible-width, custom-header, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, translation-ready
+Text Domain: twentythirteen
+
+This theme, like WordPress, is licensed under the GPL.
+Use it to make something cool, have fun, and share what you've learned with others.
+*/
+</pre>
+
+''註：作者名稱建議與 wordpress.org 的使用者名稱相同，但您也可以使用真實姓名。這是由主題作者自己選擇的。''
+
+請注意以可用標籤列表中的項目來描述該主題。這可以讓使用者通過標籤篩選器來找到您的主題。這個是完整的[http://wordpress.org/extend/themes/tag-filter/ 可用標籤列表]。
+
+'''''<tt>style.css</tt> 的標頭必須要註釋掉，這樣才能使 WordPress 知道這是一個主題'''''，並在[[Administration_Panels|管理面板]]中的 [[Administration_Panels#Design_-_Change_the_Look_of_your_Blog|設計]]>[[Administration_Panels#Themes|主題]] 中將其與其它已安裝的主題一起顯示為可用的選項。
+
+==== 樣式表指南 ====
+
+* 揮灑創意地撰寫 CSS 的時候請不要忘了[[CSS_Coding_Standards|CSS 程式碼標準(英文)]]
+* 盡可能使用有效的 CSS 。作為例外，也可以使用一些遵守 CSS3 標準的首碼。
+* 儘量不要用 CSS hack。但是通常一些特定的瀏覽器例外，這發生在 IE 身上，可以的話最好將使用 CSS hack 的部分區分出來甚至獨立成單一檔案。
+* 所有可能的 HTML 元素都應該由主題來指定樣式，文章、頁面的內容還有評論的內容都一樣。
+** Tables， captions， images， lists， block quotes， et cetera。
+* 在這裡強烈地建議新增一些列印模式*的樣式。
+** 您可以包含列印用的樣式表 <tt>media="print"</tt> 或者將您的主樣式表新增到列印媒體區塊。
+
+（譯者註：原文Print-friendly 就是指在列印的時候能夠只列印出必要資訊，而忽略掉其它不必要的元素，例如我們列印您現在看的這個文件，右邊的Views ，Toolbox 這類的以及網頁頂部導航列的部分都不印出，這就叫Print-friendly 。）
+
+=== 函數檔 ===
+
+一個主題可以使用 functions 檔，位於主題的子目錄，檔名為 <tt>functions.php</tt>。該檔案就如同[[Plugins|擴充套件]]一般，如果其位於您現在使用的主題中，主題初始化時就會自動將其加載（無論管理頁面或外部頁面）。這個檔案有這些作用：
+* 啟用一些諸如 [[Sidebars|邊欄]]、[[Navigation Menus|導航列選單]]、[[Post Thumbnails|文章縮圖]]、[[Post Formats|文章功能]]、[[Custom Headers|自定頭部]]、[[Custom Backgrounds|自定背景]] 與其它的 [[Theme Features|主題功能]]
+* 定義一些在您的主題中有數個樣板檔會使用的函數。
+* 設置一個選項選單，讓站長可以自定顏色、樣式，與該主題的其他特色。
+
+
+預設的 WordPress 主題包含一個 <tt>functions.php</tt> 檔案，其定義了眾多這樣的功能，所以您可能會想參考它。既然基本上我們可以把 <tt>functions.php</tt> 看作一個擴充套件，因此[[Function_Reference|函數參考]]可以讓您更瞭解該函數以及如何使用。
+
+<!--Translated-->
+
+'''Note for deciding when to add functions to ''functions.php'' or to a specific plugin:'''
+You may find that you need the same function to be available to more than one parent theme. If that is the case, the function should be created in a [[Plugins|plugin]] instead of a functions.php for the specific theme. This can include template tags and other specific functions. Functions contained in plugins will be seen by all themes.
+
+=== 範本檔 ===
+
+[[Stepping Into Templates|範本]] 是一些PHP檔，他可以輸出HTML代碼呈獻給流覽器，決定著主題的外觀.下麵讓我們來看一下主題的範本.
+
+WordPress允許為你的網站定義不同的範本.他雖然不是必需的，但是這些不同的範本為你的網站添上一筆. 範本是根據[[Template Hierarchy]]的，由一個具體的主題決定.
+
+作為一個主題開發者，你可以自由決定如何定制你的範本.比如說，極端情況下， 你甚至可以僅僅使用一個檔<tt>index.php</tt>作為範本檔，''所有'' 頁面都會使用這個範本.更多的情況是，使用不同的範本檔產生不同的結果，以達到最大定制.
+
+==== 範本檔列表 ====
+
+這裏是被 WordPress 確認的佈景主題檔列表。當然，你的佈景主題可以包含任何樣式表、圖像或者檔案。記住，下面列出的檔案對 WordPress 具有特殊的意義 -- 點擊[[Template Hierarchy]] 查看具體情況.
+
+;<tt>style.css</tt>: 主樣式表，這個檔 '''必須''' 位於你的主題裏面，而且必須在頭部注釋處寫清楚你的主題的資訊。
+;<tt>rtl.css</tt>:  rtl stylesheet. 如果網站的閱讀方向是自右向左的，他會自動被包含進來. 你可以使用一個插件來生成這個檔[http://wordpress.org/extend/plugins/rtler/ the RTLer].
+;<tt>index.php</tt>: 主範本。如果你的主題使用自己的範本， index.php 是必須要有的。
+;<tt>comments.php</tt>: 評論（讀者回應）範本。
+;<tt>front-page.php</tt>: The front page template， it is only used if you use a [[Creating a Static Front Page|static front page]].
+;<tt>home.php</tt>: 主頁範本， which is the front page by default. If you use a [[Creating a Static Front Page|static front page]] this is the template for the page with the latest posts.
+;<tt>single.php</tt>: The single post template. Used when a single post is queried. For this and all other query templates， <tt>index.php</tt> is used if the query template is not present.
+;<tt>single-<post-type>.php</tt>: The single post template used when a single post from a custom post type is queried. For example， <tt>single-books.php</tt> would be used for displaying single posts from the custom post type <tt>books</tt>. <tt>index.php</tt> is used if the query template for the custom post type is not present.
+;<tt>page.php</tt>: The page template. Used when an individual [[Pages|Page]] is queried.
+;<tt>category.php</tt>: The [[Category Templates|category template]]. Used when a category is queried.
+;<tt>tag.php</tt>: The [[Tag Templates|tag template]]. Used when a tag is queried.
+;<tt>taxonomy.php</tt>: The [[Taxonomy Templates|term template]]. Used when a term in a custom taxonomy is queried.
+;<tt>author.php</tt>: The [[Author Templates|author template]]. Used when an author is queried.
+;<tt>date.php</tt>: The date/time template. Used when a date or time is queried. Year， month， day， hour， minute， second.
+;<tt>archive.php</tt>: The archive template. Used when a category， author， or date is queried. Note that this template will be overridden by <tt>category.php</tt>， <tt>author.php</tt>， and <tt>date.php</tt> for their respective query types.
+;<tt>search.php</tt>: The search results template. Used when a search is performed.
+;<tt>attachment.php</tt>: Attachment template. Used when viewing a single attachment.
+;<tt>image.php</tt>: Image attachment template. Used when viewing a single image attachment. If not present， attachment.php will be used.
+;<tt>404.php</tt>: '''[[Creating_an_Error_404_Page|404 未找到]]''' 範本。當WordPress 無法查找到匹配查詢的日誌或頁面時，使用 404.php 檔。
+
+這些檔在 WordPress 中有特殊的意義，他們在合適的情況下代替<tt>index.php</tt> [[Template Hierarchy]]， and when the corresponding [[Conditional Tags|Conditional Tag]] returns true. For example， if only a single post is being displayed， the <tt>[[Conditional Tags#A Single Post Page|is_single()]]</tt> function returns 'true'， and， if there is a <tt>single.php</tt> file in the active Theme， that template is used to generate the page.
+
+==== 基本範本 ====
+
+在最簡單的情況下，一個WordPress主題由兩個檔構成：
+
+* <tt>style.css</tt>
+* <tt>index.php</tt>
+
+這些檔都位於主題目錄. 這<tt>index.php</tt> [[Stepping Into Templates|範本]] 是非常靈活的.他可以用來包含所有的引用 header， sidebar， footer， content， categories， archives， search， error， 和其他在WordPress產生的檔.
+
+或者，他也可以模組化，使用單獨的檔分擔工作.如果你沒有提供其他的範本檔，WordPress 會使用默認檔.比如說，如果你沒有提供<tt>comments.php</tt> 檔， WordPress會自動使用 <tt>wp-comments.php</tt> 範本檔 [[Template Hierarchy]]. (Note: As of version 3.0， the default files aren't guaranteed to be present or to be the same as they have been. It's much safer to supply your own template files.)
+
+典型的範本檔包括：
+
+* <tt>comments.php</tt>
+* <tt>footer.php</tt>
+* <tt>header.php</tt>
+* <tt>sidebar.php</tt>
+
+使用這些範本檔，你可以把這些檔嵌入到<tt>index.php</tt> 中，最後生成的檔裏.
+
+* 包含header， 使用<tt>[[Function Reference/get header|get_header()]]</tt>.
+* 包含sidebar， use <tt>[[Function Reference/get sidebar|get_sidebar()]]</tt>.
+* 包含 footer， use <tt>[[Function Reference/get footer|get_footer()]]</tt>.
+* 包含 search form， use <tt>[[Function Reference/get_search_form|get_search_form()]]</tt>.
+
+''include'' 用法:
+
+<pre>
+<?php get_sidebar(); ?>
+
+<?php get_footer(); ?>
+</pre>
+
+關於更多的如何利用各種範本，如何產生不同的資訊， 請閱讀 [[Templates]] 文檔.
+
+==== Query-based Template Files ====
+
+WordPress can load different [[Stepping Into Templates|Templates]] for different ''query'' types. There are two ways to do this: as part of the built-in [[Template Hierarchy]]， and through the use of [[Conditional Tags]] within [[The Loop]] of a template file.
+
+To use the [[Template Hierarchy]]， you basically need to provide special-purpose Template files， which will automatically be used to override <tt>index.php</tt>. For instance， if your Theme provides a template called <tt>category.php</tt> and a category is being queried， <tt>category.php</tt> will be loaded instead of <tt>index.php</tt>. If <tt>category.php</tt> is not present， <tt>index.php</tt> is used as usual.
+
+You can get even more specific in the Template Hierarchy by providing a file called， for instance， <tt>category-6.php</tt> -- this file will be used rather than <tt>category.php</tt> when generating the page for the category whose ID number is 6. (You can find category ID numbers in [[Administration_Panels#Manage_-_Change_your_content|Manage]] > [[Administration_Panels#Categories|Categories]] if you are logged in as the site administrator in WordPress version 2.3 and below. In WordPress 2.5 the ID column was removed from the Admin panels. You can locate the category id by clicking 'Edit Category' and looking on the URL address bar for the cat_ID value. It will look '...categories.php?action=edit&cat_ID=3' where '3' is the category id). For a more detailed look at how this process works， see [[Category Templates]].
+
+If your Theme needs to have even more control over which Template files are used than what is provided in the [[Template Hierarchy]]， you can use [[Conditional Tags]]. The Conditional Tag basically checks to see if some particular condition is true， within the [[The_Loop_in_Action|WordPress Loop]]， and then you can load a particular template， or put some particular text on the screen， based on that condition.
+
+For example， to generate a distinctive stylesheet in a post only found within a specific category， the code might look like this:
+
+<pre>
+<?php
+if ( is_category( '9' ) ) {
+    get_template_part( 'single2' ); // looking for posts in category with ID of '9'
+} else {
+    get_template_part( 'single1' ); // put this on every other category post
+}
+?>
+</pre>
+
+Or， using a query， it might look like this:
+
+<pre>
+<?php
+$post = $wp_query->post;
+if ( in_category( '9' ) ) {
+    get_template_part( 'single2' );
+} else {
+    get_template_part( 'single1' );
+}
+?>
+</pre>
+
+In either case， this example code will cause different templates to be used depending on the category of the particular post being displayed. Query conditions are not limited to categories， however， see the [[Conditional Tags]] article to look at all the options.
+
+==== 定義範本 ====
+
+It is possible to use the WordPress plugin system to define additional templates that are shown based on your own custom criteria. This advanced feature can be accomplished using the <tt>template_redirect</tt> [[Plugin API#Current Hooks For Actions|action hook]]. More information about creating plugins can be found in the [[Plugin API]] reference.
+
+==== Including Template Files ====
+
+To load another template (other than header， sidebar， footer， which have predefined included commands like <tt>[[Function Reference/get header|get_header()]]</tt>) into a template， you can use <tt>[[Function_Reference/get_template_part|get_template_part()]]</tt>. This makes it easy for a Theme to reuse sections of code.
+
+==== Referencing Files From a Template ====
+
+When referencing other files within the same Theme， avoid hard-coded URIs and file paths. Instead reference the URIs and file paths with <tt>[[Function_Reference/bloginfo|bloginfo()]]</tt>: see [[Theme_Development#Referencing_Files_From_a_Template|Referencing Files From a Template]].
+
+Note that URIs that are used in the stylesheet are relative to the stylesheet， not the page that references the stylesheet. For example， if you include an <tt>images/</tt> directory in your Theme， you need only specify this relative directory in the CSS， like so: 
+
+<pre>
+h1 {
+    background-image: url(images/my-background.jpg);
+}
+</pre>
+
+==== Plugin API Hooks ====
+
+When developing Themes， it's good to keep in mind that your Theme should be set up so that it can work well with any WordPress plugins users might decide to install. Plugins add functionality to WordPress via "Action Hooks" (see [[Plugin API]] for more information).
+
+Most Action Hooks are within the core PHP code of WordPress， so your Theme does not have to have any special tags for them to work. But a few Action Hooks do need to be present in your Theme， in order for Plugins to display information directly in your header， footer， sidebar， or in the page body. Here is a list of the special Action Hook Template Tags you need to include:
+
+; wp_head()
+: Goes in the <tt>&lt;head&gt;</tt> element of a theme， in <tt>header.php</tt>. Example plugin use: add JavaScript code. 
+
+; wp_footer()
+: Goes in <tt>footer.php</tt>， just before the closing <tt></body></tt> tag. Example plugin use: insert PHP code that needs to run after everything else， at the bottom of the footer. Very commonly used to insert web statistics code， such as Google Analytics.
+
+; wp_meta()
+: Typically goes in the <tt><nowiki><li>Meta</li></nowiki></tt> section of a Theme's menu or sidebar; <tt>sidebar.php</tt> template. Example plugin use: include a rotating advertisement or a tag cloud.
+
+; comment_form()
+: Goes in <tt>comments.php</tt> directly before the comment form's closing tag (<tt<nowiki></form></nowiki></tt>). Example plugin use: display a comment preview. As of [[Version_3.0|WordPress 3.0]]， you should use the default comment form instead， see [[Function_Reference/comment_form|comment_form()]].
+
+For a real world usage example， you'll find these plugin hooks included in the default Theme's templates.
+
+==== Untrusted Data ====
+
+You should escape dynamically generated content in your Theme， especially content that is output in HTML attributes. As noted in [[WordPress_Coding_Standards|WordPress Coding Standards]]， text that goes into attributes should be run through <tt>[[Function Reference/esc_attr|esc_attr]]</tt> so that single or double quotes do not end the attribute value and invalidate the XHTML and cause a security issue. Common places to check are <tt>title</tt>， <tt>alt</tt>， and <tt>value</tt> attributes.
+
+In a few cases there might already be a template tag for common cases where safe output is needed. One such case involves the "title" attribute when used with <tt>the_title()</tt> for post and page titles. To avoid a security vulnerability， use <tt>the_title_attribute()</tt> instead. Here's an example of correct escaping for the <tt>title</tt> attribute in a post title link when using translatable text:
+<pre><?php echo esc_attr( sprintf( __( 'Permanent Link to %s'， 'theme-name' )， the_title_attribute( 'echo=0' ) ) ); ?></pre>
+
+Replace deprecated escape calls with the correct calls: <tt>wp_specialchars</tt>， <tt>htmlspecialchar</tt> with <tt>esc_html</tt>， <tt>clean_url</tt> with <tt>esc_url</tt>， and <tt>attribute_escape</tt> with <tt>esc_attr</tt>. See [[Data_Validation#Attribute_Nodes|Data_Validation]] for more.
+
+==== 翻譯 / i18n 支援 ====
+
+為了確保本地化翻譯能順利進行，請使用 <tt>[[I18n_for_WordPress_Developers|gettext]]</tt> 函式包裹範本檔中需要翻譯的文字。這使翻譯檔可以更容易介接，並且更容易將標籤、標題與其他佈景主題內的文字翻譯成網站當前語言。更多資料請參閱 [[WordPress_Localization]] [[I18n_for_WordPress_Developers|i18n for WordPress Developers]].
+
+==== 主題的 class  ====
+
+使用以下標籤標籤增加 WordPress系統產生的 class 屬性， body，post 和 comment 標籤。 關於post class，只能位於[[The Loop]].
+
+* [[Template Tags/body class|body_class()]]
+* [[Template Tags/post class|post_class()]]
+* [[Template Tags/comment class|comment_class()]]
+
+=== 範本檔清單 ===
+
+當開發一個主題的時候，檢查你的範本檔是不是遵守了這些標準。
+
+==== Head 檔(header.php) ====
+
+* 使用合適的 DOCTYPE 聲明。
+* 開始的 <tt><html></tt> 標籤應該包含 <tt>[[Function_Reference/language_attributes|language_attributes()]]</tt>.
+* "content-type" meta 元素應該位於最前面，包括 title 標籤。
+* 使用 <tt>[[Function_Reference/bloginfo|bloginfo()]]</tt> 獲得標題和博客描述。
+* 使用 [[Function_Reference/add_theme_support#Feed_Links|automatic feed links]] 增加 FEED 輸出。
+* 增加 <tt>[[Function_Reference/wp_head|wp_head()]]</tt>. 插件會使用這個鉤子增加他們的腳本樣式表和一些其他的功能。
+
+這裏是一份格式正確的 HTML5 頭部:
+
+<pre>
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>" />
+<title><?php wp_title(); ?> <?php bloginfo( 'name' ); ?></title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="stylesheet" href="<?php bloginfo( 'stylesheet_url' ); ?>" type="text/css" media="screen" />
+<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>" />
+<?php if ( is_singular() && get_option( 'thread_comments' ) ) wp_enqueue_script( 'comment-reply' ); ?>
+<?php wp_head(); ?>
+</head>
+</pre>
+
+==== 導航菜單 (header.php) ====
+
+* 主題得主導航菜單應該支持自定義菜單<tt>[[Function_Reference/wp_nav_menu|wp_nav_menu()]]</tt>.
+** 菜單應該支持長的菜單名和大量的列表。這些不應該破壞主題的外觀。
+** 次級菜單應該正確的顯示。如果可能的話，使二級菜單支持下拉。下拉菜單允許顯示菜單的深度而不只是頂級菜單。
+
+==== 小工具 (sidebar.php) ====
+
+* 主題應該盡可能的支持小工具的使用。 所有看起來像是一個小工具的地方（標籤雲，鏈接表，分類目錄）或者可以放置小工具的地方(sidebar)應該允許使用小工具。
+* 當有小工具從外觀>小工具啟動時，小工具區域默認顯示的內容應該消失。
+
+==== 頁面底部 (footer.php) ====
+
+* 在<tt>body</tt> 前面，緊緊挨著<tt>body</tt> 調用 <tt>wp_footer()</tt>
+比如：
+<pre>
+<?php wp_footer(); ?>
+</body>
+</html>
+</pre>
+
+==== 索引 (index.php) ====
+
+* 以全文或者摘要的形式顯示一列文章。根據情況選用使用或者其他的。
+* 包含 <tt>[[Function_Reference/wp_link_pages|wp_link_pages()]]</tt> 來支持文章內部分頁。
+
+==== 歸檔 (archive.php) ====
+
+* 顯示歸檔標題（標籤，分類，作者歸檔）。
+* 以摘要的形式或者全文顯示文章。
+* 包含 <tt>[[Function_Reference/wp_link_pages|wp_link_pages()]]</tt> 來支持文章內部分頁。
+
+==== 頁面 (page.php) ====
+
+*顯示標題和內容。
+* 顯示評論列表和評論框（除非關閉了評論）。
+* 包含 <tt>[[Function_Reference/wp_link_pages|wp_link_pages()]]</tt> 來內部分頁。
+* 元數據，必然標籤，分類目錄，日期，作者不應該被顯示出來。
+
+==== 日誌單獨頁面 (single.php) ====
+
+* 包含 <tt>[[Function_Reference/wp_link_pages|wp_link_pages()]]</tt> 在文章內部產生分頁效果。
+* 顯示標題和內容。
+** 標題應該使用純文本代替指向自己的鏈接。
+* 顯示發表日期。
+** 尊重時間和日期的默認格式，沒必要就別自己設置。（用戶自己設置的是最合適的。）
+** 使用 <tt>the_time( get_option( 'date_format' ) )</tt>獲得輸出的日期和時間格式。
+* 顯示作者名字（如果有的話）。
+* 顯示分類目錄和標籤。
+* 為登陸用戶顯示“編輯”。
+* 顯示評論列表和評論框。
+
+==== 評論 (comments.php) ====
+
+* 作者的評論應該高亮顯示區分。
+* 如果有頭像的話顯示頭像。
+* 支持嵌套評論。
+* 顯示trackbacks/pingbacks。
+
+==== 搜索 (search.php) ====
+
+* 顯示一系列文章的摘要或者全文顯示， 選擇一種合適的方式。
+* 搜索結果頁面顯示搜索輸入的內容。非常簡單但是非常有用，這可以提醒用戶剛才搜索了什麼--尤其是在沒有結果的時候。使用 <tt>the_search_query</tt> 或者 <tt>get_search_query</tt> 顯示或者返回結果。例: <pre><h2><?php printf( __( 'Search Results for: %s' )， '<span>' . get_search_query() . '</span>'); ?></h2></pre>
+*在搜索結果頁面再一次包含搜索框是對用戶非常友好的。使用 <tt>get_search_form()</tt>調用搜索框。
+
+=== JavaScript ===
+
+* JavaScript 代碼應該外部引用。
+* 使用 [[Function_Reference/wp_enqueue_script | wp_enqueue_script]] 引入你的腳本。
+* 直接寫入 HTML 的 JavaScript 應該使用 CDATA 來阻止在老版本的流覽器出錯。
+<pre>
+<script type="text/javascript">
+/* <![CDATA[ */
+// content of your Javascript goes here
+/* ]]> */
+</script>
+</pre>
+
+=== 預覽 ===
+
+為你的主題做一個預覽，並且名字命名為<tt>screenshot.png</tt>，放在主題目錄下。預覽一定是真實的預覽效果，而且是 PNG 或者 JPG 格式的。
+
+=== 主題選項 ===
+
+主題可以自由的包含是否有選項設置頁面。參考 [http://themeshaper.com/sample-theme-options].
+
+當增加選項頁面的時候使用 <tt>edit_theme_options</tt> 而不是 <tt>switch_themes</tt> 選項面板， unless the user actually should be able to switch Themes to be able to use your options panel. WordPress itself uses the <tt>edit_theme_options</tt> capability for menus， background， header， widgets， et cetera. See more at [[Roles_and_Capabilities#Capabilities|Roles and Capabilities]] and [[Adding Administration Menus]].
+
+A note about network mode and Theme options:
+
+If you are using the <tt>edit_themes</tt> capability anywhere in your Theme， and the Theme is running on a network-enabled WordPress install (previously WordPress MU)， be aware that the <tt>edit_themes</tt> capability used for accessing Theme options pages will prevent site admins in a network from seeing the options menu. Use <tt>edit_theme_options</tt> instead.
+
+== 主題測試過程 ==
+
+# 修正 PHP 和 WordPress 錯誤。在你的 <tt>wp-config.php</tt> 檔裏添加下面程式碼來增加調試功能，檢查已廢棄的函式呼叫以及其他 WorePress 相關的錯誤：<tt>define('WP_DEBUG'， true);</tt>。
+參考[[WordPress_Deprecated_Functions_Hook|Deprecated Functions Hook]] 以獲得夠多的資訊。
+# Check template files against [[Theme_Development#Template_File_Checklist|Template File Checklist]] (see above).
+# Do a run-through using the [[Theme Unit Test]].
+# Validate HTML and CSS. See [[Validating a Website]].
+# Check for JavaScript errors.
+# Test in all your target browsers. For example， IE6， IE7， IE8， Safari， Chrome， Opera， and Firefox.
+# Clean up any extraneous comments， debug settings， or TODO items.
+# See [[Theme Review]] if you are publicly releasing the Theme by submitting it to the Themes Directory.
+
+== 資源和參考書 ==
+
+=== 編碼標準 === 
+* [[Know Your Sources]]
+* [[WordPress Coding Standards]]
+* [[CSS Coding Standards]]
+
+=== 主題設計 ===
+* [[Site Design and Layout]]
+
+=== CSS ===
+* [[CSS]]
+* [[CSS Shorthand]]
+* [[CSS#WordPress_Generated_Classes|WordPress Generated Classes]]
+
+=== 範本 ===
+* [[Stepping Into Templates]]
+* [[Templates]]
+* [[Template Hierarchy]]
+* [[Template Tags]]
+* [[The Loop]]
+* [[Conditional Tags]]
+* [[Function Reference]]
+* [[I18n for WordPress Developers]]
+* [[Data Validation]]
+
+=== 測試 ===
+* [[Theme Unit Test]]
+* [[Validating a Website]]
+* [[CSS Fixing Browser Bugs]]
+* [[CSS Troubleshooting]]
+
+=== 發行與提交 ===
+* [[Theme Review|Theme Review Process]]
+
+[[Category:zh-tw:Design and Layout]]
+[[Category:zh-tw:WordPress Development]]
+[[Category:zh-tw:UI Link]]
+
+==教學資源==
+
+以下是有關WordPress主題和範本檔的推薦文章清單：
+
+[http://www.ludou.org/tag/theme-make 主題製作全教程 By Ludou]<br />
+[http://wenku.baidu.com/view/e7d454f69e314332396893a0.html wordpress主題製作教程 By 站長百科]<br />
+[http://fairyfish.net/2007/06/04/so-you-want-to-create-wordpress-themes-huh/ WordPress 主題教程：從零開始製作 WordPress 主題 By 我愛水煮魚]<br />
+[[Category:zh-tw:Design and Layout]]
+[[Category:zh-tw:WordPress Development]]

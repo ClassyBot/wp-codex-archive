@@ -1,0 +1,55 @@
+[[Category:New page created]] 
+
+== Description ==
+<code>WP_Dependencies</code> is a class defined in {{Trac|wp-includes/class.wp-dependencies.php}} that helps process items in an order defined by dependencies (a dependent item is processed later than a dependency). It's an abstract class in that it's intended to be extended, rather than used directly. <code>WP_Dependencies</code> is the base for <code>[[Class Reference/WP_Scripts|WP_Scripts]]</code> and <code>[[Class Reference/WP_Styles|WP_Styles]]</code>, and is a collection of <code>[[Class Reference/_WP_Dependency|_WP_Dependency]]</code>s.
+
+=== Stages ===
+An item goes through various stages of processing as various methods are called:
+<ol>
+ <li>registered: <code>add()</code></li>
+ <li>enqueued: <code>enqueue()</code></li>
+ <li>to_do: <code>all_deps()</code></li>
+ <li>done: <code>do_items()</code></li>
+</ol>
+The <code>query()</code> method can be used to determine whether a given item is in a given stage.
+
+=== Groups ===
+Separate processing runs can be identified by different groups (identified by integers). For example, items output in the document &lt;head&gt; might go in one group, while items output in the footer may go in another. An enqueued item that was processed in a group associated with an earlier run is skipped in later runs. The base <code>WP_Dependencies</code> doesn't create groups on its own; child classes must do this.
+
+== Methods and Properties ==
+
+=== Properties ===
+; $registered : registered items. An item must be registered before it can be processed.
+; $queue : items to process during the next run. Not necessarily in order.
+; $to_do : items to process during the next run, in processing order.
+; $done : items that have already been processed.
+; $args : query string arguments for the items.
+; $groups : (internal) records earliest group each item was processed in.
+; $group : (internal) current group.
+
+=== Methods ===
+; do_item( $handle ) : Process an item. Must be overriden by children. Return TRUE if item was successfully processed.
+; do_items( $handles = false, $group = false ) : process items in <var>$handles</var> (defaults to <var>$queue</var>).
+; all_deps( $handles, $recursion = false, $group = false ) : Recursively builds array of items to process taking dependencies into account. Does NOT catch infinite loops.
+; add( $handle, $src, $deps = array(), $ver = false, $args = null ) : Adds the item only if no item of that name already exists
+; add_data( $handle, $key, $value ) : Adds extra data if an item with the given handle has already been added.
+; get_data( $handle, $key ) : Gets data associated with a certain handle.
+; remove ( $handles ) : Unregister items.
+; enqueue ( $handles ) : Add item to the processing queue.
+; dequeue ( $handles ) : Remove item from the processing queue.
+; query ( $handle, $list = 'registered' ) : Check whether given item is in the given stage (registered, enqueued/queue, to_do, done).
+; set_group ( $handle, $recursion, $group ) : set the group for the given handle and (if not recursing) the current run.
+
+== Examples ==
+
+
+== Change Log ==
+
+Since [[Version 2.6|2.6]].
+
+== Source File ==
+<code>WP_Dependencies</code> is located in {{Trac|wp-includes/class.wp-dependencies.php}}.
+
+{{Class Footer}}
+
+[[Category:Classes]]

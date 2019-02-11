@@ -1,0 +1,87 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Template_Interpolation"><span class="tocnumber">2</span> <span class="toctext">Template Interpolation</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Template_Definition"><span class="tocnumber">3</span> <span class="toctext">Template Definition</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Template_Rendering"><span class="tocnumber">4</span> <span class="toctext">Template Rendering</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Interpolation_Variable"><span class="tocnumber">5</span> <span class="toctext">Interpolation Variable</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Location"><span class="tocnumber">6</span> <span class="toctext">Location</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#External_Resources"><span class="tocnumber">7</span> <span class="toctext">External Resources</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.template&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>wp.template</code> is used to create <a rel="nofollow" class="external text" href="http://underscorejs.org/#template">Underscore.js</a> style <code>template</code> functions that, when executed, generates parametrized HTML for rendering.  It is located in the <a href="https://codex.wordpress.org/Javascript_Reference/wp" title="Javascript Reference/wp">wp</a> scope/namespace.
+</p>
+<h2><span class="mw-headline" id="Template_Interpolation">Template Interpolation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.template&amp;action=edit&amp;section=2" title="Edit section: Template Interpolation">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>WordPress defines its own interpolation tags using the <tt>_.template( options )</tt> to avoid incompatibility in some PHP configurations with <tt>asp_tags</tt> enabled. The WordPress-specific interpolation syntax is inspired by <a rel="nofollow" class="external text" href="https://mustache.github.io/">Mustache</a> templating syntax:
+</p>
+<ul><li> Interpolate (unescaped): <tt>{{{ }}}</tt></li>
+<li> Interpolate (escaped): <tt>{{ }}</tt></li>
+<li> Evaluate: <tt>&lt;# #&gt;</tt></li></ul>
+<h2><span class="mw-headline" id="Template_Definition">Template Definition</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.template&amp;action=edit&amp;section=3" title="Edit section: Template Definition">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>As with the default <code>_.template()</code> usage, you define your templates within a specially formed <tt>&lt;script&gt;</tt> tag, as such:
+</p>
+<code data-lang="html"><pre>
+&lt;script type="text/html" id="tmpl-my-template"&gt;
+   &lt;p&gt;Hello {{{data.name}}}&lt;/p&gt;
+&lt;/script&gt;
+</pre></code>
+<p>The script's type is <tt>text/html</tt> and it has an <tt>id</tt> that must start with <b>tmpl-</b>. Everything after the <b>tmpl</b> is the actual name you would like to use to reference your template later on.
+</p><p>To then access that template from JavaScript at runtime, you pass the name of the template to <code>wp.template()</code>, like this:
+</p>
+<code data-lang="javascript"><pre>
+var template = wp.template('my-template');
+</pre></code>
+<p>This looks for the element with an ID of <b>tmpl-my-template</b> and returns a function to render that template and interpolate all the data fields.
+</p>
+<h2><span class="mw-headline" id="Template_Rendering">Template Rendering</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.template&amp;action=edit&amp;section=4" title="Edit section: Template Rendering">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>wp.template()</code> returns a <b>function</b>, so don't try to attach the result of calling this to an HTML element, or even <code>console.log</code>ging it out. Generally, you will assign the <code>wp.template()</code> result to a variable and then apply that variable (which is a function) with the data you would like to interpolate.
+</p><p>The example below assumes the use of jQuery to insert the result of the rendered template within an HTML element (stored in <tt>$el</tt> in this example).
+</p>
+<code data-lang="javascript"><pre>
+var template = wp.template( 'my-template' );
+$el.html( template( { name: "World" } ) );
+</pre></code>
+<p><tt>$el</tt> now contains "Hello World". The value of the property "name" of the object that was passed as the argument of the template variable gets interpolated (because of the <tt>{{{ }}}</tt> in the template).
+</p>
+<h2><span class="mw-headline" id="Interpolation_Variable">Interpolation Variable</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.template&amp;action=edit&amp;section=5" title="Edit section: Interpolation Variable">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>To match the return structure of wp_send_json_success and wp_send_json_failure, wp_template binds the interpolation variable to the variable <b>data</b>. The implication of this is that you must prefix all your interpolation properties with <b>data</b> in order to avoid the dreaded <b>Uncaught ReferenceError: &lt;property&gt; is not defined</b> error.
+</p>
+<code data-lang="html"><pre>
+&lt;script type="text/html" id="tmpl-my-template"&gt;
+   &lt;p class="this works"&gt;Hello {{{data.name}}}&lt;/p&gt;
+   &lt;p class="this fails"&gt;Goodbye {{{name}}}&lt;/p&gt;
+&lt;/script&gt;
+</pre></code>
+<h2><span class="mw-headline" id="Location">Location</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.template&amp;action=edit&amp;section=6" title="Edit section: Location">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This is defined in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src//wp-includes/js/wp-util.js#L0">/wp-includes/js/wp-util.js</a></code>
+</p>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.template&amp;action=edit&amp;section=7" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://underscorejs.org/#template">Underscore.js</a> - The official Underscore.js templating documentation.</li>
+<li> <a rel="nofollow" class="external text" href="https://lkwdwrd.com/wp-template-js-templates-wp/">wp.template for front end templating in WordPress</a> - Great tutorial by <a rel="nofollow" class="external text" href="https://profiles.wordpress.org/lkwdwrd">Luke Woodward</a></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Javascript_Reference/wp.template&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Javascript_Reference" title="Javascript Reference">Javascript Reference</a> - WordPress Javascript API reference</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004038
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 90/1000000
+Preprocessor generated node count: 206/1000000
+Post‐expand include size: 131/2097152 bytes
+Template argument size: 52/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.718      1 - -total
+100.00%    2.718      1 - Template:Trac
+ 39.18%    1.065      1 - Template:CurrentVersion
+-->

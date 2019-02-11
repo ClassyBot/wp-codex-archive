@@ -1,0 +1,308 @@
+{{Languages|
+{{en|Backing Up Your Database}}
+{{ja|データベースのバックアップ}}
+{{pt-br|Backups do Banco de Dados}}
+{{ru|Создание резервной копии базы данных}}
+{{th|แบคอัพเวิร์ดเพรส}}
+{{zh-hans|备份数据库}}
+}}
+
+'''It is strongly recommended that you backup your database at regular intervals and before an upgrade.'''
+
+[[Restoring Your Database From Backup|Restoring your database from backup]] is then possible if something goes wrong.
+
+<div class="important">
+'''NOTE:''' Below steps backup core WordPress database that include all your posts, pages and comments, but DO NOT backup the files and folders such as images, theme files on the server. For whole WordPress site backup, refer [[WordPress Backups]].
+
+== Backup using cPanel X ==
+cPanel is a popular control panel used by many web hosts. The backup feature can be used to backup your MySQL database. Do not generate a full backup, as these are strictly for archival purposes and cannot be restored via cPanel. Look for 'Download a MySQL Database Backup' and click the name of the database. A *.gz file will be downloaded to your local drive. 
+
+There is no need to unzip this file to restore it. Using the same cPanel program, browse to the gz file and upload it. Once the upload is complete, the bottom of the browser will indicate dump complete. If you are uploading to a new host, you will need to recreate the database user along with the matching password. If you change the password, make the corresponding change in the wp-config.php file.
+
+== Using phpMyAdmin ==
+
+[[phpMyAdmin]] is the name of the program used to manipulate your database. 
+
+Information below has been tried and tested using phpMyAdmin version 4.4.13 connects to MySQL version 5.6.28 running on Linux.
+
+[[Image:phpmyadmin_top.jpg||640px|phpMyAdmin Top]]
+
+=== Quick backup process ===
+When you backup all tables in the WordPress database without compression, you can use simple method. To restore this backup, your new database should not have any tables.
+
+<ol>
+<li>Log into phpMyAdmin on your server</li>
+<li>From left side window, select your WordPress database. In this example, the name of database is "wp".</li>
+<li>The right side window will show you all the tables inside your WordPress database.<br />
+Click the 'Export' tab on the top set of tabs.</li>
+
+[[Image:phpmyadmin_dbtop.jpg||640px|WordPress database view]]
+
+<li>Ensure that the Quick option is selected, and click 'Go' and you should be prompted for a file to download. Save the file to your computer. <br />
+Depending on the database size, this may take a few moments.</li>
+
+[[Image:phpmyadmin_quick_export.jpg||640px|Quick Export]]
+
+=== Custom backup process ===
+If you want to change default behavior, select Custom backup.
+
+<ol>
+<li>In above Step 4, select Custom option. Detail options are displayed.</li>
+
+[[Image:phpmyadmin_custom_export.jpg||640px|Custom Export]]
+
+<li>The Table section</li>
+All the tables in the database are selected.</li>
+<ul>
+<li>If you have other programs that use the database, then choose only those tables that correspond to your WordPress install. They will be the ones with that start with "wp_" or whatever 'table_prefix' you specified in your 'wp-config.php' file.</li>
+<li>If you only have your WordPress blog installed, leave it as is (or click 'Select All' if you changed the selection)</li>
+</ul>
+
+<li>The Output section</li>
+Select 'zipped' or 'gzipped' from Compression box to compress the data.
+
+[[Image:phpmyadmin_export_output.jpg||640px|Export Output section]]
+
+<li>The Format section</li>
+Ensure that the SQL is selected. Unlike CSV or other data formats, this option exports a sequence of SQL commands.
+
+<li>The Format-specific options section</li>
+Leave options as they are.
+
+[[Image:phpmyadmin_export_formatspecific.jpg||640px|phpMyAdmin Export Format Specific]]
+
+<li>The Object creation options section</li>
+Select Add DROP TABLE / VIEW / PROCEDURE / FUNCTION / EVENT / TRIGGER statement. Before table creation on target database, it will call DROP statement to delete the old existing table if exist.
+
+[[Image:phpmyadmin_export_object.jpg||640px|phpMyAdmin Export Object creation]]
+
+<li>The Data creation options section</li>
+Leave options as they are.
+
+[[Image:phpmyadmin_export_data.jpg||640px|phpMyAdmin Export Data creation]]
+
+<li>Now click 'Go' at the bottom of window and you should be prompted for a file to download. Save the file to your computer.<br />
+Depending on the database size, this may take a few moments.</li>
+</ol>
+
+'''Remember''' - you have NOT backed up the files and folders - such as images - but all your posts and comments are now safe.
+
+== Using Straight MySQL/MariaDB Commands ==
+
+phpMyAdmin cannot handle large databases so using straight MySQL/MariaDB code will help.
+
+1. Change your directory to the directory you want to export backup to:
+
+<pre>
+user@linux:~> cd files/blog
+user@linux:~/files/blog>
+</pre>
+
+2. Use <code>mysqldump</code> command with your MySQL server name, user name and database name. It prompts you to input password. (For help, try: <code>man mysqldump</code>.)
+
+;To backup all database tables:<code>mysqldump --add-drop-table -h mysql_hostserver -u mysql_username -p mysql_databasename</code>
+
+;To backup only certain tables from the database:<code>mysqldump --add-drop-table -h mysql_hostserver -u mysql_username -p mysql_databasename mysql_tablename1 mysql_tablename2 mysql_tablename3</code>
+
+Example:
+<pre>
+user@linux:~/files/blog> mysqldump --add-drop-table -h db01.example.net -u dbocodex -p wp > blog.bak.sql
+Enter password: (type password)
+</pre>
+
+3. Use <code>bzip2</code> to compress the backup file
+<pre>
+user@linux:~/files/blog> bzip2 blog.bak.sql
+</pre>
+
+You can do the same thing that above two commands do in one line:
+<pre>
+user@linux:~/files/blog> mysqldump --add-drop-table -h db01.example.net -u dbocodex -p wp | bzip2 -c > blog.bak.sql.bz2
+Enter password: (type password)
+</pre>
+
+The <code>bzip2 -c</code> after the | (pipe) means the backup is compressed on the fly, and the <code>&gt; blog.bak.sql.bz2</code> sends the <code>bzip</code> output to a file named <code>blog.bak.sql.bz2</code>.
+
+Despite bzip2 being able to compress most files more effectively than the older compression algorithms (.Z, .zip, .gz), it is [https://en.wikipedia.org/wiki/Bzip2 considerably slower] (compression and decompression). If you have a large database to backup, gzip is a faster option to use.
+
+<pre>
+user@linux:~/files/blog> mysqldump --add-drop-table -h db01.example.net -u dbocodex -p wp | gzip > blog.bak.sql.gz
+</pre>
+
+
+== Using MySQL Workbench ==
+
+[http://dev.mysql.com/downloads/workbench MySQL Workbench] (formerly known as My SQL Administrator) is a program for performing administrative operations, such as configuring your MySQL server, monitoring its status and performance, starting and stopping it, managing users and connections, performing backups, restoring backups and a number of other administrative tasks.
+
+You can perform most of those tasks using a command line interface such as that provided by [http://dev.mysql.com/doc/mysql/en/mysqladmin.html '''mysqladmin'''] or [http://dev.mysql.com/doc/mysql/en/mysql.html '''mysql'''], but MySQL Workbench is advantageous in the following respects:
+
+*Its graphical user interface makes it more intuitive to use.
+*It provides a better overview of the settings that are crucial for the performance, reliability, and security of your MySQL servers.
+*It displays performance indicators graphically, thus making it easier to determine and tune server settings.
+*It is available for Linux, Windows and MacOS X, and allows a remote client to backup the database across platforms. As long as you have access to the MySQL databases on the remote server, you can backup your data to wherever you have write access.
+*There is no limit to the size of the database to be backed up as there is with phpMyAdmin.
+
+Information below has been tried and tested using MySQL Workbench version 6.3.6 connects to MySQL version 5.6.28 running on Linux.
+
+[[Image:mysql_workbench_top.jpg||640px|MySQL Workbench Top]]
+
+=== Backing Up the Database ===
+This assumes you have already installed MySQL Workbench and set it up so that you can login to the MySQL Database Server either locally or remotely. Refer to the documentation that comes with the installation package of MySQL Workbench for your platform for installation instructions or [http://dev.mysql.com/doc/workbench/en/ online document].
+
+<ol>
+	<li>Launch the MySQL Workbench</li>
+	<li>Click your database instance if it is displayed on the top page. Or, Click Database -> Connect Database from top menu, enter required information and Click OK.</li>
+	<li>Click Data Export in left side window.</li>	
+	
+[[Image:mysql_workbench_export.jpg||640px|Data Export]]
+
+	<li>Select your WordPress databases that you want to backup.</li>
+	<li>Specify target directory on Export Options. You need write permissions in the directory to which you are writing the backup</li>
+	<li>Click Start Export on the lower right of the window.</li>
+</ol>
+
+[[Image:mysql_workbench_export2.jpg||640px|Data Export selected database]]
+
+=== Restoring From a Backup ===
+
+<ol>
+	<li>Launch the MySQL Workbench</li>
+	<li>Click your database instance if it is displayed on the top page. Or, Click Database -> Connect Database, and Click OK.</li>
+	<li>Click Data Import/Restore in left side window.</li>	
+	<li>Specify folder where you have backup files. Click "..." at the right of Import from Dump Project Folder, select backup folder, and click Open</li>
+	<li>Click Start Import on the lower right of the window. The database restore will commence.</li>
+</ol>
+
+[[Image:mysql_workbench_import.jpg||640px|Data Import]]
+
+== MySQL GUI Tools ==
+In addition to MySQL Workbench, there are many GUI tools that let you backup (export) your database.
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Name
+!OS (Paid edition)
+!OS (Free edition)
+!Notes
+|-
+|[http://www.mysql.com/products/workbench/ MySQL Workbench]
+|Windows/Mac/Linux
+|Windows/Mac/Linux
+|See [[#Using_MySQL_Workbench|above]]
+|-
+|[http://sqlmanager.net/en/products/studio/mysql EMS SQL Management Studio for MySQL]
+|Windows
+| -
+|
+|-
+|[http://www.aquafold.com/ Aqua Data Studio]
+|Windows/Mac/Linux
+|Windows/Mac/Linux (14 days trial)
+|Available in 9 languages
+|-
+|[http://www.navicat.com/ Navicat for MySQL]
+|Windows/Mac/Linux
+|Windows/Mac/Linux (14 days trial)
+|Available in 8 languages
+|-
+|[http://www.webyog.com/en/ SQLyog]
+|Windows
+| -
+|
+|-
+|[http://software.dell.com/products/toad-for-mysql/ Toad for MySQL]
+| -
+|Windows
+|
+|-
+|[http://www.heidisql.com/ HeidiSQL]
+| -
+|Windows
+|
+|-
+|[http://sequelpro.com/ Sequel Pro]
+| -
+|Mac
+|CocoaMySQL successor
+|-
+|[http://www.araelium.com/querious/ Querious]
+| -
+|Mac
+|
+|}
+
+== Database Backup Plugins ==
+
+Although command line tools such as mysqldump or established database management scripts such as phpMyAdmin or Adminer are generally considered most reliable when it comes to exporting a WordPress database, there are also various free plugins available that can export your database from within the WP Admin dashboard itself. These WordPress plugins can be used in case these other previously mentioned backup tools are not readily available, or for reasons of convenience.
+
+=== WP-DB-Backup ===
+
+[https://wordpress.org/plugins/wp-db-backup/ WP-DB-Backup] is maintained by Austin Matzko, based on code originally released by Skippy. It was in fact bundled with WordPress 2.0, but is no longer included as part of WordPress core (nor is any other backup tool).
+
+# Search "WP-DB-Backup" on [[Administration_Screens|Administration]] > [[Administration_Screens#Plugins_-_Add_Functionality_to_your_Blog|Plugins]] > [[Plugins_Add_New_Screen|Add New]]
+# Click Install Now, then Activate
+# Navigate to WP Admin > Tools > WP-DB-Backup
+# Select which database tables to backup (core tables are always included)
+
+[[Image:wp-db-backup_table.jpg||640px|WordPress Database Backup plugin Tables section]]
+
+# Select the backup destination, or schedule regular backups
+# Finally, click Backup Now!
+
+[[Image:wp-db-backup_settings.jpg||640px|WordPress Database Backup plugin Options section]]
+
+The file created is a standard SQL file that downloads to your local computer.
+
+=== WP Migrate DB ===
+
+[https://wordpress.org/plugins/wp-migrate-db/ WP Migrate DB] is maintained by Delicious Brains and is a more advanced database export tool that can also run search/replace queries, and supports various compatibility and exclusion options during the export process.
+
+# Search "WP Migrate DB" on [[Administration_Screens|Administration]] > [[Administration_Screens#Plugins_-_Add_Functionality_to_your_Blog|Plugins]] > [[Plugins_Add_New_Screen|Add New]]
+# Click Install Now, then Activate
+# Navigate to WP Admin > Tools > Migrate DB
+# Select the backup destination, and review advanced options
+# Finally, click Export
+
+=== WP Database Backup ===
+
+[https://wordpress.org/plugins/wp-database-backup/ WP Database Backup] is maintained by Prashant Walke and supports database backup scheduling along with restoration of previous database snapshots, which are automatically saved on your WordPress server.
+
+# Search "WP Database Backup" on [[Administration_Screens|Administration]] > [[Administration_Screens#Plugins_-_Add_Functionality_to_your_Blog|Plugins]] > [[Plugins_Add_New_Screen|Add New]]
+# Click Install Now, then Activate
+# Navigate to WP Admin > Tools > WP-DB-Backup
+# Select Create New Database Backup or choose Scheduler
+# Review advanced options and email notification settings
+# Finally, click Save Settings and/or then Download after backup is complete
+
+=== Export Database ===
+
+[https://wordpress.org/plugins/export-database-littlebizzy/ Export Database] is maintained by LittleBizzy and is a simplistic database export tool that supports ZIP and Gzip.
+
+# Search "Export Database" on [[Administration_Screens|Administration]] > [[Administration_Screens#Plugins_-_Add_Functionality_to_your_Blog|Plugins]] > [[Plugins_Add_New_Screen|Add New]]
+# Click Install Now, then Activate
+# Navigate to WP Admin > Tools > Export DB
+# Select compression options as desired (recommended)
+# Finally, click Export
+
+=== All-in-One WP Migration ===
+
+[https://wordpress.org/plugins/all-in-one-wp-migration/ All-in-One WP Migration] is a quick, easy, and reliable database export tool. The plugin is maintained by [https://servmask.com ServMask]. 
+
+# Search "database export" on [[Administration_Screens|Administration]] > [[Administration_Screens#Plugins_-_Add_Functionality_to_your_Blog|Plugins]] > [[Plugins_Add_New_Screen|Add New]]
+# Click Install Now, then Activate
+# Navigate to WP Admin > All-in-One WP Migration > Export
+# Click Export to File
+
+== More Resources ==
+
+* [https://wordpress.org/plugins/search.php?q=backup Backup Plugins on the official WordPress.org repository]
+* [[Restoring Your Database From Backup]]
+* [[WordPress Backups]]
+
+[[Category:Getting Started]]
+[[Category:Advanced Topics]]
+[[Category:Troubleshooting]]
+
+==External Resources==
+
+* [http://www.narga.net/schedule-backup-wordpress-database/ How to Schedule Daily Backup of WordPress Database]

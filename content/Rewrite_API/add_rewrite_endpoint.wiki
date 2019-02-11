@@ -1,0 +1,59 @@
+==Description==
+Add an endpoint, like /trackback/.
+
+Adding an endpoint creates extra rewrite rules for each of the matching places specified by the provided bitmask. A new query var with the same name as the endpoint will also be created.  The string following the endpoint definition supplies the value for this query var (e.g. "/foo/bar/" becomes "?foo=bar").
+
+==Usage==
+
+ <?php add_rewrite_endpoint( $name, $places ); ?>
+
+For example:
+
+  add_rewrite_endpoint( 'json', EP_PERMALINK | EP_PAGES );
+
+will add a new rewrite rule ending with "json(/(.*))?/?$" for every permastruct that describes a permalink (post) or page. This is rewritten to "json=$match" where $match is the part of the URL matched by the endpoint regex (e.g. "<permalink>/json/foo/" becomes "<permalink>/?json=foo").
+
+When specifying $places ensure that you are using the EP_* constants (or a combination of them using the bitwise OR operator) as their values are not guaranteed to remain static (especially EP_ALL).
+
+==Arguments==
+
+; $name : (''string'') The name of the endpoint
+
+; $places : (''int'') Endpoint mask describing the places the endpoint should be added. One of the EP_* constants (e.g. EP_PERMALINK) or a combination of them (e.g. EP_PERMALINK | EP_PAGES).
+
+==Available Places==
+As of version 3.9.1, the following EP_* constants are available for use in the $places parameter:
+
+; <tt>EP_NONE</tt> : Endpoint Mask for default, which is nothing. <br /> Bitwise value: 0
+; <tt>EP_PERMALINK</tt> : Endpoint Mask for Permalink. <br /> Bitwise value: 1
+; <tt>EP_ATTACHMENT</tt> : Endpoint Mask for Attachment. <br /> Bitwise value: 2
+; <tt>EP_DATE</tt> : Endpoint Mask for date. <br /> Bitwise value: 4
+; <tt>EP_YEAR</tt> : Endpoint Mask for year <br /> Bitwise value: 8
+; <tt>EP_MONTH</tt> : Endpoint Mask for month. <br /> Bitwise value: 16
+; <tt>EP_DAY</tt> : Endpoint Mask for day. <br /> Bitwise value: 32
+; <tt>EP_ROOT</tt> : Endpoint Mask for root. <br /> Bitwise value: 64
+; <tt>EP_COMMENTS</tt> : Endpoint Mask for comments. <br /> Bitwise value: 128
+; <tt>EP_SEARCH</tt> : Endpoint Mask for searches. <br /> Bitwise value: 256
+; <tt>EP_CATEGORIES</tt> : Endpoint Mask for categories. <br /> Bitwise value: 512
+; <tt>EP_TAGS</tt> : Endpoint Mask for tags. <br /> Bitwise value: 1024
+; <tt>EP_AUTHORS</tt> : Endpoint Mask for authors. <br /> Bitwise value: 2048
+; <tt>EP_PAGES</tt> : Endpoint Mask for pages. <br /> Bitwise value: 4096
+; <tt>EP_ALL_ARCHIVES</tt> : Endpoint Mask for all archive views. <br /> Same as using ''EP_DATE | EP_YEAR | EP_MONTH | EP_DAY | EP_CATEGORIES | EP_TAGS | EP_AUTHORS''
+; <tt>EP_ALL</tt> : Endpoint Mask for everything. <br /> Same as using ''EP_PERMALINK | EP_ATTACHMENT | EP_ROOT | EP_COMMENTS | EP_SEARCH | EP_PAGES | EP_ALL_ARCHIVES''
+
+==What it does==
+
+This adds the endpoint to all link types indicated (e.g. posts, pages, category, author, search) and then template-loader.php includes the relevant handler file.
+
+The name of the endpoint is added as query variable and this gets as value any text present after the endpoint name, separated from the name with a '/'. The [[Plugin API/Action Reference/template redirect|<code>template_redirect</code>]] action hook should test this query variable.
+
+This can be used for all sorts of things:
+* ajax handler
+* form submission handler
+* alternative notification handler
+
+==Related ==
+{{Rewrite API}}
+
+==External Resources==
+* [http://make.wordpress.org/plugins/2012/06/07/rewrite-endpoints-api/ Rewrite Endpoint API Tutorial]

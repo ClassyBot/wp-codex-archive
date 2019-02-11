@@ -1,0 +1,441 @@
+{{Languages|
+{{en|FAQ Troubleshooting}}
+{{ja|FAQ/トラブルシューティング}}
+{{pt-br|FAQ Resolvendo Problemas}}
+{{zh-cn|错误问题跟踪常见问题解答}}
+}}
+
+__TOC__
+<div style="width:100%;height:1px;clear:both"></div>
+'''Encontre mais ajuda'''
+* [[pt-br:FAQ Resolvendo Problemas|FAQ Resolvendo Problemas]]
+* [[pt-br:FAQ sobre Wordpress|FAQ sobre Wordpress]]
+* [[pt-br:FAQ Tópicos Avançados|FAQ Tópicos Avançados]]
+
+'''Fórum Oficial do WordPress Brasil'''
+É composto por voluntários com vários níveis de experiência.
+* [[http://br.forums.wordpress.org/ http://br.forums.wordpress.org/]]
+* [[pt-br:Usando o Fórum de Suporte|Usando o Fórum de Suporte]]
+
+==Botão "Salvar Alterações" não aparece==
+Aparentemente um problema no php.ini que o serviço adiciona automaticamente no exemplo de serviços como Locaweb e UOLHost.
+Observado no tópico: [http://br.forums.wordpress.org/topic/wordpress-nao-atualiza].
+
+'''Problema''':
+ (...)No entanto, no meu painel de Configurações Gerais, não existe o botão "Salvar alterações". Pra várias opções de outras configurações, o botão tá lá; mas pro Configurações Gerais, não.
+
+'''Solução:'''
+ As diretivas de PHP não estavam sendo inicializadas na minha revenda. A única coisa que eu tive que fazer, como instruído pelo atendimento, foi renomear o php-cgi.ini pra php.ini. Isso resolveu outros problemas menores que eu tava tendo no Wordpress, também, com o buffer de memória (faz sentido agora).
+ O atendimento explicou que a mudança foi feita internamente lá (tirar o -cgi), mas que estavam esperando os clientes reportarem problemas pra ver se ia ser necessário renomear o arquivo(...)
+
+Enfim, diretivas de PHP aplicadas, problema resolvido.[http://forum.locaweb.com.br/showthread.php?t=8059]
+
+'''Problema''':
+ Mesmo definindo a permissão para wp-content em 777, não consigo editar os arquivos do tema ou dos plugins.
+
+'''Solução'''
+É preciso definir a permissão em TODOS os arquivos DENTRO da pasta, não apenas para a pasta.
+*[[pt-br:Mudando Permissões de Arquivos|Mudando a permissão de arquivos]]
+
+==Por que não vejo minhas postagens? Tudo o que vejo é ''Sorry, no posts match your criteria''?==
+
+Limpe o cache do seu navegador. Veja também os arquivos <tt>search.php</tt> e <tt>index.php</tt> do seu tema.
+* [[pt-br:Problemas de Cache|Problemas de Cache]]
+
+== Como saber em qual Banco de Dados meu Wordpress está instalado?==
+#Acesse a sua área de Hospedagem, através de [[pt-br:Clientes FTP|FTP]] ou Gerenciador de Arquivos.
+#Navegue até a pasta na qual o WordPress foi instalado.
+#Faça o Download do arquivo <tt>wp-config.php </tt>
+#As informações podem ser encontradas nas primeiras linhas do arquivo <tt>wp-config.php </tt>:
+ define('DB_NAME', 'nome_do_banco');
+ define('DB_USER', 'usuario');
+ define('DB_PASSWORD', 'senha');
+ define('DB_HOST', 'mysql06.seudominio.tld');
+
+==Por que o WordPress não está enviando emails no Windows?==
+O WordPress, assim como outros aplicativos Web feitos em PHP, utiliza uma biblioteca chamada PHPMailer para realizar os envios de email através do do serviço de SMTP do servidor no qual está hospedado.
+
+4. Esta biblioteca, originalmente, possui uma incompatibilidade com servidores Windows, o que causa o problema no envio de mensagens. 
+
+;Solução
+Caso você tenha instalado o WP por conta própria ou tenha atualizado automaticamente a sua versão para a mais recente, você pode seguir os seguintes passos para solucionar o problema.
+
+1. Localize o arquivo <tt>wp-includes\class-phpmailer.php</tt>
+2. Abra o arquivo e navegue até a linha com o seguinte código: 
+ var $LE              = "\n";
+3. Altere o conteúdo desta linha para:
+ var $LE              = "\r\n";
+4. Localize o seguinte conteúdo:
+
+ function AddrFormat($addr) {
+   if(empty($addr[1])) {
+     $formatted = $this->SecureHeader($addr[0]);
+   } else {
+     $formatted = $this->EncodeHeader($this->SecureHeader($addr[1]), 'phrase') . " <" .  $this->SecureHeader($addr[0]) . ">";
+   }
+   return $formatted;
+ }
+5.Altere o conteúdo da função acima para:
+
+ function AddrFormat($addr) {
+   return $this->SecureHeader($addr[0]); }
+
+Pronto, isso deve fazer com que o envio de emails seja normalizado.
+
+==Porque a senha enviada para mim por email parece estranha?==
+Se a senha enviada para você parece estranha, veja [http://allnarfedup.com/2004/11/10/solving-garbled-text/ Resolver texto ilegível].
+
+==Why do I get an error message about ''Sending Referrers''?==
+If you got this message when trying to save a post, consider checking [[Administration_Panels|Administration]] > [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]] and make sure both your '''WordPress address (URI)'''  and the '''Blog address (URI)''' do not use 'www'.  For example, instead of '''<nowiki>http://www.sample.com</nowiki>''' use '''<nowiki>http://sample.com</nowiki>''' in those fields.  This information originally reported via http://wordpress.org/support/topic/72235
+
+See also:
+* [[Enable Sending Referrers]]
+
+==Are there are any problems with using MySQL 4.1.7 for WordPress?==
+See  [[FAQ_Installation#Can_I_install_WordPress_on_Windows_2000.3F|Can I install WordPress on Windows 2000?]]
+
+==How do I empty a database table?==
+See  also:
+* [[Emptying a Database Table]]
+
+==How do I fix the following error ''SQL/DB Error errcode 13 Can't create/write to file''?==
+'''Problem:''' The MySQL variable <tt>tmpdir</tt> is set to a directory that cannot be written to when using PHP to access MySQL.
+
+To verify this, enter MySQL at the command line and type <tt>show variables</tt>;
+
+You'll get a long list and one of them will read: '''tmpdir = /somedir/''' (whatever your setting is.)
+
+'''Solution:''' Alter the '''tmpdir''' variable to point to a writable directory.
+
+'''Steps:'''
+<ol>
+<li>Find the '''my.cnf''' file. On *nix systems this is usually in '''/etc/'''.</li>
+<li>Once found, open this in a simple text editor and find the '''[mysqld]''' section.</li>
+<li>Under this section, find the '''tmpdir''' line. If this line is commented (has a '''#''' at the start), delete the '''#''' and edit the line so that it reads: '''tmpdir = /writable/dir''' where '''/writable/dir''' is a directory to which you can write. Some use '''/tmp''', or you might also try '''/home//'''.
+</li>
+<li>Save the file.</li>
+<li>Shutdown MySQL by typing <tt>mysqlshutdown -u -p shutdown</tt>.</li>
+<li>Start MySQL by going to the MySQL directory and typing <tt>./bin/safe_mysqld &</tt>. Usually the MySQL directory is in '''/usr/local''' or sometimes in '''/usr/''' on Linux systems.
+</li>
+</ol>
+If none of this make sense and you have someone to administrate your system for you, show the above to them and they should be able to figure it out.
+
+==Problema ''Headers already sent''==
+
+'''Problema'''
+Ao acessar qualquer página, obtém a mensagem:
+
+<tt>Warning: Cannot modify header information - headers already sent by
+(output started at</tt>
+
+'''Razões e Soluções:'''
+
+Geralmente é porque há espaços, quebras de linhas no final do arquivo, coisas como pedaços de tags de fechamento no arquivo '''wp-config.php'''.
+
+Isso pode ser verdadeiro sobre algum outro arquivo também, portanto, verifique a mensagem de erro, ela pode informar o nome de arquivo específico onde ocorreu o erro (ver "Interpretando a mensagem de erro" logo abaixo). Substituindo o arquivo defeituoso por um de seu backup mais recente ou um de um download WordPress novo é uma boa idéia também, mas se nenhum desses podem ser feitos, siga os passos abaixo.
+
+Só porque você não consegue ver nada, não significa que o PHP vê o mesmo.
+
+# Faça o download do arquivo mencionado na mensagem de erro.
+# Abra o arquivo em um [[Glossary# Editor de texto simples]] ('''Não''' MS Word ou similares. Notepad ou BBEdit são recomendados).
+# Verifique "Muito" se os primeiros caracteres são '''<tt><?php</tt>'''
+# Verifique "Muito se os últimos caracteres são '''<tt>?></tt>'''
+
+Para ter certeza sobre o final do arquivo, faça o seguinte:
+#Coloque o cursor entre a ? e >
+#Agora pressione a tecla DELETE no seu computador
+#*Nota para usuários de MAC: A tecla "DELETE" em um PC apaga os caracteres a direita do cursor. Essa é a tecla notada aqui.
+#Matenha a tecla pressionada
+#Por pelo menos 15 segundos
+#Agora digite > e
+#'''save''' sem precionar qualquer outra tecla.
+#Se você pressionar outra tecla, você irá trazer o problema de volta.
+
+Além disso verifique a codificação do arquivo. Se o arquivo é codificado como "UTF-8 with BOM", o "BOM" é visto como o caractere que inicia a saída.
+
+'''Interpretando a mensagem de erro'''
+
+Se a mensagem de erro diz: <code>Warning: Cannot modify header information - headers already sent by (output started at /path/blog/wp-config.php:34) in /path/blog/wp-login.php on line 42</code>, então o problema é na linha #34 do <code>wp-config.php</code>, não na linha #42 do <code>wp-login.php</code>.  Neste cenário,a linha #42 do <code>wp-login.php</code> é a vítima.  Ela está sendo afetada pelo excesso de espaço em branco da linha #34 do <code>wp-config.php</code>.
+
+Se a mensagem de erro diz: <code>Warning: Cannot modify header information - headers already sent by (output started at /path/wp-admin/admin-header.php:8) in /path/wp-admin/post.php on line 569</code>, então o problema é na linha #8 do <code>admin-header.php</code>, não na linha #569 do <code>post.php</code>.  Neste cenário, a linha #569 do <code>post.php</code> é a vitima.  Ele é afetado pelo excesso de espaço em branco da linha #8 of <code>admin-header.php</code>.
+
+'''Outras questões que podem causar este erro:'''
+
+Caso você tenha usado a função: wp_redirect() ou tentou usar um redirecionamento no header (ou qualquer conteúdo que foi enviado) que a mensagem de erro foi exibida. Em vez disso use o redirecionamento via Javascript se necessário.
+
+==Why can't I see the visual rich editor when using Apple's Safari browser?==
+
+'''Description:''' The visual rich editor in the Write interface (aka "the WYSIWYG editor") does not display when using Apple's Safari browser.
+
+'''Reason and Solution:''' 
+In early versions of Safari, the visual rich editor would cause the browser to crash immediately upon loading the Write interface.  This was due to a bug in Safari, not WordPress.  Since the WordPress developers had no way of correcting this, they chose to disable the visual rich editor for Safari users.  At this point in time, there are three alternatives for affected users.  One could '''upgrade to Safari 3.0.4 or higher and WordPress 2.3 or higher''', use [http://www.mozilla.com/firefox/ Firefox] or [http://caminobrowser.org/ Camino], or de-select "Users should use the visual rich editor by default" in [[Administration_Panels|Administration]] > [[Administration_Panels#Writing|Settings]] > [[Settings_Writing_SubPanel|Writing]]  and install [http://wordpress.org/extend/plugins/deans-fckeditor-for-wordpress-plugin/ Dean's FCKEditor For WordPress].
+
+==Why can't I see the Quicktag buttons when using Apple's Safari browser?==
+
+'''Description:''' The Quicktag buttons in the Write interface do not display when using Apple's Safari browser.
+
+'''Reason and Solution:''' 
+In early versions of Safari, the Quicktag buttons would function, but not as intended.  This was due to a bug in Safari, not WordPress.  Since the WordPress developers had no way of correcting this, they chose to disable the Quicktag buttons for Safari users.  At this point in time, there are three alternatives for affected users.  One could '''upgrade to Safari 2.0.4 or higher and WordPress 2.0.7 or higher''', use [http://www.getfirefox.com Firefox] or [http://www.caminobrowser.org/ Camino], or (for earlier versions of WordPress) remove the <tt>if</tt> statement on line 1085 and the word "<tt>else</tt>" on line 1092 of <tt>/wp-admin/admin-functions.php</tt> .
+
+For example, change this:
+<pre>function the_quicktags() {
+	// Browser detection sucks, but until Safari supports the JS needed for this to work people just assume it's a bug in WP
+	if (!strstr($_SERVER['HTTP_USER_AGENT'], 'Safari'))
+		echo '
+		<div id="quicktags">
+			<script src="../wp-includes/js/quicktags.js" type="text/javascript"></script>
+			<script type="text/javascript">if ( typeof tinyMCE == "undefined" || tinyMCE.configs.length < 1 ) edToolbar();</script>
+		</div>
+';
+	else echo '
+<script type="text/javascript"></pre>
+
+to this:
+<pre>function the_quicktags() {
+	// Browser detection sucks, but until Safari supports the JS needed for this to work people just assume it's a bug in WP
+		echo '
+		<div id="quicktags">
+			<script src="../wp-includes/js/quicktags.js" type="text/javascript"></script>
+			<script type="text/javascript">if ( typeof tinyMCE == "undefined" || tinyMCE.configs.length < 1 ) edToolbar();</script>
+		</div>
+';
+		echo '
+<script type="text/javascript"></pre>
+
+==E-mailed passwords are not being received==
+'''Description:''' When users try to register with your blog or change their passwords by entering their username and email, WordPress indicates that their password has been emailed to them, but it is never received.
+
+'''Reason and Solution:'''  WordPress uses the standard php mail function, which uses sendmail.  No account information is needed. This is not generally a problem if you are using a hosting service, but if you are using your own box and do not have an SMTP server, the mail will never send.  If you are using a *NIX box, you should have either postfix or sendmail on your machine; you will just need to set them up (Google for how-to's).  If you do not want to go through setting up a complete mail server on your *NIX box you may find [http://packages.debian.org/stable/mail/ssmtp ssmtp] useful -- it provides ''"A secure, effective and simple way of getting mail off a system to your mail hub"''.  On a Windows machine, try a sendmail emulator like [http://glob.com.au/sendmail/ Glob SendMail].
+
+More help can be found on the forums at: http://wordpress.org/support/topic.php?id=24981
+
+As a plugin-based alternative, you could try [http://coffee2code.com/wp-plugins/configure-smtp/ Configure SMTP].  It ''"Configure SMTP mailing in WordPress, including support for sending e-mail via SSL/TLS (such as GMail)."''
+
+'''Windows Host Specific:'''  With the plugin mentioned above you can work around the issue of e-mails not being received.  
+
+Another alternative is to edit the ''class-pop3.php'' file in wp-includes, there is a variable, ''$MAILSERVER'', which allows you to hard code your smtp server.  However, ''wp-php.php'' in the root directory actually loops through depending on the author to determine a value to set the from address on the e-mail and defaults to the admin address particularly in the case of users registering.
+
+This is fine if your admin address is a valid e-mail address.  For example, if your admin e-mail is: ''admin@"yourhost.com"'', your smtp server must also be ''smtp."yourhost.com"''.  If the domains do not match your mail will not send.  (Your SMTP server may not require authentication however, your host in most cases still checks to make sure incoming SMTP traffic is still valid.  This is to prevent spam.)
+
+When using the plugin wpPHPMailer the same applies, and there is an option to hard code the from address.
+
+==How do I get the Quicktag <nowiki><!--nextpage--></nowiki> back?==
+For some reason,  the <nowiki><!--nextpage--></nowiki> Quicktag button was "removed" in 1.5.1. To get it back, just do the following:
+
+'''In Wordpress 1.5.x'''
+
+Open ''wp-admin/quicktags.js'' in a text editor and locate this section (starting at line 135):
+<pre>
+/*
+edButtons[edButtons.length] =
+new edButton('ed_next'
+,'page'
+,'<!--nextpage-->'
+,''
+,'p'
+,-1
+);
+*/
+</pre>
+Just remove the /* and */ lines to uncomment the block of code.  That should return the button to your editing windows.
+
+'''In Wordpress 2.0.x'''
+
+Open ''wp-includes/js/quicktags.js'' in a text editor and locate this section (starting at line 135):
+<pre>
+//
+edButtons[edButtons.length] =
+new edButton('ed_next'
+,'page'
+,'<!--nextpage-->'
+,''
+,'p'
+,-1
+);
+//
+</pre>
+Just remove the two // lines after and before the block of code to uncomment it.  
+
+Now Open '''wp-includes/js/tinymce/plugins/wordpress/editor_plugin.js'' in a text editor and locate this section (starting at line 15):
+<pre>
+var buttons = '<a href="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\')" target="_self" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\');return false;"><img id="{$editor_id}_wordpress_more" src="{$pluginurl}/images/more.gif" title="'+titleMore+'" width="20" height="20" class="mceButtonNormal" onmouseover="tinyMCE.switchClass(this,\'mceButtonOver\');" onmouseout="tinyMCE.restoreClass(this);" onmousedown="tinyMCE.restoreAndSwitchClass(this,\'mceButtonDown\');" /></a>';
+// Add this to the buttons var to put the Page button into the toolbar.
+// '<a href="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\')" target="_self" onclick="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\');return false;"><img id="{$editor_id}_wordpress_page" src="{$pluginurl}/images/page.gif" title="'+titlePage+'" width="20" height="20" class="mceButtonNormal" onmouseover="tinyMCE.switchClass(this,\'mceButtonOver\');" onmouseout="tinyMCE.restoreClass(this);" onmousedown="tinyMCE.restoreAndSwitchClass(this,\'mceButtonDown\');" /></a>';
+</pre>
+
+On line 17 copy the text between the apostrophes and paste it at the end of line 15 exactly before the trailing '; as follows:
+
+<pre>
+var buttons = '<a href="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\')" target="_self" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\');return false;"><img id="{$editor_id}_wordpress_more" src="{$pluginurl}/images/more.gif" title="'+titleMore+'" width="20" height="20" class="mceButtonNormal" onmouseover="tinyMCE.switchClass(this,\'mceButtonOver\');" onmouseout="tinyMCE.restoreClass(this);" onmousedown="tinyMCE.restoreAndSwitchClass(this,\'mceButtonDown\');" /></a> <a href="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\')" target="_self" onclick="javascript:tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\');return false;"><img id="{$editor_id}_wordpress_page" src="{$pluginurl}/images/page.gif" title="'+titlePage+'" width="20" height="20" class="mceButtonNormal" onmouseover="tinyMCE.switchClass(this,\'mceButtonOver\');" onmouseout="tinyMCE.restoreClass(this);" onmousedown="tinyMCE.restoreAndSwitchClass(this,\'mceButtonDown\');" /></a>';
+</pre>
+
+This will show the the Quicktag <nowiki><!--nextpage--></nowiki> again. You can also enable the hotkey access by doing just one more thing. Open '''wp-includes/js/tinymce/plugins/wphelp/editor_plugin.js'' with a text editor. Note that it's not the same file as the one from the previous step, as although it has the same name it is on a different path. Locate the following lines (should be line 23 and 24):
+<pre>
++ '<input type="button" accesskey="t" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\');" />'
++ '<input type="button" accesskey="u" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'Undo\',false);" />'
+</pre>
+Copy line 23, paste it as a new line just below line 23, and edit it as follows:
+<pre>
++ '<input type="button" accesskey="t" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpressmore\');" />'
++ '<input type="button" accesskey="p" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'mcewordpresspage\');" />'
++ '<input type="button" accesskey="u" onclick="tinyMCE.execInstanceCommand(\'{$editor_id}\',\'Undo\',false);" />'
+</pre>
+This will enable the Alt+P shortcut for the <nowiki><!--nextpage--></nowiki> tag.
+
+==I used the Quicktag <nowiki><!--nextpage--></nowiki> in a post so why doesn't it work?==
+In some [[Using Themes|Themes]], such as the WordPress Classic Theme, you may see the <nowiki><!--nextpage--></nowiki> work properly on your main page, but other [[Using Themes|Themes]], such as the WordPress default Theme,  may only show the ''page break'' when viewing the posts individually.  It may be necessary to change your Theme's [[Templates|template]] ''page.php'' or ''index.php'' file to make this feature work according to your wishes.  You'll need to add the following:
+<pre><?php wp_link_pages(); ?> ?</pre>
+
+== MySQL Error 28 ==
+
+You get the following error:
+
+ Error code 28: No space left on device
+
+This is a MySQL error and has nothing to do with WordPress directly; you should contact your host about it. Some users have reported that running a "repair table" command in [[phpMyAdmin]] fixed the problem.
+
+[http://www.mysql.com/newsletter/2003-10/a0000000249.html Error 28, and how to avoid it]:
+
+<pre>
+If you get this error, check all filesystems in 
+which MySQL operates. If you followed recommendations 
+to split datadir, tmpdir and log files into dedicated 
+filesystems, more than one filesystem is involved. In 
+addition, be aware that MySQL often creates temporary 
+tables for some queries. Most of these are placed in 
+tmpdir; however, some may be found in the database 
+directory (e.g. ALTER TABLE). Also, ensure that 
+sufficient free disk space is available for MySQL.
+</pre>
+
+It could be because:
+* you are out of space on /tmp (wherever tmpdir is), or,
+* you have too many files in /tmp (even if there is lots of free space)
+
+Relevant discussion threads:
+* http://wordpress.org/support/3/1738
+* http://wordpress.org/support/3/2923
+* http://wordpress.org/support/3/2760
+
+==Why are the Quote Marks escaped or not escaped?==
+
+If you write plugins, or use a plugin like [http://www.nosq.com/2004/10/runphp-wordpress-plugin/ RunPHP], or make advanced custom templates, you may eventually find yourself dealing with data in the database.  WordPress <em>usually</em> manages this data for you in such a way that it is immediately usable.  There are circumstances though (especially if you are dealing directly with the database without using WordPress) where you will experience weirdness.
+
+For example, quote marks cannot be stored directly in the MySQL database. MySQL uses quote marks in its SQL language. When a quote mark is used, for example, in a post, When the post is saved to the database, every quote mark gets escaped. That means a backslash character is prepended, which signifies that the next character should be taken as part of the input, and not as part of the SQL command.  
+
+For example, if you are adding the following in your post:
+
+<pre>...an article about "Happiness" is at 
+<a href="http://example.com/happy" title="Happiness">Happiness</a>
+if you would like to read it...</pre>
+
+Is actually imported into the database looking like this:
+
+<pre>...an article about \"Happiness\" is at 
+<a href=\"http://example.com/happy\" title=\"Happiness\">Happiness</a>
+if you would like to read it...</pre>
+
+When pulling data out of the database, the backslashes may not always be automatically removed. If this becomes an issue, you can use the [http://www.php.net/stripslashes stripslashes()] PHP function on the text.
+
+==Why do I get a blank page when I submit a comment?==
+'''Description:''' When anyone tries to comment on a post, the window goes blank and the comment doesn't appear to have been recognised by WordPress.
+
+'''Reason and Solution:'''
+The Theme that you are using is missing a critical part of the comment form so WordPress doesn't know which post the comment refers to.  You need to check the comment.php in your Theme and ensure that the following code appears within the form.
+<pre>
+<input type="hidden" name="comment_post_ID" value="<?php echo $id; ?>" />
+</pre>
+
+Relevant discussion threads:
+
+* http://wordpress.org/support/topic/38683
+
+==Como desativar todos os plugins quando não poder acessar os menus administrativos?==
+Às vezes pode ser  necessário desativar todos os plugins, mas você não pode  acessar  os  menus  administrativa  para  fazê-lo. Um  dos  dois métodos estão disponíveis para desativar todos os plugins.
+
+* Use [[pt-br:phpMyAdmin|phpMyAdmin]] 
+** Na tabela ''wp_options'', na coluna ''option_name'' encontre ''active_plugins'' 
+** Mude ''option_value'' para: '''a:0:{}'''
+
+ou 
+
+* Crie uma  pasta de plugins vazia
+** via FTP ou o painel de controle do host, navegue até a pasta ''wp-contents'' (diretório)
+** Via FTP ou painel de controle do seu servidor, renomeie a pasta ''plugins'' para ''plugins.hold''
+** via FTP ou o painel de controle do host, crie uma nova pasta chamada ''plugins''
+** Entre para em menus de administração do WordPress
+** Via FTP ou painel de controle do seu host, exclua a pasta vazia ''plugins'' que você criou anterior
+** Via FTP ou no painel do seu servidor, renomeie ''plugins.hold'' de volta para ''plugins''
+
+== Como limpar o "brevemente disponível para manutenção programada" exibido após fazer o upgrade automático? ==
+Como parte da atualização automática do WordPress coloca um arquivo chamado <tt>.manutenção</tt> na pasta ''base'' do blog (pasta que contém a pasta <tt>wp-admin</tt>). Se esse arquivo existir, então vistantes verão a mensagem '''brevemente indisponível para manutenção programada. Verifique novamente em um minuto.'''
+
+Para remover esta mensagem, basta apagar o arquivo <tt>. manutenção </tt>. A atualização automática deve ser executado novamente, apenas no caso de falha.
+
+== Como corrigir o erro 404 quando usar Links Legíveis? ==
+Se um erro 404 ocorre quando utilizar [[pt-br:Usando Links Permanentes|Links Permanentes]] como '''Dia e Nome''' em Configurações > [[pt-br:SubPainel Links Permanentes|Links Permanentes]] poderia ser um resultado do módulo '''mod_rewrite''' não está ativado ou instalado. A solução é ativar '''mod_rewrite''' para o servidor web Apache. Verifique  a linha ''`# LoadModule rewrite_module modules/mod_rewrite.so''
+e apague o # na frente da linha. Em seguida, pare o Apache e inicie novamente. '''Nota:''' você pode ter que perguntar ao seu serviço de hospedagem para ativar o mod_rewrite.
+
+Veja também:
+* [[pt-br:Usando Links Permanentes|Usando Links Permanentes]]
+
+==Why isn't the admin user listed as an author when editing posts?==
+Not sure why this problem happens, but here's a couple of things to try one of these two solutions.
+
+This usually fixes the problem:
+#Create new admin user (e.g. newadmin) with Administrator Role
+#Login as 'newadmin'
+#Degrade the old 'admin' user to Role of Subscriber and Save
+#Promote the old 'admin' back to Administrator Role and Save
+#Login as the old 'admin'
+
+If that doesn't work, try:
+#Create a new admin user (e.g. newadmin) with Administrator Role
+#Login as 'newadmin'
+#Delete the old 'admin' user and assign any posts to 'newadmin'
+#Create 'admin' user with Administrator Role
+#Login as 'admin'
+#Delete 'newadmin' user and assign posts to 'admin'
+
+==Why is the wrong author name displayed for a post on a blog?==
+This problem is usually solved by the same solution as is presented in the question right before this one:
+[[FAQ_Troubleshooting#Why_isn.27t_the_admin_user_listed_as_an_author_when_editing_posts.3F|Why isn't the admin user listed as an author when editing posts?]]
+
+==An update was just released, so why does my blog not recognize the update is available?==
+When an update is released, notification of that release is displayed at the top administration panels saying '''WordPress x.x.x is available! Please update now.'''  Not every blog will see that message at the same time.  Your blog is programmed to check for updates every 12 hours, but the timing of that check is purely random.  So if your blog just checked for updates minutes before an update was released, you won't see the update message until your blog checks for updates 12 hours later.
+
+If you want your blog to check right now for updates, you can delete the '''update_core''' option name record in your ''wp_options'' table.  Note that plugins and themes each have their own check and update cycle, controlled by the records '''update_plugins''' and '''update_themes''', in ''wp_options''.
+
+Relevant discussion thread:
+* http://wordpress.org/support/topic/242485 
+
+
+==Why did I lose custom changes to the WordPress Default Theme during the last automatic upgrade?==
+A core upgrade copies all the new files from the distribution over the old ones, so if you changed existing files in the WordPress Default Theme (e.g. ''wp-content/themes/default/style.css''), those changes got overwritten with the new version of that file.   
+
+Please note, a core upgrade goes through a list of "old files", as defined in ''wp-admin/includes/update-core.php'', and deletes those files. Any files not on the list, and not in the distribution, are preserved.  
+
+'''Remember, that before upgrades, whether automatic or manual, both the WordPress Files and database should be backed-up as explained in [[WordPress Backups]].'''
+
+See also:
+*[[WordPress Backups]]
+
+==How do you repair a MySQL database table?==
+Every once in a while, it may be necessary to repair one or more MySQL database tables.   According to the [http://dev.mysql.com/doc/refman/5.1/en/repair.html How to Repair Tables article at dev.mysql.com] there are a number of reasons to repair a table including errors such as "tbl_name.frm is locked against change",  "Can't find file tbl_name.MYI (Errcode: nnn)", "Unexpected end of file", "Record file is crashed", or "Got error nnn from table handler".
+
+Here are the steps to repair a table in a MySQL database using [[phpMyAdmin]]:  
+
+# Login to hosting account.
+# Login to [[phpMyAdmin]].
+# Choose the affected database. If you only have one database, it should choose it by default so you don't need to do anything.
+# In the main panel, you should see a list of your database tables. Check the boxes by the tables that need repair.
+# At the bottom of the window just below the list of tables, there is a drop down menu. Choose "Repair Table" 
+
+'''Remember, that it is advisable to have a current backup of your database at all times.
+
+See also:
+* [[WordPress Backups]]  
+
+
+{{Codex-pt}}
+{{DEFAULTSORT:F}}

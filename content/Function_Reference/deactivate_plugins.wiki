@@ -1,0 +1,55 @@
+== Description ==
+
+This function deactivates plugins. It is often used by a plugin to deactivate itself if the plugin requires the presence of certain features that are missing in environment after an administrator has activated it. This is usually the last step in a dependency-checking function.
+
+== Usage ==
+
+%%% <?php deactivate_plugins( plugin_basename( __FILE__ ) ); ?> %%%
+
+It is recommended to '''use the <tt>admin_init</tt> action to call this function.'''
+
+== Parameters ==
+
+{{Parameter|$plugins|string/array|Single plugin or list of plugins to deactivate.}}
+{{Parameter|$silent|bool|Prevent calling deactivation hooks. Default is `false`.|optional|false}}
+{{Parameter|$network_wide|mixed|Whether to deactivate the plugin for all sites in the network. A value of null (the default) will deactivate plugins for both the site and the network.|optional|null}}
+
+== Example ==
+<pre>
+<?php
+
+class myPlugin {
+
+	public function __construct() {
+		register_activation_hook( __FILE__, array( $this , 'activate' ) );
+	}
+
+	public function activate() {
+	
+		// Check PHP Version and deactivate & die if it doesn't meet minimum requirements.
+		if ( 0 > check_version( PHP_VERSION, '5.2' ) ) {
+			deactivate_plugins( plugin_basename( __FILE__ ) );
+			wp_die( 'This plugin requires PHP Version 5.2.  Sorry about that.' );
+		}
+		
+		// Do activate Stuff now.
+	}
+}
+
+</pre>
+
+== Changelog ==
+* Since: [[Version 2.5|2.5.0]]
+
+== Source File ==
+
+<tt>deactivate_plugins()</tt> is located in {{Trac|wp-admin/includes/plugin.php}}.
+
+== Resources ==
+
+* [http://10up.com/blog/wordpress-plug-in-self-deactivation/ WordPress Plug-in Self Deactivation]
+
+== Related ==
+* [http://codex.wordpress.org/Function_Reference/plugin_basename plugin_basename()]  
+
+[[Category:Functions]]

@@ -1,0 +1,213 @@
+{{Languages|
+{{en|Writing a Plugin}}
+{{es|Escribiendo un Plugin}}
+{{ja|Writing a Plugin}}
+{{ko|Writing a Plugin}}
+{{pt-br|Escrevendo um Plugin}}
+{{ru|Написание плагина}}
+{{th|Writing a Plugin}}
+{{zh-hans|开发一个插件}}
+<!-- {{zh-tw|開發一個外掛}} -->
+}}
+
+= 소개 =
+
+[[ko:Plugins|워드프레스 플러그인]]은 쉽게 수정할 수 있으며, 마음대로 편집이 가능하고 워드프레스 블로그의 기능을 향상 시킵니다. 워드프레스 코어를 프로그래밍으로 바꾸는 대신 워드프레스 플러그인으로 기능을 추가할 수 있습니다. 플러그인의 기본적인 정의는 다음과 같습니다:
+
+'''워드프레스 플러그인:''' WordPress 플러그인은 프로그램, 또는 PHP 스크립트 언어로 작성된 하나 이상의 함수들의 집합으로서, WordPress 웹로그에 특정한 기능이나 서비스의 모음을 추가하고, WordPress에서 제공하는 접근점들과 함수들을 이용하여 웹로그에 쉽게 통합될 수 있다 [[Plugin API|Plugin Application Program Interface (API)]]. 
+
+워드프레스에 새로운 기능이나 수정된 기능을 추가하기를 원하십니까? 첫번째로 해야할 일은 다양한 워드프레스 저장소나 소스를 검색하하여, 누군가가 이미 당신이 필요로 하는 워드프레스 플러그인을 이미 만들었는지를 확인하는 것입니다. 만일 없다면, 이 문서는 워드프레스 플러그인을 제작하는 과정을 안내해줄 것입니다.
+
+''이 문서는 당신이 이미 워드프레스와 PHP 를 잘 알고 있다는것을 가정하고 설명합니다. 
+
+== 리소스 ==
+
+* 워드프레스 플러그인이 어떻게 동작하고, 어떻게 워드프레스에 설치되는지 이해하려면, [[ko:Plugins|플러그인]]을 보십시오.
+* [[Plugin Resources]] 에는 플러그인 개발자를 위한 글과 리소스에 관한 포괄적인 목록이 있는데, 여기에는 WordPress 플러그인 제작에 관한 글, 특별한 주제에 관한 글 등이 포함되어 있습니다.
+* WordPress 플러그인을 만드는 방법의 기초를 배우기 위해서는, 잘 작성된 플러그인의 소스코드를 보면 되는데, 예를 들면 WordPress에서 배포하는 [[Plugins#Default Plugins|Hello Dolly]] 플러그인이 있습니다.
+* 당신의 WordPress 플러그인을 만든 후에는, 그 플러그인을 배포하고 다른 사람들과 공유하는 방법에 대해 [[Plugin Submission and Promotion]] 를 참고하세요.
+
+= 플러그인 만들기 =
+
+이번 섹션은 플러그인을 만들기 위해 거쳐야 하는 과정들과, 잘 설계된 WordPress 플러그인을 만들기 위해 고려할 점들을 다룹니다.
+
+== 이름, 파일 그리고 위치 ==
+
+=== 플러그인 이름 ===
+
+WordPress 플러그인을 만들기 위한 첫 번째 작업은 이 플러그인이 무엇을 할 것인지 생각하고, (가급적 독특한) 플러그인 이름을 짓는 것입니다. [[Plugins]] 항목에서 언급된 다른 저장소들에서 당신의 플러그인 이름이 독특한지를 확인하세요; 생각한 이름을 구글에서 검색할 수도 있습니다. 대부분의 플러그인 개발자들은 그 플러그인이 하는 작업에 따라 이름을 만듭니다; 예를 들어, 날씨에 관련된 플러그인은 대개 이름 안에 "weather"라는 단어가 들어 있습니다. 플러그인 이름은 여러 단어가 될 수 있습니다.
+
+=== 플러그인 파일 ===
+
+다음 단계는 당신이 선택한 플러그인 이름으로부터 유래한 PHP 파일을 생성하는 것입니다. 예를 들어, 만약 당신의 플러그인 이름이 "Fabulous Functionality"라면, 당신의 PHP 파일 이름을 <tt>fabfunc.php</tt>로 지을 수 있습니다. 다시 말하지만, 독특한 이름을 선택하도록 노력하세요. 당신의 플러그인을 설치하는 사람들은 이 PHP 파일을 WordPress 플러그인 디렉토리인 <tt>wp-content/plugins/</tt>에 저장하게 되기 때문에, 중복된 PHP 파일 이름을 가진 플러그인을 설치할 수 없습니다.
+
+또 다른 방법은 당신의 플러그인을 여러 파일들로 분할하는 것입니다. 당신의 WordPress 플러그인에는 적어도 하나의 PHP 파일이 포함되어야 합니다; 플러그인에는 자바스크립트 파일, CSS 파일, 이미지 파일, 언어 파일, 등이 포함될 수 있습니다. 만약 플러그인 안에 여러 파일이 있다면, 독특한 이름으로 디렉토리와 메인 PHP 파일명을 지정하는데, 예를 들면 <tt>fabfunc</tt> 디렉토리와 <tt>fabfunc.php</tt> 파일이 됩니다. 당신의 모든 플러그인 파일들을 이 디렉토리에 넣고, 당신의 플러그인 사용자들에게 플러그인 디렉토리를 <tt>wp-content/plugins/</tt> 아래에 설치하라고 알려주세요. 그러나, 설치 과정에서 <tt>wp-content/plugins</tt> 대신에 다른 경로로 변경될 수 있기 때문에, 절대경로와 URL을 사용하기 위해서는 [[Function_Reference/plugin_dir_path| plugin_dir_path()]] 과 [[Function_Reference/plugins_url| plugins_url()]] 를 사용해야 합니다. 자세한 내용은 http://codex.wordpress.org/Determining_Plugin_and_Content_Directories 를 참조하세요.
+
+이 항목의 나머지 부분에서, "the Plugin PHP file"은 <tt>wp-content/plugins/</tt> 또는 서브디렉토리에 저장된 플러그인의 메인 PHP 파일을 의미합니다.
+
+=== Readme 파일 ===
+
+당신의 플러그인을 http://wordpress.org/extend/plugins/ 에서 제공하려면, 표준 형식대로 <tt>readme.txt</tt> 파일을 작성하고, 당신의 플러그인에 포함시켜야 합니다. Readme 파일 형식에 관한 설명은 http://wordpress.org/extend/plugins/about/readme.txt 를 참조하세요.
+
+WordPress 플러그인 저장소에서는 <tt>readme.txt</tt> 파일에 있는 "요구되는 워드프레스 버전"과 "호환" 버전 정보를 필요로 한다는 점에 주의하세요.
+
+=== 홈페이지 ===
+
+웹페이지를 만들어 당신의 WordPress 플러그인에 관한 홈페이지로 사용하는 것은 매우 유용합니다. 그 페이지에서는 플러그인을 설치하는 방법, 플러그인이 하는 작업, 플러그인과 호환되는 WordPress 버전들, 새 버전에서 달라진 점, 플러그인을 사용하는 방법 등을 설명해야 합니다.
+
+== 파일 헤더 ==
+
+이제 기본 플러그인의 PHP 파일에 몇가지 정보를 넣을 차례입니다.
+
+=== 표준 플러그인 정보 ===
+
+플러그인의 메인 PHP 파일의 첫 부분에는 반드시 표준 플러그인 정보 [[File Header|header]] 를 포함해야 합니다. 이 헤더가 있어야 WordPress가 당신의 플러그인이 존재하는 것을 확인하고, 플러그인을 활성화하고 실행하도록 설정하는 플러그인 관리 화면에 추가할 수 있습니다; 헤더가 없으면, 당신의 플러그인은 활성화될 수 없고 실행될 수 없습니다. 헤더 양식은 아래와 같습니다:
+
+<pre>
+<?php
+/*
+Plugin Name: Name Of The Plugin
+Plugin URI: http://URI_Of_Page_Describing_Plugin_and_Updates
+Description: A brief description of the Plugin.
+Version: The Plugin's Version Number, e.g.: 1.0
+Author: Name Of The Plugin Author
+Author URI: http://URI_Of_The_Plugin_Author
+License: A "Slug" license name e.g. GPL2
+*/
+?>
+</pre>
+
+WordPress가 당신의 플러그인을 인식할 수 있는 최소한의 정보는 Plugin Name 입니다. 나머지 정보는 (만약 있다면) 플러그인 관리 화면에 보여지는 표를 만드는 데에 사용됩니다. 줄의 순서는 중요하지 않습니다.
+
+업그레이드 메커니즘이 당신의 플러그인의 버전을 정확히 인식할 수 있도록, 버전마다 다르게 숫자를 점으로 구분해서 붙여쓰는 것이 권장됩니다. 예를 들면, x.x 또는 x.x.x 또는 xx.xx.xxx
+
+이 플러그인과 소스코드의 저작권을 표시하기 위해서는 짧은 공용 구분자를 이용하여 라이센스 슬러그를 지정합니다.
+
+<u>중요:</u> 파일은 반드시 UTF-8로 인코딩되어야 합니다.
+
+=== 라이센스 ===
+
+플러그인의 저작권에 관한 정보를 포함한 표준 헤더를 따르는 것이 관례적입니다. 많은 플러그인은 WordPress에서 사용된 [http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GPL2] 라이센스를 따르거나, 또는 [http://www.gnu.org/licenses/license-list.html#GPLCompatibleLicenses compatible with the GPL2] 라이센스를 사용합니다. GPL2 라이센스를 나타내려면, 아래의 내용을 당신의 플러그인에 포함시키세요:
+
+<pre>
+<?php
+/*  Copyright YEAR  PLUGIN_AUTHOR_NAME  (email : PLUGIN AUTHOR EMAIL)
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, version 2, as 
+    published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+?>
+</pre>
+
+== 플러그인 프로그래밍 ==
+
+이제, 당신의 플러그인이 실제로 무엇인가를 하도록 만들 차례입니다. 이 섹션은 플러그인 개발에 관한 일반적인 아이디어를 포함하고 있고, 당신의 플러그인이 할 필요가 있는 여러 작업들을 하는 방법을 서술합니다.
+
+=== 워드프레스 플러그인 후크 ===
+
+많은 WordPress 플러그인은 하나 이상의 플러그인 "hooks"를 이용하여 그들의 목적을 달성합니다. WordPress가 실행되는 도중의 다양한 시점에, 그 시점에 실행하도록 등록된 함수들이 있는지 확인하고, 만약 있다면 그 함수들을 실행하는 방식으로 플러그인 후크가 작동합니다. 이러한 함수들은 WordPress의 기본 작동 방식을 변경합니다.
+
+예를 들어, WordPress가 브라우저에 포스트의 타이틀을 출력하기 전에, 먼저 "the_title" 이라는 "filter" 후크에 등록된 플러그인이 있는지 확인합니다. 있다면, 원래의 타이틀은 후크에 등록된 함수들에게 차례로 전달되고, 최종 결과물이 출력됩니다. 그래서, 만약 당신의 플러그인에서 출력된 타이틀에 어떤 내용을 덧붙이려 한다면, "the_title" 필터 함수에 등록하면 됩니다.
+
+또 다른 예는 "wp_footer"라는 이름의 "action" 후크입니다. WordPress가 생성하는 HTML 페이지가 끝나기 직전에, "wp_footer" 액션 후크에 등록된 플러그인이 있는지를 확인하고, 등록된 함수들을 차례로 실행합니다.
+
+필터와 액션 후크에 함수를 등록하는 방법, WordPress에서 사용할 수 있는 플러그인 후크의 목록 등은 [[Plugin API]]에서 확인할 수 있습니다. 만약 WordPress 코드 중에서 액션이나 필터를 사용할 필요성이 있지만 WordPress에서 후크를 제공하고 있지 않은 부분을 발견한다면, 새로운 후크를 제안할 수 있습니다 (제안은 대개 수용됩니다); 그에 관한 방법은 [[Reporting Bugs]] 를 참고하세요.
+
+=== 템플릿 태그 ===
+
+WordPress에 기능을 추가할 수 있는 또 다른 방법은 커스텀 [[Template Tags]] 를 생성하는 것입니다. 당신의 플러그인을 사용하기를 원하는 사람은 이러한 "tags"를 자신의 테마, 사이드바, 포스트의 컨텐트 섹션, 또는 어디든 적절한 위치에 추가할 수 있습니다. 예를 들어, 포스트에 위치정보 태그를 추가하는 플러그인에서는 <tt>geotag_list_states()</tt> 라는 템플릿 태그 함수를 정의할 수 있는데, 사이드바 등의 위치에서 이 함수를 실행하면 위치정보가 태그된 장소들의 목록과 아카이브 링크를 출력할 수 있습니다.
+
+커스텀 템플릿 태그를 정의하려면, PHP 함수를 작성한 뒤에 플러그인 홈페이지나 플러그인 메인 PHP 파일을 통해서 플러그인 사용자들에게 그에 관련된 문서를 제공하세요. 함수를 문서화할 때에는, 그 함수를 사용하기 위해서 정확히 어떤 내용을 테마 파일에 추가해야 하는지의 예시를 <tt><?php</tt> 와 <tt>?></tt>까지 포함하여 보여주는 것이 좋습니다.
+
+===데이터베이스에 플러그인 데이터 저장하기===
+
+많은 WordPress 플러그인들은 사이트 소유자나 블로그 사용자로부터 정보를 입력받아 저장한 뒤, 필터 함수, 액션 함수, 템플릿 함수 등에서 사용할 필요가 있습니다. 이러한 정보들은 다음 접속 때에도 유지되어야 하기 때문에, WordPress 데이터베이스에 저장되어야 합니다. 플러그인 자료를 데이터베이스에 저장하는 데에는 3가지 방법이 있습니다:
+
+# WordPress "option" 메커니즘 사용하기 (아래에 설명). 이 방법은 비교적 적은 양의 정적인 자료를 저장하기에 적절합니다 -- 이 유형의 자료는 사이트 소유자가 플러그인을 세팅할 때에 입력하고, 그 이후로는 거의 변경하지 않기를 기대합니다.
+# 포스트 메타 사용하기 (커스텀 필드라고도 합니다). 개별적인 포스트, 페이지, 또는 첨부파일에 관련된 자료에 적합합니다. [[Function_Reference/post_meta Function Examples|post_meta Function Examples]], [[Function Reference/add_post_meta|add_post_meta()]], 그리고 관련된 함수들을 참고하세요.
+# 새로운, 커스텀 데이터베이스 테이블을 생성하기. 이 방법은 개별적인 포스트, 페이지, 첨부파일, 코멘트와 관련되지 않은 자료에 적합합니다 -- 이 유형의 자료는 시간이 지날수록 늘어나고, 개별적인 이름을 가질 필요가 없습니다. 이 방법에 관한 정보는 [[Creating Tables with Plugins]] 를 참고하세요.
+
+=== 워드프레스 옵션 메커니즘 ===
+
+옵션을 자동으로 저장하는 페이지를 생성하는 방법에 관한 정보는 [[Creating Options Pages]] 를 참고하세요.
+
+WordPress는 개별적이고 이름을 가진 자료들("options")을 WordPress 데이터베이스에 저장하고 업데이트하고 불러오는 메커니즘을 제공합니다. 옵션 값(value)은 문자열, 배열, 또는 PHP 오브젝트 (이들은 저장되기 전에 "직렬화" 되거나 문자열로 변환될 수 있고, 저장된 값을 불러올 때에는 역직렬화됩니다) 가 될 수 있습니다. 옵션 이름(name)은 중복되지 않은 문자열이어야 하는데, 그래야 WordPress나 다른 플러그인과 충돌하지 않기 때문입니다. 
+
+당신의 플러그인이 WordPress 옵션에 접근할 수 있는 주요 함수들은 아래와 같습니다.
+
+<pre>
+add_option($name, $value, $deprecated, $autoload);
+</pre>
+: 새로운 옵션을 생성합니다; 같은 이름(name)의 옵션이 이미 존재하면 아무 일도 하지 않습니다.
+;$name: 필수 (문자열). 추가될 옵션의 이름(name).
+;$value: 필수 아님 (mixed), 기본값은 빈 문자열입니다. 저장될 옵션의 값(value).
+;$deprecated: 필수 아님 (문자열), 더 이상 WordPress에서 사용되지 않습니다, 다음 파라미터인 $autoload를 사용하려면 이 파라미터에 빈 문자열이나 null을 넘겨줍니다.
+;$autoload: 필수 아님, 기본값은 'yes'입니다(열거형: 'yes' 또는 'no'). 'yes'로 설정하면 <tt>wp_load_alloptions</tt> 함수를 실행할 때에 자동으로 옵션 값을 불러옵니다.
+
+<pre>
+get_option($option);
+</pre>
+: 데이터베이스에서 특정 옵션의 값(value)를 불러옵니다.
+;$option: 필수 (문자열). 불러오기 원하는 옵션의 이름. WordPress와 함께 설치된 기본 옵션 목록은 [[Option Reference]] 에서 찾을 수 있습니다.
+
+<pre>
+update_option($option_name, $newvalue);
+</pre>
+: 특정 옵션의 값을 업데이트하거나 새로운 옵션을 생성합니다 (만약 <tt>$deprecated</tt> 또는 <tt>$autoload</tt> 파라미터를 사용하지 않는다면 <tt>add_option</tt> 함수를 호출할 필요가 없다는 점에 주의하세요).
+;$option_name: 필수 (문자열). 업데이트할 옵션의 이름.
+;$newvalue: 필수. (문자열|배열|오브젝트) 옵션에 저장될 새로운 값.
+
+=== 관리자 패널 ===
+
+당신이 만든 플러그인이 WordPress 데이터베이스에 저장되는 몇가지 옵션을 사용하는 경우 (위의 섹션을 참고하세요), 사용자들이 플러그인의 옵션을 확인하고 변경할 수 있는 관리자 패널이 필요할 것입니다. 이에 관한 방법은 [[Adding Administration Menus]] 에 설명되어 있습니다.
+
+== 플러그인 국제화 ==
+
+플러그인 프로그래밍이 끝나면, (플러그인을 배포하기로 마음먹은 경우) ''국제화''를 고려해 볼 수 있습니다. 국제화란 소프트웨어를 설정하여 ''지역화'' (소프트웨어에 표시되는 문자열을 여러 언어로 번역하는 작업) 하는 작업을 말합니다. 워드프레스는 세계 곳곳에서 쓰고 있으므로 국제화와 지역화가 내부 구조에 구축되어 있고, 플러그인 지역화도 가능합니다.
+
+플러그인의 언어 파일은 자동으로 ''읽어오지 않는다''는 것을 기억하십시오. 아래 문장을 플러그인 코드에 추가해야 읽어옵니다:
+
+ 	load_plugin_textdomain('your-unique-name', false, basename( dirname( __FILE__ ) ) . '/languages' );
+
+번역된 문자열을 읽어오기만 하려면 '''__('String name','your-unique-name');'''을 호출하고, 출력을 하려면  '''_e('String name','your-unique-name');'''을 호출하십시오. 번역 결과물은 플러그인의 /languages 디렉터리에 저장합니다.
+
+플러그인을 다른 나라에 있는 사용자들이 지역화할 수 있도록 국제화하는 것을 적극 권장합니다. 플러그인 국제화 방법 등이 있는 국제화 관련 종합 레퍼런스는 [[I18n for WordPress Developers]]에서 확인하십시오.
+
+= 플러그인 개발 제안 =
+
+이 부분에서는 플러그인 개발에 도움이 되는 몇 가지 사항을 순서 없이 나열하였습니다.
+
+* 플러그인 코드를 [[WordPress Coding Standards]]에 맞게 작성하십시오. 그리고 [[Inline Documentation]] 표준 문서도 참조하십시오.
+* 플러그인에 정의할 함수명은 워드프레스 기본 함수명, 다른 플러그인과 테마에서 정의한 함수명과 겹치지 않게 정하십시오. 고유한 접두사(Prefix)를 함수명에 붙이는 것이 좋습니다. 더 좋은 방법으로, 함수를 클래스 안에 정의할 수도 있습니다. (물론 클래스명도 고유해야 합니다.)
+* 워드프레스 데이터베이스 테이블 접두사(보통 "wp_")를 하드코딩하지 말고, <tt>$wpdb->prefix</tt> 변수를 사용하십시오.
+* 데이터베이스 읽기는 빠르지만 쓰기는 느립니다. 데이터베이스는 데이터를 아주 빨리 읽어올 수 있지만, 데이터베이스 수정은 복잡한 작업이고, 연산이 더 느립니다. <em>쓰기</em> 작업을 최대한 줄이고 코드에서 필요한 모든 작업을 먼저 수행하여 필요한 쓰기 작업만 할 수 있도록 하십시오.
+* 되도록 SQL 문을 직접 쓰는 대신 워드프레스 API를 이용하십시오. 예를 들면 <tt>SELECT * FROM {$wpdb->prefix}_posts</tt> 대신 <tt>get_posts()</tt>나 <tt>new WP_Query()</tt>를 사용하십시오.
+* 데이터베이스 테이블을 새로 만들기보다는 되도록 있는 테이블을 사용하십시오. 대부분의 경우 사용자정의 Post Type, 메타데이터, 사용자정의 Taxonomy, 그밖의 기본 테이블을 이용해서 구현할 수 있으며, 기본 테이블을 사용하면 UI 등 많은 기능을 '코딩 없이' 사용할 수 있습니다. 테이블을 새로 만들려면 아주 조심히 생각해야 합니다. 왜냐하면 플러그인의 복잡도가 올라가 사람들이 사용하지 않으려 하기 때문입니다.
+* 필요할 때만 SELECT 하십시오. 아무리 데이터베이스가 데이터 읽기가 빠르다고 해도, 데이터베이스 부하를 줄이기 위한 노력은 계속 해야 합니다. 필요한 데이터만 SELECT하십시오. 예를 들어, 테이블에 있는 Row 수를 세려고 <tt>SELECT * FROM</tt>를 실행하지 마십시오. 모든 행에 있는 데이터를 다 불러오므로 메모리를 낭비합니다. 이를테면 post_id와 post_author만 필요한 경우 <tt>SELECT</tt>할 때 해당 필드만 부르면 데이터베이스 부하가 줄어듭니다. 꼭 기억해야 할 것은, 다른 프로세스 수백 개가 동시에 데이터베이스에 접근할 수 있다는 것입니다. 데이터베이스와 서버는 이런 프로세스를 받아들일 만큼의 리소스만 가지고 있습니다. 플러그인이 데이터베이스에 접근하는 횟수를 줄일수록 리소스 낭비로 인한 불만의 목소리가 적어집니다.
+* 플러그인에서 발생하는 PHP 오류를 없애십시오. <tt>define('WP_DEBUG', true);</tt>를 ''wp-config.php'' 파일에 추가하여, 플러그인의 모든 기능을 시험하고 어떤 오류와 경고 메시지가 발생하는 지 확인하십시오. 메시지가 모두 없어질 때까지 디버그 모드로 설정해 놓고 코드를 수정하십시오.
+* <script>와 <style> 태그를 직접 Echo하지 마십시오. [http://codex.wordpress.org/Function_Reference/wp_enqueue_style wp_enqueue_style()]과 [http://codex.wordpress.org/Function_Reference/wp_enqueue_script wp_enqueue_script()] 함수를 추천합니다. 이들 함수는 스크립트와 스타일 중복 선언을 막을 뿐만 아니라 의존성 지원(Dependency Support)을 정의합니다. 다음 글을 보시면 자세한 내용을 확인할 수 있습니다. [http://planetozh.com/blog/2008/04/how-to-load-javascript-with-your-wordpress-plugin/ Ozh Richard], [http://beerpla.net/2010/01/13/wordpress-plugin-development-how-to-include-css-and-javascript-conditionally-and-only-when-needed-by-the-posts/ Artem Russakovskii],[http://www.prelovac.com/vladimir/best-practice-for-adding-javascript-code-to-wordpress-plugin Vladimir Prelovac].
+
+= 외부 리소스 =
+* [http://planetozh.com/blog/2009/09/top-10-most-common-coding-mistakes-in-wordpress-plugins/ Top 10 Most Common Coding Mistakes in WordPress Plugins] (11SEP09)
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ WordPress 2.0.3: Nonces (Secure your forms with nonces)] (02JUN06)
+* [http://amiworks.co.in/talk/simplified-ajax-for-wordpress-plugin-developers-using-jquery/ Simplified AJAX For WordPress Plugin Developers using Jquery](10APR08)
+* [http://www.rafaeldohms.com.br/2008/03/10/desenvolvendo-plugins-para-wordpress/pt/ "Desenvolvendo Plugins para WordPress" by Rafael Dohms (in Brazilian Portuguese)] (10MAR08)
+* [http://www.devlounge.net/extras/how-to-write-a-wordpress-plugin 12 part "How to Write a Wordpress Plugin" at DevLounge.net] by [http://ronalfy.com Ronald Huereca]
+* [http://ditio.net/2007/08/09/how-to-create-wordpress-plugin-from-a-scratch/ How to create WordPress Plugin from a scratch] (9AUG07)
+* [http://mitcho.com/code/hookpress/ HookPress], a plugin that enables extending WordPress in languages other than PHP via webhooks. (26SEP09)
+* [http://beerpla.net/2010/01/13/wordpress-plugin-development-how-to-include-css-and-javascript-conditionally-and-only-when-needed-by-the-posts/ How To Include CSS and JavaScript Conditionally And Only When Needed By The Posts] (13JAN10)
+* [http://aaron.jorb.in/blog/2010/03/wordpress-external-cron-plugin/ Demonstrating how to use the Settings API, WP_Http, and Pseudo-cron] (01MAR10)
+
+[[Category:ko:Plugins]]
+[[Category:ko:WordPress Development]]
+[[Category:ko:UI Link]]

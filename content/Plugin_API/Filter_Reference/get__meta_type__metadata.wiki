@@ -1,0 +1,44 @@
+==Description==
+This filter is applied before a metadata is returned. For example if a user metadata gets requested the hook would be 'get_user_metadata'.
+
+== Return Parameter ==
+The filter must return null if the data should be taken from the database. If it returns anything else, the <tt>get_metadata</tt> (and therefore the <tt>get_user_meta</tt>) function will return what the filter returns.
+
+== Parameters ==
+{{Parameter|$null|null|Always null|required}}
+{{Parameter|$object_id|int|ID of the object metadata is for|required}}
+{{Parameter|$meta_key|string|Metadata key|required}}
+{{Parameter|$single|bool|If true the filter should return the value of the metadata field, if false return an array|required}}
+
+== Example ==
+
+<pre>
+function myplugin_init() {
+	add_filter( 'get_user_metadata', 'myplugin_get_foo', 10, 4 );
+}
+
+function myplugin_get_foo( $null, $object_id, $meta_key, $single ) {
+
+	if ( 'foo' == $meta_key ) {
+		// Always return an array with your return value. There is no need to check $single. This logic is handled in wp-includes/meta.php
+		return array( 'bar' );
+	}
+
+	return null; // Go on with the normal execution in meta.php
+
+}
+
+add_action( 'init', 'myplugin_init' );
+</pre>
+
+== Change Log ==
+
+Since: [[Version 3.1|3.1]]
+
+== Source File ==
+The <tt>get_(meta_type)_metadata</tt> hook is located in {{Trac|wp-includes/meta.php|tags/4.9.6|485}}, line 485
+
+== See Also ==
+[[Plugin_API/Filter_Reference]]
+
+[[Category:Filters]]

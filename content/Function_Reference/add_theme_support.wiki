@@ -1,0 +1,212 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/add_theme_support/}}
+
+{{Languages|
+{{en|Function Reference/add_theme_support}}
+{{ja|関数リファレンス/add_theme_support}}
+{{zh-cn|函数参考/add_theme_support}}
+{{ko|함수 레퍼런스/add_theme_support}}
+}}
+
+== Description ==
+
+Allows a theme or plugin to register support of a certain [[Theme Features|theme feature]].  If called from a theme, it should be done in the theme's ''[[Theme Development#Functions File|functions.php]]'' file to work. It can also be [http://wordpress.stackexchange.com/questions/23839/using-add-theme-support-inside-a-plugin called from a plugin] if attached to an action [[Glossary#Hook|hook]].
+
+If attached to an action hook, it should be [[Plugin API/Action Reference/after_setup_theme|after_setup_theme]]. The [[Plugin API/Action Reference/init|init]] action hook may be too late for some features.
+
+== Usage ==
+
+%%%<?php add_theme_support( $feature, $arguments ); ?>%%%
+
+Support should be added on the <tt>'after_setup_theme'</tt> or <tt>'init'</tt> action, but no later than that. It does not accept any further arguments.
+
+<pre>
+function custom_theme_setup() {
+	add_theme_support( $feature, $arguments );
+}
+add_action( 'after_setup_theme', 'custom_theme_setup' );
+</pre>
+
+== Parameters ==
+
+{{Parameter|$feature|string|Name for the feature being added.
+::Features list:
+::* [[#Post Formats|<tt>'post-formats'</tt>]]
+::* [[#Post Thumbnails|<tt>'post-thumbnails'</tt>]]
+::* [[#Custom Background|<tt>'custom-background'</tt>]]
+::* [[#Custom Header|<tt>'custom-header'</tt>]]
+::* [[#Custom Logo|<tt>'custom-logo'</tt>]]
+::* [[#Feed Links|<tt>'automatic-feed-links'</tt>]]
+::* [[#HTML5| <tt>'html5'</tt>]]
+::* [[#Title Tag| <tt>'title-tag'</tt>]]
+::* [[#Customize Selective Refresh Widgets|<tt>'customize-selective-refresh-widgets'</tt>]]
+::* <tt>'editor-style'</tt> (internal registrations not used directly by themes)
+::* <tt>'widgets'</tt> (internal registrations not used directly by themes)
+::* <tt>'menus'</tt> (internal registrations not used directly by themes)
+}}
+{{Parameter|$args|array|Optional arguments (see below). If not passed it defaults to <tt>true</tt>.|optional|<tt>true</tt>}}
+
+== Addable Features ==
+
+===Post Formats===
+
+This feature enables [[Post Formats]] support for a Theme.  This feature became available with [[Version 3.1]].  When using [[Child Themes]], be aware that ''add_theme_support( 'post-formats' )'' will '''override''' the formats as defined by the parent theme, not add to it.
+
+To enable the specific formats (see supported formats at [[Post Formats]]), use:
+
+<pre>add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );</pre>
+
+To check if there is a 'quote' post format assigned to the post, use
+
+<pre>
+// in your theme single.php, page.php or custom post type
+if ( has_post_format( 'quote' ) ) {
+	echo 'This is a quote.';
+}
+</pre>
+
+=== Post Thumbnails ===
+
+This feature enables [[Post Thumbnails]] support for a Theme.  The feature became available with [[Version 2.9]].  Note that you can optionally pass a second argument with an array of the [[Post Types]] for which you want to enable this feature.  
+
+<pre>
+add_theme_support( 'post-thumbnails' );
+add_theme_support( 'post-thumbnails', array( 'post' ) );          // Posts only
+add_theme_support( 'post-thumbnails', array( 'page' ) );          // Pages only
+add_theme_support( 'post-thumbnails', array( 'post', 'movie' ) ); // Posts and Movies
+</pre>
+
+This feature must be called before the init hook is fired. That means it needs to be placed directly into functions.php or within a function attached to the 'after_setup_theme' hook. For custom post types, you can also add post thumbnails using the [[register_post_type]] function as well.
+
+To display thumbnails in themes index.php or single.php or custom templates, use:
+
+<pre>the_post_thumbnail();</pre>
+
+To check if there is a post thumbnail assigned to the post before displaying it, use:
+
+<pre>
+if ( has_post_thumbnail() ) {
+	the_post_thumbnail();
+}
+</pre>
+
+=== Custom Background ===
+This feature enables [[Custom_Backgrounds]] support for a theme as of [[Version 3.4]]. 
+<pre>add_theme_support( 'custom-background' );</pre>
+
+Note that you can add default arguments using:
+
+<pre>
+$defaults = array(
+	'default-color'          => '',
+	'default-image'          => '',
+	'wp-head-callback'       => '_custom_background_cb',
+	'admin-head-callback'    => '',
+	'admin-preview-callback' => ''
+);
+add_theme_support( 'custom-background', $defaults );
+</pre>
+
+=== Custom Header ===
+This feature enables [[Custom_Headers]] support for a theme as of [[Version 3.4]].
+
+<pre>add_theme_support( 'custom-header' );</pre>
+
+Note that you can add default arguments using:
+
+<pre>
+$defaults = array(
+	'default-image'          => '',
+	'random-default'         => false,
+	'width'                  => 0,
+	'height'                 => 0,
+	'flex-height'            => false,
+	'flex-width'             => false,
+	'default-text-color'     => '',
+	'header-text'            => true,
+	'uploads'                => true,
+	'wp-head-callback'       => '',
+	'admin-head-callback'    => '',
+	'admin-preview-callback' => '',
+);
+add_theme_support( 'custom-header', $defaults );
+</pre>
+
+=== Custom Logo ===
+
+This feature, first introduced in [[Version_4.5]], enables [[Theme_Logo]] support for a theme. 
+
+<pre>add_theme_support( 'custom-logo' );</pre>
+
+Note that you can add default arguments using:
+
+<pre>
+add_theme_support( 'custom-logo', array(
+	'height'      => 100,
+	'width'       => 400,
+	'flex-height' => true,
+	'flex-width'  => true,
+	'header-text' => array( 'site-title', 'site-description' ),
+) );
+</pre>
+
+===Feed Links===
+
+This feature enables [[Automatic Feed Links]] for post and comment in the head.  This should be used in place of the deprecated ''automatic_feed_links()'' function.  This feature became available with [[Version 3.0]].
+
+<pre>add_theme_support( 'automatic-feed-links' );</pre>
+
+===HTML5===
+This feature allows the use of [[Theme Markup|HTML5 markup]] for the  search forms, comment forms, comment lists, gallery, and caption. This feature became available with [[Version 3.6]].
+
+<pre>add_theme_support( 'html5', array( 'comment-list', 'comment-form', 'search-form', 'gallery', 'caption' ) );</pre>
+
+===Title Tag===
+
+This feature enables plugins and themes to manage the [[Title Tag|document title tag]]. This should be used in place of ''wp_title()'' function.  This feature became available with [[Version 4.1]].
+
+<pre>add_theme_support( 'title-tag' );</pre>
+
+===Customize Selective Refresh Widgets===
+
+This feature enables Selective Refresh for Widgets being managed within the Customizer. This feature became available with [[Version 4.5]]. For more on why and how Selective Refresh works read [https://make.wordpress.org/core/2016/03/22/implementing-selective-refresh-support-for-widgets/ Implementing Selective Refresh Support for Widgets]. 
+
+<pre>add_theme_support( 'customize-selective-refresh-widgets' );</pre>
+
+== Multisite ==
+
+To show the "Featured Image" meta box in multisite installation, make sure you update the allowed upload file types, in Network Admin, [[Network Admin Settings SubPanel#Upload_Settings]], Media upload buttons options. Default is jpg jpeg png gif mp3 mov avi wmv midi mid pdf.
+
+== Notes ==
+The following parameters are read only, and should only be used in the context of [[Function_Reference/current_theme_supports|current_theme_supports()]]:
+
+* <tt>sidebars</tt>: Use [[Function_Reference/register_sidebar|register_sidebar()]] or [[Function_Reference/register_sidebars|register_sidebars()]] instead.
+* <tt>menus</tt>: Use [[Function_Reference/register_nav_menu|register_nav_menu()]] or [[Function_Reference/register_nav_menus|register_nav_menus()]] instead.
+* <tt>editor-style</tt>: Use [[Function_Reference/add_editor_style|add_editor_style()]] instead.
+
+== Changelog ==
+
+* [[Version 4.5|4.5]]: Added <tt>'customize-selective-refresh-widgets'</tt> feature.
+* [[Version 4.1|4.1]]: Added <tt>'title-tag'</tt> feature.
+* [[Version 3.9|3.9]]: The <tt>'html5'</tt> accepts 'gallery' and 'caption'
+* [[Version 3.6|3.6]]: Added <tt>'html5'</tt> feature.
+* [[Version 3.4|3.4]]: Added <tt>'custom-background'</tt> and deprecated [[Function_Reference/add_custom_background|add_custom_background()]].
+* [[Version 3.4|3.4]]: Added <tt>'custom-header'</tt> and deprecated [[Function_Reference/add_custom_image_header|add_custom_image_header()]].
+* [[Version 3.1|3.1]]: Added <tt>'post-formats'</tt>.([http://core.trac.wordpress.org/ticket/14746 Ticket #14746])
+* [[Version 3.0|3.0]]: Added <tt>'automatic-feed-links'</tt> and deprecated <tt>automatic_feed_links()</tt>.
+* [[Version 2.9|2.9]]: Introduced with <tt>'post-thumbnails'</tt> feature.
+
+== Source File ==
+
+<tt>add_theme_support()</tt> is located in {{Trac|wp-includes/theme.php}}.
+
+== External Resources ==
+
+* [http://generatewp.com/theme-support/ WordPress Theme Support Generator]
+
+== Related ==
+
+{{Theme Support}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

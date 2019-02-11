@@ -1,0 +1,275 @@
+{{Languages|
+{{en|Template Hierarchy}}
+{{fr|Hiérarchie de modeles}}
+{{it|Gerarchia dei template}}
+{{ja|テンプレート階層}}
+{{ko|Template Hierarchy}}
+{{ru|Иерархия шаблонов}}
+{{es|Jerarquía de plantillas}}
+{{pt-br|Hierarquia de Temas Wordpress}}
+}}
+== Introduzione== 
+
+I template di WordPress si combinano fra di loro come i pezzi di un puzzle per generare le pagine web del vostro sito WordPress. Alcuni template (ad esempio i file di template della testata e del piè di pagina) sono utilizzati in tutte le pagine mentre altri sono utilizzati solo per specifiche condizioni.
+
+=== Di cosa parla questo articolo ===
+
+Questo articolo cerca di rispondere alla seguente domanda:
+
+<blockquote>
+''Quale/i file utilizza WordPress quando si visualizza un certo tipo di pagina?''
+</blockquote>
+
+=== A chi può essere utile ===
+
+Dall'introduzione dei [[Using Themes|Temi]] in WordPress 1.5, I [[Templates]] sono diventati sempre più configurabili. Per poter [[Theme_Development|sviluppare temi per WordPress]] è essenziale comprendere a fondo il modo in cui WordPress seleziona i file dei template per visualizzare le varie pagine del blog. Se si cerca di personalizzare un tema di WordPress già esistente, questo articolo ha lo scopo di aiutarvi a decidere quale file dei template occorre modificare.
+
+=== Utilizzo dei Tag condizionali ===
+
+WordPress fornisce più di una via per far corrispondere i template al tipo di query. Gli sviluppatori di temi per WordPress possono utilizzare i [[Theme_Development#Query-based_Template_Files|Tag condizionali]] per controllare quali template verranno utilizzati per generare una certa pagina. Alcuni temi WordPress possono non implementare tutti i file dei template descritti in questo articolo. Alcuni temi usano i tag condizionali per caricare altri file dei template. Per ulteriori informazioni si veda la pagina [[Conditional Tags|Tag condizionali]] e [[Theme Development#Query-based_Template_Files|"Basato su query" nello sviluppo dei temi]].
+
+== La gerarchia dei file dei template ==
+
+=== L'idea generale ===
+
+WordPress utilizza le informazioni della [[Glossary#Query_string|Query String]] &mdash; contenute in ciascun link del proprio sito web &mdash; per decidere qual template o insiemi di template verranno utilizzati per visualizzare la pagina.
+
+Per prima cosa, WordPress fa corrispondere ciascuna Query String ad un tipo di query &mdash; decide che tipo di pagina è stata richiesta (una pagina di ricerca, una pagina di categoria, l'home page ecc.).
+
+Quindi vengono selezionati i template  &mdash; e viene generato il contenuto della pagina web  &mdash; nell'ordine suggerito dalla gerarchia dei template di WordPress, in funzione di quali template sono disponibili in uno specifico Tema WordPress.
+
+WordPress cerca, nella directory del tema corrente, file dei template con nomi specifici ed utilizza il file dei template che ''corrisponde per primo'' nella sezione di query appropriata come elencato di seguito. 
+
+Con l'eccezione del file dei template di base <tt style="font-weight:bold; color:#036">index.php</tt>, gli sviluppatori dei temi possono scegliere se implementare o meno un particolare file di template. Se WordPress non riesce a trovare un file di template con il nome corrispondente, passa al nome di file successivo nella gerarchia. Se WordPress non riesce a trovare nessuna file di template corrispondente alle sue necessità verrà usato il file <tt style="font-weight:bold; color:#036">index.php</tt> (il file di template usato per la home page del tema).
+
+=== Esempi ===
+
+Se ad esempioil vostro blog si trova su <tt style="font-weight:bold; color:#036"><nowiki>http://example.com/blog/</nowiki></tt> ed un visitatore fa clic su un link ad una categoriadel tipo 
+<tt style="font-weight:bold; color:#036"><nowiki>http://example.com/blog/category/mia-cat/</nowiki></tt>: Ecco la sequenza che utilizza WordPress nella gerarchia dei template per cercare e generare il file corretto.
+
+WordPress cerca un file di template nella directory del tema corrente che corrisponda all'ID di categoria.
+
+# Se la categoria ha come abbreviazione (slug) mia-cat, WordPress cerca un template di nome <tt style="font-weight:bold; color:#036">category-mia-cat.php</tt>.
+# Se non lo trova e l'ID di categoria è 4, WordPress cerca un template di nome <tt style="font-weight:bold; color:#036">category-4.php</tt>.
+# Se manca, WordPress cerca in seguito un file generico di categoria, <tt style="font-weight:bold; color:#036">category.php</tt>. 
+# Se anche questo file non esiste allora WordPress cerca un fle di template di archivio generico, <tt style="font-weight:bold; color:#036">archive.php</tt>. 
+# Infine se manca anche questo file, WordPress utilizza alla fine il file di template principale del tema, <tt style="font-weight:bold; color:#036">index.php</tt>.
+
+Se un visitatoe arriva alla vostra home page a <tt style="font-weight:bold; color:#036"><nowiki>http://example.com/blog/</nowiki></tt>, si verifica la seguente sequenza:
+
+# WordPress per prima cosa determina se ha una [[Creating_a_Static_Front_Page|pagina frontale statica]]. Se è impostata una pagina statica allora WordPress carica questa pagina secondo la [[Template_Hierarchy#Page_display|gerarchia dei template di pagina]].
+# Se non è stata impostata una pagina iniziale statica allora WordPress cerca un file dei template di nome <tt style="font-weight:bold; color:#036">home.php</tt> e lo utilizza per generare la pagina richiesta. 
+# Se manca <tt style="font-weight:bold; color:#036">home.php</tt> WordPress cerca nella drectory del tema correntemente attivo un file denominato <tt style="font-weight:bold; color:#036">index.php</tt> e utilizza questo template per generare la pagina.
+
+=== Schema generale ===
+
+Il seguente diagramma mostra quali file di template vengono richiamati per generare una pagina di WordPress in base alla gerarchia dei template di WordPress.
+
+[[Image:Template_Hierarchy.png|750px|Schema grafico della struttura della gerarchia dei template di WordPress]]
+<small>[http://codex.wordpress.org/images/1/18/Template_Hierarchy.png Immagine a dimensione reale (png)]</small>
+
+Un diagramma più dettagliato, che comprende anche i tag condizionali relativi ai template e le classi CSS inserite nel body, è disponibile [http://www.chipbennett.net/themes/template-hierarchy qui].
+
+=== La gerarchia dei template in dettaglio ===
+
+La sezione seguente descrive l'ordine con il quale i file dei template vengono richiamati da WordPress per ciascun tipo di query.
+
+==== Visualizzazione Home Page ====
+File dei template utilizzato per visualizzare l'indice degli articoli del blog, sia che vi sia o meno una pagina iniziale statica. Nota: nel caso di Paigina inziale del sito, il template per la Front Page ha la precedenza rispetto al template per l'indice degli articoli del blog (Home).
+:#<tt style="font-weight:bold; color:#036">home.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione Pagina iniziale ====
+File dei template utilizzato per visualizzare la pagina iniziale del sito, quando la pagina iniziale mostra un indice degli articoli del bog o una pagina statica. il template per la Front Page ha la precedenza rispetto al template per l'indice degli articoli del blog (Home).
+:#<tt style="font-weight:bold; color:#036">front-page.php</tt> - Utilizzato sia per ''Gli ultimi articoli''' o per '''Una pagina statica''' secondo le impostazioni della sezione '''La pagina iniziale mostra:''' in [[Administration_Panels#Reading|Impostazioni]] -> [[Settings_Reading_SubPanel|Lettura]]
+:#[[#Visualizzazione pagina|Regole di visualizzazione pagina]] - Quando nella sezione '''La pagina iniziale mostra:''' in [[Administration_Panels#Reading|Impostazioni]] -> [[Settings_Reading_SubPanel|Lettura]] il template per la Pagina iniziale ha la precedenza rispetto al template per l'indice degli articoli del blog (Home).
+:#[[#Visualizzazione Home Page|Regole di visualizzazione Home Page]] - Quando nella sezione '''La pagina iniziale mostra:''' in [[Administration_Panels#Reading|Impostazioni]] -> [[Settings_Reading_SubPanel|Lettura]] viene impostato '''Pagina articoli'''
+
+==== Visualizzazione articolo singolo ====
+File di template utilizzato per mostrare una pagina di un singolo articolo.
+:#<tt style="font-weight:bold; color:#036">single-{post_type}.php</tt> - Se il [[Post Types|post type]] fosse <tt style="font-weight:bold; color:#036">prodotto</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">single-prodotto.php</tt>. 
+:#<tt style="font-weight:bold; color:#036">single.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione pagina ====
+File di template utilizzato per mostrare una pagina statica (post-type <tt>page</tt>)
+:#<tt style="font-weight:bold; color:#036">file di template personalizzato</tt> - Il  [[Pages#Page_Templates|Template di pagina]] assegnato alla Pagina. Si veda [[Function Reference/get page templates|get_page_templates()]].
+:#<tt style="font-weight:bold; color:#036">page-{slug}.php</tt> - Se l'abbreviazione (slug) della pagina è '''news-recenti''', WordPress cercherà di utilizzare <tt style="font-weight:bold; color:#036">page-news-recenti.php</tt>
+:#<tt style="font-weight:bold; color:#036">page-{id}.php</tt> - Se l?ID di pagina è '''6''', WordPress cercherà di utilizare <tt style="font-weight:bold; color:#036">page-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">page.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione categoria ====
+File di template utilizzato per mostrare una pagina di indice archivio di categoria
+:#<tt style="font-weight:bold; color:#036">category-{slug}.php</tt> - Se l'abbreviazione della categoria fosse <tt style="font-weight:bold; color:#036">news</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">category-news.php</tt>
+:#<tt style="font-weight:bold; color:#036">category-{id}.php</tt> - Se l'ID di categoria fosse <tt style="font-weight:bold; color:#036">6</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">category-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">category.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione tag ====
+File di template utilizzato per mostrare una pagina di indice archivio di tag
+:#<tt style="font-weight:bold; color:#036">tag-{slug}.php</tt> - Se l'abbreviazione del tag fosse <tt style="font-weight:bold; color:#036">untag</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">tag-untag.php</tt>
+:#<tt style="font-weight:bold; color:#036">tag-{id}.php</tt> - Se l'ID del tag fosse  <tt style="font-weight:bold; color:#036">6</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">tag-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">tag.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione tassonomie personalizzate ====
+File di template utilizzato per mostrare una pagina di indice archivio per una  [[Taxonomies|Tassonomia personalizzata]]
+:#<tt style="font-weight:bold; color:#036">taxonomy-{taxonomy}-{term}.php</tt> - Se la tassonomia fosse <tt style="font-weight:bold; color:#036">unatax</tt>, ed il terminae della tassonomia fosse <tt style="font-weight:bold; color:#036">untermine</tt> WordPress cercherà <tt style="font-weight:bold; color:#036">taxonomy-unatax-untermine.php.</tt> Nel caso di un formato articolo, la tassonomia è 'post_format' ed il termine è 'post-format-{formato}. Quindi <tt style="font-weight:bold; color:#036">taxonomy-post_format-post-format-link.php</tt>
+:#<tt style="font-weight:bold; color:#036">taxonomy-{taxonomy}.php</tt> - Se la tassonomia fosse <tt style="font-weight:bold; color:#036">unatax</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">taxonomy-unatax.php</tt>
+:#<tt style="font-weight:bold; color:#036">taxonomy.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione di tipi articoli personalizzati (Custom Post Types) ====
+File di template utilizzato per mostrare una pagina di indice archivio per un [[Post Types|tipo di articolo personalizzato (Custom Post Type)]]
+:#<tt style="font-weight:bold; color:#036">archive-{post_type}.php</tt> - Se il [[Post Types|tipo articolo]] fosse <tt style="font-weight:bold; color:#036">prodotto</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">archive-prodotto.php</tt>. 
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+(Per mostrare in singolo tipo di articolo personalizzato si faccia riferimento alla sezione precedente Visualizzazione singolo articolo.)
+
+==== Visualizzazione autore ====
+File di template utilizzato per mostrare una pagina di indice archivio per un autore
+:#<tt style="font-weight:bold; color:#036">author-{nicename}.php</tt> - Se il nice name dell'autore fosse <tt style="font-weight:bold; color:#036">rami</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">author-rami.php</tt>.
+:#<tt style="font-weight:bold; color:#036">author-{id}.php</tt> - Se l'ID dell'autore fosse <tt style="font-weight:bold; color:#036">6</tt>, WordPress cercherà <tt style="font-weight:bold; color:#036">author-6.php</tt>. 
+:#<tt style="font-weight:bold; color:#036">author.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione date ====
+File di template utilizzato per mostrare una pagina di indice archivio in base ad una data
+:#<tt style="font-weight:bold; color:#036">date.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione risultati ricerca ====
+File di template utilizzato per mostrare una pagina di indice archivio per una ricerca
+:#<tt style="font-weight:bold; color:#036">search.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione 404 (Non trovato) ====
+File di template utilizzato per mostrare una pagina di errore Server 404
+:#<tt style="font-weight:bold; color:#036">404.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Visualizzazione allegati ====
+File di template utilizzato per mostrare la pagina di un singolo allegato (post-type <tt>attachment</tt>)
+:#<tt style="font-weight:bold; color:#036">MIME_type.php</tt> - Può essere un qualsiasi [http://en.wikipedia.org/wiki/Internet_media_type MIME type] (<tt style="font-weight:bold; color:#036">image.php</tt>, <tt style="font-weight:bold; color:#036">video.php</tt>, <tt style="font-weight:bold; color:#036">application.php</tt>).  Per <tt>text/plain</tt>, nell'ordine:  
+:##<tt style="font-weight:bold; color:#036">text.php</tt>
+:##<tt style="font-weight:bold; color:#036">plain.php</tt>
+:##<tt style="font-weight:bold; color:#036">text_plain.php</tt>
+:#<tt style="font-weight:bold; color:#036">attachment.php</tt>
+:#<tt style="font-weight:bold; color:#036">single-attachment.php</tt>
+:#<tt style="font-weight:bold; color:#036">single.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+== Filtri della gerarchia ==
+
+Il sitema di template di WordPress permette di filtrare la gerarchia. Il filtro (che si trova nella funzione [[Riferimento funzioni/get_query_template|<tt>get_query_template()</tt>]] ) utilizza il filtro di nome: <tt style="font-weight:bold; color:#036">"{$type}_template"</tt> dove <tt style="font-weight:bold; color:#036">$type</tt> è il nome del file nella gerarchia senza l'estensione <tt style="font-weight:bold; color:#036">.php</tt>.
+
+Elenco completo:
+
+* index_template
+* 404_template
+* archive_template
+* author_template
+* category_template
+* tag_template
+* taxonomy_template
+* date_template
+* home_template
+* front_page_template
+* page_template
+* paged_template
+* search_template
+* single_template
+* text_template, plain_template, text_plain_template (Tutti i mime types)
+* attachment_template
+* comments_popup
+
+
+=== Esempio ===
+
+Prendiamo ad esempio la gerarchia standard per gli autori:
+
+* <tt style="font-weight:bold; color:#036">author-{nicename}.php</tt>
+* <tt style="font-weight:bold; color:#036">author-{id}.php</tt>
+* <tt style="font-weight:bold; color:#036">author.php</tt>
+
+Per aggiungere <tt style="font-weight:bold; color:#036">author-{role}.php</tt> prima di <tt style="font-weight:bold; color:#036">author.php</tt> dobbiamo manipolare la gerarchia attuale utilizzando l'hook 'author_template'. Ciò permette ad una richiesta per /author/username dove username ha il ruolo di editore di utilizzare per la visualizzazione author-editor.php se questo è presente nella directory del tema.
+
+<pre>
+function author_role_template( $templates='' )
+{
+	$author = get_queried_object();
+	$role=$author->roles[0];
+	
+	if(!is_array($templates) && !empty($templates)) {
+		$templates=locate_template(array("author-$role.php",$templates),false);
+	} 
+	elseif(empty($templates)) {
+		$templates=locate_template("author-$role.php",false);
+	}
+	else {
+		$new_template=locate_template(array("author-$role.php"));
+		if(!empty($new_template)) array_unshift($templates,$new_template);
+	}
+	
+	return $templates;
+}
+add_filter( 'author_template', 'author_role_template' );
+</pre>
+
+== Changelog ==
+
+* [[Version 3.1|3.1]] :
+** [[#Custom Post Types display|archive-{post_type}.php]] aggiunto
+
+* [[Version 3.0|3.0]] :
+** [[#Front Page display|front-page.php]] aggiunto
+** [[#Single Post display|single-{post_type}.php]] aggiunto
+** [[#Custom Taxonomies display|taxonomy.php]] aggiunto
+** [[#Custom Taxonomies display|taxonomy-{taxonomy}.php]] aggiunto
+** [[#Custom Taxonomies display|taxonomy-{taxonomy}-{term}.php]] aggiunto
+** [[#Author_display|author-{id}.php]] aggiunto
+** [[#Author_display|author-{nicename}.php]] aggiunto
+
+* [[Version 2.9|2.9]] :
+** [[#Page_display|page-{id}.php]] aggiunto
+** [[#Page_display|page-{slug}.php]] aggiunto
+** [[#Tag display|tag-{id}.php]] aggiunto
+**[[#Category display|category-{slug}.php]] aggiunto
+
+* [[Version 2.3|2.3]] :
+** [[#Tag display|tag.php]] aggiunto
+** [[#Tag display|tag-{slug}.php]] aggiunto
+
+* [[Version 2.0|2.0]] :
+** [[#Attachment display|attachment.php]] aggiunto
+
+* [[Version 1.5|1.5]] :
+** Introduzione del sistema dei temi.
+
+== File sorgente ==
+
+* Le funzioni per la gerarchia dei template si trovano in {{Trac|wp-includes/theme.php}}.
+* La gerarchia di caricamento-template si trova in {{Trac|wp-includes/template-loader.php}}.
+
+== Correlati ==
+
+* [[Theme Development]]
+* [[Il Loop]]
+* [[Conditional Tags]]
+* [[Template Tags]]
+* [[Using Permalinks]]
+
+{{Theme Templates}}
+
+[[Category:it:Design and Layout]]
+[[Category:it:Advanced Topics]]
+[[Category:it:Templates]]
+[[Category:it:Template Tags]]
+[[Category:it:UI Link]]
+[[Category:it:EN_Link_da_sistemare]]

@@ -1,0 +1,124 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Parameters"><span class="tocnumber">2</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Example"><span class="tocnumber">3</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Triggers"><span class="tocnumber">4</span> <span class="toctext">Triggers</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#See_Also"><span class="tocnumber">5</span> <span class="toctext">See Also</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/image_resize_dimensions&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since <b>version <a href="https://codex.wordpress.org/Version_3.4" title="Version 3.4">3.4</a></b>, the <code>image_resize_dimensions</code> filter is used to filter the thumbnail and alternative sizes dimensions of image assets during resizing operations. This enables the override of WordPress default behavior on image resizing, including the thumbnail cropping.
+</p><p>A plugin (or theme) can register as an image resizing filter with the code:
+</p><p><code>&lt;?php add_filter( 'image_resize_dimensions', 'filter_function_name', 10, 5 )&#160;?&gt;</code>
+</p><p>Where 'filter_function_name' is the function WordPress should call when the image resizing is being executed. Note that the filter function <b>must</b> return an array matching the parameters to <code>imagecopyresampled()</code>, <b>or</b> <code>false</code> if the resizing is impossible, or should not occur, <b>or</b> <code>null</code> to fallback to WordPress default behavior.
+</p><p><b>filter_function_name</b> should be unique function name. It cannot match any other function name already declared.
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/image_resize_dimensions&amp;action=edit&amp;section=2" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$payload </tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Null" title="How to Pass Tag Parameters"><i>null</i></a>) (<i>required</i>) Variable to be filtered.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$orig_w </tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Integer" title="How to Pass Tag Parameters"><i>integer</i></a>) (<i>required</i>) Original image width in pixels.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$orig_h </tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Integer" title="How to Pass Tag Parameters"><i>integer</i></a>) (<i>required</i>) Original image height in pixels.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$dest_w </tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Integer" title="How to Pass Tag Parameters"><i>integer</i></a>) (<i>required</i>) Destination image width in pixels.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$dest_h </tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Integer" title="How to Pass Tag Parameters"><i>integer</i></a>) (<i>required</i>) Destination image height in pixels.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$crop </tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>required</i>) Flag to enable image croping.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/image_resize_dimensions&amp;action=edit&amp;section=3" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This example filters the image resizing dimensions to force WordPress to crop thumbnails by keeping the top of the image, instead of the default center.
+</p>
+<pre>
+add_filter( 'image_resize_dimensions', 'custom_image_resize_dimensions', 10, 6 );
+function custom_image_resize_dimensions( $payload, $orig_w, $orig_h, $dest_w, $dest_h, $crop ){
+
+	// Change this to a conditional that decides whether you 
+	// want to override the defaults for this image or not.
+	if( false )
+		return $payload;
+
+	if ( $crop ) {
+		// crop the largest possible portion of the original image that we can size to $dest_w x $dest_h
+		$aspect_ratio = $orig_w / $orig_h;
+		$new_w = min($dest_w, $orig_w);
+		$new_h = min($dest_h, $orig_h);
+
+		if (&#160;!$new_w ) {
+			$new_w = intval($new_h * $aspect_ratio);
+		}
+
+		if (&#160;!$new_h ) {
+			$new_h = intval($new_w / $aspect_ratio);
+		}
+
+		$size_ratio = max($new_w / $orig_w, $new_h / $orig_h);
+
+		$crop_w = round($new_w / $size_ratio);
+		$crop_h = round($new_h / $size_ratio);
+
+		$s_x = floor( ($orig_w - $crop_w) / 2 );
+		$s_y = 0; // [[ formerly ]] ==&gt; floor( ($orig_h - $crop_h) / 2 );
+	} else {
+		// don't crop, just resize using $dest_w x $dest_h as a maximum bounding box
+		$crop_w = $orig_w;
+		$crop_h = $orig_h;
+
+		$s_x = 0;
+		$s_y = 0;
+
+		list( $new_w, $new_h ) = wp_constrain_dimensions( $orig_w, $orig_h, $dest_w, $dest_h );
+	}
+
+	// if the resulting image would be the same size or larger we don't want to resize it
+	if ( $new_w &gt;= $orig_w &amp;&amp; $new_h &gt;= $orig_h )
+		return false;
+
+	// the return array matches the parameters to imagecopyresampled()
+	// int dst_x, int dst_y, int src_x, int src_y, int dst_w, int dst_h, int src_w, int src_h
+	return array( 0, 0, (int) $s_x, (int) $s_y, (int) $new_w, (int) $new_h, (int) $crop_w, (int) $crop_h );
+
+}
+</pre>
+<h2><span class="mw-headline" id="Triggers">Triggers</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/image_resize_dimensions&amp;action=edit&amp;section=4" title="Edit section: Triggers">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>As of <a href="https://codex.wordpress.org/Version_3.6" title="Version 3.6">WordPress 3.6</a> this hook is applied in the following locations:
+</p>
+<ul><li> <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/trunk/src/wp-includes/class-wp-image-editor-gd.php#L155">wp-includes/class-wp-image-editor-gd.php</a></code> - on line 155</li>
+<li> <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/trunk/src/wp-includes/class-wp-image-editor-imagick.php#L221">wp-includes/class-wp-image-editor-imagick.php</a></code> - on line 221</li>
+<li> <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/trunk/src/wp-includes/media.php#L328">wp-includes/media.php</a></code> - in <tt>image_resize_dimensions()</tt> on line 328</li></ul>
+<p>This hook may also frequently be applied by plugins.
+</p>
+<h2><span class="mw-headline" id="See_Also">See Also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/image_resize_dimensions&amp;action=edit&amp;section=5" title="Edit section: See Also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Article: <a href="https://codex.wordpress.org/Plugin_API#Create_a_Filter_Function" title="Plugin API">Creating a Filter Function</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/add_filter" title="Function Reference/add filter">add_filter()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/image_resize_dimensions" title="Function Reference/image resize dimensions">image_resize_dimensions()</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004101
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.016 seconds
+Preprocessor visited node count: 144/1000000
+Preprocessor generated node count: 471/1000000
+Post‐expand include size: 1308/2097152 bytes
+Template argument size: 546/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    4.779      1 - -total
+ 54.78%    2.618      6 - Template:Parameter
+ 29.94%    1.431      3 - Template:Trac
+-->

@@ -1,0 +1,89 @@
+As of [[Version 3.0]], you can enable post and comment RSS feed links with:
+%%%<?php add_theme_support( 'automatic-feed-links' ); ?>%%%
+See more at [[Function_Reference/add_theme_support#Feed_Links]].
+
+{{Oldpage|pre 3.0}}
+
+WordPress generates a unique RSS feed for each post on your blog, which can by default be accessed in the post metadata section below the post itself. However, in order to make the most of your feed you need a [http://www.w3.org/TR/REC-html40/struct/links.html#h-12.3 <tt>link</tt>] element pointing to it, telling browsers, bots, and whatever and whoever else might be accessing your page that this is a feed, not just any old XML file.
+
+Unfortunately WordPress doesn't provide a dedicated option for doing this yet, so we're going to have to make one ourselves. This tutorial will provide code you can add to your header, and explain how the different parts work. '''If you aren't interested in what's going on and just want the solution, skip down to the [[#The final code|The final code]] section!'''
+
+==The problem==
+We must create a <tt>Link</tt> element in our header that points readers to our feed. It must change to reflect the page being viewed, and must not be generated if the page is not a post. To hook into the post system we must make use of [[The Loop]] to get the relevant data from the database.
+
+The logical solution to the problem would be to examine the post metadata code and copy over the command it uses to generate its link. Unfortunately, the output of <tt>comments_rss_link()</tt> is an HTML 'anchor' link (<tt>a href</tt>), which isn't what we want at all. It is designed for linking page elements, but we want to add information that isn't tied to any particular part of the page.
+
+==Link elements==
+A <tt>Link</tt> element is included in a page header, and links to some form of off-page resource. Have a look at your existing header for some examples. For RSS feeds, they take the following basic format:
+
+<tt><link rel="alternate" type="application/rss+xml" title="Feed Title" href="Feed Location" /></tt>
+
+The <tt>rel</tt> element tells the reader what this link is providing. There are many values accepted by <tt>rel</tt>: ours, <tt>alternate</tt>, indicates that the <tt>link</tt> points to an alternative form of the current page, its feed. We might also use alternate to signify a version of the page in a different language, or many other things. The type of alternate page being provided is of course defined in <tt>type</tt>, which should be self explanatory. Next is the title, which performs the same function as <tt>title</tt> elsewhere on the web; displaying a friendly name instead of the resource's location. Finally, <tt>href</tt> is the location of the <tt>link</tt>'s target on the internet, its URL. We then close the tag.
+
+==The variables==
+We can't just paste the above XHTML code in of course, unless you only ever have one post on your entire blog. We must make the values reflect the page they are being placed on, and in PHP this is done through a system of substitution. We enter PHP code in and when the page is generated WordPress replaces it with the data we asked for.
+
+We will need to substitute three pieces of data:
+*The feed title
+*The location of the blog
+*The ID of the current post
+
+And to do this we need the following variables:
+*<tt>the_title()</tt>
+*<tt>bloginfo('url')</tt>
+*<tt>the_ID()</tt>
+
+We add the variables where we want their result to be inserted, and WordPress does the rest. It isn't quite that simple though, as we have to tell WordPress that we want the commands interpreted as such and not simply printed out as text. We do this by wrapping <tt><?php</tt> and <tt>?></tt> around the variables. We must also, with a few exceptions, add a semicolon after each line for programming reasons that I won't go into.
+
+Substituting those variables results in:
+
+<tt><link rel="alternate" type="application/rss+xml" title="'''<?php the_title(); ?>''' Comments" href="'''<?php bloginfo('url'); ?>'''/?feed=rss2&amp;amp;p='''<?php the_ID(); ?>'''" /></tt>
+
+Note that we have replaced the <tt>href</tt>'s '&' with <tt>&amp;amp;</tt>. The ampersand is not a legal character in XHTML, and <tt>&amp;amp;</tt> is the 'encoded' version that has the same effect but does not cause browsers trouble.
+
+==The Loop==
+So we've got our link, and it has the key fields replaced with code that will fill them automatically. But we can't just use the variables anywhere. They must be within '[[The Loop]]'. Read more about The Loop at [[The Loop|this link]]. If you've come back completely blasted - don't worry. It isn't nearly as complex as the article might make out.
+
+Ideally we would add our code to the existing Loop, the one that already provides our posts, comments, and whatnot. While that would work in some browsers, it is completely the wrong place for what we are trying to do. The default Loop is entirely within the body of the page, and <tt>link</tt> elements belong in the head. It would be very bad practice to add the code to the body, and cause all sorts of problems.
+
+So we need a new Loop. Fret not, it's easy.
+
+<tt><?php while (have_posts()) : the_post(); ?>
+
+<?php endwhile; ?></tt>
+
+There you have it, a secondary Loop. Stick our code between those two lines and it will work just fine.
+
+There's only one problem. Because of the way The Loop works, if we leave it at that we will have the right feed in the document head, but the post displayed in the body of the page, the thing you actually read, will be the next one in the database. This won't do at all. Luckily the fix is once again simple:
+
+<tt><?php rewind_posts(); ?></tt>
+
+Our loop is now complete.
+
+==Conditional Tags ('if statements')==
+We are almost done. We have our link element, we are substituting data in to it, and it is able to hook into the database without messing anything up. But if you add the code in its current state, it will be executed on every page on the blog, even when there isn't a post present. This probably won't do any harm per se, but it will be very confusing for users. We need to tell WordPress that we only want our <tt>link</tt> to be added under a certain circumstance: the page being a post. This is done with a 'Conditional Tag', or as a programmer might know it an 'if statement'.
+
+<tt><?php if (is_single()) { ?>
+
+<?php } ?></tt>
+
+Anything between those two lines will only execute is <tt>is_single()</tt> is true; if the page is a post. Now we are all set!
+
+==The final code==
+<tt><?php if (is_single()) { ?>
+
+<?php while (have_posts()) : the_post(); ?>
+
+<link rel="alternate" type="application/rss+xml" title="<?php the_title(); ?> Comments" href="<?php bloginfo('url'); ?>/?feed=rss2&amp;amp;p=<?php the_ID(); ?>" />
+
+<?php endwhile; ?>
+
+<?php rewind_posts(); ?>
+
+<?php } ?></tt>
+
+Congratulations! Paste this code into <tt>header.php</tt> (preferably next to the existing site feed, for readability) and each post on your blog will properly notify browsers, bots and users of its RSS feed. Certainly better than an obscure little link in the metadata. For a quick demo, view a post in Firefox and you will get two options whenever you click the Live Bookmark icon in the Address Bar. If you don't, you've made a mistake somewhere and need to try again. Viewing your page source might make the error easier to find.
+
+[[Category:Advanced Topics]]
+[[Category:Design and Layout]]
+[[Category:Feeds]]

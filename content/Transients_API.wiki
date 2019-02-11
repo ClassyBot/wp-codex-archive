@@ -1,0 +1,181 @@
+{{Languages|
+{{en|Transients API}}
+{{ja|Transients API}}
+}}
+
+== Overview ==
+
+This page contains the technical documentation of '''WordPress Transients API''', which offers a simple and standardized way of storing cached data in the database temporarily by giving it a custom name and a timeframe after which it will expire and be deleted.
+
+The Transients API is very similar to the [[Options API]] but with the added feature of an expiration time, which simplifies the process of using the ''[[Database_Description#Table:_wp_options|wp_options]]'' database table to temporarily store cached information.
+
+Note that the "<tt>site_</tt>" functions are essentially the same as their counterparts, but work network wide when using WordPress [[Glossary#Multisite|Multisite]].
+
+Also of note is that Transients are inherently sped up by caching plugins, where normal Options are not. A memcached plugin, for example, would make WordPress store transient values in fast memory instead of in the database. For this reason, transients should be used to store any data that is expected to expire, or which can expire at any time. Transients should also never be assumed to be in the database, since they may not be stored there at all.
+
+Furthermore, it is possible for the transient to not be available before the expiration time. Much like what is done with caching, your code should have a fall back method to re-generate the data should the transient not be available.
+
+Ryan McCue explained it this way on a [https://core.trac.wordpress.org/ticket/20316#comment:47 ticket]:
+
+<blockquote>Everyone seems to misunderstand how transient expiration works, so the long and short of it is: transient expiration times are a maximum time. There is no minimum age. Transients might disappear one second after you set them, or 24 hours, but they will never be around after the expiration time.</blockquote>
+
+The intended audience for this article includes WordPress theme authors, plugin authors and anyone who needs to cache specific data but wants it to be refreshed within a given timeframe. This document assumes a basic understanding of PHP scripting.
+
+== Function Reference ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Set/Get  Transient'''
+|-
+|
+* <tt>[[Function_Reference/set_transient | set_transient()]]</tt>
+* <tt>[[Function_Reference/get_transient | get_transient()]]</tt>
+* <tt>[[Function_Reference/set_site_transient | set_site_transient()]]</tt>
+* <tt>[[Function_Reference/get_site_transient | get_site_transient()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Delete Transient'''
+|-
+|
+* <tt>[[Function_Reference/delete_transient | delete_transient()]]</tt>
+* <tt>[[Function_Reference/delete_site_transient | delete_site_transient()]]</tt>
+|}
+|}
+
+== Using Transients ==
+
+=== Saving Transients ===
+
+To save a transient you use [[Function_Reference/set_transient|set_transient()]] :
+
+ set_transient( $transient, $value, $expiration );
+
+; $transient : (''string'') Transient name. Expected to not be SQL-escaped. Must be 172 characters or fewer in length.
+; $value : (''array|object'') Data to save, either a regular variable or an array/object. The API will handle serialization of complex data for you.
+; $expiration : (''integer'') The maximum of seconds to keep the data before refreshing. Transients may expire before the $expiration (Due to External Object Caches, or database upgrades) but will never return their value past $expiration.
+
+So for example to save the $special_query_results object for 12 hours you would do:
+
+ set_transient( 'special_query_results', $special_query_results, 60*60*12 );
+
+==== Using Time Constants ====
+
+In [[Version_3.5|WordPress 3.5]], several constants were introduced to easily express time
+
+ MINUTE_IN_SECONDS  = 60 (seconds)
+ HOUR_IN_SECONDS    = 60 * MINUTE_IN_SECONDS
+ DAY_IN_SECONDS     = 24 * HOUR_IN_SECONDS
+ WEEK_IN_SECONDS    = 7 * DAY_IN_SECONDS
+ MONTH_IN_SECONDS   = 30 * DAY_IN_SECONDS
+ YEAR_IN_SECONDS    = 365 * DAY_IN_SECONDS
+
+So for example, the code sample from above can be simplified to:
+
+ set_transient( 'special_query_results', $special_query_results, 12 * HOUR_IN_SECONDS );
+
+=== Fetching Transients ===
+
+To get a saved transient you use <tt>[[Function_Reference/get_transient|get_transient()]]</tt> :
+
+ get_transient( $transient );
+
+* '''<tt>$transient</tt>''' the unique slug used while saving the transient with <tt>set_transient()</tt>.
+
+In our case we could fetch our special query results with:
+
+ get_transient( 'special_query_results' );
+
+If the transient does not exist, or has expired, then <tt>get_transient()</tt> will return <tt>false</tt>. This should be checked using the identity operator (<tt>===</tt>) instead of the normal equality operator (<tt>==</tt>), because an integer value of zero (or other "empty"/"falsey" data) could be the data you're wanting to store. Because of this "false" value, transients should not be used to hold plain boolean values (<tt>true</tt>/<tt>false</tt>). Put them into an array or convert them to integers instead.
+
+Example usage:
+
+ if ( false === ( $value = get_transient( 'value' ) ) ) {
+      // this code runs when there is no valid transient set
+ }
+
+The above code will get the transient and put it into <tt>$value</tt>. The code inside the if block only runs when there's not a valid transient for it to get. This is typically a method to re-generate the transient value through other means. Keep in mind that it's possible for a transient to not be available before it's normal expiration time.
+
+=== Removing Saved Transients ===
+
+Our transient will die naturally of old age once $expiration seconds have passed since we last ran <tt>[[Function_Reference/set_transient|set_transient()]]</tt>, but we can force the transient to die early by manually deleting it. This is useful for times when a given activity (saving a post, adding a category etc.) will make the cached data inherently stale and in need of updating. 
+
+ delete_transient( $transient );
+
+* '''$transient''' the unique name used when saving with <tt>set_transient()</tt>.
+
+In our case, obviously, this would be:
+
+ delete_transient( 'special_query_results' );
+
+WordPress infrequently cleans out expired transients. To prevent expired transients from building up in the database, it's a good practice to always remove your transient once you are done with it and no longer need it.
+
+== Complete Example ==
+
+Putting it all together here is an example of how to use transients in your code. 
+
+ <?php
+ // Get any existing copy of our transient data
+ if ( false === ( $special_query_results = get_transient( 'special_query_results' ) ) ) {
+     // It wasn't there, so regenerate the data and save the transient
+      $special_query_results = new WP_Query( 'cat=5&order=random&tag=tech&post_meta_key=thumbnail' );
+      set_transient( 'special_query_results', $special_query_results, 12 * HOUR_IN_SECONDS );
+ }
+ 
+ // Use the data like you would have normally...
+ ?>
+
+And an example of using <tt>[[Function_Reference/delete_transient|delete_transient()]]</tt>. In this case we'll add a function to the <tt>[[Plugin_API/Action_Reference/edit_term|edit_term]]</tt> action, which will run every time a category or tag is edited (i.e. we're assuming that the editing of a term invalidates our data and we want to remove the cached version). 
+
+ <?php
+ // Create a simple function to delete our transient
+ function edit_term_delete_transient() {
+      delete_transient( 'special_query_results' );
+ }
+ // Add the function to the edit_term hook so it runs when categories/tags are edited
+ add_action( 'edit_term', 'edit_term_delete_transient' );
+ ?>
+
+Use transients with <tt>[[Class_Reference/WP_Query | WP_Query]]</tt> to retrieve "featured posts":
+ <?php 
+ // Check for transient. If none, then execute WP_Query
+ if ( false === ( $featured = get_transient( 'foo_featured_posts' ) ) ) {
+ 	
+       $featured = new WP_Query(
+ 	   array(
+ 		'category' => 'featured',
+ 		'posts_per_page' => 5
+ 	   ));
+ 
+ 	// Put the results in a transient. Expire after 12 hours.
+ 	set_transient( 'foo_featured_posts', $featured, 12 * HOUR_IN_SECONDS );
+ } ?>
+  
+ // Run the loop as normal
+ <?php if ( $featured->have_posts() ) : ?>
+   
+    <?php while ( $featured->have_posts() ) : $featured->the_post(); ?>
+           // featured posts found, do stuff
+    <?php endwhile; ?>
+    
+    <?php else: ?>
+          // no featured posts found
+ <?php endif; ?>
+ 
+ <?php wp_reset_postdata(); ?>
+
+Using transients in your plugins and themes is simple and only adds a few extra lines of code, but if used in the right situations (long/expensive database queries or complex processed data) it can save seconds off the load times on your site. 
+
+
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]
+[[Category:WordPress Database]]

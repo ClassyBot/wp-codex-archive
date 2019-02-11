@@ -1,0 +1,206 @@
+== wp.getUsersBlogs ==
+
+Retrieve list of blogs for this user.
+
+=== Parameters ===
+
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* array
+** struct
+*** string <tt>blogid</tt>
+*** string <tt>blogName</tt>
+*** string <tt>url</tt>
+*** string <tt>xmlrpc</tt>: XML-RPC endpoint for the blog.
+*** bool <tt>isAdmin</tt>
+
+== wp.getUser ==
+
+Retrieve a user.
+
+Added in WordPress 3.5.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>user_id</tt>
+* array <tt>fields</tt>: Optional. List of field or meta-field names to include in response.
+
+=== Return Values ===
+
+* struct: Note that the exact fields returned depends on the <tt>fields</tt> parameter.
+** string <tt>user_id</tt>
+** string <tt>username</tt><sup>1</sup>
+** string <tt>first_name</tt>
+** string <tt>last_name</tt>
+** string <tt>bio</tt>
+** string <tt>email</tt><sup>1</sup>
+** string <tt>nickname</tt>
+** string <tt>nicename</tt><sup>1</sup>
+** string <tt>url</tt>
+** string <tt>display_name</tt><sup>1</sup>
+** datetime <tt>registered</tt><sup>1</sup>
+** <tt>roles</tt>
+
+<sup>1</sup> <tt>basic</tt> meta-field<br>
+
+=== Errors ===
+
+* 401
+** If user does not have permission to edit the user.
+* 404
+** If no user with that <tt>user_id</tt> exists.
+
+=== Filters ===
+
+==== xmlrpc_default_user_fields ====
+
+The default set of fields to be returned can be controlled using the <tt>xmlrpc_default_user_fields</tt> filter. The default value for this filter is:
+
+<pre>array( 'all' )</pre>
+
+==== xmlrpc_prepare_user ====
+
+Immediately before returning the prepared user data, the value is passed through the <tt>xmlrpc_prepare_user</tt> filter. The filter has three parameters: 
+
+# The prepared user data about to be returned
+# The original user <tt>WP_User</tt> object, see [[Function_Reference/get_userdata|get_userdata]].
+# The <tt>fields</tt> parameter value.
+
+== wp.getUsers ==
+
+Retrieve list of users.
+
+Added in WordPress 3.5.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>filter</tt>: Optional.
+** string <tt>role</tt>: Restrict results to only users of a particular role.
+** string <tt>who</tt>: If 'authors', then will return all non-subscriber users.
+** int <tt>number</tt>
+** int <tt>offset</tt>
+** string <tt>orderby</tt>
+** string <tt>order</tt>
+* array <tt>fields</tt>: Optional. See [[#wp.getUser]].
+
+=== Return Values ===
+
+* array
+** struct: See [[#wp.getUser]].
+
+==== Notes ====
+
+* Response will only contain users that the user has permission to edit. Therefore, there may be fewer than <tt>filter['number']</tt> users in the response.
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#list_users|list_users]]</tt> cap.
+* 403
+** If invalid <tt>role</tt> is specified.
+
+=== Filters ===
+
+Supports same filters as [[#wp.getUser]].
+
+
+== wp.getProfile ==
+
+Retrieve profile of the requesting user.
+
+Added in WordPress 3.5.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* array <tt>fields</tt>: Optional. See [[#wp.getUser]].
+
+=== Return Values ===
+
+* struct: See [[#wp.getUser]].
+
+=== Errors ===
+
+* 401
+** If the user does not permission to edit his/her profile.
+
+=== Filters ===
+
+Supports same filters as [[#wp.getUser]].
+
+
+== wp.editProfile ==
+
+Edit profile of the requesting user.
+
+Added in WordPress 3.5.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>content</tt>
+** string <tt>first_name</tt>
+** string <tt>last_name</tt>
+** string <tt>url</tt>
+** string <tt>display_name</tt>
+** string <tt>nickname</tt>
+** string <tt>nicename</tt>
+** string <tt>bio</tt>
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not permission to edit his/her profile.
+
+=== Notes ===
+
+It is not possible to change a user's password, email address, or roles via <tt>wp.editProfile</tt>. For those actions, the user must use the standard WordPress admin interface.
+
+
+== wp.getAuthors ==
+
+Retrieve list of all users. 
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* array
+** struct
+*** string <tt>user_id</tt>
+*** string <tt>user_login</tt>
+*** string <tt>display_name</tt>
+
+=== Errors ===
+
+* 401
+** If the user lacks the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap.
+
+=== Notes ===
+
+Because this method will return a list of all users, including subscribers, it may be preferable to use wp.getUsers instead, specifying 'authors' for the 'who' parameter to limit the results to users who are legitime authors.
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Feeds]]

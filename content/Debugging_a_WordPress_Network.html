@@ -1,0 +1,135 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="https://codex.wordpress.org/hr:Pronala%C5%BEenje_Gre%C5%A1aka_WordPress_Mre%C5%BEe" title="hr:Pronalaženje Grešaka WordPress Mreže">Hrvatski</a> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Debugging">a WordPress Network 日本語</a> 
+<a href="https://codex.wordpress.org/pt-br:Depurando_uma_Rede_WordPress" title="pt-br:Depurando uma Rede WordPress">Português do Brasil</a> • 
+
+<a href="https://codex.wordpress.org/pt:Depurar_Uma_Rede_WordPress" title="pt:Depurar Uma Rede WordPress">Português</a> • 
+
+<a href="https://codex.wordpress.org/zh-cn:%E8%B0%83%E8%AF%95_WordPress_%E7%AB%99%E7%82%B9%E7%BD%91%E7%BB%9C" title="zh-cn:调试 WordPress 站点网络">中文(简体)</a> • 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Debugging_a_WordPress_Network"><span class="tocnumber">1</span> <span class="toctext">Debugging a WordPress Network</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#If_You_just_installed_your_network"><span class="tocnumber">2</span> <span class="toctext">If You just installed your network</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Mod_rewrite_not_working"><span class="tocnumber">2.1</span> <span class="toctext">Mod_rewrite not working</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Check_the_database"><span class="tocnumber">2.2</span> <span class="toctext">Check the database</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#If_new_site_creation_suddenly_stopped_working"><span class="tocnumber">3</span> <span class="toctext">If new site creation suddenly stopped working</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Other_lesser-known_issues"><span class="tocnumber">4</span> <span class="toctext">Other lesser-known issues</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Related_Articles"><span class="tocnumber">5</span> <span class="toctext">Related Articles</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#External_Links"><span class="tocnumber">6</span> <span class="toctext">External Links</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Debugging_a_WordPress_Network">Debugging a WordPress Network</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Debugging_a_WordPress_Network&amp;action=edit&amp;section=1" title="Edit section: Debugging a WordPress Network">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>If you have reached this page, chances are you have received an error in your <a href="https://codex.wordpress.org/Glossary#Network" title="Glossary">WordPress network</a>. This failure occurs when WordPress cannot find one or more of the global tables for the network in the <a href="https://codex.wordpress.org/Database_Description" title="Database Description">database</a>.
+</p><p>On some shared webhosts, the host has disabled the functionality from running. It is always best to check with your webhost <b>before</b> <a href="https://codex.wordpress.org/Create_A_Network" title="Create A Network">creating a network</a> to make sure your webhost account fulfills the technical requirements.
+</p>
+<h2><span class="mw-headline" id="If_You_just_installed_your_network">If You just installed your network</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Debugging_a_WordPress_Network&amp;action=edit&amp;section=2" title="Edit section: If You just installed your network">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Check your <a href="https://codex.wordpress.org/Editing_wp-config.php" title="Editing wp-config.php">wp-config.php</a> file for&#160;:
+</p>
+<ul><li> correct database details</li>
+<li> <code>SUBDOMAIN_INSTALL</code> constant</li>
+<li> <code>MULTISITE</code> constant</li>
+<li> <code>$base</code> variable</li>
+<li> table prefix</li>
+<li> You should not have anything after</li></ul>
+<pre>
+/* That's all, stop editing! Happy blogging. */
+
+/** Absolute path to the WordPress directory. */
+if (&#160;!defined('ABSPATH') )
+	define('ABSPATH', dirname(__FILE__) . '/');
+
+/** Sets up WordPress vars and included files. */
+require_once(ABSPATH . 'wp-settings.php');
+</pre>
+Move any code that is after <pre>require_once(ABSPATH . 'wp-settings.php');</pre> to above the stop editing line.
+<p><br />
+</p>
+<h3><span class="mw-headline" id="Mod_rewrite_not_working">Mod_rewrite not working</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Debugging_a_WordPress_Network&amp;action=edit&amp;section=3" title="Edit section: Mod rewrite not working">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Main site works but 404 errors show up when trying to access added child subdomain sites.
+Ubuntu 10.04 LAMP apache2 install needs these steps:
+</p>
+<pre>  sudo a2enmod rewrite
+  sudo nano /etc/apache2/sites-avail/default
+</pre>
+<p>and change in two places the 'AllowOverride None' to 'AllowOverride all'
+</p>
+<pre>  /etc/init.d/apache2 restart
+</pre>
+<p>to restart apache2. Note that on more modern versions of Ubuntu the following syntax is preferred (for restarting services such as Apache - also note that in either case you may need to use prepend <i>sudo</i>):
+</p>
+<pre>  service apache2 restart
+</pre>
+<h3><span class="mw-headline" id="Check_the_database">Check the database</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Debugging_a_WordPress_Network&amp;action=edit&amp;section=4" title="Edit section: Check the database">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Assuming all that is correct, check the database itself and see if <a href="https://codex.wordpress.org/Database_Description#Multisite_Table_Overview" title="Database Description">all the extra network tables</a> were created. The tables are:
+</p>
+<ul><li>wp_blogs </li>
+<li>wp_blog_versions</li>
+<li>wp_registration_log </li>
+<li>wp_signups  </li>
+<li>wp_site </li>
+<li>wp_sitemeta</li></ul>
+<p>If you have these DB tables or added them manually but wp_site and/or wp_blogs is empty, you may have to run some SQL queries to insert rows for your main site. Be sure to adjust the table prefixes, domains, dates, username, and other parts of the queries below to match your install.
+</p>
+<pre>   INSERT INTO wp_site VALUES(1,'domain.com','/'); 
+   # change domain.com to the full domain of your original site and / to the path
+   
+   INSERT INTO wp_blogs VALUES(1, 1, 'domain.com', '/', '2015-01-01', '2015-01-01', 1, 0, 0, 0, 0, 0);
+   # change domains.com and / to domain and path of your site. Change dates if you want.
+   
+   INSERT INTO wp_sitemeta VALUES(<i>, 1, 'site_admins', 'a:1:{i:1;s:5:"admin";}');</i>
+   # Sets the admin user as a Super Admin. Change "admin" to your user_login. 
+   # Change "s:5" to "s:#" where # is the number of characters in user_login.
+</pre>
+<h2><span class="mw-headline" id="If_new_site_creation_suddenly_stopped_working">If new site creation suddenly stopped working</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Debugging_a_WordPress_Network&amp;action=edit&amp;section=5" title="Edit section: If new site creation suddenly stopped working">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Please check your database as above. Double-check that the location of the databse server hasn't changed, or is so, that you've updated your <code>wp-config.php</code> file.
+</p>
+<h2><span class="mw-headline" id="Other_lesser-known_issues">Other lesser-known issues</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Debugging_a_WordPress_Network&amp;action=edit&amp;section=6" title="Edit section: Other lesser-known issues">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Check that the database user has ALL permissions on the database.
+</p><p>Also, on very few upgrades from WordPressMU to 3.0 and up, a small number of users experienced a problem with creating new sites and receiving errors. This turned out to be a database collation issue.
+</p><p>Check that the .htaccess instructions are not throwing up errors in the Apache logs.
+</p><p>Like this one: 
+</p>
+<pre>Options FollowSymLinks or SymLinksIfOwnerMatch is off which implies that RewriteRule directive is forbidden:
+</pre>
+<p>This will result in a Network install appearing to fail and may show WP errors like
+</p>
+<pre>One or more database tables are unavailable. The database may need to be repaired.
+</pre>
+<h2><span class="mw-headline" id="Related_Articles">Related Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Debugging_a_WordPress_Network&amp;action=edit&amp;section=7" title="Edit section: Related Articles">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Create_A_Network" title="Create A Network">Create A Network</a></li></ul>
+<h2><span class="mw-headline" id="External_Links">External Links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Debugging_a_WordPress_Network&amp;action=edit&amp;section=8" title="Edit section: External Links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://wordpress.org/support/forum/multisite">WordPress › Support&#160;» Multisite</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003746
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.024 seconds
+Preprocessor visited node count: 92/1000000
+Preprocessor generated node count: 421/1000000
+Post‐expand include size: 997/2097152 bytes
+Template argument size: 532/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    9.657      1 - Template:Languages
+100.00%    9.657      1 - -total
+ 17.09%    1.650      1 - Template:hr
+ 16.26%    1.570      1 - Template:pt
+ 13.56%    1.310      1 - Template:en
+ 12.07%    1.165      1 - Template:ja
+ 11.17%    1.079      1 - Template:pt-br
+ 10.44%    1.008      1 - Template:zh-cn
+-->

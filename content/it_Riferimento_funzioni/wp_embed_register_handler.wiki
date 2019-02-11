@@ -1,0 +1,54 @@
+{{Languages|
+{{en|Function Reference/wp_embed_register_handler}}
+{{it|Riferimento funzioni/wp_embed_register_handler}}
+}}
+== Descrizione ==
+
+Registra un handler per un embed. Se il sito in questione supporta oEmbed, può essere opportuno usare [[it:Riferimento funzioni/wp_oembed_add_provider|<tt>wp_oembed_add_provider()</tt>]]. Si veda il documento [[it:Embed|Embed]] per maggiori informazioni.
+
+Questa funzione deve essere chiamata da un plugin o dal file [[Theme_Development#Theme_Functions_File|<tt>functions.php</tt>]] di un un tema.
+
+== Utilizzo ==
+
+%%% <?php wp_embed_register_handler( $id, $regex, $callback, $priority ); ?> %%%
+
+== Parametri ==
+
+{{it:Parameter|$id|string|Un ID o un nome interno per l'handler. Deve essere univoco.}}
+
+{{it:Parameter|$regex|string|L'espressione regolare da usare per verificare se questo handler deve essere usato per un URL.}}
+
+{{it:Parameter|$callback|callback|La funzione di callback da chiamare se l'espressione regolare è soddisfatta.}}
+
+{{it:Parameter|$priority|int|Usato per specificare l'ordine in cui gli handler registrati vengono verificati (default: 10). Numeri inferiori corrispondono a test effettuati con maggiore priorità, mentre handler con medesima priorità sono verificati nell'ordine in cui sono stati aggiunti all'azione.|opzionale|10}}
+
+== Esempi ==
+
+Registra un handler per incorporare i video di Forbes.
+
+<pre><?php
+
+wp_embed_register_handler( 'forbes', '#http://(?:www|video)\.forbes\.com/(?:video/embed/embed\.html|embedvideo/)\?show=([\d]+)&amp;format=frame&amp;height=([\d]+)&amp;width=([\d]+)&amp;video=(.+?)($|&)#i', 'wp_embed_handler_forbes' );
+
+function wp_embed_handler_forbes( $matches, $attr, $url, $rawattr ) {
+
+	$embed = sprintf(
+			'<iframe src="http://www.forbes.com/video/embed/embed.html?show=%1$s&format=frame&height=%2$s&width=%3$s&video=%4$s&mode=render" width="%3$spx" height="%2$spx" frameborder="0" scrolling="no" marginwidth="0" marginheight="0"></iframe>',
+			esc_attr($matches[1]),
+			esc_attr($matches[2]),
+			esc_attr($matches[3]),
+			esc_attr($matches[4])
+			);
+
+	return apply_filters( 'embed_forbes', $embed, $matches, $attr, $url, $rawattr );
+}
+
+?></pre>
+
+== Log delle modifiche ==
+
+Da: 2.9.0
+
+== Correlati ==
+
+{{it:Embed Tags}}

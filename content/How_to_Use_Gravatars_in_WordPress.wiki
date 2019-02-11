@@ -1,0 +1,107 @@
+{{Languages|
+{{en|How to Use Gravatars in WordPress}}
+{{ko|How to Use Gravatars in WordPress}}
+}}
+==What is a Gravatar?==
+
+When browsing different web sites, you may notice that many users have a picture next to their name.  These pictures are called "avatars."  WordPress, however, uses a specific type of avatar called "[http://en.gravatar.com/ Gravatars]"--short for "Globally Recognized Avatar." Unlike standard avatars, Gravatars follow you around the web and automatically appear when you post a comment on a WordPress site.
+
+[[Image:gravatar_example.png|Example of a Gravatar on a Comment]]
+
+WordPress integrates Gravatars into every WordPress site.  Once [https://en.gravatar.com/site/signup/ registered with Gravatar], the service matches your WordPress profile information to the email address registered with Gravatar and displays your custom Gravatar image next to comments and (optionally) elsewhere on the WordPress site.  If you choose not to sign up with Gravatar, the [[#Using Gravatars on your Site | default icon set by the Administrator]] appears next to your name.
+
+==Why use Gravatars?==
+
+Providing your users with avatars has become a convention in web-publishing.  Enabling Gravatars on your WordPress site simplifies the process for everyone involved.  While it is possible to use a [http://wordpress.org/plugins/ WordPress Plugin] to manage user avatars on your WordPress-run site, using Gravatars on your site makes less work for both you and your site’s users.
+
+===Benefits for Administrators===
+*You can add user Gravatars with very little effort
+*You don’t need to maintain an additional Plugin
+*You don’t have to manage user accounts, or their images, for commenters to use Gravatars on your site
+
+===Benefits for Users===
+*You don’t need to register for every site you visit just to use a Gravatar
+*You can update the Gravatar you use across multiple sites by uploading a single image in a single place
+
+==Using Gravatars on your Site==
+To [https://en.gravatar.com/site/signup start using Gravatars] on your site:
+#Log in as an administrator to your site
+# Navigate to [[Settings_Discussion_Screen | Settings]] >[[Settings_Discussion_Screen | Discussion]] and scroll down to the “Avatar” Section
+#The “Avatar” section presents you with several options:
+#*'''Avatar Display''': Toggle Gravatars on and off for your site.
+#*'''Maximum Rating''': When users create a profile on Gravatar, they are given the opportunity to rate their Gravatar image as G, PG, R, X based on its appropriateness.  Select the radio button for the maximum rating you would like displayed on your site.
+#*'''Default Avatar''': WordPress allows for you to select what image you would like to display when a commenter does not have a Gravatar account.  Selecting one of the “generated” icons give you and your users some of the benefits of a Gravatar without requiring them to [https://en.gravatar.com/site/signup have a Gravatar account].  The icons that say “generated” next to them take the email of the commenter and link it to an auto-generated image.  Now, every time that commenter posts to your site, they will have the same unique image next to their name.
+
+==For Developers==
+Starting with WordPress 2.7, when you retrieve the comments on a post or page using <tt>[[Function_Reference/wp_list_comments | wp_list_comments]]</tt>, WordPress will automatically retrieve your users' Gravatars.  If you would like to retrieve a user's Gravatar without retrieving comments, you can use <tt>[[Function_Reference/get_avatar | get_avatar]]</tt>.
+
+===Customizing how Gravatars are displayed===
+Using <tt>[[Function_Reference/wp_list_comments | wp_list_comments]]</tt> allows you to customize how WordPress outputs your comments in your theme.  It also controls the size of the Gravatar attached to the comments.  By default, Gravatars are displayed at 32px x 32px.  To change the size of the Gravatar, you can use the ‘avatar_size’ argument with <tt>[[Function_Reference/wp_list_comments | wp_list_comments]]</tt>.
+
+For example, to return a 50px x 50px Gravatar, you would call <tt>[[Function_Reference/wp_list_comments | wp_list_comments]]</tt> like this:
+
+<pre><?php wp_list_comments( array( 'avatar_size' => '50' ) ); ?></pre>
+
+<tt>[[Function_Reference/get_avatar | get_avatar]]</tt> works slightly different.  The first argument you pass it must be a user's ID, email address or the comment object.  You can then specify the size of the returned Gravatar, the URL for the default image you want to display if a user does not have a Gravatar, and the alternate text for the Gravatar image.
+
+This will return a 50px x 50px Gravatar:
+
+<pre><?php echo get_avatar( 'email@example.com', 50 ); ?></pre>
+
+===Customizing Gravatars with CSS===
+Because you can retrieve Gravatars with or without comments, you need to be specific with your CSS classes when styling Gravatars.  When WordPress returns Gravatars, it assigns them the <tt>.avatar</tt> class.  However, you don’t want to only target the class <tt>.avatar</tt> because it is generated in different contexts.  For example, when you hover over the Gravatar in the WordPress admin bar, the Gravatar that appears has the <tt>.avatar</tt> class.  If you were to change the CSS for the <tt>.avatar</tt> class, you would alter the style of both the Gravatar in your theme's comments and admin bar.
+
+As the [http://wordpress.org/themes/twentyeleven Twenty Eleven] theme demonstrates, you can simply use an additional class to target a specific instance of a Gravatar.
+
+This will change the display of Gravatars only in the [http://wordpress.org/themes/twentyeleven Twenty Eleven] theme's comments:
+
+<pre>
+.comment-list .avatar {
+	/*Insert
+	Your
+	Styling
+	Here */
+}
+</pre>
+
+===Create a Custom Default Avatar===
+If you don’t want to use any of the default images for users not registered with Gravatar, you can easily add your own by adding a filter to the <tt>avatar_defaults</tt> hook.
+
+After uploading the new image to your theme files, add this to your theme’s function.php file:
+
+<pre>
+<?php
+add_filter( 'avatar_defaults', 'new_default_avatar' );
+
+function new_default_avatar ( $avatar_defaults ) {
+		//Set the URL where the image file for your avatar is located
+		$new_avatar_url = get_bloginfo( 'template_directory' ) . '/images/new_default_avatar.png';
+		//Set the text that will appear to the right of your avatar in Settings>>Discussion
+		$avatar_defaults[$new_avatar_url] = 'Your New Default Avatar';
+		return $avatar_defaults;
+}
+?>
+</pre>
+
+Now, go to [[Settings_Discussion_Screen | Settings]] >[[Settings_Discussion_Screen | Discussion]] and select your new avatar from the list.
+
+[[Image:new_default_avatar_list.png | Select Your New Default Avatar]]
+
+From now on, all your users that don't use Gravatar will have this avatar next to their comments.
+
+[[Image:new_default_avatar_comment.png | Custom Default Avatar in Use]]
+
+===Using Gravatar’s Hovercards===
+
+If you want to use Gravatar’s Hovercard feature, like on WordPress.com, you can install the [http://jetpack.me/ Jetpack] Plugin.
+
+[[Image:hovercard.png | An example of a Hovercard]]
+
+===Resources===
+*[http://wordpress.tv/2009/07/26/introducing-gravatar-your-globally-recognized-avatar/ Introducing Gravatar]
+*[http://wordpress.tv/2010/05/01/beau-lebens-gravatar-profiles-sf10/ Gravatar Profiles]
+*[[Using_Gravatars | Using Gravatars]]
+*[http://en.gravatar.com/site/implement/ Gravatar Developer Resources]
+*[http://wordpress.org/plugins/hidpi-gravatars/ HiDPI Gravatars]
+
+[[Category:WordPress Lessons]] [[Category:Working with WordPress]]

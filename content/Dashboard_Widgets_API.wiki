@@ -1,0 +1,266 @@
+{{Languages|
+{{en|Dashboard Widgets API}}
+{{ja|ダッシュボードウィジェット API}}
+{{ru|API консоли}}
+}}
+
+The '''Dashboard Widgets API''' (added in WP [[Version 2.7|2.7]]) makes it very simple to add new widgets to the [[Dashboard SubPanel | administration dashboard]]. Doing so requires working knowledge of PHP and the WordPress [[Plugin API]], but to plugin or theme authors familiar with hooking actions and filters it only takes a few minutes and can be a great way to make your plugin even more useful.
+
+==Overview==
+===The Function===
+The main tool needed to add Dashboard Widgets is the <tt>[[Function_Reference/wp_add_dashboard_widget | wp_add_dashboard_widget()]]</tt> function. You will find a complete description of this function at that link, but a brief overview is given below.
+
+Usage:
+
+ wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null )
+
+* <tt>$widget_id</tt> - an identifying slug for your widget. This will be used as its CSS class and its key in the array of widgets.
+* <tt>$widget_name</tt> - this is the name your widget will display in its heading.
+* <tt>$callback</tt> - The name of a function you will create that will display the actual contents of your widget. 
+* <tt>$control_callback</tt> - (Optional) The name of a function you create that will handle submission of widget options forms, and will also display the form elements.
+
+===The Action===
+To run the function you will need to hook into the action [[Plugin_API/Action_Reference/wp_dashboard_setup|'wp_dashboard_setup']] via <tt>[[Function_Reference/add_action | add_action()]]</tt>. For the Network Admin dashboard, use the hook <tt>[[Plugin_API/Action_Reference/wp_network_dashboard_setup | 'wp_network_dashboard_setup']]</tt>.
+
+==Examples==
+<pre>
+/**
+ * Add a widget to the dashboard.
+ *
+ * This function is hooked into the 'wp_dashboard_setup' action below.
+ */
+function example_add_dashboard_widgets() {
+
+	wp_add_dashboard_widget(
+                 'example_dashboard_widget',         // Widget slug.
+                 'Example Dashboard Widget',         // Title.
+                 'example_dashboard_widget_function' // Display function.
+        );	
+}
+add_action( 'wp_dashboard_setup', 'example_add_dashboard_widgets' );
+
+/**
+ * Create the function to output the contents of our Dashboard Widget.
+ */
+function example_dashboard_widget_function() {
+
+	// Display whatever it is you want to show.
+	echo "Hello World, I'm a great Dashboard Widget";
+}
+</pre>
+
+===Advanced: Forcing your widget to the top===
+Normally you should just let the users of your plugin put your Dashboard Widget wherever they want by dragging it around. There currently isn't an easy API way to pre-sort the default widgets, meaning your new widget will always be at the bottom of the list. Until sorting is added to the API its a bit complicated to get around this problem. 
+
+Below is an example hooking function that will try to put your widget before the default ones. It does so by manually altering the internal array of metaboxes (of which dashboard widgets are one type) and putting your widget at the top of the list so it shows first. 
+
+<pre>
+function example_add_dashboard_widgets() {
+ 	wp_add_dashboard_widget( 'example_dashboard_widget', 'Example Dashboard Widget', 'example_dashboard_widget_function' );
+ 	
+ 	// Globalize the metaboxes array, this holds all the widgets for wp-admin
+ 
+ 	global $wp_meta_boxes;
+ 	
+ 	// Get the regular dashboard widgets array 
+ 	// (which has our new widget already but at the end)
+ 
+ 	$normal_dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
+ 	
+ 	// Backup and delete our new dashboard widget from the end of the array
+ 
+ 	$example_widget_backup = array( 'example_dashboard_widget' => $normal_dashboard['example_dashboard_widget'] );
+ 	unset( $normal_dashboard['example_dashboard_widget'] );
+ 
+ 	// Merge the two arrays together so our widget is at the beginning
+ 
+ 	$sorted_dashboard = array_merge( $example_widget_backup, $normal_dashboard );
+ 
+ 	// Save the sorted array back into the original metaboxes 
+ 
+ 	$wp_meta_boxes['dashboard']['normal']['core'] = $sorted_dashboard;
+} 
+
+add_action( 'wp_dashboard_setup', 'example_add_dashboard_widgets' );
+</pre>
+
+Unfortunately this only works for people who have never re-ordered their widgets. Once a user has done so their existing preferences will override this and they will have to move your widget to the top for it to stay there.
+
+===Advanced: Removing Dashboard Widgets===
+In some situations, especially on multi-user blogs, it may be useful to completely remove widgets from the interface. Each individual user can, by default, turn off any given widget using the ''Screen Options'' tab at the top, but if you have a lot of non-technical users it might be nicer for them to not see it at all. 
+
+To remove dashboard widget, use the <tt>[[Function Reference/remove_meta_box|remove_meta_box()]]</tt> function. See the example code below for the required parameters.
+
+These are the names of the default widgets on the dashboard:
+<pre>
+// Main column (left):
+$wp_meta_boxes['dashboard']['normal']['high']['dashboard_browser_nag']
+$wp_meta_boxes['dashboard']['normal']['core']['dashboard_right_now']
+$wp_meta_boxes['dashboard']['normal']['core']['dashboard_activity']
+
+// Side Column (right):
+$wp_meta_boxes['dashboard']['side']['core']['dashboard_quick_press']
+$wp_meta_boxes['dashboard']['side']['core']['dashboard_primary']
+</pre>
+
+Here is an example function that removes the QuickPress widget. 
+
+<pre>
+// Create the function to use in the action hook
+function example_remove_dashboard_widget() {
+ 	remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+} 
+ 
+// Hook into the 'wp_dashboard_setup' action to register our function
+add_action('wp_dashboard_setup', 'example_remove_dashboard_widget' );
+</pre>
+
+From the [https://wordpress.org/support/topic/programatically-remove-the-wordpress-news-widget-from-the-dashboard#post-5060314 WordPress Forums], the example below removes all Dashboard Widgets
+
+<pre>
+function remove_dashboard_meta() {
+        remove_meta_box( 'dashboard_incoming_links', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_plugins', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_secondary', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_recent_drafts', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_right_now', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_activity', 'dashboard', 'normal');//since 3.8
+}
+add_action( 'admin_init', 'remove_dashboard_meta' );
+</pre>
+
+===Advanced: Adding Widgets onto the side===
+The function doesn't allow you to choose where you want your widget to go and will automatically add it to the "core" which is the left side. However you are able to get it on the right side very easily. 
+
+You can use the <tt>[[Function Reference/add_meta_box|add_meta_box()]]</tt> function instead of <code>wp_add_dashboard_widget</code>. Simply specify <tt>'dashboard'</tt> in place of the <tt>$post_type</tt>. For example:
+
+<pre>
+add_meta_box( 'id', 'Dashboard Widget Title', 'dash_widget', 'dashboard', 'side', 'high' );
+</pre>
+
+Or, after creating the widget what you do is:
+
+<pre>
+// Global the $wp_meta_boxes variable (this will allow us to alter the array).
+global $wp_meta_boxes;
+
+// Then we make a backup of your widget.
+$my_widget = $wp_meta_boxes['dashboard']['normal']['core']['{widget id here}'];
+
+// We then unset that part of the array.
+unset($wp_meta_boxes['dashboard']['normal']['core']['{widget id here}']);
+
+// Now we just add your widget back in.
+$wp_meta_boxes['dashboard']['side']['core']['{widget id here}'] = $my_widget;
+</pre>
+
+===Aggregating RSS feeds in the dashboard===
+If you need to aggregate RSS in your widget you should take a look at the way the existing plugins are set up with caching in {{Trac|/wp-admin/includes/dashboard.php}}.
+
+==Widget Options==
+WordPress does not provide a built-in way to fetch options for a specific widget. By default, you would need to use [[Function Reference/get_option|get_option( 'dashboard_widget_options' )]] to fetch all widget options and then filter the returned array manually.  This section presents some functions that can easily be added to a theme or plugin to help getting and setting of widget options.
+
+===Getting Widget Options===
+This function will fetch all widget options, or only options for a specified widget.
+<pre>
+/**
+ * Gets all widget options, or only options for a specified widget if a widget id is provided.
+ *
+ * @param string $widget_id Optional. If provided, will only get options for that widget.
+ * @return array An associative array
+ */
+public static function get_dashboard_widget_options( $widget_id='' )
+{
+    //Fetch ALL dashboard widget options from the db...
+    $opts = get_option( 'dashboard_widget_options' );
+
+    //If no widget is specified, return everything
+    if ( empty( $widget_id ) )
+        return $opts;
+
+    //If we request a widget and it exists, return it
+    if ( isset( $opts[$widget_id] ) )
+        return $opts[$widget_id];
+
+    //Something went wrong...
+    return false;
+}
+</pre>
+
+===Get a Single Widget Option===
+If you want to easily fetch only a single option (for outputting to a theme), the following function will make that easier.
+
+This example should be used with the previous "Getting Widget Options" example function.
+
+<pre>
+/**
+ * Gets one specific option for the specified widget.
+ * @param $widget_id
+ * @param $option
+ * @param null $default
+ *
+ * @return string
+ */
+public static function get_dashboard_widget_option( $widget_id, $option, $default=NULL ) {
+
+    $opts = get_dashboard_widget_options($widget_id);
+
+    //If widget opts dont exist, return false
+    if ( ! $opts )
+        return false;
+
+    //Otherwise fetch the option or use default
+    if ( isset( $opts[$option] ) && ! empty($opts[$option]) )
+        return $opts[$option];
+    else
+        return ( isset($default) ) ? $default : false;
+
+}
+</pre>
+
+===Update Widget Options===
+This function can be used to easily update all of a widget's options. It can also be used to add a widget option non-destructively. Simply set the $add_option argument to true, and this will NOT overwrite any existing options (although it will add any missing ones).
+<pre>
+/**
+ * Saves an array of options for a single dashboard widget to the database.
+ * Can also be used to define default values for a widget.
+ *
+ * @param string $widget_id The name of the widget being updated
+ * @param array $args An associative array of options being saved.
+ * @param bool $add_only Set to true if you don't want to override any existing options.
+ */
+public static function update_dashboard_widget_options( $widget_id , $args=array(), $add_only=false )
+{
+    //Fetch ALL dashboard widget options from the db...
+    $opts = get_option( 'dashboard_widget_options' );
+
+    //Get just our widget's options, or set empty array
+    $w_opts = ( isset( $opts[$widget_id] ) ) ? $opts[$widget_id] : array();
+
+    if ( $add_only ) {
+        //Flesh out any missing options (existing ones overwrite new ones)
+        $opts[$widget_id] = array_merge($args,$w_opts);
+    }
+    else {
+        //Merge new options with existing ones, and add it back to the widgets array
+        $opts[$widget_id] = array_merge($w_opts,$args);
+    }
+
+    //Save the entire widgets array back to the db
+    return update_option('dashboard_widget_options', $opts);
+}
+</pre>
+
+==Related==
+* Tutorial: [http://deluxeblogtips.com/remove-dashboard-widgets-in-wordpress/ Remove dashboard widgets - The better way]
+* Article: [[Dashboard Widgets API]]
+* Lesson: [[Example Dashboard Widget]]
+
+[[Category:Plugins]]
+[[Category:Widgets]]
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]

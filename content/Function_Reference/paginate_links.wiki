@@ -1,0 +1,167 @@
+{{Languages|
+{{en|Function_Reference/paginate_links}}
+{{ja|関数リファレンス/paginate_links}}
+}}
+
+== Description ==
+
+Retrieve paginated link for archive post pages. Technically, the function can be used to create paginated link list for any area ( e.g.: « Prev 1 … 3 4 5 6 7 … 9 Next » )
+== Usage ==
+
+%%%<?php echo paginate_links( $args ); ?>%%%
+
+===Default Arguments===
+
+<pre>
+<?php $args = array(
+	'base'               => '%_%',
+	'format'             => '?paged=%#%',
+	'total'              => 1,
+	'current'            => 0,
+	'show_all'           => false,
+	'end_size'           => 1,
+	'mid_size'           => 2,
+	'prev_next'          => true,
+	'prev_text'          => __('&laquo; Previous'),
+	'next_text'          => __('Next &raquo;'),
+	'type'               => 'plain',
+	'add_args'           => false,
+	'add_fragment'       => '',
+	'before_page_number' => '',
+	'after_page_number'  => ''
+); ?>
+</pre>
+
+== Parameters ==
+
+Even if the whole arguments array is marked '''optional''', the function will output nothing if you do not specify the needed arguments.
+
+{{Parameter|base|string|Used to reference the url, which will be used to create the paginated links. The default value '<tt>%_%</tt>' in '<tt>http://example.com/all_posts.php%_%</tt>' is replaced by '<tt>format</tt>' argument (see below).|optional|'%_%'}}
+
+{{Parameter|format|string|<nowiki>Used for Pagination structure. The default value is '?page=%#%', If using pretty permalinks this would be '/page/%#%', where the '%#%' is replaced by the page number.</nowiki>|optional|<nowiki>'?page=%#%'</nowiki>}}
+
+{{Parameter|total|integer|The total amount of pages.|optional|1}}
+
+{{Parameter|current|integer|The current page number.|optional|0}}
+
+{{Parameter|show_all|boolean|If set to True, then it will show all of the pages instead of a short list of the pages near the current page. By default, the '<tt>show_all</tt>' is set to false and controlled by the '<tt>end_size</tt>' and '<tt>mid_size</tt>' arguments.|optional|False}}
+
+{{Parameter|end_size|integer|How many numbers on either the start and the end list edges.|optional|1}}
+
+{{Parameter|mid_size|integer|How many numbers to either side of current page, but not including current page.|optional|2}}
+
+{{Parameter|prev_next|boolean|Whether to include the previous and next links in the list or not.|optional|True}}
+
+{{Parameter|prev_text|string|The previous page text. Works only if '<tt>prev_next</tt>' argument is set to true.|optional|__('&laquo; Previous')}}
+
+{{Parameter|next_text|string|The next page text. Works only if '<tt>prev_next</tt>' argument is set to true.|optional|__('Next &raquo;')}}
+
+{{Parameter|type|string|Controls format of the returned value. Possible values are:
+<ul>
+<li>'<tt>plain</tt>' - A string with the links separated by a newline character.</li>
+<li>'<tt>array</tt>' - An array of the paginated link list to offer full control of display.</li>
+<li>'<tt>list</tt>' - Unordered [[wikipedia:HTML|HTML]] list. </li>
+</ul>
+|optional|'plain'}}
+
+{{Parameter|add_args|array|An array of query args to add.|optional|false}}
+
+{{Parameter|add_fragment|string|A string to append to each link.|optional}}
+
+{{Parameter|before_page_number|string|A string to appear before the page number.|optional}}
+
+{{Parameter|after_page_number|string|A string to append after the page number.|optional}}
+
+== Return Values ==
+{{Return|mixed|array&#124;string|String or array of page links.}}
+
+== Examples ==
+
+* See example under [[Function_Reference/paginate_comments_links|<tt>paginate_comments_links()</tt>]].
+
+=== Basic Example ===
+To add pagination to your search results and archives, you can use the following example:
+<pre>
+<?php
+global $wp_query;
+
+$big = 999999999; // need an unlikely integer
+
+echo paginate_links( array(
+	'base' => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+	'format' => '?paged=%#%',
+	'current' => max( 1, get_query_var('paged') ),
+	'total' => $wp_query->max_num_pages
+) );
+?>
+</pre>
+
+=== Example With a Custom Query ===
+
+When querying a loop with [[Function_Reference/WP_Query|new WP_Query]] set the '<tt>total</tt>' parameter to the <tt>max_num_pages</tt> property of the WP_Query object.
+
+Example of a custom query:
+<pre>
+<?php
+//Protect against arbitrary paged values
+$paged = ( get_query_var( 'paged' ) ) ? absint( get_query_var( 'paged' ) ) : 1;
+
+$args = array(
+	'posts_per_page' => 5,
+	'category_name' => 'gallery',
+	'paged' => $paged,
+);
+
+$the_query = new WP_Query( $args );
+?>
+<!-- the loop etc.. -->
+</pre>
+
+Example of paginate_links parameters adapted to the custom query above:
+<pre><?php
+$big = 999999999; // need an unlikely integer
+
+echo paginate_links( array(
+	'base' => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+	'format' => '?paged=%#%',
+	'current' => max( 1, get_query_var('paged') ),
+	'total' => $the_query->max_num_pages
+) );
+?>
+</pre>
+
+=== Improving Accessibility ===
+To add context to the numbered links to ensure that screen reader users understand what the links are for:
+<pre>
+<?php
+global $wp_query;
+
+$big = 999999999; // need an unlikely integer
+$translated = __( 'Page', 'mytextdomain' ); // Supply translatable string
+
+echo paginate_links( array(
+	'base' => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+	'format' => '?paged=%#%',
+	'current' => max( 1, get_query_var('paged') ),
+	'total' => $wp_query->max_num_pages,
+        'before_page_number' => '<span class="screen-reader-text">'.$translated.' </span>'
+) );
+?>
+</pre>
+
+== Notes ==
+
+* See Also: [[Migrating Plugins and Themes to 2.7/Enhanced Comment Display | Enhanced Comment Display]]
+
+== Change Log ==
+
+* Since: [[Version 2.1|2.1.0]]
+
+== Source File ==
+
+<tt>paginate_links()</tt> is located in {{Trac|wp-includes/general-template.php}}.
+
+== Related ==
+{{Pagination}}
+
+[[Category:Functions]]

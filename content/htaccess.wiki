@@ -1,0 +1,374 @@
+{{Languages|
+{{en|htaccess}}
+{{ja|htaccess}}
+}}
+
+The .htaccess is a distributed configuration file, and is how Apache handles configuration changes on a per-directory basis.
+
+WordPress uses this file to manipulate how Apache serves files from its root directory, and subdirectories thereof. Most notably, WP modifies this file to be able to handle pretty permalinks.
+
+This page may be used to restore a corrupted .htaccess file (e.g. a misbehaving plugin).
+
+<pre>
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+</pre>
+
+==Multisite==
+
+===WordPress 3.5 and up===
+
+If you activated Multisite on WordPress 3.5 or later, use one of these.
+
+'''Subfolder Example'''
+<pre>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+
+# add a trailing slash to /wp-admin
+RewriteRule ^([_0-9a-zA-Z-]+/)?wp-admin$ $1wp-admin/ [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule ^([_0-9a-zA-Z-]+/)?(wp-(content|admin|includes).*) $2 [L]
+RewriteRule ^([_0-9a-zA-Z-]+/)?(.*\.php)$ $2 [L]
+RewriteRule . index.php [L]
+</pre>
+
+<strong>SubDomain Example</strong>
+
+<pre>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+
+# add a trailing slash to /wp-admin
+RewriteRule ^wp-admin$ wp-admin/ [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule ^(wp-(content|admin|includes).*) $1 [L]
+RewriteRule ^(.*\.php)$ $1 [L]
+RewriteRule . index.php [L]
+</pre>
+
+===WordPress 3.4 and below ===
+
+If you originally installed WordPress with 3.4 or older and activated Multisite then, you need to use one of these:
+
+<strong>SubFolder Example</strong>
+
+WordPress 3.0 through 3.4.2
+<pre>
+# BEGIN WordPress
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+
+# uploaded files
+RewriteRule ^([_0-9a-zA-Z-]+/)?files/(.+) wp-includes/ms-files.php?file=$2 [L]
+
+# add a trailing slash to /wp-admin
+RewriteRule ^([_0-9a-zA-Z-]+/)?wp-admin$ $1wp-admin/ [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule ^[_0-9a-zA-Z-]+/(wp-(content|admin|includes).*) $1 [L]
+RewriteRule ^[_0-9a-zA-Z-]+/(.*\.php)$ $1 [L]
+RewriteRule . index.php [L]
+# END WordPress
+</pre>
+
+
+<strong>SubDomain Example</strong>
+
+<pre>
+# BEGIN WordPress
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+
+# uploaded files
+RewriteRule ^files/(.+) wp-includes/ms-files.php?file=$1 [L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule . index.php [L]
+# END WordPress
+</pre>
+
+===WordPress MU ===
+
+If you started using WordPress with WordPress MU (WPMU) and then migrated to a newer version of WordPress multisite, the .htaccess rules are more complex:
+
+<strong>SubFolder Example</strong>
+
+<pre>
+RewriteEngine On
+RewriteBase /
+
+# BEGIN WordPress
+#uploaded files
+RewriteRule ^(.*/)?files/$ index.php [L]
+RewriteCond %{REQUEST_URI} !.*wp-content/plugins.*
+RewriteRule ^(.*/)?files/(.*) wp-includes/ms-files.php?file=$2 [L]
+
+# add a trailing slash to /wp-admin
+RewriteCond %{REQUEST_URI} ^.*/wp-admin$
+RewriteRule ^(.+)$ $1/ [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule . - [L]
+RewriteRule ^([_0-9a-zA-Z-]+/)?(wp-.*) $2 [L]
+RewriteRule ^([_0-9a-zA-Z-]+/)?(.*\.php)$ $2 [L]
+RewriteRule . index.php [L]
+# END WordPress
+</pre>
+
+== General Examples ==
+
+=== Options ===
+
+Any options preceded by a '''+''' are added to the options currently in force, and any options preceded by a '''-''' are removed from the options currently in force.
+
+Possible values for the [http://httpd.apache.org/docs/trunk/mod/core.html#options Options directive] are any combination of: 
+
+; None : All options are turned off.
+; All : All options except for MultiViews. This is the default setting.
+; ExecCGI : Execution of CGI scripts using mod_cgi is permitted.
+; FollowSymLinks : The server will follow symbolic links in this directory.
+; Includes : Server-side includes provided by mod_include are permitted.
+; IncludesNOEXEC : Server-side includes are permitted, but the #exec cmd and #exec cgi are disabled.
+; Indexes : URL maps to a directory, and no DirectoryIndex, a formatted listing of the directory.
+; MultiViews : Content negotiated "MultiViews" are allowed using mod_negotiation.
+; SymLinksIfOwnerMatch : Only follow symbolic links where target is owned by the same user id as the link.
+
+This will disable all options, and then only enable FollowSymLinks, which is necessary for mod_rewrite.
+
+<pre>
+Options None
+Options FollowSymLinks
+</pre>
+
+
+
+=== DirectoryIndex ===
+
+[http://httpd.apache.org/docs/trunk/mod/mod_dir.html#directoryindex DirectoryIndex] sets the file that Apache will serve if a directory is requested.
+
+Several URLs may be given, in which case the server will return the first one that it finds.
+
+<pre>
+DirectoryIndex index.php index.html /index.php
+</pre>
+
+
+
+=== DefaultLanguage ===
+
+[http://httpd.apache.org/docs/trunk/mod/mod_mime.html#defaultlanguage DefaultLanguage] will cause all files that do not already have a specific language tag associated with it will use this.
+
+<pre>
+DefaultLanguage en
+</pre>
+
+
+=== Default Charset ===
+
+Set the default character encoding sent in the HTTP header.  See: [http://www.w3.org/International/questions/qa-htaccess-charset Setting charset information in .htaccess]
+
+<pre>
+AddDefaultCharset UTF-8
+</pre>
+
+'''Set Charset for Specific Files'''
+
+<pre>
+AddType 'text/html; charset=UTF-8' .html
+</pre>
+
+
+'''Set for specific files'''
+
+<pre>
+<Files "example.html">
+AddCharset UTF-8 .html
+</Files>
+</pre>
+
+
+=== ServerSignature ===
+
+The [http://httpd.apache.org/docs/trunk/mod/core.html#serversignature ServerSignature] directive allows the configuration of a trailing footer line under server-generated documents. Optionally add a line containing the server version and virtual host name to server-generated pages (internal error documents, FTP directory listings, mod_status and mod_info output etc., but not CGI generated documents or custom error documents).
+
+; On : adds a line with the server version number and ServerName of the serving virtual host
+; Off : suppresses the footer line
+; Email : creates a "mailto:" reference to the ServerAdmin of the referenced document
+
+<pre>
+SetEnv SERVER_ADMIN admin@site.com
+ServerSignature Email
+</pre>
+
+
+
+=== Force Files to be Downloaded ===
+
+The below will cause any requests for files ending in the specified extensions to not be displayed in the browser but instead force a "Save As" dialog so the client can download.
+
+<pre>
+AddType application/octet-stream .avi .mpg .mov .pdf .xls .mp4
+</pre>
+
+
+=== HTTP Compression ===
+
+The AddOutputFilter directive maps the filename extension extension to the filters which will process responses from the server before they are sent to the client. This is in addition to any filters defined elsewhere, including SetOutputFilter and AddOutputFilterByType. This mapping is merged over any already in force, overriding any mappings that already exist for the same extension.
+
+See also: https://developers.google.com/speed/docs/insights/EnableCompression
+
+<pre>
+AddOutputFilterByType DEFLATE text/html text/plain text/xml application/xml application/xhtml+xml text/javascript text/css application/x-javascript
+BrowserMatch ^Mozilla/4 gzip-only-text/html
+BrowserMatch ^Mozilla/4\.0[678] no-gzip
+BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+</pre>
+
+'''Force Compression for certain files'''
+
+<pre>
+<FilesMatch "\.(js|css|txt|xml)$">
+SetOutputFilter DEFLATE
+</FilesMatch>
+</pre>
+
+
+=== Send Custom HTTP Headers ===
+
+The Header directive lets you send HTTP headers for every request, or just specific files.  You can view a sites HTTP Headers using [https://getfirebug.com/ Firebug], Chrome Dev Tools, [https://www.wireshark.org/ Wireshark] or an [https://www.askapache.com/online-tools/http-headers-tool/ online tool].
+
+<pre>
+Header set X-Pingback "http://www.example.com/xmlrpc.php"
+Header set Content-Language "en-US"
+
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</pre>
+
+=== Unset HTTP Headers ===
+
+This will unset HTTP headers, using '''always''' will try extra hard to remove them.
+
+<pre>
+Header unset Pragma
+Header always unset WP-Super-Cache
+Header always unset X-Pingback
+</pre>
+
+
+=== Password Protect Login ===
+
+This is very useful for protecting the <tt>wp-login.php</tt> file.  You can use this [https://www.askapache.com/online-tools/htpasswd-generator/ htpasswd generator].
+
+'''Basic Authentication'''
+
+<pre>
+<Files wp-login.php>
+AuthType Basic
+AuthName "Password Protected"
+AuthUserFile /full/path/to/.htpasswd
+Require valid-user
+Satisfy All
+</Files>
+</pre>
+
+'''Digest Authentication'''
+ 
+<pre>
+<Files wp-login.php>
+AuthType Digest
+AuthName "Password Protected"
+AuthDigestDomain /wp-login.php https://www.example.com/wp-login.php
+AuthUserFile /full/path/to/.htpasswd
+Require valid-user
+Satisfy All
+</Files>
+</pre>
+
+=== Require Specific IP ===
+
+This is a way to only allow certain IP addresses to be allowed access.
+
+<pre>
+ErrorDocument 401 default
+ErrorDocument 403 default
+
+<Files wp-login.php>
+Order deny,allow
+Deny from all
+Allow from 198.101.159.98 localhost
+</Files>
+</pre>
+
+
+=== Protect Sensitive Files ===
+
+This denies all web access to your wp-config file, error_logs, php.ini, and htaccess/htpasswds.
+
+<pre>
+<FilesMatch "^.*(error_log|wp-config\.php|php.ini|\.[hH][tT][aApP].*)$">
+Order deny,allow
+Deny from all
+</FilesMatch>
+</pre>
+
+
+=== Require SSL ===
+
+This will force SSL, and require the exact hostname or else it will redirect to the SSL version.  Useful in a <tt>/wp-admin/.htaccess</tt> file.
+
+<pre>
+SSLOptions +StrictRequire
+SSLRequireSSL
+SSLRequire %{HTTP_HOST} eq "www.wordpress.com"
+ErrorDocument 403 https://www.wordpress.com
+</pre>
+
+
+== External Resources ==
+
+* [http://httpd.apache.org/docs/trunk/howto/htaccess.html Official Apache HTTP Server Tutorial: .htaccess files]
+* [http://httpd.apache.org/docs/trunk/mod/quickreference.html Official Htaccess Directive Quick Reference]
+* [https://www.askapache.com/htaccess/ Htaccess Tutorial]
+* [https://developers.google.com/speed/docs/insights/rules Google PageSpeed for Developers] (deprecated)
+* [http://perishablepress.com/stupid-htaccess-tricks/ Stupid Htaccess Tricks]
+* [https://www.askapache.com/htaccess/crazy-advanced-mod_rewrite-tutorial/ Advanced Mod_Rewrite]
+
+== See also ==
+
+* [[htaccess for subdirectories]]
+* [[Using Permalinks]]
+* [[Changing File Permissions]]
+* [[UNIX Shell Skills]]
+* [[Rewrite API]]
+* [[Hardening_WordPress#Core_Directories_.2F_Files|Hardening WordPress#Core Directories / Files]] - covers htaccess tricks for security
+
+{{Stub}}
+[[Category:About WordPress]]
+[[Category:Troubleshooting]]
+[[Category:Advanced Topics]]

@@ -1,0 +1,249 @@
+#REDIRECT [[Main_Page]]
+{{Oldpage|1.5}}
+{{Languages|
+{{en|Dynamic Menu Highlighting}}
+{{ja|Dynamic Menu Highlighting}}
+}}
+
+Dynamic menu highlighting is a way to give users a reference point in the navigation. It is like the dot on the map that says "you are here". WordPress.org has utilized dynamic menu highlighting.<div style="border:1px solid blue; width: 90%; margin: 20px; padding:20px">
+[[Image:Dynamic_menu_highlighting-00.jpg|center|This image illustrates that the user is currently looking at a page from the menu called "DOCS".]]<pre>This image illustrates that the user is currently looking
+at a page under the menu "DOCS".</pre></div>
+By looking at the menu list you can, due to the use of the dark thick line easily ascertain that you are currently on a page within the "DOCS" or documentation section of the site.
+
+This article will explain how to make a navigation menu that dynamically highlights the currently displayed page. There also are [[Dynamic_Menu_Highlighting#Plugins | plugins]] available that can do most of the work for you. 
+
+Also note that if you use the Pages sidebar widget (that comes with WordPress) to display your menu, it already has a CSS class current_page_item, which you can use to achieve the same effect. You can access it like this in your CSS:
+
+ .widget_pages li.current_page_item a{
+    background-image:url(images/activelink.gif);
+ }
+
+== Overview ==
+There are several components that make dynamically highlighted navigation work. These include :
+
+#highlighting your current location or navigation position between page loads
+#highlighting other navigation points on mouse-over
+#showing submenus of navigation, leaving a breadcrumb trail (not in the scope of this article)
+
+There are also many different possible approaches to achieve dynamically-highlighted navigation. These include for example Javascript, Flash, HTML and [[CSS]] in conjunction with [[PHP]]. This article covers the [[CSS]]/[[PHP]] method.
+
+<!-- NOTE: [[User:Ptryk|Ptryk]] 18:37, 2 Feb 2006 (GMT) stopped updating here, plan to continue shortly, feel free to edit below or above. see discussion -->
+
+== Basic Navigation Lists ==
+
+The basic navigation list might look something like this:
+
+<pre>
+<ul id="navigation">
+<li><a href="#">Page One</a></li>
+<li id="current"><a href="#">Page Two</a></li>
+<li><a href="#">Page Three</a></li>
+<li><a href="#">Page Four</a></li>
+</ul>
+</pre>
+
+And there would likely be some bit of [[CSS]] in the page's stylesheet that would specifically style list items with the "current" ID differently from other list items.
+
+This works fine with static HTML pages, but when dealing with dynamic pages, things become a little more complicated.  Perhaps this menu is supposed to be in a site's sidebar and the sidebar is contained in a single file that is called from multiple places.  Obviously, as written, only one item would ever be highlighted, no matter what page is actually being viewed.  That is not what we want at all!
+
+== Making the Code Dynamic ==
+
+PHP allows us to add the desired highlighting effect that reacts to whatever page is being viewed.  Coupled with WordPress Conditional Tag [[Conditional_Tags|is_]] function, we can dynamically test what page is being viewed and then rewrite the code based on the results of that test.
+
+There are two method to go about this. The first method requires us to create a variable (<tt>$current</tt>) that will always equal the page number we're on. It also requires us to put some CSS on each page instead of keeping it all in the main CSS document. The second method requires a little bit more of PHP coding, but we can keep all of our styling in a single CSS document.
+
+== Method One: With CSS on Each Page ==
+
+The first step in this method is to remove the piece of code <tt>id="current"</tt> from the list and then add a unique <tt>id</tt> attribute to each list item.
+
+<pre>
+<ul id="navigation">
+<li id="one"><a href="#">Page One</a></li>
+<li id="two"><a href="#">Page Two</a></li>
+<li id="three"><a href="#">Page Three</a></li>
+<li id="four"><a href="#">Page Four</a></li>
+</ul>
+</pre>
+
+The next step is where PHP comes in. 
+
+We need to write a conditional statement that will test what page is being viewed and define a variable based on the results of that test.
+
+<pre>
+<?php
+if ( is_page('Page One') ) { $current = 'one'; }
+elseif ( is_page('Page Two') ) { $current = 'two'; }
+elseif ( is_page('Page Three') ) { $current = 'three'; }
+elseif ( is_page('Page Four') ) { $current = 'four'; }
+?>
+</pre>
+
+This piece of code uses the <tt>is_page()</tt> function to check the title of the current page.  If the title is "Page One", value "one" is assigned to variable <tt>$current</tt>. If it is "Page Two" <tt>$current</tt> becomes "two" etc.  In a WordPress template, this would go in the <tt>header.php</tt> file between the <tt><head></head></tt> tags.
+
+Now, we need to write some CSS that will respond to this and highlight the appropriate list item based on what value variable<tt>$current</tt> holds.  We can't do this in a CSS file because we can't put dynamic content in a CSS file.  So we need to move the CSS that highlights the list item out of the CSS file and put it into our page, where the dynamic content will work.
+
+So, let's say we just want to do a simple highlight by changing the background color of the highlighted item to yellow.  Our CSS might look like this:
+
+<pre>
+#current {
+background-color: yellow;
+}
+</style>
+</pre>
+
+We'll move that out of the CSS file into an inline CSS block in the header of our page.
+
+<pre>
+<style type="text/css">
+#current {
+background-color: yellow;
+}
+</style>
+</pre>
+
+Using a WordPress template, this would go in the <tt>header.php</tt> file, between the <tt><head></head></tt> tags.
+
+Now we need to make it dynamic.  So we will replace the <tt>#current</tt> selector with a bit of PHP:
+
+<pre>
+<style type="text/css">
+#<?php echo $current; ?> {
+background-color: yellow;
+}
+</style>
+</pre>
+
+This will print the value of <tt>$current</tt>, thus completing the CSS and successfully highlighting the appropriate item.
+
+== Method Two: With CSS in One Document ==
+
+With this method, we will also need to remove the piece of code <tt>id="current"</tt> from the list, but we won't need to add a unique <tt>id</tt> attribute to each list item. We will let PHP do two things to make life easier: 
+*decide which page is our current page
+*display an ID of "current" to make that navigation item stand out.
+
+Let's give it a shot. Here is our list of navigation at the outset:
+
+<pre>
+<ul id="navigation">
+<li><a href="#">Page One</a></li>
+<li><a href="#">Page Two</a></li>
+<li><a href="#">Page Three</a></li>
+<li><a href="#">Page Four</a></li>
+</ul>
+</pre>
+
+Nice and simple. We'll only be editing the beginning of each line, those opening <tt>&lt;li&gt;</tt> tags. We can leave rest of the list alone (for now).
+
+We'll put in a few <tt>if</tt> statements. This will let PHP determine which page is being displayed and allow it to put "current" in the right spot. Here is how one of those <tt>&lt;li&gt;</tt> elements from above will look:
+
+<pre>
+<li<?php 
+if (is_home())
+{ 
+echo " id=\"current\"";
+}
+?>><a href="#">Page One</a></li>
+</pre>
+
+The pair of adjacent greater-than signs in line 6 is there on purpose. The <tt>if</tt> statement interrupted our beginning <tt>&lt;li&gt;</tt> tag and that second caret in line 6 will close the tag we opened in line 1.
+
+Remember, this is just one item in the list. You will need to do something similar for every item in your navigation. The good news is that if you are using templates, you will only need to do this once - in your <tt>header.php</tt> template.
+
+As a result, if user is on the home page, WordPress will generate the HTML code. For this, menu item it would look like this:
+
+<pre>
+<li id="current"><a href="#">Page One</a></li>
+</pre>
+
+On any other page, it would look like this:
+
+<pre>
+<li><a href="#">Page One</a></li>
+</pre>
+
+Now we can style that link, so when user is displaying the home page, the navigation item makes it very clear.
+
+Here is an idea of how navigation could look in your <tt>header.php</tt> document that would allow users to see where they are:
+
+<pre>
+<ul id="menu">
+
+        <!-- To show "current" on the home page -->
+        <li<?php 
+                if (is_home()) 
+                {
+                echo " id=\"current\"";
+                }?>>
+                <a href="<?php bloginfo('url') ?>">Home</a>
+        </li>
+
+        <!-- To show "current" on the Archive Page (a listing of all months and categories), individual posts, but NOT individual posts in category 10 -->
+        <li<?php 
+                if (is_page('Archive') || is_single() && !in_category('10'))  
+                { 
+                echo " id=\"current\"";
+                }?>>
+                <a href="<?php bloginfo('url') ?>/archive">Archive</a>
+        </li>
+
+        <!-- To show "current" on any posts in category 10, called Design -->
+        <li<?php
+                if (is_category('Design') || in_category('10') && !is_single())
+                {
+                echo " id=\"current\""; 
+                }?>>
+                <a href="<?php bloginfo('url') ?>/category/design">Design</a>
+        </li>
+
+        <!-- To show "current" on the About Page -->
+        <li<?php 
+                if (is_page('About')) 
+                { 
+                echo " id=\"current\"";
+                }?>>
+                <a href="<?php bloginfo('url') ?>/about">About</a>
+        </li>
+</ul>
+</pre>
+
+With some well-placed IDs around our site, users will be sure to know exactly where they are at all times, even when they come to our site from search results.
+
+Using some [[Conditional_Tags|is_]] functions, we can work to determine the identity of any page within WordPress and set our code to show "current" for any of our navigation elements.
+
+As previously mentioned, the CSS declarations would need to be set up to do something to the current menu item:
+
+<pre>
+#current
+{
+background-color: #336699;
+}
+</pre>
+
+Now that navigation item is going to stand out for sure. 
+
+Using this method, all our CSS stays in our main CSS document. We don't have to track down color changes in different templates when we decide to change things around sometime in the future. That was really what made us all fall in love with CSS in the first place, right?
+
+== Examples ==
+
+The method here will only work with [[Pages]] created by the new Page feature in WordPress v1.5+.  It could be easily expanded to test for other conditions by using different <tt>is_</tt> functions.  Ryan Boren has a good [http://boren.nu/archives/2004/10/16/templates-and-the-is-functions/ summary] of the different <tt>is_</tt> functions and what they test for.  You can also check the onsite summary, [[Conditional Tags]].
+
+You can see this method in action at [http://css.maxdesign.com.au/listamatic/horizontal06.htm Simple Bits Tabbed Navbar] from [http://css.maxdesign.com.au/listamatic/ Listamatic].
+
+== Resources ==
+
+These links have some information that you might find useful in your customization of this method and in the creation of menus and navigation lists in general.
+
+*[[Conditional Tags]]
+*[[Creating Horizontal Menus]]
+*[[Styling Lists with CSS]]
+*[http://css.maxdesign.com.au/listamatic/ Listamatic]
+*[http://boren.nu/archives/2004/10/16/templates-and-the-is-functions/ Ryan Boren and the is_ functions]
+*[http://www.gudstoff.com/2006/03/dynamic_menu/ Dynamic menu highlight including home]
+
+== Plugins ==
+These plugins take care of the complicated PHP coding for you, leaving you to set up just the CSS.
+*[http://wordpress.org/extend/plugins/wp-menu/ WP-Menu] - Customizable hook to pull Page Navigation into a theme. Page Exclusion, Inclusion, Site Map, Top Level, Secondary menus and more
+
+[[Category:WordPress Lessons]]
+[[Category:Design and Layout]]
+{{Copyedit}}

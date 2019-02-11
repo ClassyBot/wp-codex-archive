@@ -1,0 +1,500 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<a href="https://codex.wordpress.org/Adding_Administration_Menus" title="Adding Administration Menus" class="mw-redirect">English</a> • 
+<strong class="selflink">中文(简体)</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Adding">Administration Menus 日本語</a> 
+<a href="https://codex.wordpress.org/%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5_%D0%B0%D0%B4%D0%BC%D0%B8%D0%BD%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%82%D0%B8%D0%B2%D0%BD%D1%8B%D1%85_%D0%BC%D0%B5%D0%BD%D1%8E" title="Добавление административных меню">Русский</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#.E6.A6.82.E8.BF.B0"><span class="tocnumber">1</span> <span class="toctext">概述</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#.E5.8F.82.E8.80.83.E5.87.BD.E6.95.B0"><span class="tocnumber">2</span> <span class="toctext">参考函数</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#.E4.B8.80.E5.88.87.E7.9A.86.E9.9C.80.E9.92.A9.E5.AD.90"><span class="tocnumber">3</span> <span class="toctext">一切皆需钩子</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Determining_Location_for_New_Menus"><span class="tocnumber">4</span> <span class="toctext">Determining Location for New Menus</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#.E7.AE.A1.E7.90.86.E8.8F.9C.E5.8D.95.E5.8A.9F.E8.83.BD"><span class="tocnumber">5</span> <span class="toctext">管理菜单功能</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#.E9.A1.B6.E5.B1.82.E8.8F.9C.E5.8D.95"><span class="tocnumber">5.1</span> <span class="toctext">顶层菜单</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#.E5.AD.90.E8.8F.9C.E5.8D.95"><span class="tocnumber">5.2</span> <span class="toctext">子菜单</span></a>
+<ul>
+<li class="toclevel-3 tocsection-8"><a href="#.E4.BD.BF.E7.94.A8_add_submenu_page"><span class="tocnumber">5.2.1</span> <span class="toctext">使用 add_submenu_page</span></a>
+<ul>
+<li class="toclevel-4 tocsection-9"><a href="#Example"><span class="tocnumber">5.2.1.1</span> <span class="toctext">Example</span></a></li>
+</ul>
+</li>
+<li class="toclevel-3 tocsection-10"><a href="#Using_Wrapper_Functions"><span class="tocnumber">5.2.2</span> <span class="toctext">Using Wrapper Functions</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-11"><a href="#Inserting_the_Pages"><span class="tocnumber">5.3</span> <span class="toctext">Inserting the Pages</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Sample_Menu_.E9.A1.B5.E9.9D.A2"><span class="tocnumber">5.4</span> <span class="toctext">Sample Menu 页面</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-13"><a href="#.E9.A1.B5.E9.9D.A2_Hook_Suffix"><span class="tocnumber">6</span> <span class="toctext">页面 Hook Suffix</span></a></li>
+<li class="toclevel-1 tocsection-14"><a href="#Resources"><span class="tocnumber">7</span> <span class="toctext">Resources</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id=".E6.A6.82.E8.BF.B0">概述</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=1" title="Edit section: 概述">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>通常情况下，插件和主题的作者都需要为其提供一个配置界面，以方便用户去自定义它们。将这个配置界面展示给用户的最好方式，就是在后台<a href="https://codex.wordpress.org/Administration_Screens" title="Administration Screens">管理员界面</a>的配置菜单中添加一个选项，然后当用户点击这个选项的时候再去打开它。这篇文章将会告诉你如何去实现这样的事情。
+</p><p><i>注意：在继续阅读之前，你应当对如何<a href="https://codex.wordpress.org/Writing_a_Plugin" title="Writing a Plugin">写一个插件</a>，以及Actions和Filters的<a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">插件API函数</a>有一定的了解。</i>
+</p>
+<h2><span class="mw-headline" id=".E5.8F.82.E8.80.83.E5.87.BD.E6.95.B0">参考函数</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=2" title="Edit section: 参考函数">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<table cellspacing="10" width="68%">
+
+<tr valign="top">
+<td width="14%">
+<table class="widefat">
+
+<tr style="background:#464646; color:#d7d7d7;">
+<th> <b>General Functions</b>
+</th></tr>
+<tr>
+<td>
+<p><b>Menu Pages</b>
+</p>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_menu_page" title="Function Reference/add menu page"> add_menu_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_object_page" title="Function Reference/add object page"> add_object_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_utility_page" title="Function Reference/add utility page"> add_utility_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/remove_menu_page" title="Function Reference/remove menu page"> remove_menu_page()</a></tt></li></ul>
+<p><b>SubMenu Pages</b>
+</p>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_submenu_page" title="Function Reference/add submenu page"> add_submenu_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/remove_submenu_page" title="Function Reference/remove submenu page"> remove_submenu_page()</a></tt></li></ul>
+</td></tr></table>
+</td>
+<td width="56%">
+<table class="widefat">
+
+<tr style="background:#464646; color:#d7d7d7;">
+<th> <b>WordPress Administration Menus</b>
+</th></tr>
+<tr>
+<td>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_dashboard_page" title="Function Reference/add dashboard page"> add_dashboard_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_posts_page" title="Function Reference/add posts page"> add_posts_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_media_page" title="Function Reference/add media page"> add_media_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_links_page" title="Function Reference/add links page"> add_links_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_pages_page" title="Function Reference/add pages page"> add_pages_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_comments_page" title="Function Reference/add comments page"> add_comments_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_theme_page" title="Function Reference/add theme page"> add_theme_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_plugins_page" title="Function Reference/add plugins page"> add_plugins_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_users_page" title="Function Reference/add users page"> add_users_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_management_page" title="Function Reference/add management page"> add_management_page()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_options_page" title="Function Reference/add options page"> add_options_page()</a></tt></li></ul>
+</td></tr></table>
+</td></tr></table>
+<h2><span class="mw-headline" id=".E4.B8.80.E5.88.87.E7.9A.86.E9.9C.80.E9.92.A9.E5.AD.90">一切皆需钩子</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=3" title="Edit section: 一切皆需钩子">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>想要向管理员界面的配置菜单中添加一个选项，你必须要完成三件事：
+</p>
+<ol><li> 定义一个函数，使其能够创建菜单选项，并调出配置界面</li>
+<li> 将这个函数挂载到名为<a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_menu" title="Plugin API/Action Reference/admin menu">admin_menu</a>的Action<a href="https://codex.wordpress.org/Plugin_API#Current_Hooks_For_Actions" title="Plugin API">钩子</a>上。（如果你需要创建的是与<a href="https://codex.wordpress.org/Create_A_Network" title="Create A Network">网络</a>相关的菜单选项，那么就需要将该函数挂载到<a href="https://codex.wordpress.org/Plugin_API/Action_Reference/network_admin_menu" title="Plugin API/Action Reference/network admin menu">network_admin_menu</a>钩子上）。</li>
+<li> 编写当用户点击菜单选项时，需要显示出的配置页面的内容。</li></ol>
+<p>第二步是新手们往往会忽略掉的步骤。必须要记住：光写出代码是不够的，你还必须要把这段代码放到一个函数中，并且把这个函数挂载到相应的钩子上，它才能发挥相应的作用。
+</p><p>以下是包含这三个步骤的简单示例。这个插件将会在设置菜单的主选项下创建一个子选项，当该选项被点击时，将会显示出一个非常简单的页面。
+</p><p><i>注意：这些代码应当被写到<a href="https://codex.wordpress.org/Writing_a_Plugin#Plugin_Files" title="Writing a Plugin">PHP主文件</a>中，或是一个单独的PHP文件中。</i>
+</p>
+<pre>
+&lt;?php
+/** 第1步：定义添加菜单选项的函数 */
+function my_plugin_menu() {
+     add_options_page( 'My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options' );
+}
+
+/** 第2步：将函数注册到钩子中 */
+add_action( 'admin_menu', 'my_plugin_menu' );
+
+/** 第3步：定义选项被点击时打开的页面 */
+function my_plugin_options() {
+     if (&#160;!current_user_can( 'manage_options' ) )  {
+          wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+     }
+     echo '&lt;div class="wrap"&gt;';
+     echo '&lt;p&gt;Here is where the form would go if I actually had options.&lt;/p&gt;';
+     echo '&lt;/div&gt;';
+}
+?&gt;
+</pre>
+<p>在第1步中，<tt>my_plugin_menu()</tt>函数的作用是通过调用<tt><a href="https://codex.wordpress.org/Function_Reference/add_options_page" title="Function Reference/add options page">add_options_page()</a></tt>函数，向管理员界面的配置菜单中添加一个新的菜单选项（关于更复杂的多级选项，将在之后进行详述）。
+</p><p>在第2步中，<tt><a href="https://codex.wordpress.org/Function_Reference/add_action" title="Function Reference/add action">add_action()</a></tt>函数的作用就是将第1步中定义的<tt>my_plugin_menu()</tt>函数，挂载到名为<a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_menu" title="Plugin API/Action Reference/admin menu">admin_menu</a>的钩子下。此时如果忘了调用<tt>add_action()</tt>函数的话，那么在你试图激活这个插件时就会提示'undefined function'错误。
+</p><p>在最后一步中，<tt>my_plugin_options()</tt>函数的作用就是显示一个配置页面，并显示出用户可配置的内容（可以由PHP的代码编写），这个函数也是在第1步中的<tt>add_action()</tt>函数中被调用的。这样当用户点击菜单选项的时候，就会弹出这个配置页面。
+</p><p>在下面的章节中，将会对这些步骤进行更详细的说明。再重复一遍：切记要把创建菜单选项的代码放到函数中！并且记得将函数挂载到<i>admin_menu</i>钩子中！这样你的整个代码流程才能正确的运行。
+</p>
+<h2><span class="mw-headline" id="Determining_Location_for_New_Menus">Determining Location for New Menus</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=4" title="Edit section: Determining Location for New Menus">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Before creating a new menu, first decide if the menu should be a <b>top-level</b> menu, or a <b>sub-level</b> menu item.  A top-level menu displays as new section in the administration menus and contains sub-level menu items.  A sub-level menu means the menu item is a member of an existing menu.
+</p><p>It is rare that a plugin would require the creation of a top-level menu.  If the plugin introduces an entirely new concept or feature to WordPress, and needs many screens to do it, then that plugin may warrant a new top-level menu.  Adding a top-level menu should only be considered if you really need multiple, related screens to make WordPress do something it was not originally designed to accomplish.  Examples of new top-level menus might include job management or conference management.  Please note with the native <a href="https://codex.wordpress.org/Glossary#Post_Type" title="Glossary">post type</a> registration, WordPress automatically creates top-level menus to manage those features.
+</p><p>If the creation of a top-level menu is not necessary, decide under what top-level menu to place your sub-level menu item.  As a point of reference, most plugins add sub-level menu items underneath existing WordPress top-level menus.  For example, the <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/wp-db-backup/WP-DB">Backup plugin</a> adds a sub-level menu option to the Tools top-level menu.  Please note with the <a href="https://codex.wordpress.org/Function_Reference/register_taxonomy" title="Function Reference/register taxonomy">taxonomy</a> registration, WordPress automatically creates sub-level menus under the applicable top-level menu to manage those features.
+</p><p>Use this guide of the WordPress top-level menus to determine the correct location for your sub-level menu item:
+</p>
+<dl><dt><a href="https://codex.wordpress.org/Dashboard_SubPanel" title="Dashboard SubPanel" class="mw-redirect">Dashboard</a>&#160;</dt>
+<dd> Information central for your site and include the Updates option for updating WordPress core, plugins, and themes. </dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Posts_-_Make_some_content" title="Administration Panels" class="mw-redirect">Posts</a>&#160;</dt>
+<dd> Displays tools for writing 日志 (time oriented content).</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Media_-_Add_pictures_and_movies_to_your_posts" title="Administration Panels" class="mw-redirect">Media</a>&#160;</dt>
+<dd> Uploading and managing your pictures, videos, and audio.</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Links_-_Putting_the_Inter_in_the_Internet" title="Administration Panels" class="mw-redirect">Links</a>&#160;</dt>
+<dd> Manage references to other blogs and sites of interest.</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Pages_-_Your_Static_Content" title="Administration Panels" class="mw-redirect">Pages</a>&#160;</dt>
+<dd>Displays tools for writing your static content called pages.</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Comments" title="Administration Panels" class="mw-redirect">Comments</a>&#160;</dt>
+<dd> Controlling and regulation reader to responses to posts.</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Appearance_-_Change_the_Look_of_your_Blog" title="Administration Panels" class="mw-redirect">Appearance</a></dt>
+<dd>Displays controls for manipulation of theme/style files, sidebars, etc.</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Plugins_-_Add_Functionality_to_your_Blog" title="Administration Panels" class="mw-redirect">Plugins</a></dt>
+<dd>Displays controls dealing with plugin management, not configuration options for a plugin itself.</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Users_-_Your_Blogging_Family" title="Administration Panels" class="mw-redirect">Users</a></dt>
+<dd>Displays controls for user management.</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Tools_-_Managing_your_Blog" title="Administration Panels" class="mw-redirect">Tools</a>&#160;</dt>
+<dd> Manage the export, import, and even backup of blog data.</dd>
+<dt><a href="https://codex.wordpress.org/Administration_Panels#Settings_-_Configuration_Settings" title="Administration Panels" class="mw-redirect">Settings</a>&#160;</dt>
+<dd> Displays plugin options that only administrators should view (also see <a href="https://codex.wordpress.org/Creating_Options_Pages" title="Creating Options Pages">Creating Settings Pages</a>).</dd>
+<dt>Network Admin&#160;</dt>
+<dd> Displays plugin options that are set on the Network. Instead of "admin_menu", you should use "network_admin_menu" (see also <a href="https://codex.wordpress.org/Create_A_Network" title="Create A Network">Create A Network</a>)</dd></dl>
+<h2><span class="mw-headline" id=".E7.AE.A1.E7.90.86.E8.8F.9C.E5.8D.95.E5.8A.9F.E8.83.BD">管理菜单功能</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=5" title="Edit section: 管理菜单功能">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Now that you have decided where to add your top-level or sub-level menu, the next step is to tell WordPress about your new pages. All of this will take place in a function registered to the <tt>'admin_menu'</tt> action.  A working example is presented at the end of this section.
+</p>
+<h3><span class="mw-headline" id=".E9.A1.B6.E5.B1.82.E8.8F.9C.E5.8D.95">顶层菜单</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=6" title="Edit section: 顶层菜单">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If you have decided your plugin requires a brand-new top-level menu, the first thing you'll need to do is to create one with the <tt><a href="https://codex.wordpress.org/Function_Reference/add_menu_page" title="Function Reference/add menu page">add_menu_page</a></tt> function.  Note: skip to <a href="#Sub-Menus">Sub-Menus</a> if you don't need a top-level menu.
+</p><p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_menu_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$icon_url</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$position&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p>Parameter values:
+</p>
+<dl><dt>page_title&#160;</dt>
+<dd> The text to be displayed in the title tags of the 页面 when the menu is selected.</dd></dl>
+<dl><dt>menu_title&#160;</dt>
+<dd> The on-screen name text for the menu.</dd></dl>
+<dl><dt>capability&#160;</dt>
+<dd> The <a href="https://codex.wordpress.org/Roles_and_Capabilities" title="Roles and Capabilities">capability</a> required for this menu to be displayed to the user. When using the Settings API to handle your form, you should use 'manage_options' here as the user won't be able to save options without it. <a href="https://codex.wordpress.org/User_Levels" title="User Levels">User levels</a> are deprecated and should not be used here!</dd></dl>
+<dl><dt>menu_slug</dt>
+<dd> The slug name to refer to this menu by (should be unique for this menu). Prior to <a href="https://codex.wordpress.org/Version_3.0" title="Version 3.0">Version 3.0</a> this was called the file (or handle) parameter.  If the function parameter is omitted, the menu_slug should be the PHP file that handles the display of the menu 页面 content.</dd></dl>
+<dl><dt>function</dt>
+<dd> The function that displays the 页面 content for the menu page. Technically, the <i>function</i> parameter is optional, but if it is not supplied, then WordPress will basically assume that including the PHP file will generate the administration screen, without calling a function. The page-generating code can be written in a function within the main plugin file.  In the event that the <i>function</i> parameter is specified, it is possible to use any string for the <i>file</i> parameter. This allows usage of pages such as <i>?page=my_super_plugin_page</i> instead of <i>?page=my-super-plugin/admin-options.php</i>.</dd></dl>
+<dl><dd>The function must be referenced in one of two ways:
+<ol><li> if the function is a member of a class within the plugin it should be referenced as <tt>array( $this, 'function_name' )</tt></li>
+<li> in all other cases, using the function name itself is sufficient</li></ol></dd></dl>
+<dl><dt>icon_url</dt>
+<dd> The url to the icon to be used for this menu.  This parameter is optional.</dd></dl>
+<dl><dt>position</dt>
+<dd> The position in the menu order this menu should appear.  By default, if this parameter is omitted, the menu will appear at the bottom of the menu structure. To see the current menu positions, use <tt>print_r($GLOBALS['menu'])</tt> after the menu has loaded.</dd></dl>
+<h3><span class="mw-headline" id=".E5.AD.90.E8.8F.9C.E5.8D.95">子菜单</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=7" title="Edit section: 子菜单">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Once your top-level menu is defined, or you have chosen to use an existing WordPress top-level menu, you are ready to define one or more sub-level menu items using the <tt>add_submenu_page</tt> function. Make sure to add the sub-level menu items in the order you want them displayed.
+</p>
+<h4><span class="mw-headline" id=".E4.BD.BF.E7.94.A8_add_submenu_page">使用 add_submenu_page</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=8" title="Edit section: 使用 add submenu page">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_submenu_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$parent_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code> 
+</p><p>Parameter values:
+</p>
+<dl><dt>parent_slug&#160;</dt>
+<dd> The slug name for the parent menu, or the file name of a standard WordPress admin file that supplies the top-level menu in which you want to insert your submenu, or your plugin file if this submenu is going into a custom top-level menu.</dd></dl>
+<dl><dd>Examples:
+<ol><li>For <i>Dashboard</i>: add_submenu_page('index.php',...)</li>
+<li>For <i>Posts</i>: add_submenu_page('edit.php',...)</li>
+<li>For <i>Media</i>: add_submenu_page('upload.php',...)</li>
+<li>For <i>Links</i>: add_submenu_page('link-manager.php',...)</li>
+<li>For <i>Pages</i>: add_submenu_page('edit.php?post_type=page',...)</li>
+<li>For <i>Comments</i>: add_submenu_page('edit-comments.php',...)</li>
+<li>For <i>Custom 日志 Types</i>: add_submenu_page('edit.php?post_type=your_post_type',...)</li>
+<li>For <i>Appearance</i>: add_submenu_page('themes.php',...)</li>
+<li>For <i>Plugins</i>: add_submenu_page('plugins.php',...)</li>
+<li>For <i>Users</i>: add_submenu_page('users.php',...)</li>
+<li>For <i>Tools</i>: add_submenu_page('tools.php',...)</li>
+<li>For <i>Settings</i>: add_submenu_page('options-general.php',...)</li></ol></dd></dl>
+<dl><dt>page_title&#160;</dt>
+<dd> Text that will go into the HTML 页面 title for the 页面 when the submenu is active.</dd>
+<dt>menu_title&#160;</dt>
+<dd> The text to be displayed in the title tags of the 页面 when the menu is selected.</dd>
+<dt>capability&#160;</dt>
+<dd> The <a href="https://codex.wordpress.org/Roles_and_Capabilities" title="Roles and Capabilities">capability</a> required for this menu to be displayed to the user.  <a href="https://codex.wordpress.org/User_Levels" title="User Levels">User levels</a> are deprecated and should not be used here!</dd>
+<dt>menu_slug&#160;</dt>
+<dd> For existing WordPress menus, the PHP file that handles the display of the menu 页面 content. For submenus of a custom top-level menu, a <b>unique</b> identifier for this sub-menu page.</dd></dl>
+<dl><dd><i>In situations where a plugin is creating its own top-level menu, the first submenu will normally have the same link title as the top-level menu and hence the link will be duplicated. The duplicate link title can be avoided by calling the add_submenu_page function the first time with the parent_slug and menu_slug parameters being given the same value. </i></dd></dl>
+<p>
+</p>
+<dl><dt>function&#160;</dt>
+<dd> The function that displays the 页面 content for the menu page.</dd></dl>
+<dl><dd>Technically, as in the <tt>add_menu_page</tt> function, the <i>function</i> parameter is optional, but if it is not supplied, then WordPress will basically assume that including the PHP file will generate the administration screen, without calling a function. Most plugin authors choose to put the page-generating code in a function within their main plugin file.</dd></dl>
+<dl><dd>In the event that the <i>function</i> parameter is specified, It's possible to use any string for the <i>file</i> parameter. This allows usage of pages such as <i>?page=my_super_plugin_page</i> instead of <i>?page=my-super-plugin/admin-options.php</i>.</dd></dl>
+<dl><dd> See the <a rel="nofollow" class="external text" href="http://codex.wordpress.org/Adding_Administration_Menus#Top-Level_Menus">Top-Level Menus</a> for notes about how to reference class members as function parameters.</dd></dl>
+<h5><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=9" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>Here's a quick example illustrating how to insert a top-level menu 页面 and a sub-menu page, where the title on the sub-menu 页面 is different from the top-level page. In this example, 'my_magic_function' is the name of the function that displays the first sub-menu page:
+</p><p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />add_menu_page</span><span style="color: #007700">(</span><span style="color: #DD0000">'Page&#160;title'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'Top-level&#160;menu&#160;title'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'manage_options'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'my-top-level-handle'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'my_magic_function'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">add_submenu_page</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'my-top-level-handle'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'Page&#160;title'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'Sub-menu&#160;title'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'manage_options'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'my-submenu-handle'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'my_magic_function'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p>Here's an example of adding an option 页面 under a <b>custom 日志 type</b> menu block (<a rel="nofollow" class="external text" href="http://www.billrobbinsdesign.com/custom-post-type-admin-page/">see also here</a>):
+</p><p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_submenu_page</span><span style="color: #007700">(</span><span style="color: #DD0000">'edit.php?post_type=wiki'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'Options'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'Options'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'manage_options'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'wiki-options'</span><span style="color: #007700">,&#160;array(&amp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'options_page'</span><span style="color: #007700">)&#160;);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h4><span class="mw-headline" id="Using_Wrapper_Functions">Using Wrapper Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=10" title="Edit section: Using Wrapper Functions">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Since most sub-level menus belong under the Settings, Tools, or Appearance menus, WordPress supplies wrapper functions that make adding a sub-level menu items to those top-level menus easier. Note that the function names may not match the names seen in the admin UI as they have changed over time:
+</p><p><a href="https://codex.wordpress.org/Dashboard_SubPanel" title="Dashboard SubPanel" class="mw-redirect">Dashboard</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_dashboard_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Posts_-_Make_some_content" title="Administration Panels" class="mw-redirect">Posts</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_posts_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Media_-_Add_pictures_and_movies_to_your_posts" title="Administration Panels" class="mw-redirect">Media</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_media_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Links_-_Putting_the_Inter_in_the_Internet" title="Administration Panels" class="mw-redirect">Links</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_links_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Pages_-_Your_Static_Content" title="Administration Panels" class="mw-redirect">Pages</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_pages_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Comments" title="Administration Panels" class="mw-redirect">Comments</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_comments_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Appearance_-_Change_the_Look_of_your_Blog" title="Administration Panels" class="mw-redirect">Appearance</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_theme_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Plugins_-_Add_Functionality_to_your_Blog" title="Administration Panels" class="mw-redirect">Plugins</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_plugins_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>  
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Users_-_Your_Blogging_Family" title="Administration Panels" class="mw-redirect">Users</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_users_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Tools_-_Managing_your_Blog" title="Administration Panels" class="mw-redirect">Tools</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_management_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><a href="https://codex.wordpress.org/Administration_Panels#Settings_-_Configuration_Settings" title="Administration Panels" class="mw-redirect">Settings</a>
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_options_page</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$page_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_title</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$capability</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$menu_slug</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$function</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>  
+</p><p>Also see <a href="https://codex.wordpress.org/Creating_Options_Pages" title="Creating Options Pages">Creating Options Pages</a> for more on this.
+</p>
+<h3><span class="mw-headline" id="Inserting_the_Pages">Inserting the Pages</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=11" title="Edit section: Inserting the Pages">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Here is an example of a WordPress plugin that inserts new menus into various places:
+</p>
+<pre>
+&lt;?php
+/*
+Plugin Name: Menu Test
+Plugin URI: http://codex.wordpress.org/Adding_Administration_Menus
+Description: Menu Test
+Author: Codex authors
+Author URI: http://example.com
+*/
+
+// Hook for adding admin menus
+add_action('admin_menu', 'mt_add_pages');
+
+// action function for above hook
+function mt_add_pages() {
+    // Add a new submenu under Settings:
+    add_options_page(__('Test Settings','menu-test'), __('Test Settings','menu-test'), 'manage_options', 'testsettings', 'mt_settings_page');
+
+    // Add a new submenu under Tools:
+    add_management_page( __('Test Tools','menu-test'), __('Test Tools','menu-test'), 'manage_options', 'testtools', 'mt_tools_page');
+
+    // Add a new top-level menu (ill-advised):
+    add_menu_page(__('Test Toplevel','menu-test'), __('Test Toplevel','menu-test'), 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
+
+    // Add a submenu to the custom top-level menu:
+    add_submenu_page('mt-top-level-handle', __('Test Sublevel','menu-test'), __('Test Sublevel','menu-test'), 'manage_options', 'sub-page', 'mt_sublevel_page');
+
+    // Add a second submenu to the custom top-level menu:
+    add_submenu_page('mt-top-level-handle', __('Test Sublevel 2','menu-test'), __('Test Sublevel 2','menu-test'), 'manage_options', 'sub-page2', 'mt_sublevel_page2');
+}
+
+// mt_settings_page() displays the 页面 content for the Test settings submenu
+function mt_settings_page() {
+    echo "&lt;h2&gt;" . __( 'Test Settings', 'menu-test' ) . "&lt;/h2&gt;";
+}
+
+// mt_tools_page() displays the 页面 content for the Test Tools submenu
+function mt_tools_page() {
+    echo "&lt;h2&gt;" . __( 'Test Tools', 'menu-test' ) . "&lt;/h2&gt;";
+}
+
+// mt_toplevel_page() displays the 页面 content for the custom Test Toplevel menu
+function mt_toplevel_page() {
+    echo "&lt;h2&gt;" . __( 'Test Toplevel', 'menu-test' ) . "&lt;/h2&gt;";
+}
+
+// mt_sublevel_page() displays the 页面 content for the first submenu
+// of the custom Test Toplevel menu
+function mt_sublevel_page() {
+    echo "&lt;h2&gt;" . __( 'Test Sublevel', 'menu-test' ) . "&lt;/h2&gt;";
+}
+
+// mt_sublevel_page2() displays the 页面 content for the second submenu
+// of the custom Test Toplevel menu
+function mt_sublevel_page2() {
+    echo "&lt;h2&gt;" . __( 'Test Sublevel2', 'menu-test' ) . "&lt;/h2&gt;";
+}
+
+?&gt;
+</pre>
+<h3><span class="mw-headline" id="Sample_Menu_.E9.A1.B5.E9.9D.A2">Sample Menu 页面</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=12" title="Edit section: Sample Menu 页面">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><strong>Note: See the <a href="https://codex.wordpress.org/Settings_API" title="Settings API">Settings API</a> for information on creating settings pages.</strong>
+</p><p>The example above contains several dummy functions, such as <tt>mt_settings_page</tt>, as placeholders for actual 页面 content. We need to turn them into real menu pages. So, let's assume that our plugin has an option called mt_favorite_color, and that we want to allow the site owner to type in his/her favorite color via a Settings page. The <tt>mt_options_page</tt> function will need to put a data entry form on the screen to enable this, and also process the entered data. Here is a function that does this:
+</p>
+<pre>
+
+// mt_settings_page() displays the 页面 content for the Test settings submenu
+function mt_settings_page() {
+
+    //must check that the user has the required capability 
+    if (!current_user_can('manage_options'))
+    {
+      wp_die( __('You do not have sufficient permissions to access this page.') );
+    }
+
+    // variables for the field and option names 
+    $opt_name = 'mt_favorite_color';
+    $hidden_field_name = 'mt_submit_hidden';
+    $data_field_name = 'mt_favorite_color';
+
+    // Read in existing option value from database
+    $opt_val = get_option( $opt_name );
+
+    // See if the user has posted us some information
+    // If they did, this hidden field will be set to 'Y'
+    if( isset($_POST[ $hidden_field_name ]) &amp;&amp; $_POST[ $hidden_field_name ] == 'Y' ) {
+        // Read their posted value
+        $opt_val = $_POST[ $data_field_name ];
+
+        // Save the posted value in the database
+        update_option( $opt_name, $opt_val );
+
+        // Put an settings updated message on the screen
+
+?&gt;
+&lt;div class="updated"&gt;&lt;p&gt;&lt;strong&gt;&lt;?php _e('settings saved.', 'menu-test' );&#160;?&gt;&lt;/strong&gt;&lt;/p&gt;&lt;/div&gt;
+&lt;?php
+
+    }
+
+    // Now display the settings editing screen
+
+    echo '&lt;div class="wrap"&gt;';
+
+    // header
+
+    echo "&lt;h2&gt;" . __( 'Menu Test Plugin Settings', 'menu-test' ) . "&lt;/h2&gt;";
+
+    // settings form
+    
+   &#160;?&gt;
+
+&lt;form name="form1" method="post" action=""&gt;
+&lt;input type="hidden" name="&lt;?php echo $hidden_field_name;&#160;?&gt;" value="Y"&gt;
+
+&lt;p&gt;&lt;?php _e("Favorite Color:", 'menu-test' );&#160;?&gt; 
+&lt;input type="text" name="&lt;?php echo $data_field_name;&#160;?&gt;" value="&lt;?php echo $opt_val;&#160;?&gt;" size="20"&gt;
+&lt;/p&gt;&lt;hr /&gt;
+
+&lt;p class="submit"&gt;
+&lt;input type="submit" name="Submit" class="button-primary" value="&lt;?php esc_attr_e('Save Changes')&#160;?&gt;" /&gt;
+&lt;/p&gt;
+
+&lt;/form&gt;
+&lt;/div&gt;
+
+&lt;?php
+ 
+}
+</pre>
+<p>A few notes:
+</p>
+<ul><li> The WordPress functions such as <tt>add_menu_page</tt> and <tt>add_submenu_page</tt> take a capability which will be used to determine whether the top-level or sub-level menu is displayed.</li>
+<li> The function which is hooked in to handle the output of the 页面 must check that the user has the required capability as well.</li>
+<li> The WordPress administration functions take care of validating the user login, so you don't have to worry about it in your function. </li>
+<li> The function example above has been internationalized -- see <a href="https://codex.wordpress.org/Writing_a_Plugin#Internationalizing_Your_Plugin" title="Writing a Plugin">the Internationalization section of Writing a Plugin</a> for more information.</li>
+<li> The function processes any entered data before putting the data entry form on the screen, so that the new values will be shown in the form (rather than the values from the database).</li>
+<li> You don't have to worry about this working the first time, because the WordPress <tt>update_option</tt> function will automatically add an option to the database if it doesn't already exist.</li>
+<li> These admin-menu-adding procedures are parsed every single time you navigate to a 页面 in Admin. So if you are writing a plugin which has no options page, but add one later, you can just add it using the instructions above and re-upload, and tweak until you're happy with it. In other words, menus are not "permanently added" or put into a database upon activating a plugin. They're parsed on the fly, so you can add or subtract menu items at will, re-upload, and the change will be reflected right away.</li></ul>
+<h2><span class="mw-headline" id=".E9.A1.B5.E9.9D.A2_Hook_Suffix">页面 Hook Suffix</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=13" title="Edit section: 页面 Hook Suffix">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Every function that adds a new administration menu (<tt>add_menu_page()</tt>, <tt>add_submenu_page()</tt> and its specialized versions such as <tt>add_options_page()</tt>) returns a special value called <i>Page Hook Suffix</i>. It can be used later as a hook to which an action called only on that particular 页面 can be registered. 
+</p><p>One such action hook is <i>load-<b>{page_hook}</b></i>, where <i>{page_hook}</i> is the value returned by one of these <tt>add_<b>*</b>_page()</tt> functions. This hook is called when the particular 页面 is loaded. In the example below, it is used to display the "Plugin is not configured" notice on all admin pages except for plugin's options page:
+</p>
+<pre>
+&lt;?php
+add_action('admin_menu', 'my_plugin_menu');
+
+// Here you can check if plugin is configured (e.g. check if some option is set). If not, add new hook. 
+// In this example hook is always added.
+add_action( 'admin_notices', 'my_plugin_admin_notices' );
+
+function my_plugin_menu() {
+	// Add the new admin menu and 页面 and save the returned hook suffix
+	$hook_suffix = add_options_page('My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options');
+	// Use the hook suffix to compose the hook and register an action executed when plugin's options 页面 is loaded
+	add_action( 'load-' . $hook_suffix , 'my_load_function' );
+}
+
+function my_load_function() {
+	// Current admin 页面 is the options 页面 for our plugin, so do not display the notice
+	// (remove the action responsible for this)
+	remove_action( 'admin_notices', 'my_plugin_admin_notices' );
+}
+
+function my_plugin_admin_notices() {
+	echo "&lt;div id='notice' class='updated fade'&gt;&lt;p&gt;My Plugin is not configured yet. Please do it now.&lt;/p&gt;&lt;/div&gt;\n";
+}
+
+function my_plugin_options() {
+	if (!current_user_can('manage_options'))  {
+		wp_die( __('You do not have sufficient permissions to access this page.') );
+	}
+	echo '&lt;div class="wrap"&gt;';
+	echo '&lt;p&gt;Here is where the form would go if I actually had options.&lt;/p&gt;';
+	echo '&lt;/div&gt;';
+}
+?&gt;
+</pre>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=zh-cn:Adding_Administration_Menus&amp;action=edit&amp;section=14" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://comox.textdrive.com/pipermail/wp-hackers/2009-February/024632.html">Top Level Menu discussion on wp-hackers</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/admin-menu-editor/">Admin Menu Editor Plugin</a> - allows adding, deleting, hiding, and re-ordering of administration items</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004541
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.052 seconds
+Real time usage: 0.060 seconds
+Preprocessor visited node count: 359/1000000
+Preprocessor generated node count: 855/1000000
+Post‐expand include size: 807/2097152 bytes
+Template argument size: 399/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   11.247      1 - Template:Languages
+100.00%   11.247      1 - -total
+ 20.89%    2.349      1 - Template:ja
+ 12.11%    1.362      1 - Template:en
+ 10.35%    1.164      1 - Template:ru
+ 10.10%    1.136      1 - Template:zh-cn
+-->

@@ -1,0 +1,137 @@
+{{Languages|
+{{en|Custom Post Types}}
+{{pt-br|Tipos de Posts Customizados}}
+{{sk|Vlastné typy príspevkov}}
+}}
+
+WordPress môže uchovať a zobraziť mnoho rôznych druhov obsahu. Tieto typy obsahu sú uložené vždy na rovnakom mieste, vo  <tt>[[Database_Description#Table:_wp_posts|wp_posts]]</tt> tabuľke. Rozlišujú sa podľa stĺpca nazvaného <tt>post_type</tt>.
+
+[[Version 3.0|WordPress 3.0]] vám dáva možnosť pridať vaše vlastné typy príspevkov a používať ich rozličnými spôsobmi.
+
+== Základné typy ==
+
+Je päť základných typov príspevkov ktoré WordPress používa prednastavene.  
+
+=== Článok ===
+
+"Článok" je hlavným typom príspevku ktorý sa používa v blogoch. Články sa bežne zobrazujú v blogu v obrátenom poradí podľa času (najnovší článok ako prvý). Článkz sa taktiež používajú pri vytváraní kanálov. 
+
+=== Strana ===
+
+"Strana" vo WordPress je podobná článku, ktorý funguje mimo klasickej na čase založenej štruktúre článkov. Má svoje vlastné URL odvodené priamo z URL hlavnej stránky. Tiež môže používať špeciálne šablóny stránky pre zobrazenie. Stránky tiež môžu byť zobrazené v hierarchickej štruktúre, keď niektoré stránky môžu byť nadradené iným. 
+
+=== Príloha ===
+
+"Príloha" je špecifický príspevok obsahujúci informáciu o súboroch nahratých cez systém nahrávania médií. V prílohách je zahrnutý opis, názov a ostatné informácie o nahratých súboroch. Pri obrázkoch to platí aj pre metadáta o veľkosti a miniatúrach vygenerovaných z obrázkov, umiestnení súborov a  dokonca aj informácie z EXIF dát vpísaných v obrázkoch. 
+
+=== Revízia ===
+
+"Revízie" sa používajú na zachovanie návrhov príspevkov, ako aj všetkých minulých úprav existujúcich príspevkov alebo strán. Sú prakticky rovnaké ako hlavný príspevok/strana pre ktoré sú určené, ale sú týmto príspevkom/stranám podradené. 
+
+=== Nav_Menu ===
+
+Typ "nav_menu" obsahuje informácie o konkrétnej položke v navigačnom menu. Toto je prvý príklad údajov v tabuľke príspevkov ktoré sa používajú na niečo iné ako zobrazovanie obsahu na blogu. 
+
+== Vlastné typy príspevkov ==
+
+Vlastné typy príspevkov sa vo WordPress  pridávajú cez funkciu  [[Function_Reference/register_post_type|register_post_type]]. Táto funkcia vám umožní definovať druh príspevku a jeho funkciu v rámci WordPress. 
+
+Tu je základný príklad toho ako pridať vlastný typ príspevku:
+
+ add_action( 'init', 'create_post_type' );
+ function create_post_type() {
+   register_post_type( 'acme_product',
+     array(
+       'labels' => array(
+         'name' => __( 'Products' ),
+         'singular_name' => __( 'Product' )
+       ),
+       'public' => true
+     )
+   );
+ }
+
+Toto vytvorí príspevok nazvaný "Product". Tomuto sme vytvorili dve hlavné špecifiká. Prvé je  "labels" (značky), ktoré definuje názov typu príspevku v jednotnom aj množnom čísle. Druhé je "public", čo je preddefinované označenie pre zobrazenie typu príspevku v administratívnej časti a samotnej hlavnej stránke, ak je to vyžadované. 
+
+Je množstvo iných parametrov ktoré môžete pridať do funkcie [[Function_Reference/register_post_type|register_post_type]], napríklad nastavenie hierarchií, nastavenie zobrazenia príspevku vo vyhľadávaní, zmena URL nových príspevkov a skrytie alebo zobrazenie metapolí na strane úpravy príspevkov. Tieto parametre sú dobrovoľné a môžete ich použiť pri ďalšom detailnom nastavení vášho typu príspevku.
+
+=== Rady pri pomenovaní ===
+Aj keď je vhodné dať vášmu typu príspevku jednoduché meno ako "produkt",  ktoré je podobné hlavným typom príspevkov ako "článok", "strana", "revízia" či "príloha", je lepšie keď použijete tiež predponu s krátkou značkou, ktorá identifikuje doplnok, tému alebo webstránku ktoré si vyžadujú vlastný typ príspevku. 
+
+Napríklad:
+
+* "acme_product" alebo "aw_product" – vlastný príspevok (produkt)  používaný hypotetickou stránkou ACMEWidgets.com.
+* "eightfold_product" alebo "eft_product" - vlastný príspevok (produkt) používaný hypotetickou témou "EightFold".
+* "ai1m_product" - vlastný príspevok (produkt) používaný hypotetickým doplnkom "All-in-One Merchant".
+
+Bez takéhoto označovania vašich vlastných typov príspevkov, sa môžu príspevky na vašej stránke pravdepodobnejšie dostať do rozporov s vlastnými typmi príspevkov definovanými v téme ktorá sa vám neskôr zapáči alebo doplnku o ktorom si uvedomíte že ho musíte mať. Ak vyvíjate vaše vlastné typy príspevkov alebo témy, je vysoká šanca že vaše doplnky alebo témy budú v rozpore s vlastnými typmi príspevkov v iných doplnkoch alebo témach. Označenie vlastných typov príspevkov vám nezaručí že sa nijaký konflikt nevyskytne, ale určite zníži jeho pravdepodobnosť. 
+
+Dajte si tiež záležať aby váš názov príspevku nepresahoval  20 znakov, keďže v post_type stĺpci v databáze sú v súčasnosti polia s obmedzenou veľkosťou.
+
+=== Rezervované názvy typov príspevkov ===
+Aj keď o tomto hlavný vývojový tým musí ešte konečne rozhodnúť, bolo navrhnuté aby budúce názvy jadrových typov príspevkov  boli označené predponou "'''wp_'''", napr. ak sa vývojový tým rozhodne pridať typ príspevku s názvom "Udalosť", podľa tohto návrhu by sa použil interný názov v znení "wp_udalosť."  Aj keď rozhodnutie ešte nie je konečné, bolo by vhodné vyhnúť sa akýmkoľvek vlastným typom príspevkov ktorých názov začína na  "wp_."
+
+=== Odkazy na funkcie ===
+{{Post Type Tags}}
+
+=== Administratívne rozhranie ===
+
+Keď je typ príspevku vytvorený takto, zobrazí sa aj ako nová položka v administratívnej časti, pre vytvorenie príspevkov tohoto nového typu.  Tu nájdete editor príspevkov a všetky ostatné prednastavené funkcie. 
+
+=== URL ===
+
+Nový typ príspevku dostane tiež svojo vlastné oddelenie v rozložení stránky. V príklade vyššie sú    príspevky nového typu  "produkt" zobrazené na http://priklad.com/product/%product_name% (kde %product_name% je URL názov vášho produktu, napr. http://priklad.com/product/foobrozinator.) Tento odkay sa zobrazí na stranách pre úpravu vášho nového typu príspevku, tak ako ostatné príspevky. 
+
+==== URL s označenými vlastnými typmi príspevkov  ====
+
+Keď označíte vaše URL predponou, no stále chcete použiť "čistú" štruktúru URL, potrebujete do poľa pridať prvok "rewrite" (prepísať). Napríklad pri použití  "ACME Widgets" príkladu použitého vyššie:
+
+ add_action( 'init', 'create_post_type' );
+ function create_post_type() {
+   register_post_type( 'acme_product',
+     array(
+       'labels' => array(
+         'name' => __( 'Products' ),
+         'singular_name' => __( 'Product' )
+       ),
+       'public' => true,
+       'rewrite' => array('slug' => 'products')
+     )
+   );
+ }
+Vyššie zodpovedá  URL ako http://priklad.com/products/%product_name% (pozri popis %product_name%.) Všimnite si, že sme použili formu množného čísla, čo je forma ktorú niektorí ľudia uprednostňujú pretože vychádza z logickejšieho URL pre stránku ktorá obsahuje zoznam produktov, napr. http://priklad.com/products/.  
+
+Tiež si všimnite že sa tu prirodzené názvy ako  "products"  môžu dostať do konfliktu s inými doplnkami alebo témami ktoré používajú rovnaký názov. Väčšine ľudí sa však nepáčia dlhšie a menej prirodzené URL ako http://priklad.com/acme_products/foobrozinator. Riešenie konfliktov s  URL medzi dvoma doplnkami je však jednoduchšie, pretože štruktúra URL nie je trvalo uložená v každom zázname o príspevku v databáze, tak ako je to pri uložených vlastných typov príspevkov. 
+
+=== Jedinečná šablóna ===
+
+Systém tém tiež podporuje vlastné typy príspevkov, vo forme jedinečných šablón. Ak je to možné, vlastné typy príspevkov použijú single-type.php, rovnakým spôsobom ako  príspevky zobrazené na ich vlastnej strane používajú single.php.  Takže pre príklad vyššie môžete vytvoriť súbor single-acme_product.php a „produktové“ príspevky budú zobrazené s použitím tejto šablóny.
+
+=== Archívne alebo slučkové šablóny ===
+
+Možnosť zobraziť zoznam vášho vlastného typu príspevku nie je zahrnutá vo verzii 3.0 a príde až s verziou 3.1 ([http://core.trac.wordpress.org/ticket/13818 trac ticket]) Dovtedy sú pre riešenie tohto problému dostupné [http://wordpress.org/extend/plugins/simple-custom-post-type-archives/ doplnky].
+
+=== Zadania podľa typov príspevkov ===
+
+Vo zvyšku systému tém, môžete tiež vytvoriť nové zadania pre zobrazenie príspevkov zo špecifického typu príspevkov. Toto sa robí cez parameter "post_type" vo WP_Query.
+
+Príklad:
+ $loop = new WP_Query( array( 'post_type' => 'product', 'posts_per_page' => 10 ) );
+ while ( $loop->have_posts() ) : $loop->the_post();
+   the_title();
+   echo '&lt;div class="entry-content"&gt;';
+   the_content();
+   echo '&lt;/div&gt;';
+ endwhile;
+
+Toto zadanie jednoducho prejde posledných 10 produktových príspevkov a zobrazí ich názov a obsah. 
+
+== Viac informácii ==
+
+* [http://justintadlock.com/archives/2010/02/02/showing-custom-post-types-on-your-home-blog-page Zobrazenie vlastných typov príspevkov na vašej domácej stránke]
+* [http://justintadlock.com/archives/2010/04/29/custom-post-types-in-wordpress Vlastné typy príspevkov vo WordPress]
+* [http://kovshenin.com/archives/custom-post-types-in-wordpress-3-0/ Vlastné typy príspevkov vo WordPress 3.0]
+* [http://kovshenin.com/archives/extending-custom-post-types-in-wordpress-3-0/ Rozširovanie vlastných typov príspevkov vo WordPress 3.0]
+* [http://wordpress.org/extend/plugins/post-types-order/ Zmena poradia vlastných typov príspevkov vo WordPress 3.0 a vyššie]
+
+[[Category:Advanced Topics]]

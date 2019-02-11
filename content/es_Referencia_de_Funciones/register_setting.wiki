@@ -1,0 +1,72 @@
+{{es:Stub}}
+{{es:Nota| [[User:Diego WP|Diego AG]] 08:59, 2 January 2014 (UTC) crear los enlaces al castellano que faltan y luego eliminar los originales del inglés}}
+{{Languages|
+{{en|Function_Reference/register_setting}}
+{{es|Referencia_de_Funciones/register_setting}}
+}}
+== Descripción ==
+
+Registra una configuración y su retrollamada de limpieza (sanitization). 
+
+Esta es parte de la [[Settings API]] [[es:Settings API|Api de configuración]], que te permite generar automáticamente páginas de configuración de wp-admin mediante el registro de tus configuraciones y el uso de unas pocas retrollamadas para controlar la salida. 
+
+Esta función también puede ser usada para registrar configuraciones que serán mostradas en las páginas de configuración por defecto como ''medios (media)'' o ''general''. Una vez que la configuración está registrada puedes añadirla a una sección existente con [[Function Reference/add settings field|add_settings_field()]] [[es:Referencia de Funciones/add settings field|add_settings_field()]] o crear una nueva sección con [[Function Reference/add settings section|add_settings_section()]] [[es:Referencia de Funciones/add settings section|add_settings_section()]] y añadirla a eso. 
+
+== Uso ==
+
+%%% <?php register_setting( $grupo_de_opciones, $nombre_de_opcion, $retrollamada_de_limpieza ); ?> %%%
+
+== Parámetros ==
+
+{{Parameter|$grupo_de_opciones|string|Un nombre de grupo de opciones. Debe existir previamente a la llamada de <tt>register_setting</tt> (registrar configuración). Esto debe coincidir con el nombre de grupo en [[Function_Reference/settings_fields|<tt>settings_fields()</tt>]][[es:Referencia de Funciones/settings_fields|<tt>settings_fields()</tt>]]}}
+{{Parameter|$nombre_de_opcion|string|El nombre de una [[Options_API|option]] [[es:Options_API|option]] para limpiar y guardar.}}
+{{Parameter|$retrollamada_de_limpieza|callback|Una función de retrollamada que limpia el valor de la opción.|optional}}
+
+== Valores de retorno ==
+
+; (void) : Esta función no retorna ningún valor.
+
+== Ejemplo ==
+
+<code><pre>function registrar_mi_configuración() {
+	register_setting( 'mi_grupo_de_opciones0', 'mi_nombre_de_opción', 'intval' ); 
+} 
+add_action( 'admin_init', 'registrar_mi_configuración' );</pre></code>
+
+== Notas ==
+
+* Parece que los datos se pasan por la función de limpieza dos veces. Por ejemplo esto te dará una cadena de texto con dos exclamaciones: <code>function agregar_exclamacion ($input) { return $input.'!'; }</code>
+** Esto debería pasar solamente cuando la opción no esta aun en la tabla de wp_options. El tema es que esta técnica usada por options.php se recupere por la habilidad de <tt>update_option</tt> para detectar que una opción no existe aun y llamar subsecuentemente a  (añadir opción) <tt>add_option</tt>. Siendo un problema el que <tt>update_option</tt> llama a la retrollamada de limpieza <tt>sanitize_option</tt> antes de <tt>add_option</tt>, la cual también llama a la retrollamada de limpieza <tt>sanitize_option</tt>. 
+
+* El problema de "<strong>Error: página de opciones no encontrada.</strong>" (incluyendo una solución y explicación):
+
+El problema entonces es, que el filtro de lista blanca de opciones <tt>'whitelist_options'</tt> no ha conseguido el índice correcto para tus datos. Se aplica en options.php#98 (WP 3.4).
+
+<tt>Registrar configuración: register_settings()</tt>  añade tus datos a la <tt>global $new_whitelist_options</tt>. Esto entonces se mezcla con la <tt>lista blanca global: global $whitelist_options</tt> dentro de <tt>filtro de actualización de opciones: option_update_filter()</tt> (resp. retrollamada(s) de <tt>add_option_whitelist()</tt>). Esas retrollamadas añaden tus datos a la <tt>nueva lista blanca de opciones global: global $new_whitelist_options</tt> con el <tt>grupo de opciones: $option_group</tt> como índice. Cuando te encuentres <strong>"Error: página de opciones no encontrada."</strong> <strong>"Error: options page not found."</strong> significa que tu índice no ha sido reconocido. Lo que confunde es que el primer argumento se usa como índice y como <tt>grupo_de_opciones: $options_group</tt> con nombre, cuando el registro verdadero de options.php#112 ocurre contra <tt>página de opciones: $options_page</tt>, lo cual es el <tt>sufijo de enganche: $hook_suffix</tt>, que consigues como valor de retorno <tt>@return</tt> de <tt>add_submenu_page()</tt>.
+
+En resumen,una solución fácil es hacer que <tt>$option_group</tt> coincida con <tt>$option_name</tt>.
+
+Otra causa para este error es tener un valor inválido para el parámetro <tt>$page</tt> al llamar bien a <tt>add_settings_section( $id, $titulo, $funcion_de_retrollamada, $pagina )</tt> o a <tt>add_settings_field( $id, $titulo, $funcion_de_retrollamada, $pagina, $seccion, $args )</tt>. 
+
+Truco: <tt>$pagina/tt> debería coincidir con <tt>$menu_slug</tt> de Referencia de Funcioes/add theme page.
+
+== Log de cambios ==
+
+Desde: [[Version 2.7|2.7.0]]
+
+== Fichero fuente ==
+
+<tt>register_setting()</tt> está ubicado en {{Trac|wp-admin/includes/plugin.php}}.
+
+== Recursos ==
+
+* [http://planetozh.com/blog/2009/05/handling-plugins-options-in-wordpress-28-with-register_setting/ Handling Plugins Options in WordPress 2.8 with register_setting()]
+* [http://ottodestruct.com/blog/2009/wordpress-settings-api-tutorial/ WordPress Settings API Tutorial]
+
+== Relacionado ==
+
+{{Setting Tags}} {{es:Etiquetas de configuración}}
+
+{{Tag Footer}} {{es:Etiqueta de pié}}
+
+[[Category:es:Funciones]]

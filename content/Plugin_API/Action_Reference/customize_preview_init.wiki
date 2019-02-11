@@ -1,0 +1,118 @@
+== Description ==
+
+This action hook allows you to enqueue assets (such as javascript files) directly in the Theme Customizer ''only''. To output saved settings onto your live site, you still need to output generated CSS using the [[Plugin_API/Action_Reference/wp_head|wp_head]] hook.
+
+Generally, this hook is used almost exclusively to enqueue a <tt>theme-customizer.js</tt> file for controlling live previews in WordPress's Theme Customizer.
+
+For more information, see the codex article on the [[Theme_Customization_API]]
+
+==Examples==
+
+Usage might look like this...
+<pre>
+
+/**
+ * This outputs the javascript needed to automate the live settings preview.
+ * Also keep in mind that this function isn't necessary unless your settings 
+ * are using 'transport'=>'postMessage' instead of the default 'transport'
+ * => 'refresh'
+ * 
+ * Used by hook: 'customize_preview_init'
+ */
+public static function mytheme_customizer_live_preview()
+{
+	wp_enqueue_script( 
+		  'mytheme-themecustomizer',			//Give the script an ID
+		  get_template_directory_uri().'/assets/js/theme-customizer.js',//Point to file
+		  array( 'jquery','customize-preview' ),	//Define dependencies
+		  '',						//Define a version (optional) 
+		  true						//Put script in footer?
+	);
+}
+add_action( 'customize_preview_init', 'mytheme_customizer_live_preview' );
+
+</pre>
+
+== Example Javascript Handler ==
+
+The following is one example of what a Javascript live preview file might look like for a custom implementation of the Theme Customizer...
+
+
+The contents of your <tt>theme-customizer.js</tt> file might look like this:
+
+<pre>
+
+/**
+ * This file adds some LIVE to the Theme Customizer live preview. To leverage
+ * this, set your custom settings to 'postMessage' and then add your handling
+ * here. Your javascript should grab settings from customizer controls, and 
+ * then make any necessary changes to the page using jQuery.
+ */
+( function( $ ) {
+
+	// Update the site title in real time...
+	wp.customize( 'blogname', function( value ) {
+		value.bind( function( newval ) {
+			$( '#site-title a' ).html( newval );
+		} );
+	} );
+	
+	//Update the site description in real time...
+	wp.customize( 'blogdescription', function( value ) {
+		value.bind( function( newval ) {
+			$( '.site-description' ).html( newval );
+		} );
+	} );
+
+	//Update site title color in real time...
+	wp.customize( 'header_textcolor', function( value ) {
+		value.bind( function( newval ) {
+			$('#site-title a').css('color', newval );
+		} );
+	} );
+
+	//Update site background color...
+	wp.customize( 'background_color', function( value ) {
+		value.bind( function( newval ) {
+			$('body').css('background-color', newval );
+		} );
+	} );
+	
+	//Update site title color in real time...
+	wp.customize( 'mytheme_options[link_textcolor]', function( value ) {
+		value.bind( function( newval ) {
+			$('a').css('color', newval );
+		} );
+	} );
+	
+} )( jQuery );
+
+</pre>
+
+As you can see from the example above,  a single basic handler looks like this...
+<pre>
+
+wp.customize( 'YOUR_SETTING_ID', function( value ) {
+	value.bind( function( newval ) {
+		//Do stuff (newval variable contains your "new" setting data)
+	} );
+} );
+
+</pre>
+
+
+'''Note:''' Keep in mind that the above will ''only'' work, if you have set all referenced SETTINGS to <tt>'transport'=>'postMessage'</tt>. By default, WordPress uses <tt>'transport'=>'refresh'</tt> for all settings (including the ones that are built in). You can override those defaults using the <tt>[[Plugin_API/Action_Reference/customize_register|customize_register]]</tt> action hook.
+
+== Related ==
+
+* Info: [[Theme_Customization_API|Theme Customization API]]
+* Class: [[Class Reference/WP Customize Manager|WP_Customize_Manager() class]]
+* Method: [[Class_Reference/WP_Customize_Manager/add_setting|WP_Customize_Manager->add_setting()]]
+* Method: [[Class_Reference/WP_Customize_Manager/add_section|WP_Customize_Manager->add_section()]]
+* Method: [[Class_Reference/WP_Customize_Manager/add_control|WP_Customize_Manager->add_control()]]
+* Hook: [[Plugin_API/Action_Reference/customize_register|customize_register]]
+* Hook: [[Plugin_API/Action_Reference/customize_preview_init|customize_preview_init]]
+* Hook: [[Plugin_API/Action_Reference/customize_controls_print_styles|customize_controls_print_styles]]
+* Hook: [[Plugin_API/Action_Reference/customize_controls_print_scripts|customize_controls_print_scripts]]
+* Hook: [[Plugin_API/Action_Reference/customize_controls_init|customize_controls_init]]
+* Hook: [[Plugin_API/Action_Reference/customize_controls_enqueue_scripts|customize_controls_enqueue_scripts]]

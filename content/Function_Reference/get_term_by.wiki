@@ -1,0 +1,118 @@
+{{Languages|
+{{en|Function Reference/get term by}}
+{{es|Function Reference/get term by}}
+{{ja|関数リファレンス/get term by}}
+}}
+
+== Description ==
+Get all <tt>Term</tt> data from database by <tt>Term</tt> field and data.
+
+Warning: <tt>$value</tt> is not HTML-escaped for the '<tt>name</tt>' <tt>$field</tt>. You must do it yourself, if required.
+
+The default <tt>$field</tt> is '<tt>id</tt>', therefore, it is possible to also use null for field, but not recommended that you do so.
+
+If <tt>$value</tt> does not exist, the return value will be false. If <tt>$taxonomy</tt> exists and <tt>$field</tt> and <tt>$value</tt> combinations exist, the Term will be returned.
+
+== Usage ==
+%%%<?php get_term_by( $field, $value, $taxonomy, $output, $filter ) ?>%%%
+
+== Parameters ==
+{{Parameter|$field|string|Either '<tt>id</tt>', '<tt>slug</tt>', '<tt>name</tt>', or '<tt>term_taxonomy_id</tt>'|required|}}
+{{Parameter|$value|string&#124;integer|Search for this term value}}
+{{Parameter|$taxonomy|string|Taxonomy Name <tt>category</tt>, <tt>post_tag</tt>, <tt>link_category</tt>, <tt>nav_menu</tt> or something custom|required|&#39;&#39; (empty string)}}
+{{Parameter|$output|string|Constant OBJECT, ARRAY_A, or ARRAY_N|optional|OBJECT}}
+{{Parameter|$filter|string|default is raw or no WordPress defined filter will applied.|optional|'raw'}}
+
+== Return Values ==
+; (mixed) : Term Row (object or array) from database. Will return false if <tt>$taxonomy</tt> does not exist or <tt>$term</tt> was not found. Othewise returns object (by default) or array of fields depending on <tt>$output</tt> parameter.
+
+The fields returned are:
+* <tt>term_id (See warning below)</tt>
+* <tt>name</tt>
+* <tt>slug</tt>
+* <tt>term_group</tt>
+* <tt>term_taxonomy_id</tt>
+* <tt>taxonomy</tt>
+* <tt>description</tt>
+* <tt>parent</tt>
+* <tt>count</tt>
+'''Warning: string vs integer confusion!''' Field values, including <tt>term_id</tt> are returned in string format. Before further use, typecast numeric values to actual integers, otherwise WordPress will mix up term_ids and slugs which happen to have only numeric characters!
+
+== Examples ==
+Taxonomy_name is the name of taxonomy, not the term_name and is required; the id (term_id) is the ID of the term, not post_id;...
+
+Remember:<br />
+&darr; Taxonomy type (e.g. post_tag)<br />
+Terms in this taxonomy:<br />
+&rarr; news<br />
+&rarr; webdev<br />
+&rarr; ...
+
+Examples to get terms by name and taxonomy ''type'' (taxonomy_name as category, post_tag or custom taxonomy).
+<pre>
+// Get term by name ''news'' in Categories taxonomy.
+$category = get_term_by('name', 'news', 'category')
+
+// Get term by name ''news'' in Tags taxonomy.
+$tag = get_term_by('name', 'news', 'post_tag')
+
+// Get term by name ''news'' in Custom taxonomy.
+$term = get_term_by('name', 'news', 'my_custom_taxonomy')
+
+// Get term by name ''Default Menu'' from theme's nav menus.
+// (Alternative to using wp_get_nav_menu_items)
+$menu = get_term_by('name', 'Default Menu', 'nav_menu');
+</pre>
+
+By id (term_id, not post_id):
+<pre>
+// Get term by id (''term_id'') in Categories taxonomy.
+get_term_by('id', 12, 'category')
+
+...
+</pre>
+
+
+=== Wrong example in this page history ===
+Warning: the example below '''is wrong''' (see in this page history):
+<pre>get_term_by( 'id', (int) $post->ID, 'taxonomy_name' ); // return null</pre>
+This example tries to get a term by ID (term_id) but uses a post ID instead of a term ID.
+
+This example is the correct way to get the term(s) for a post using the post ID:
+
+<pre>
+// get_term_by( 'id', $category_id, 'category' )
+global $post;
+
+$my_categories   = array();
+$post_categories = get_the_category( $post->ID );
+
+foreach ( $post_categories as $post_category ) {
+	$my_categories[] = get_term_by( 'id', $post_category->cat_ID, 'category' );
+}
+
+// OR:
+$my_category = get_term_by( 'id', $post_categories[0]->cat_ID, 'category' );
+</pre>
+
+== Notes ==
+* Warning: <tt>$value</tt> is not escaped for '<tt>name</tt>' <tt>$field</tt>. You must do it yourself, if required.
+* See [[Function_Reference/sanitize_term_field|<tt>sanitize_term_field()</tt>]] The <tt>$context</tt> param lists the available values for '<tt>get_term_by</tt>' <tt>$filter</tt> param.
+* Uses: [[Function_Reference/sanitize_term|<tt>sanitize_term()</tt>]] Cleanses the term based on <tt>$filter</tt> context before returning.
+* Uses global: (<tt>object</tt>) [[Class Reference/wpdb|<tt>$wpdb</tt>]]
+* <tt>get_term_by()</tt> returns a single WP_Term object. Because of core changes from v4.1 - 4.3, it's now possible for multiple terms to match the supplied name or slug parameters. The WP_Term Object returned will be the first matching term found by mySQL, there is no indication that other matching terms may exist. If there is any possibility of multiple terms having the same name or slug in your application, you should use [https://developer.wordpress.org/reference/functions/get_terms get_terms()] instead of <tt>get_term_by()</tt>.
+
+== Change Log ==
+Since: 2.3.0
+
+== Source File ==
+<!-- Need links to current source code files -->
+<tt>get_term_by()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== Related ==
+{{Term Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

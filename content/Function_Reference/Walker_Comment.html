@@ -1,0 +1,121 @@
+<div style="background-color:#ffe4e1; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;"><b>REQUEST FOR DELETION</b> &#8212; This page has been <a href="https://codex.wordpress.org/Category:Requests_for_deletion" title="Category:Requests for deletion">requested</a> to be deleted from Codex. <br /> <b>  </b></div>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/Walker_Comment&amp;action=edit&amp;section=1" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>An example of a custom walker function that extends the Walker_Comment class. Taken from <a rel="nofollow" class="external text" href="http://shinraholdings.com/621/custom-walker-to-extend-the-walker_comment-class/">this article</a> with permission from the author.
+</p>
+<code><pre>
+/** COMMENTS WALKER */
+class zipGun_walker_comment extends Walker_Comment {
+	
+	// init classwide variables
+	var $tree_type = 'comment';
+	var $db_fields = array( 'parent' =&gt; 'comment_parent', 'id' =&gt; 'comment_ID' );
+
+	/** CONSTRUCTOR
+	 * You'll have to use this if you plan to get to the top of the comments list, as
+	 * start_lvl() only goes as high as 1 deep nested comments */
+	function __construct() {&#160;?&gt;
+		
+		&lt;h3 id="comments-title"&gt;Comments&lt;/h3&gt;
+		&lt;ul id="comment-list"&gt;
+		
+	&lt;?php }
+	
+	/** START_LVL 
+	 * Starts the list before the CHILD elements are added. Unlike most of the walkers,
+	 * the start_lvl function means the start of a nested comment. It applies to the first
+	 * new level under the comments that are not replies. Also, it appear that, by default,
+	 * WordPress just echos the walk instead of passing it to &amp;$output properly. Go figure.  */
+	function start_lvl( &amp;$output, $depth = 0, $args = array() ) {		
+		$GLOBALS['comment_depth'] = $depth + 1;&#160;?&gt;
+
+				&lt;ul class="children"&gt;
+	&lt;?php }
+
+	/** END_LVL 
+	 * Ends the children list of after the elements are added. */
+	function end_lvl( &amp;$output, $depth = 0, $args = array() ) {
+		$GLOBALS['comment_depth'] = $depth + 1;&#160;?&gt;
+
+		&lt;/ul&gt;&lt;!-- /.children --&gt;
+		
+	&lt;?php }
+	
+	/** START_EL */
+	function start_el( &amp;$output, $comment, $depth, $args, $id = 0 ) {
+		$depth++;
+		$GLOBALS['comment_depth'] = $depth;
+		$GLOBALS['comment'] = $comment; 
+		$parent_class = ( empty( $args['has_children'] )&#160;? ''&#160;: 'parent' );&#160;?&gt;
+		
+		&lt;li &lt;?php comment_class( $parent_class );&#160;?&gt; id="comment-&lt;?php comment_ID()&#160;?&gt;"&gt;
+			&lt;div id="comment-body-&lt;?php comment_ID()&#160;?&gt;" class="comment-body"&gt;
+			
+				&lt;div class="comment-author vcard author"&gt;
+					&lt;?php echo ( $args['avatar_size']&#160;!= 0&#160;? get_avatar( $comment, $args['avatar_size'] )&#160;:'' );&#160;?&gt;
+					&lt;cite class="fn n author-name"&gt;&lt;?php echo get_comment_author_link();&#160;?&gt;&lt;/cite&gt;
+				&lt;/div&gt;&lt;!-- /.comment-author --&gt;
+
+				&lt;div id="comment-content-&lt;?php comment_ID();&#160;?&gt;" class="comment-content"&gt;
+					&lt;?php if(&#160;!$comment-&gt;comment_approved )&#160;:&#160;?&gt;
+					&lt;em class="comment-awaiting-moderation"&gt;Your comment is awaiting moderation.&lt;/em&gt;
+					
+					&lt;?php else: comment_text();&#160;?&gt;
+					&lt;?php endif;&#160;?&gt;
+				&lt;/div&gt;&lt;!-- /.comment-content --&gt;
+
+				&lt;div class="comment-meta comment-meta-data"&gt;
+					&lt;a href="&lt;?php echo htmlspecialchars( get_comment_link( get_comment_ID() ) )&#160;?&gt;"&gt;&lt;?php comment_date();&#160;?&gt; at &lt;?php comment_time();&#160;?&gt;&lt;/a&gt; &lt;?php edit_comment_link( '(Edit)' );&#160;?&gt;
+				&lt;/div&gt;&lt;!-- /.comment-meta --&gt;
+
+				&lt;div class="reply"&gt;
+					&lt;?php $reply_args = array(
+						'add_below' =&gt; $add_below, 
+						'depth' =&gt; $depth,
+						'max_depth' =&gt; $args['max_depth'] );
+	
+					comment_reply_link( array_merge( $args, $reply_args ) ); &#160;?&gt;
+				&lt;/div&gt;&lt;!-- /.reply --&gt;
+			&lt;/div&gt;&lt;!-- /.comment-body --&gt;
+
+	&lt;?php }
+
+	function end_el(&amp;$output, $comment, $depth = 0, $args = array() ) {&#160;?&gt;
+		
+		&lt;/li&gt;&lt;!-- /#comment-' . get_comment_ID() . ' --&gt;
+		
+	&lt;?php }
+	
+	/** DESTRUCTOR
+	 * I just using this since we needed to use the constructor to reach the top 
+	 * of the comments list, just seems to balance out&#160;:) */
+	function __destruct() {&#160;?&gt;
+	
+	&lt;/ul&gt;&lt;!-- /#comment-list --&gt;
+
+	&lt;?php }
+}
+</pre></code>
+<h2><span class="mw-headline" id="Sources">Sources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/Walker_Comment&amp;action=edit&amp;section=2" title="Edit section: Sources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://shinraholdings.com/621/custom-walker-to-extend-the-walker_comment-class/">Extend the Walker_Comment Class</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003754
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.008 seconds
+Preprocessor visited node count: 36/1000000
+Preprocessor generated node count: 127/1000000
+Post‐expand include size: 655/2097152 bytes
+Template argument size: 162/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.786      1 - -total
+100.00%    2.786      1 - Template:rfd
+ 41.63%    1.160      1 - Template:Message
+-->

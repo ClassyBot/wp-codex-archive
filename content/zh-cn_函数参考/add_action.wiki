@@ -1,0 +1,85 @@
+{{Languages|
+{{en|Function_Reference/add_action}}
+{{zh-hans|函数参考/add_action}}
+}}
+
+{{zh-cn:Stub}} 
+
+== 说明==
+ 
+在指定的[[Plugin_API#Actions|action]]上挂载（挂钩机制）一个函数。
+
+对于这些动作，您可以在[[Plugin_API/Action_Reference|Plugin API/Action Reference]]上查看。当在Wordpress内部调用[[Function_Reference/do_action|do_action()]]时，这些动作将被触发。
+
+== 用法==
+
+%%% <?php add_action( $tag, $function_to_add, $priority, $accepted_args ); ?> %%%
+
+== 参数==
+
+{{Parameter|$tag|string|动作的名字。 (对于这些动作，您可以在[[Plugin_API/Action_Reference|Plugin API/Action Reference]]上查看。)|参数必需|没有默认值}}
+
+{{Parameter|$function_to_add|callback|动作触发时，被调用函数的名字。 注释：[http://us2.php.net/manual/en/language.pseudo-types.php#language.types.callback 在PHP文档中 'callback' 类型]的语法解释是有效的。|参数必需|没有默认值}}
+
+{{Parameter|$priority|int|函数的优先级。改变这个值可以让您的函数在其他函数之前执行，或者是之后执行。默认值为10，例如把这个值设置为5将更早的被执行，设置为12将会晚一些执行。也就是小的值被优先执行。|参数可选|10}}
+
+{{Parameter|$accepted_args|int|函数参数的个数。在 WordPress 1.5.1+, 当匹配的 [[Function_Reference/do_action|do_action()]] 或[[Function_Reference/apply_filters|apply_filters()]]运行，钩子函数可以传入格外的参数。例如动作<tt>comment_id_not_found</tt>可以传入评论的ID。|参数可选|1}}
+
+== 示例==
+
+=== Simple Hook ===
+新文章发布时，通过邮件通知好友。
+
+<pre>
+function email_friends($post_ID)  {
+   $friends = 'bob@example.org, susie@example.org';
+   mail($friends, "sally's blog updated" , 'I just put something on my blog: http://blog.example.com');
+   return $post_ID;
+}
+
+add_action('publish_post', 'email_friends');
+</pre>
+
+=== 获取 参数 ===
+The hooked function takes one argument from the action. Specifically, the 'echo_comment_id' function, takes the argument $comment_ID. It then echos the value of the received argument.
+
+<pre>
+function echo_comment_id($comment_ID) {
+   echo "I just received $comment_ID";
+}
+add_action('comment_id_not_found','echo_comment_id', 10, 1);
+</pre>
+
+== Notes ==
+
+To find out the number and name of arguments for an action, simply search the code base for the matching do_action() call.  For example, if you are hooking into 'save_post', you would find it in post.php:
+
+ do_action('save_post', $post_ID, $post);
+
+Your add_action call would look like:
+
+ add_action('save_post', 'my_save_post', 10, 2);
+
+And your function would be:
+
+ function my_save_post($post_ID, $post){
+   //code here
+ }
+
+== Change Log ==
+
+Since: 1.2.0
+
+== Source File ==
+
+<tt>add_action()</tt> is located in {{Trac|wp-includes/plugin.php}}.
+
+== 相关 ==
+
+{{Action Tags}}
+
+{{Tag Footer}}
+
+[[Category:zh-cn:函数]]
+
+{{Copyedit}}

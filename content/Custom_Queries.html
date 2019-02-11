@@ -1,0 +1,307 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/カスタムクエリ">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Intro"><span class="tocnumber">1</span> <span class="toctext">Intro</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Background_Information"><span class="tocnumber">2</span> <span class="toctext">Background Information</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Definitions"><span class="tocnumber">2.1</span> <span class="toctext">Definitions</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Default_WordPress_Behavior"><span class="tocnumber">2.2</span> <span class="toctext">Default WordPress Behavior</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Implementing_Custom_Queries"><span class="tocnumber">3</span> <span class="toctext">Implementing Custom Queries</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Display_Order_and_Post_Count_Limit"><span class="tocnumber">3.1</span> <span class="toctext">Display Order and Post Count Limit</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Category_Exclusion"><span class="tocnumber">3.2</span> <span class="toctext">Category Exclusion</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Keyword_Search_in_Plugin_Table"><span class="tocnumber">3.3</span> <span class="toctext">Keyword Search in Plugin Table</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Custom_Archives"><span class="tocnumber">3.4</span> <span class="toctext">Custom Archives</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Permalinks_for_Custom_Archives"><span class="tocnumber">3.5</span> <span class="toctext">Permalinks for Custom Archives</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-11"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Articles"><span class="tocnumber">4.1</span> <span class="toctext">Articles</span></a></li>
+<li class="toclevel-2"><a href="#Code_Documentation"><span class="tocnumber">4.2</span> <span class="toctext">Code Documentation</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<p><b>NOTICE: This article discusses how to modify queries using hooks. To find out how to define create queries from scratch, see <a href="https://codex.wordpress.org/Class_Reference/WP_Query#Usage" title="Class Reference/WP Query">Using WP_Query</a> or <a href="https://codex.wordpress.org/Displaying_Posts_Using_a_Custom_Select_Query" title="Displaying Posts Using a Custom Select Query">Displaying Posts Using a Custom SQL Query</a></b>
+</p>
+<h2><span class="mw-headline" id="Intro">Intro</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=1" title="Edit section: Intro">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Plugins generally extend the functionality of WordPress by adding <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">Hooks</a> (Actions and Filters) that change the way WordPress behaves.  But sometimes a plugin needs to go beyond basic hooks by doing a custom query, and it's not as simple as just adding one filter or action to WordPress. This article describes what custom queries are, and then explains how a plugin author can implement them. 
+</p><p>A few notes:
+</p>
+<ul><li> This article assumes you are already familiar with the basics of <a href="https://codex.wordpress.org/Writing_a_Plugin" title="Writing a Plugin">Writing a Plugin</a>, as well as <a href="https://codex.wordpress.org/Creating_Tables_with_Plugins" title="Creating Tables with Plugins">Creating Tables with Plugins</a> (if applicable for your plugin), the <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">Plugin API</a> for Actions and Filters, PHP, and the MySQL database query language. </li></ul>
+<ul><li> This article applies only to the viewer-facing blog pages, not the administration screens (although some of what you do may affect administration screens that lists posts as well). </li></ul>
+<ul><li> All file names mentioned are relative to the root WordPress directory.</li></ul>
+<h2><span class="mw-headline" id="Background_Information">Background Information</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=2" title="Edit section: Background Information">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Definitions">Definitions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=3" title="Edit section: Definitions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In the context of this article, <b>query</b> refers to the database query that WordPress uses in the Loop to find the list of posts that are to be displayed on the screen ("database query" will be used in this article to refer to generic database queries). By default, the WordPress query searches for posts that belong on the currently-requested page, whether it is a single post, single static page, category archive, date archive, search results, feed, or the main list of blog posts; the query is limited to a certain maximum number of posts (set in the Options admin screens), and the posts are retrieved in reverse-date order (most recent post first). A plugin can use a custom query to override this behavior. Examples:
+</p>
+<ul><li> Display posts in a different order, such as alphabetically for a "glossary" category.</li>
+<li> Override the default number of posts to be displayed on the page; for example, the glossary plugin might want to have a higher  post limit when displaying the glossary category.</li>
+<li> Exclude certain posts from certain pages; for example, posts from the glossary category might be excluded from the home page and archive pages, and appear only on their own category page.</li>
+<li> Expand the default WordPress keyword search (which normally just searches in post title and content) to search in other fields, such as the city, state, and country fields of a geographical tagging plugin.</li>
+<li> Allow custom URLs such as <tt>example.com/blog?geostate=oregon</tt> or <tt>example.com/blog/geostate/oregon</tt> to refer to the archive of posts tagged with the state of Oregon.</li></ul>
+<h3><span class="mw-headline" id="Default_WordPress_Behavior">Default WordPress Behavior</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=4" title="Edit section: Default WordPress Behavior">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Before you try to change the default behavior of queries in WordPress, it is important to understand what WordPress does by default. There is an overview of the process WordPress uses to build your blog pages, and what a plugin can do to modify this behavior, in <a href="https://codex.wordpress.org/Query_Overview" title="Query Overview">Query Overview</a>.
+</p>
+<h2><span class="mw-headline" id="Implementing_Custom_Queries">Implementing Custom Queries</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=5" title="Edit section: Implementing Custom Queries">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Now we're ready to start actually doing some custom queries! This section of the article will use several examples to demonstrate how query modification can be implemented. We'll start with a simple example, and move on to more complex ones.
+</p>
+<h3><span class="mw-headline" id="Display_Order_and_Post_Count_Limit">Display Order and Post Count Limit</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=6" title="Edit section: Display Order and Post Count Limit">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>For our first example, let's consider a glossary plugin that will let the site owner put posts in a specific "glossary" category (saved by the plugin in global variable <tt>$gloss_category</tt>).  When someone is viewing the glossary category, we want to see the entries alphabetically rather than by date, and we want to see all the glossary entries, rather than the number chosen by the site owner in the options.
+</p><p>So, we need to modify the query in two ways:
+</p>
+<ol><li> Add a filter to the <tt>ORDER BY</tt> clause of query to change it to alphabetical order if we are viewing the glossary category. The name of the filter is <tt>'posts_orderby'</tt>, and it filters the text after the words <tt>ORDER BY</tt> in the SQL statement.</li>
+<li> Add a filter to the <tt>LIMIT</tt> clause of the query to remove the limit. This filter is called <tt>'post_limits'</tt>, and it filters the SQL text for limits, including the <tt>LIMIT</tt> key word.</li></ol>
+<p>In both cases, the filter function will only make these modifications if we're viewing the glossary category (function <tt>is_category</tt> is used for that logic). So, here's what we need to do:
+</p>
+<pre>
+add_filter('posts_orderby', 'gloss_alphabetical' );
+add_filter('post_limits', 'gloss_limits' );
+
+function gloss_alphabetical( $orderby )
+{
+  global $gloss_category;
+
+  if( is_category( $gloss_category )) {
+     // alphabetical order by post title
+     return "post_title ASC";
+  }
+
+  // not in glossary category, return default order by
+  return $orderby;
+}
+
+function gloss_limits( $limits )
+{
+  global $gloss_category;
+
+  if( is_category( $gloss_category )) {
+     // remove limits
+     return "";
+  }
+
+  // not in glossary category, return default limits
+  return $limits;
+}
+</pre>
+<p>Note: If you need to trigger the filter for an archive instead of a category, you need to also make sure that you are on the front end. Otherwise the filters will interfere with the entry listings and prevent the column sort order from working. In that case you need to modify the function conditionals like this:
+</p>
+<pre>
+ if(&#160;!is_admin() &amp;&amp; is_archive( $your_archive ) ){ ... }
+</pre>
+<h3><span class="mw-headline" id="Category_Exclusion">Category Exclusion</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=7" title="Edit section: Category Exclusion">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To continue with the glossary plugin, we also want to exclude glossary entries from appearing on certain screens (home, non-category archives) and feeds. To do this, we will add a <tt>'pre_get_posts'</tt> action that will detect what type of screen was requested, and depending on the screen, exclude the glossary category. The entire WP_Query object is passed into this function "by reference", meaning that any changes you make to it inside the function will be made to the global query object.  We'll also use the fact that in the query specification (which is stored in <tt>$wp_query-&gt;query_vars</tt>, see above), you can put a "-" sign before a category index number to exclude that category. So, here is the code:
+</p>
+<pre>
+add_action('pre_get_posts', 'gloss_remove_glossary_cat' );
+
+function gloss_remove_glossary_cat( $wp_query ) {
+	global $gloss_category;  
+
+	// Figure out if we need to exclude glossary - exclude from
+	// archives (except category archives), feeds, and home page
+	if( is_home() || is_feed() || ( is_archive() &amp;&amp;&#160;!is_category() )) {
+		set_query_var('cat', '-' . $gloss_category);
+		//which is merely the more elegant way to write:
+		//$wp_query-&gt;set('cat', '-' . $gloss_category);
+	}
+}
+
+</pre>
+<h3><span class="mw-headline" id="Keyword_Search_in_Plugin_Table">Keyword Search in Plugin Table</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=8" title="Edit section: Keyword Search in Plugin Table">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>For our next example, let's consider a geographical tagging plugin that tags each post with one or more cities, states, and countries. The plugin stores them in its own database table; we'll assume the table name is in global variable <tt>$geotag_table</tt>, and that it has fields <tt>geotag_post_id, geotag_city, geotag_state, geotag_country</tt>. For this example, the idea is that if someone does a keyword search (which normally searches the post title and post content), we also want to find posts where the keyword appears in the city, state, or country fields of our plugin's table. 
+</p><p>So, we are going to need to modify the SQL query used to find posts in several ways (but only if we're on a search screen):
+</p>
+<ul><li> Join the plugin's table to the post table. This is done with the <tt>'posts_join'</tt> filter, which acts on the SQL JOIN clause(s).</li>
+<li> Expand the WHERE clause of the query to look in the plugin table fields. This is done with the <tt>'posts_where'</tt> filter, and we'll use the idea that whatever WordPress did to search the post title field, we'll do the same thing with our custom table fields (rather than trying to duplicate WordPress's rather complex logic). WordPress adds clauses like this: <tt>(post_title LIKE 'xyz')</tt>.</li>
+<li> Add a GROUP BY clause to the query, so that, for instance, if a post is tagged with both Portland, Oregon, and Salem, Oregon, and the viewer searches on "Oregon", we won't end up returning the same post twice. This is done with the <tt>'posts_groupby'</tt> filter, which acts on the text after the words GROUP BY in the SQL statement.</li></ul>
+<p>With those ideas in mind, here is the code:
+</p>
+<pre>
+add_filter('posts_join', 'geotag_search_join' );
+add_filter('posts_where', 'geotag_search_where' );
+add_filter('posts_groupby', 'geotag_search_groupby' );
+
+function geotag_search_join( $join )
+{
+  global $geotag_table, $wpdb;
+
+  if( is_search() ) {
+    $join .= " LEFT JOIN $geotag_table ON " . 
+       $wpdb-&gt;posts . ".ID = " . $geotag_table . 
+       ".geotag_post_id ";
+  }
+
+  return $join;
+}
+
+function geotag_search_where( $where )
+{
+  if( is_search() ) {
+    $where = preg_replace(
+       "/\(\s*post_title\s+LIKE\s*(\'[^\']+\')\s*\)/",
+       "(post_title LIKE $1) OR (geotag_city LIKE $1) OR (geotag_state LIKE $1) OR (geotag_country LIKE $1)", $where );
+   }
+
+  return $where;
+}
+
+function geotag_search_groupby( $groupby )
+{
+  global $wpdb;
+
+  if(&#160;!is_search() ) {
+    return $groupby;
+  }
+
+  // we need to group on post ID
+
+  $mygroupby = "{$wpdb-&gt;posts}.ID";
+
+  if( preg_match( "/$mygroupby/", $groupby )) {
+    // grouping we need is already there
+    return $groupby;
+  }
+
+  if(&#160;!strlen(trim($groupby))) {
+    // groupby was empty, use ours
+    return $mygroupby;
+  }
+
+  // wasn't empty, append ours
+  return $groupby . ", " . $mygroupby;
+}
+</pre>
+<h3><span class="mw-headline" id="Custom_Archives">Custom Archives</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=9" title="Edit section: Custom Archives">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To continue with the geo-tagging plugin from the last example, let's assume we want the plugin to enable custom permalinks of the form <tt>www.example.com/blog?geostate=oregon</tt> to tell WordPress to find posts whose state matches "oregon" and display them. 
+</p><p>To get this to work, the plugin must do the following:
+</p>
+<ul><li> Ensure that when WordPress parses the URL, the state gets saved in the query variables; to do this, we have to add "geostate" to the list of query variables WordPress understands (<tt>query_vars</tt> filter). Here's how to do that:</li></ul>
+<pre>
+add_filter('query_vars', 'geotag_queryvars' );
+
+function geotag_queryvars( $qvars )
+{
+  $qvars[] = 'geostate';
+  return $qvars;
+}
+</pre>
+<ul><li> Perform the appropriate query when the "geostate" query variable is set; this is similar to the custom queries discussed in the previous examples. The only difference is that instead of testing for <tt>is_search</tt> or something similar in <tt>posts_where</tt> and other database query filters, we'll instead test to see whether the "geostate" query variable has been detected. Here is the code to replace the <tt>if( is_search() )</tt> statements in the examples above:</li></ul>
+<pre>
+global $wp_query;
+if( isset( $wp_query-&gt;query_vars['geostate'] )) {
+   // modify the where/join/groupby similar to above examples
+}
+</pre>
+<ul><li> Our plugin could also generate the corresponding permalinks. For instance, the plugin might define the function <tt>geotags_list_states</tt> to determine which states exist in its geotag table (that we created earlier), and then return a list of states as links:</li></ul>
+<pre>
+function geotags_list_states( $sep = ", " )
+{
+  global $geotag_table, $wpdb;
+
+  // find list of states in DB
+  $qry = "SELECT geotag_state FROM $geotag_table " . 
+      " GROUP BY geotag_state ORDER BY geotag_state";
+  $states = $wpdb-&gt;get_results( $qry );
+
+  // make list of links
+
+  $before = '&lt;a href="' . get_bloginfo('home') . '?geostate=';
+  $mid = '"&gt;';
+  $after = "&lt;/a&gt; ";
+  $cur_sep = "";
+  foreach( $states as $row ) {
+    $state = $row-&gt;state;
+    
+    echo $cur_sep . $before . rawurlencode($state) . $mid . 
+         $state . $after;
+
+    // after the first time, we need separator
+    $cur_sep = $sep;
+  }
+
+}
+</pre>
+<h3><span class="mw-headline" id="Permalinks_for_Custom_Archives">Permalinks for Custom Archives</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=10" title="Edit section: Permalinks for Custom Archives">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If the blog administrator has non-default <a href="https://codex.wordpress.org/Using_Permalinks" title="Using Permalinks">permalinks</a> enabled, we can further refine our previous custom archives example, and rewrite  the URL <tt>example.com/blog?geostate=oregon</tt> as <tt>example.com/blog/geostate/oregon</tt>.  WordPress's "rewrite rules" are used to tell WordPress how to interpret permalink-style URLs.  (See <a href="https://codex.wordpress.org/Query_Overview" title="Query Overview">Query Overview</a> for more information on the rewrite process.)
+</p><p>In practice, there are two steps to defining a new rewrite rule&#160;: (1) "flush" the cached rewrite rules using the <tt>flush_rewrite_rules()</tt> or by going to settings &gt; permalinks and clicking "save" from within the wp-admin. Both methods force WordPress to refresh the stored rewrite rules.  (note: To save resources, one should avoid using the <tt>flush_rules</tt> any more than it is necessary) (2) use the <tt>generate_rewrite_rules</tt> action to add a new rule when they are calculated. Here's the sample "flush" code:
+</p>
+<pre>
+add_action('admin_init', 'flush_rewrite_rules');
+</pre>
+<p>The rule generation is slightly more complex. Basically, the rewrite rules array is an associative array with permalink URLs as regular expressions (regex) keys, and the corresponding non-permalink-style URLs as values. The following defines a rule that maps URLs like <tt>/geostate/oregon</tt> to a URL request like  <tt>?geostate=oregon</tt>&#160;: 
+</p>
+<pre>
+add_action('generate_rewrite_rules', 'geotags_add_rewrite_rules');
+
+function geotags_add_rewrite_rules( $wp_rewrite ) 
+{
+  $new_rules = array( 
+     'geostate/(.+)' =&gt; 'index.php?geostate=' .
+       $wp_rewrite-&gt;preg_index(1) );
+
+  /​/​ Add the new rewrite rule into the top of the global rules array
+  $wp_rewrite-&gt;rules = $new_rules + $wp_rewrite-&gt;rules;
+}
+</pre>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Queries&amp;action=edit&amp;section=11" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Articles">Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Query_Tags&amp;action=edit&amp;section=T-1" title="Template:Query Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Article: <a href="https://codex.wordpress.org/The_Loop" title="The Loop">The Loop</a> - A basic overview of its use of query within the WordPress loop.</li>
+<li> Article: <a href="https://codex.wordpress.org/Query_Overview" title="Query Overview">Query Overview</a> - Explanation of how to determine which queries generate WordPress.</li>
+<li> Article: <strong class="selflink"> Customizing Queries via Hook</strong></li>
+<li> Article: <a href="https://codex.wordpress.org/Displaying_Posts_Using_a_Custom_Select_Query" title="Displaying Posts Using a Custom Select Query"> View Articles MYSQL query using custom</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Making_Advanced_Taxonomy_Queries" title="Making Advanced Taxonomy Queries"> Build advanced queries on Taxonomies</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Making_Custom_Queries_using_Offset_and_Pagination" title="Making Custom Queries using Offset and Pagination"> Build custom query using Offset and pagination</a></li></ul>
+<h3><span class="mw-headline" id="Code_Documentation">Code Documentation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Query_Tags&amp;action=edit&amp;section=T-2" title="Template:Query Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query"> WP_Query</a> - Detailed Overview of class WP_Query</li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Comment_Query" title="Class Reference/WP Comment Query"> WP_Comment_Query</a> - Class for comment-related queries</li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_User_Query" title="Class Reference/WP User Query"> WP_User_Query</a> - Class for user-related queries</li>
+<li> Object: <a href="https://codex.wordpress.org/Class_Reference/wpdb" title="Class Reference/wpdb"> $wpdb</a> - Overview on the use of the $wpdb object</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/set_query_var" title="Function Reference/set query var"> set_query_var()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_query_var" title="Function Reference/get query var"> get_query_var()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/query_posts" title="Function Reference/query posts"> query_posts()</a> - Create additional custom query</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_post" title="Function Reference/get post"> get_post()</a> - Take an ID of an item and return the records in the database for that article</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_posts" title="Function Reference/get posts" class="mw-redirect"> get_posts()</a> - A specialized function that returns an array of items</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_pages" title="Function Reference/get pages"> get_pages()</a> - A specialized function that returns an array of pages</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/have_posts" title="Function Reference/have posts"> have_posts()</a> - A condition that determines whether the query returned an article</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/the_post" title="Function Reference/the post"> the_post()</a> - Used to automatically set the loop after a query</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/rewind_posts" title="Function Reference/rewind posts"> rewind_posts()</a> - Clears the current loop</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/setup_postdata" title="Function Reference/setup postdata"> setup_postdata()</a> - Sets the data for a single query result within a loop</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_reset_postdata" title="Function Reference/wp reset postdata"> wp_reset_postdata()</a> - Restores the previous query (usually after a loop within another loop)</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_reset_query" title="Function Reference/wp reset query"> wp_reset_query()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/is_main_query" title="Function Reference/is main query"> is_main_query()</a> - Ensures that the query that is being changed is only the main query</li>
+<li> Action Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts" title="Plugin API/Action Reference/pre get posts"> pre_get_posts</a> - Change WordPress queries before they are executed</li>
+<li> Action Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/the_post" title="Plugin API/Action Reference/the post"> the_post</a> - Modify the post object after query</li>
+<li> Filter Hook: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/found_posts" title="Plugin API/Filter Reference/found posts"> found_posts</a> - Changes the value of the object found_posts WP_Query</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003744
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.028 seconds
+Real time usage: 0.030 seconds
+Preprocessor visited node count: 147/1000000
+Preprocessor generated node count: 379/1000000
+Post‐expand include size: 3248/2097152 bytes
+Template argument size: 126/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    5.790      1 - -total
+ 61.81%    3.579      1 - Template:Languages
+ 24.73%    1.432      1 - Template:Query_Tags
+ 18.83%    1.090      1 - Template:en
+ 18.69%    1.082      1 - Template:ja
+-->

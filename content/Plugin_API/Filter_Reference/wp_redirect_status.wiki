@@ -1,0 +1,40 @@
+{{Languages|
+{{en|Plugin_API/Filter_Reference/wp_redirect_status}}
+{{it|API_dei_plugin/Riferimento filtri/wp_redirect_status}}
+}}
+
+== Description ==
+
+The "'''wp_redirect_status'''" hook allows a filter to set the HTTP status code when redirecting. It's run by the default <code>[[Function_Reference/wp_redirect|wp_redirect()]]</code> function. The filter function is passed two arguments: the HTTP status code and redirect URL. Note that <code>wp_redirect()</code> is also a "pluggable" function, meaning that plugins can override it. A function that overrides <code>wp_redirect()</code> may not run this filter.
+
+== Examples ==
+
+<code><pre>/**
+ * Convert HTTP/1.1-only status codes to 1.0 equivalents when using HTTP/1.0
+ */
+function http_status_version_downgrade($status, $location) {
+    static $HTTP11_to_10 = array(
+        203 => 200,
+        303 => 302, 307 => 302, /* 305 => No 1.0 equivalent ,*/
+    );
+    if ($_SERVER['SERVER_PROTOCOL'] == 'HTTP/1.0' 
+        && isset($HTTP11_to_10[$status])) 
+    {
+        return $HTTP11_to_10[$status];
+    }
+    return $status;
+}
+add_filter( 'wp_redirect_status', 'http_status_version_downgrade');
+</pre></code>
+
+== Change Log ==
+
+* Since: [[Version 2.5|2.5]]
+
+== Source File ==
+
+<code>[[Function_Reference/wp_redirect|wp_redirect()]]</code> is located in {{Trac|wp-includes/pluggable.php}}.
+
+== Related ==
+
+[[Category:Filters]]

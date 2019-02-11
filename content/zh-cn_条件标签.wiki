@@ -1,0 +1,382 @@
+{{Languages|
+{{en|Conditional Tags}}
+{{fr|Marqueurs_conditionnels}}
+{{it|Tag condizionali}}
+{{ja|Conditional Tags}}
+{{tr|Kosul Etiketleri}}
+{{pt-br|Tags condicionais}}
+{{zh-cn|条件标签}}
+}}
+== 概述 ==
+
+条件标签函数可使用在模板文件中，用来决定当页面满足什么条件时显示某些内容。例如，你想在文章列表的上面显示一些文本，并且只想在主页上才这么做，使用<tt>[[#The Main Page|is_home()]]</tt>条件标签，可以很容易的做到这点.
+
+注: the close relation these tags have to WordPress [[Template Hierarchy]].
+
+== 各种条件逻辑 ... ==
+
+条件标签会测试某个条件是否满足，并返回相应的TRUE或者FALSE，'''下面列出在何种条件下标签输出为TRUE'''。这些标签可以接受参数
+
+=== 主页（The Main Page） ===
+
+; <tt>is_home()</tt> : 当主页显示时返回True
+
+'''注:''' 如果你使用一个静态页面作为首页（front page，见下文），该标签将应用到文章页面（posts page）.
+
+=== 首页（The Front Page） ===
+
+; <tt>is_front_page()</tt> : 当首页显示时，不管首页是文章还是一个[[Pages|页面]].  当显示
+博客首页并且'[[Administration_Panels#Reading|设置]] > [[Settings_Reading_SubPanel|阅读]] ->首页显示' 设置为 "最新文章", '''或''' '[[Administration_Panels#Reading|设置]] > [[Settings_Reading_SubPanel|阅读]] ->首页显示' 设置为 "静态页面" 同时"静态页面"值为当前显示的[[Pages|页面]]时.返回true
+
+注: 该标签在[[Version 2.5]]中增加.
+
+=== 管理员面板 ===
+
+; <tt>is_admin()</tt>: 当控件面板或者管理员面板显示时返回true
+
+=== 单文章页面 ===
+
+; <tt>is_single()</tt> : 当单文章显示时.
+; <tt>is_single('17')</tt> : 当id为17的文章单独显示时.
+; <tt>is_single('Irish Stew')</tt> : 当标题为"Irish Stew"的文章单独显示时.
+; <tt>is_single('beef-stew')</tt> : 当别名为"beef-stew"的文章单独显示时.
+; <tt>is_single(array(17,'beef-stew','Irish Stew'))</tt> :当文章id为17，或者别名为"beef-stew"，或者标题为"Irish Stew"  都返回Ture。  注：该数组在2.5版本中添加。
+
+=== 文章置顶 ===
+; <tt>is_sticky()</tt> : Returns true if "Stick this post to the front page" check box has been checked for the current post. In this example, no post ID argument is given, so the post ID for the [[The Loop|Loop]] post is used.  Note: this tag was added at [[Version 2.7]].
+; <tt>is_sticky('17')</tt> :  当ID为17的文章被置顶，返回Ture。
+
+=== 弹出式评论 ===
+; <tt>is_comments_popup()</tt> : When in Comments Popup window.
+
+=== 包含日志的页面 ===
+
+; <tt>comments_open()</tt>: When comments are allowed for the current Post being processed in the [[The Loop|WordPress Loop]].
+; <tt>pings_open()</tt>: When pings are allowed for the current Post being processed in the [[The Loop|WordPress Loop]].
+
+=== Page页面 ===
+
+This section refers to WordPress [[Pages]], not any generic webpage from your blog.
+
+; <tt>is_page()</tt> : When any [[Pages|Page]] is being displayed.
+; <tt>is_page('42')</tt> : When [[Pages|Page]] 42 (ID) is being displayed.
+; <tt>is_page('About Me And Joe')</tt> : When the [[Pages|Page]] with a ''post_title'' of "About Me And Joe" is being displayed.
+; <tt>is_page('about-me')</tt> : When the [[Pages|Page]] with a ''post_name'' (slug) of "about-me" is being displayed.
+; <tt>is_page(array(42,'about-me','About Me And Joe'))</tt> : Returns true when the [[Pages|Pages]] displayed is either post ID 42, or ''post_name'' "about-me", or ''post_title'' "About Me And Joe".  Note: the array ability was added at [[Version 2.5]].
+
+==== 子页面测试 ====
+
+There is no <tt>is_subpage()</tt> function yet, but you can test this with a little code:
+
+<pre><?php
+// Get $post if you're inside a function
+global $post;
+
+if ( is_page() && $post->post_parent ) {
+    // This is a subpage
+
+} else {
+    // This is not a subpage
+}
+?></pre>
+
+You could add this function to your templates functions.php file:
+
+<pre>
+function is_tree($pid) {    // $pid = The page we're looking for pages underneath
+	global $post;       // We load this as we're outside of the post
+	if(is_page()&&($post->post_parent==$pid||is_page($pid))) return true; // Yes, it's in the tree
+	else return false;  // No, it's outside
+};
+</pre>
+
+and call <tt>is_tree('id')</tt> to see if the page is in the tree. In the example below <tt>is_tree('2')</tt> would replace "<tt>is_page('about') || $post->post_parent == '2'</tt>" inside the first <tt>if</tt> tag. Note that if you have more than one level of pages the parent page is the one directly above and not the one at the top of the tree.
+
+If you need to test whether this is a particular page OR a child of that page (e.g. to present a different banner on different sections of a page-based site), get the parent page IDs from the back-end, then use code like this:
+
+<pre>
+<?php
+
+if ( is_page('about') || $post->post_parent == '2' ) { 
+    $bannerimg = 'home.jpg';
+
+} elseif ( is_page('learning') || $post->post_parent == '56' ) {	
+    $bannerimg = 'teaching.jpg';
+
+} elseif ( is_page('admissions') || $post->post_parent == '15' ) { 
+    $bannerimg = 'admissions.jpg';
+
+} else { 
+    $bannerimg = 'home.jpg'; // Fall-through  
+}	
+
+?>
+</pre>
+
+If you wish to test this numerous times it is advisable to create  a function (<tt>is_cpage()</tt>) which can easily be maintained. For example, if <tt>is_subpage()</tt> is introduced in to wp, you can change your function in functions.php without having to change multiple uses.
+
+====页面模版====
+Beginning with [[Version 2.5]] this allows you to determine whether or not you are in a page template or if a specific page template is being used.
+
+; <tt>is_page_template()</tt> : Is a [[Pages#Page_Templates|Page Template]] being used?
+; <tt>is_page_template('about.php')</tt> : Is [[Pages#Page_Templates|Page Template]] 'about' being used? Note that unlike with other conditionals, if you want to specify a particular Page Template, you need to use the filename, such as about.php or my_page_template.php.
+
+=== 分类页面 ===
+
+; <tt>is_category()</tt> : When any Category archive page is being displayed.
+; <tt>is_category('9')</tt> : When the archive page for Category 9 is being displayed.
+; <tt>is_category('Stinky Cheeses')</tt> : When the archive page for the Category with Name "Stinky Cheeses" is being displayed.
+; <tt>is_category('blue-cheese')</tt> : When the archive page for the Category with Category Slug "blue-cheese" is being displayed.
+; <tt>is_category(array(9,'blue-cheese','Stinky Cheeses'))</tt> : Returns true when the category of posts being displayed is either term_ID 9, or ''slug'' "blue-cheese", or ''name'' "Stinky Cheeses".  Note: the array ability was added at [[Version 2.5]].
+; <tt>in_category('5')</tt> : Returns true if the current post is '''in''' the specified category id. [http://codex.wordpress.org/Template_Tags/in_category read more]
+'''Note:''' Be sure to check your spelling when testing, "is" and "in" are a big difference.
+
+See also <tt>[[#Any Archive Page|is_archive()]]</tt> and [[Category Templates]].
+
+=== 标签页面 ===
+
+; <tt>is_tag()</tt> : When any Tag archive page is being displayed.
+; <tt>is_tag('mild')</tt> : When the archive page for tag with the slug of 'mild' is being displayed.
+; <tt>is_tag(array('sharp','mild','extreme'))</tt> : Returns true when the tag archive being displayed has a slug of either "sharp", "mild", or "extreme".  Note: the array ability was added at [[Version 2.5]].
+; <tt>has_tag()</tt> : When the current post has a tag. Must be used inside The Loop. Note: has_tag was added at [[Version 2.6]].
+; <tt>has_tag('mild')</tt> : When the current post has the tag 'mild'.
+; <tt>has_tag(array('sharp','mild','extreme'))</tt> : When the current post has any of the tags in the array.
+
+See also <tt>[[#Any Archive Page|is_archive()]]</tt> and [[Tag Templates]].
+
+=== 作者页面 ===
+
+; <tt>is_author()</tt> : When any Author page is being displayed.
+; <tt>is_author('4')</tt> : When the archive page for Author number (ID) 4 is being displayed.
+; <tt>is_author('Vivian')</tt> : When the archive page for the Author with Nickname "Vivian" is being displayed.
+; <tt>is_author('john-jones')</tt> : When the archive page for the Author with Nicename "john-jones" is being displayed.
+; <tt>is_author(array(4,'john-jones','Vivian'))</tt> : When the archive page for the author is either user ID 4, or ''user_nicename'' "john-jones", or ''nickname'' "Vivian".  Note: the array ability was added at [[Version 2.5]].
+See also <tt>[[#Any Archive Page|is_archive()]]</tt> and [[Author Templates]].
+
+=== 日期页面 ===
+
+; <tt>is_date()</tt> : When ''any'' date-based archive page is being displayed (i.e. a monthly, yearly, daily or time-based archive).
+; <tt>is_year()</tt> : When a yearly archive is being displayed.
+; <tt>is_month()</tt> : When a monthly archive is being displayed.
+; <tt>is_day()</tt> : When a daily archive is being displayed.
+; <tt>is_time()</tt> : When an hourly, "minutely", or "secondly" archive is being displayed.
+See also <tt>[[#Any Archive Page|is_archive()]]</tt>.
+
+=== 存档页面 ===
+
+; <tt>is_archive()</tt> : When ''any'' type of Archive page is being displayed.  Category, Tag, Author and Date based pages are all types of Archives.
+
+=== 搜索结果页面 ===
+
+; <tt>is_search()</tt> : When a search result page archive is being displayed.
+
+=== 404页面 ===
+
+; <tt>is_404()</tt> : When a page displays after an "HTTP 404: Not Found" error occurs.
+
+=== 分页页面 ===
+
+; <tt>is_paged()</tt> : When the page being displayed is "paged".  This refers to an archive or the main page being split up over several pages. This does ''not'' refer to a Post or [[Pages|Page]] whose content has been divided into pages using the <tt><!<nowiki></nowiki>--nextpage--></tt> [[Writing Posts#Here is a run-down of the quicktag functions:|QuickTag]].
+
+=== 是否为附件页面 ===
+ 
+; <tt>is_attachment()</tt> : When an attachment document to a post or [[Pages|Page]] is being displayed. An attachment is an image or other file uploaded through the post editor's upload utility. Attachments can be displayed on their own 'page' or template. For more information, see [[Using Image and File Attachments]].
+
+=== 是否为文章页、页面或附件 ===
+; <tt>is_singular()</tt> : When any of the following return true: <tt>is_single()</tt>, <tt>is_page()</tt> or <tt>is_attachment()</tt>.
+
+=== 在订阅源中 ===
+
+; <tt>is_feed()</tt> : When the site requested is a [[Introduction_to_Blogging#Syndication|Syndication]].  This tag is not typically used by users; it is used internally by WordPress and is available for Plugin Developers.
+
+=== 在引用通告中 ===
+
+; <tt>is_trackback()</tt> : When the site requested is WordPress' hook into its Trackback engine.  This tag is not typically used by users; it is used internally by WordPress and is available for Plugin Developers.
+
+=== 是否为预览 ===
+
+; <tt>is_preview()</tt> : When a single post being displayed is viewed in Draft mode.
+
+=== 是否有摘要 ===
+; <tt>has_excerpt()</tt> : When the current post has an excerpt
+; <tt>has_excerpt('42')</tt> : When the post 42 (ID) has an excerpt.
+
+<pre><?php
+// Get $post if you're inside a function
+global $post;
+
+if ( empty($post->post_excerpt) ) {
+    // This post has no excerpt
+} else {
+    // This post has excerpt
+}
+?></pre>
+
+=== 是否在循环内 ===
+; <tt>in_the_loop()</tt> : Check to see if you are "inside the loop".  Useful for plugin authors, this conditional returns as true when you are inside the loop.
+
+=== 侧边栏是否激活 ===
+; <tt>is_active_sidebar()</tt> : Check to see if a given sidebar is active (in use).  Returns true if the sidebar (identified by name, id, or number) is in use, otherwise the function returns false.  This conditional function became available with [[Version 2.8]].
+
+== 使用示例 ==
+
+Here are working samples to demonstrate how to use these conditional tags.
+
+=== 单独一篇文章 ===
+
+This example shows how to use <tt>is_single()</tt> to display something specific only when viewing a single post page:
+<pre>
+if (is_single())
+{
+     echo 'This is just one of many fabulous entries in the ' . single_cat_title() . ' category!';
+}
+</pre>
+
+=== 根据日期显示内容 ===
+
+If someone browses our site by date, let's distinguish posts in different years by using different colors:
+
+<pre>
+&lt;?php
+// this starts The Loop
+if ( have_posts() ) : while ( have_posts() ) : the_post(); ?&gt;
+&lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?&gt;" rel="bookmark" title="Permanent Link to &lt;?php the_title(); ?&gt;"&gt;
+&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;small&gt;&lt;?php the_time('F jS, Y') ?&gt; &lt;!-- by &lt;?php the_author() ?&gt; --&gt;&lt;/small&gt;
+
+&lt;?php
+// are we showing a date-based archive?
+if (is_date())
+{
+     if (date('Y') != get_the_date('Y'))
+     {
+          // this post was written in a previous year
+          // so let's style the content using the "oldentry" class
+          echo '&lt;div class="oldentry"&gt;';
+     } else {
+          echo '&lt;div class="entry"&gt;';
+     }
+} else {
+     echo '&lt;div class="entry"&gt;';
+}
+the_content('Read the rest of this entry &raquo;'); 
+?&gt;
+&lt;/div&gt;
+</pre>
+
+=== 可变侧边栏内容 ===
+
+This example will display different content in your sidebar based on what page the reader is currently viewing.
+
+<pre>
+<!-- begin sidebar -->
+<div id="sidebar">
+<?php
+// let's generate info appropriate to the page being displayed
+if (is_home()) {
+        // we're on the home page, so let's show a list of all top-level categories
+        echo "<ul>";
+        wp_list_cats('optionall=0&sort_column=name&list=1&children=0');
+        echo "</ul>";
+} elseif (is_category()) {
+        // we're looking at a single category view, so let's show _all_ the categories
+         echo "<ul>";
+        wp_list_cats('optionall=1&sort_column=name&list=1&children=1&hierarchical=1');
+        echo "</ul>";
+} elseif (is_single()) {
+        // we're looking at a single page, so let's not show anything in the sidebar
+} elseif (is_page()) {
+        // we're looking at a static page.  Which one?
+        if (is_page('About')) {
+             // our about page.
+             echo "<p>This is my about page!</p>";
+        } elseif (is_page('Colophon')) {
+             echo "<p>This is my colophon page, running on WordPress " . bloginfo('version') . "</p>";
+        } else {
+              // catch-all for other pages
+              echo "<p>Vote for Pedro!</p>";
+        }
+} else {
+        // catch-all for everything else (archives, searches, 404s, etc)
+        echo "<p>Pedro offers you his protection.</p>";
+} // That's all, folks!
+?>
+<form id="searchform" method="get" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+<div>
+<input type="text" name="s" id="s" size="15" />
+<input type="submit" value="<?php _e('Search'); ?>" />
+</div>
+</form>
+
+</div>
+<!-- end sidebar -->
+</pre>
+
+=== 帮助性404页面 ===
+The [[Creating an Error 404 Page]] article has an example of using the PHP conditional function %%%isset()%%% in the [[Creating an Error 404 Page#Writing Friendly Messages|Writing Friendly Messages]] section.
+
+=== 动态菜单高亮 ===
+
+The [[Dynamic Menu Highlighting]] article discusses how to use the conditional tags to enable highlighting of the current page in a menu.
+
+=== 在主题的 footer.php 文件 ===
+At times queries performed in other templates such as sidebar.php may corrupt certain conditional tags.  For instance, in header.php a conditional tag works properly but doesn't work in a theme's footer.php.  The trick is to put ''wp_reset_query'' before the conditional test in the footer.  For example:
+
+<pre>
+<?php
+wp_reset_query();
+if (is_page('2') ) {
+echo 'this is page 2!';
+} 
+?>
+</pre>
+
+== 推荐标签索引 ==
+
+{| cellspacing="10" width="100%"
+|- style="vertical-align:top;"
+| style="width:100%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Aphabetical List'''
+|- 
+|
+* [[#Any_Page_Containing_Posts|comments_open]]
+* [[#A_Tag_Page|has_tag]]
+* [[#A_Category_Page|in_category]]
+* [[#A_404_Not_Found_Page|is_404]]
+* [[#The_Administration_Panels|is_admin]]
+* [[#Any_Archive_Page|is_archive]]
+* [[#An_Attachment|is_attachment]]
+* [[#An_Author_Page|is_author]]
+* [[#A_Category_Page|is_category]]
+* [[#A_Comments_Popup|is_comments_popup]]
+* [[#A_Date_Page|is_date]]
+* [[#A_Date_Page|is_day]]
+* [[#A_Syndication|is_feed]]
+* [[#The_Front_Page|is_front_page]]
+* [[#The_Main_Page|is_home]]
+* [[#A_Date_Page|is_month]]
+* [[#A_PAGE_Page|is_page]]
+* [[#Is_a_Page_Template|is_page_template]]
+* [[#A_Paged_Page|is_paged]]
+* [[#A_Preview|is_preview]]
+* [[#A_Search_Result_Page|is_search]]
+* [[#A_Single_Post_Page|is_single]]
+* [[#A_Single_Page,_Single_Post_or_Attachment|is_singular]]
+* [[#A_Sticky_Post|is_sticky]]
+* [[#A_Tag_Page|is_tag]]
+* [[#A_Date_Page|is_time]]
+* [[#A_Trackback|is_trackback]]
+* [[#A_Date_Page|is_year]]
+* [[#Any_Page_Containing_Posts|pings_open]]
+|}
+
+== 函数参考 ==
+{{Conditional Tags}}
+
+{{Tag Footer}}
+
+[[Category:Chinese Codex]]

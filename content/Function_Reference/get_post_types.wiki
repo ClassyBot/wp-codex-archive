@@ -1,0 +1,134 @@
+{{Languages|
+{{en|Function Reference/get_post_types}}
+{{it|Riferimento_funzioni/get_post_types}}
+{{ja|関数リファレンス/get_post_types}}
+}}
+
+== Description ==
+
+Returns the [[Function_Reference/register_post_type|registered post types]] as found in  ''$wp_post_types''.  
+
+== Usage ==
+
+%%% <?php get_post_types( $args, $output, $operator ) ?> %%%
+
+==Parameters==
+
+{{Parameter|$args|array|An array of key value arguments to match against the post types.|optional|<tt>array()</tt>}}
+Some of these include:
+* public - ''Boolean. If true, only public post types will be returned.''
+* publicly_queryable - ''Boolean''
+* exclude_from_search - ''Boolean''
+* show_ui - ''Boolean''
+* capability_type
+* hierarchical
+* menu_position
+* menu_icon
+* permalink_epmask
+* rewrite
+* query_var
+* _builtin - ''Boolean. If <tt>true</tt>, will return WordPress default post types. Use <tt>false</tt> to return only custom post types.'' 
+
+{{Parameter|$output|string|The type of output to return, either <tt>'names'</tt> or <tt>'objects'</tt>.|optional|<tt>'names'</tt>}}
+
+{{Parameter|$operator|string|Operator (and/or) to use with multiple <tt>$args</tt>.|optional|<tt>'and'</tt>}}
+
+== Return Values ==
+
+; array : A list of post names or objects.
+
+== Examples ==
+=== Default Usage ===
+
+The call to <tt>[[Function Reference/get post types|get post types]]</tt> returns the registered post types.
+
+ <?php $post_types = get_post_types(); ?>
+
+=== Output a list all registered post types ===
+
+<pre>
+<?php
+foreach ( get_post_types( '', 'names' ) as $post_type ) {
+   echo '<p>' . $post_type . '</p>';
+}
+?>
+</pre>
+
+=== Output a list of all public custom post types ===
+
+The built-in public post types are post, page, and attachment. By setting <tt>'_builtin'</tt> to <tt>false</tt>, we will exclude them and show only the custom public post types.
+
+<pre>
+<?php
+
+$args = array(
+   'public'   => true,
+   '_builtin' => false
+);
+
+$output = 'names'; // names or objects, note names is the default
+$operator = 'and'; // 'and' or 'or'
+
+$post_types = get_post_types( $args, $output, $operator ); 
+
+foreach ( $post_types  as $post_type ) {
+
+   echo '<p>' . $post_type . '</p>';
+}
+
+?>
+</pre>
+
+=== Output a named post type ===
+
+This example uses the <tt>'object'</tt> output to retrieve the post type called <tt>'property'</tt>:
+
+<pre>
+<?php
+
+$args = array(
+   'name' => 'property'
+);
+
+$output = 'objects'; // names or objects
+
+$post_types = get_post_types( $args, $output );
+
+foreach ( $post_types  as $post_type ) {
+
+   echo '<p>' . $post_type->name . '</p>';
+}
+
+?>
+</pre>
+
+== Notes ==
+
+Be careful when retrieving "public" custom post-types that were registered using the [http://codex.wordpress.org/Function_Reference/register_post_type register_post_type()] function: the inputs to the register_post_type function are not intelligently processed, so if you verbosely set options for '''publicly_queriable''', '''show_ui''', '''show_in_nav_menus''', and '''exclude_from_search''', this is NOT considered equivalent to setting the '''public''' option and querying for public post-types will not yield results that were defined with the equivalent explicit arguments. See [http://core.trac.wordpress.org/ticket/18950 bug 18950].
+
+WordPress builtin post types:
+* <tt>post</tt> - WordPress built-in post type
+* <tt>page</tt> - WordPress built-in post type
+* <tt>attachment</tt> - WordPress built-in post type
+* <tt>revision</tt> - WordPress built-in post type
+* <tt>nav_menu_item</tt> - WordPress built-in post type (Since 3.0)
+* <tt>custom_css</tt> - Customizer specific
+* <tt>customize_changeset</tt> - Customizer specific
+* <tt>custom post type</tt> - any custom post type (Since 3.0)
+
+== Change Log ==
+
+* [[Version 3.0|3.0]] :
+** Added the <code>operator</code> parameter.
+* Since: [[Version 2.9|2.9]]
+
+== Source File ==
+
+<tt>get_post_types()</tt> is located in {{Trac|wp-includes/post.php}}.
+
+== Related ==
+{{Post Type Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

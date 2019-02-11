@@ -1,0 +1,565 @@
+{{Languages|
+{{en|Class Reference/wpdb}}
+{{it|Riferimento classi/wpdb}}
+{{ja|関数リファレンス/wpdb_Class}}
+{{ru|Class Reference/ru:wpdb_Class}}
+{{zh-cn|Class Reference/wpdb}}
+{{zh-tw|Class Reference/wpdb}}
+}}
+
+{{ru:Stub}}
+
+== Взаимодействие с базами данных ==
+
+WordPress предоставляет класс функций для всех манипуляций с базами данных.  Данный класс называется <code>wpdb</code> и основан на [http://justinvincent.com/ezsql ezSQL] свободном классе, написанном и поддерживаемом [http://www.jvmultimedia.com Justin Vincent].
+
+=== Использование $wpdb Object ===
+
+'''Методы класса <code>wpdb()</code> не должны вызываться напрямую.''' 
+
+WordPress предоставляет глобальную переменную, '''<code>$wpdb</code>''', которая является экземпляром уже настроенного класса для обращения с базами данных WordPress.  Всегда используйте глобальную переменную <code>$wpdb</code>.  (Не забудьте про [http://www.php.net/manual/en/language.variables.scope.php#language.variables.scope.global глобализацию] <code>$wpdb</code> когда используете её в каких либо пользовательских функциях.)
+
+Объект <code>$wpdb</code> может использоваться для чтения данных из ''любой'' таблицы в базе данных WordPress (например пользовательские таблицы), а не только стандартных таблиц которые создаёт WordPress. Например для выборки(запроса SELECT) некоторой информации из пользовательской таблицы названной "mytable", вы можете сделать следующее:
+<code>
+ $myrows = $wpdb->[[#SELECT_Generic_Results|get_results]]( "SELECT id, name FROM mytable" );
+</code>
+Объект <code>$wpdb</code> может обращаться с любым количеством таблиц, но только одной базой данных - базой данных WordPress.  В редких случаях, если вам понадобится подключится к другой базе данных, вам придётся создать экземпляр нового объекта из класса <code>wpdb</code> с соответствующими подробностями соединения для пользовательской базы данных.  Для чрезвычайно сложных установок с множеством баз данных, рассмотрите возможность использования [http://wordpress.org/extend/plugins/hyperdb/ hyperdb].
+
+== Произвольные Запросы к Базе Данных ==
+
+Функция <code>query</code> позволяет вам выполнить ''любой'' SQL запрос к базе данных WordPress.  Однако, лучше использовать более специфичные функции(смотрите ниже) для SELECT запросов.
+%%% <?php $wpdb->query('query'); ?> %%%
+; query : (string) SQL запрос который вы хотите выполнить.
+
+Функция возвращает целое число, соответствующее количеству затронутых/выбранных строк.  При ошибке MySQL функция возвращает <code>FALSE</code>.  ('''Замечание''': поскольку 0 и FALSE могут возвратится, убедитесь, что вы используете корректный оператор сравнения: equality(равенство) <code>==</code> против identicality(идентично) <code>===</code>).
+
+Замечание: Как и во всех функциях данного класса которые выполняют SQL запросы, вы должны экранировать весь SQL ввод(e.g., <code>wpdb->escape($user_entered_data_string)</code>).  См. раздел [http://codex.wordpress.org/wpdb_Class#Protect_Queries_Against_SQL_Injection_Attacks Protect Queries Against SQL Injection Attacks] ниже.
+
+=== Примеры ===
+Удаление мета ключа 'gargle' и значения из Post 13. (Мы добавили метод 'prepare' чтобы быть уверенными, что мы не имеем дело с недопустимой операцией или символами):
+<pre>
+$wpdb->query( 
+	$wpdb->prepare( 
+		"
+                DELETE FROM $wpdb->postmeta
+		 WHERE post_id = %d
+		 AND meta_key = %s
+		",
+	        13, 'gargle' 
+        )
+);
+
+</pre>
+''Performed in WordPress by <code>[[Function Reference/delete post meta|delete_post_meta()]]</code>.''
+
+
+Сделать страницу 7 родительской для страницы 15 [[Pages|Page]].
+<pre>
+$wpdb->query(
+	"
+	UPDATE $wpdb->posts 
+	SET post_parent = 7
+	WHERE ID = 15 
+		AND post_status = 'static'
+	"
+);
+</pre>
+
+== SELECT a Variable ==
+
+The <code>get_var</code> function returns a single variable from the database.  Though only one variable is returned, the entire result of the query is cached for later use. Returns <tt>NULL</tt> if no result is found.
+
+%%% <?php $wpdb->get_var('query',column_offset,row_offset); ?> %%%
+; query : (string) The query you wish to run.  Setting this parameter to <code>null</code> will return the specified variable from the cached results of the previous query.
+; column_offset : (integer) The desired column ('''0''' being the first).  Defaults to '''0'''.
+; row_offset : (integer) The desired row ('''0''' being the first).  Defaults to '''0'''.
+
+=== Examples ===
+Retrieve and display the number of users.
+<pre>
+<?php
+$user_count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->users" );
+echo "<p>User count is {$user_count}</p>";
+?>
+</pre>
+
+Retrieve and display the sum of a [[Custom Fields|Custom Field value]].
+<pre>
+<?php
+// set the meta_key to the appropriate custom field meta key
+$meta_key = 'miles';
+$allmiles = $wpdb->get_var( $wpdb->prepare( 
+	"
+		SELECT sum(meta_value) 
+		FROM $wpdb->postmeta 
+		WHERE meta_key = %s
+	", 
+	$meta_key
+) );
+echo "<p>Total miles is {$allmiles}</p>";
+?> 
+</pre>
+
+== Выборка(SELECT) Строки ==
+
+Чтобы извлечь целую строку из запроса, используйте <code>get_row</code>.  Функция может возвращать строки как объект, ассоциативный массив или как численно индексированный массив.  Если в запросе возвращается более чем одна строка, только указанная строка будет возвращена в функции, но все строки будут прокэшированны для дальнейшего использования. Возвращает ОБЪЕКТ содержащий NULL если результат не определён, учитывайте это когда используете возвращённую переменную в качестве аргумента, смотрите пример ниже.
+
+%%% <?php $wpdb->get_row('query', output_type, row_offset); ?> %%%
+; query : (string) Запрос который вы хотите выполнить.
+; output_type : Одна из трёх предопределённых констант.  По умолчанию OBJECT.
+:* OBJECT - результат выводится как объект.
+:* ARRAY_A - результат выводится как ассоциативный массив.
+:* ARRAY_N - результат выводится как численно индексированный массив.
+; row_offset : (integer) Требуемая строка ('''0''' является первой).  По умолчанию '''0'''.
+
+=== Примеры ===
+Получение всей информации об Link 10.
+
+ $mylink = $wpdb->get_row("SELECT * FROM $wpdb->links WHERE link_id = 10");
+
+Свойствами объекта <code>$mylink</code>  являются имена столбцов полученные в результате SQL запроса (в данном примере все столбцы из таблицы <code>$wpdb->links</code>, но вы также можете запросить только определённые столбцы).
+ echo $mylink->link_id; // prints "10"
+
+в противоположность этому, использование
+ $mylink = $wpdb->get_row("SELECT * FROM $wpdb->links WHERE link_id = 10", ARRAY_A);
+выведет результат в качестве ассоциативного массива:
+ echo $mylink['link_id']; // prints "10"
+
+или
+ $mylink = $wpdb->get_row("SELECT * FROM $wpdb->links WHERE link_id = 10", ARRAY_N);
+численно индексированного массива:
+ echo $mylink[1]; // prints "10"
+
+Если записи с ID 10 не существует в данной таблице, будет возвращено <code>null</code>. Следующее может быть ложным:
+
+<pre>
+if ($mylink != null) {
+  // какие-либо действия с ссылкой 
+  return true;
+} else {
+  // ссылка не найдена
+  return false;
+}
+</pre>
+
+== SELECT a Column ==
+
+To SELECT a column, use <code>get_col</code>.  This function outputs a one dimensional array.  If more than one column is returned by the query, only the specified column will be returned by the function, but the entire result is cached for later use. Returns an empty array if no result is found. 
+
+%%% <?php $wpdb->get_col('query',column_offset); ?> %%%
+; query : (string) the query you wish to execute.  Setting this parameter to <code>null</code> will return the specified column from the cached results of the previous query.
+; column_offset : (integer) The desired column ('''0''' being the first).  Defaults to '''0'''.
+
+=== Examples ===
+For this example, assume the blog is devoted to information about automobiles.  Each post describes a particular car (e.g. 1969 Ford Mustang), and three [[Custom Fields]], manufacturer, model, and year, are assigned to each post.  This example will display the post titles, filtered by a particular manufacturer (Ford), and sorted by model and year.  
+
+The '''get_col''' form of the <tt>wpdb Class</tt> is used to return an array of all the post ids meeting the criteria and sorted in the correct order.  Then a ''foreach'' construct is used to iterate through that array of post ids, displaying the title of each post.  Note that the SQL for this example was created by [http://stackoverflow.com/questions/1690762/complicated-mysql-query/1690808#1690808 Andomar].
+
+<pre>
+<?php 
+$meta_key1		= 'model';
+$meta_key2		= 'year';
+$meta_key3		= 'manufacturer';
+$meta_key3_value	= 'Ford';
+
+$postids=$wpdb->get_col( $wpdb->prepare( 
+	"
+	SELECT      key3.post_id
+	FROM        $wpdb->postmeta key3
+	INNER JOIN  $wpdb->postmeta key1 
+	            ON key1.post_id = key3.post_id
+	            AND key1.meta_key = %s 
+	INNER JOIN  $wpdb->postmeta key2
+	            ON key2.post_id = key3.post_id
+	            AND key2.meta_key = %s
+	WHERE       key3.meta_key = %s 
+	            AND key3.meta_value = %s
+	ORDER BY    key1.meta_value, key2.meta_value
+	",
+	$meta_key1, 
+	$meta_key2, 
+	$meta_key3, 
+	$meta_key3_value
+) ); 
+
+if ( $postids ) 
+{
+	echo "List of {$meta_key3_value}(s), sorted by {$meta_key1}, {$meta_key2}";
+	foreach ( $postids as $id ) 
+	{ 
+		$post = get_post( intval( $id ) );
+		setup_postdata( $post );
+		?>
+		<p>
+			<a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>">
+				<?php the_title(); ?>
+			</a>
+		</p>
+		<?php
+	} 
+}
+?>
+</pre>
+
+This example lists all posts that contain a particular custom field, but sorted by the value of a second custom field.
+
+<pre>
+<?php
+// List all posts with custom field Color, sorted by the value of custom field Display_Order
+// does not exclude any 'post_type'
+// assumes each post has just one custom field for Color, and one for Display_Order
+$meta_key1 = 'Color';
+$meta_key2 = 'Display_Order';
+
+$postids = $wpdb->get_col( $wpdb->prepare( 
+	"
+	SELECT      key1.post_id
+	FROM        $wpdb->postmeta key1
+	INNER JOIN  $wpdb->postmeta key2
+	            ON key2.post_id = key1.post_id
+	            AND key2.meta_key = %s
+	WHERE       key1.meta_key = %s
+	ORDER BY    key2.meta_value+(0) ASC
+	",
+        $meta_key2,
+	$meta_key1
+) ); 
+
+if ( $postids ) 
+{
+	echo "List of {$meta_key1} posts, sorted by {$meta_key2}";
+	foreach ( $postids as $id ) 
+	{
+		$post = get_post( intval( $id ) );
+		setup_postdata( $post );
+		?>
+		<p>
+			<a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>">
+				<?php the_title(); ?>
+			</a>
+		</p>
+		<?php
+	}
+}
+?>
+</pre>
+
+== Выборка(SELECT) Generic Results ==
+
+Generic, mulitple row results can be pulled from the database с помощью <code>get_results</code>.  Функция возвращает весь результат запроса как массив, или <tt>NULL</tt> если результат отсутствует.  Каждый элемент данного массива соответствует одной строке результата запроса и, подобно <code>get_row</code>, может быть ОБЪЕКТОМ, ассоциативным массивом, или целочисленным массивом.
+
+%%% <?php $wpdb->get_results('query', output_type); ?> %%%
+; query : (string) Запрос который вы хотите выполнить.  При выставлении этого параметра как <code>null</code> функция вернёт данные из кэшированного результата предыдущего запроса.
+; output_type : Одна из четырёх предопределённых констант.  По умолчанию - OBJECT.  Смотрите [[#SELECT a Row|Выборка(SELECT) Строки]] и примеры для подробной информации.
+:* OBJECT - результат будет выводиться как численно индексированный массив объектов строк.
+:* OBJECT_K - результат будет выводиться как ассоциативный массив объектов строк, используя значения первого столбца в качестве ключей (дубликаты будут проигнорированы).
+:* ARRAY_A - результат будет выводиться как численно индексированный массив ассоциативных массивов, используя имена столбцов в качестве ключей.
+:* ARRAY_N - результат будет выводиться как численно индексированный массив численно индексированных массивов.
+
+Поскольку эта функция использует функцию '$wpdb->query()' все переменные класса установлены правильно. 
+The results count for a 'SELECT' query will be stored in $wpdb->num_rows.
+
+=== Примеры ===
+Получение ID и Заголовков всех Черновиков Пользователя с ID 5 и Вывод Заголовков.
+<pre>
+$fivesdrafts = $wpdb->get_results( 
+	"
+	SELECT ID, post_title 
+	FROM $wpdb->posts
+	WHERE post_status = 'draft' 
+		AND post_author = 5
+	"
+);
+
+foreach ( $fivesdrafts as $fivesdraft ) 
+{
+	echo $fivesdraft->post_title;
+}
+</pre>
+
+Получение всей информации о черновиках Пользователя с ID 5.
+<pre>
+<?php
+$fivesdrafts = $wpdb->get_results( 
+	"
+	SELECT * 
+	FROM $wpdb->posts
+	WHERE post_status = 'draft' 
+		AND post_author = 5
+	"
+);
+if ( $fivesdrafts )
+{
+	foreach ( $fivesdrafts as $post )
+	{
+		setup_postdata( $post );
+		?>
+		<h2>
+			<a href="<?php the_permalink(); ?>" rel="bookmark" title="Permalink: <?php the_title(); ?>">
+				<?php the_title(); ?>
+			</a>
+		</h2>
+		<?php
+	}
+	else
+	{
+		?>
+		<h2>Not Found</h2>
+		<?php
+	}
+}
+?>
+</pre>
+
+== Вставка(INSERT) строк ==
+
+Вставка строки в таблицу.
+
+%%% <?php $wpdb->insert( $table, $data, $format ); ?> %%%
+; table : (string) Имя таблицы для вставки.
+; data : (array) Данные для вставки (в паре "столбец => значение"). Данные столбец и значение должны быть "сырыми" (не должны быть экранированы).
+; format : (array|string) (не обязательно) Множество форматов для сопоставления с каждым из значений в $data. Если строка - этот формат будет использоваться для всех значений в $data. Если опущено - все значения в $data будут обрабатываться как строки если иное не предусмотрено в wpdb::$field_types.
+
+Возможные значения 'format': %s как строка; %d как десятичное число; и %f как число с плавающей точкой.
+
+После вставки, сгенерированный ID для столбца AUTO_INCREMENT может быть доступно с:
+ <pre>$wpdb->insert_id</pre>
+
+Эта функция возвращает false если строка не может быть вставлена.
+
+=== Примеры ===
+
+Вставка двух столбцов в строку, первое значение является строкой, а второе - числом:
+
+<pre>
+$wpdb->insert( 
+	'table', 
+	array( 
+		'column1' => 'value1', 
+		'column2' => 123 
+	), 
+	array( 
+		'%s', 
+		'%d' 
+	) 
+);
+</pre>
+
+== UPDATE строки ==
+
+Обновление строки в таблице. Возвращает false при ошибке или номер обновлённой строки при успешном обновлении.
+
+%%% <?php $wpdb->update( $table, $data, $where, $format = null, $where_format = null ); ?> %%%
+; table : (string) Имя таблицы для обновления.
+; data : (array) Данные для обновления (в паре столбец => значение).  $data столбец и $data значение должны быть "сырыми" (не должны быть экранированы).
+; where : (array) A named array of WHERE clauses (in column => value pairs). Multiple clauses will be joined with ANDs. Both $where columns and $where values should be "raw".
+; format : (array|string) (optional) An array of formats to be mapped to each of the values in $data. If string, that format will be used for all of the values in $data.
+; where_format : (array|string) (optional) An array of formats to be mapped to each of the values in $where. If string, that format will be used for all of the items in $where.
+
+<strong>Possible format values</strong>: %s as string; %d as decimal number and %f as float. If omitted, all values in $where will be treated as strings.
+
+This function returns the number of rows updated, or false if there is an error.
+
+=== Examples ===
+
+Update a row, where the ID is 1, the value in the first column is a string and the value in the second column is a number: 
+
+<pre>
+$wpdb->update( 
+	'table', 
+	array( 
+		'column1' => 'value1',	// string
+		'column2' => 'value2'	// integer (number) 
+	), 
+	array( 'ID' => 1 ), 
+	array( 
+		'%s',	// value1
+		'%d'	// value2
+	), 
+	array( '%d' ) 
+);
+</pre>
+
+<strong>Attention:</strong> <code>%d</code> can't deal with comma values - if you're <em>not</em> using full numbers, use string/%s.
+
+== Защита Запросов от Атак типа SQL Injection ==
+
+Для более полного обзора SQL экранирования в WordPress, смотрите [[Data Validation#Database|database Data Validation]]. Эта статья [[Data Validation]] является '''must-read''' для каждого автора кода и плагинов для WordPress.
+
+Все данные в SQL запросе должны быть экранированы прежде чем SQL запрос будет выполнен чтобы предотвратить атаки SQL injection. Это может быть удобно выполнено с помощью метода <code>prepare</code>, который поддерживает как [http://php.net/sprintf sprintf()]-подобный, так и [http://php.net/vsprintf vsprintf()]-подобный синтаксис.
+
+'''Обратите внимание''': По состоянию на версию [[Version 3.5|3.5]], <tt>wpdb::prepare()</tt> навязывает '''минимум 2 аргумента'''. [[http://make.wordpress.org/core/2012/12/12/php-warning-missing-argument-2-for-wpdb-prepare/ подробная информация]]
+
+<pre>
+<?php $sql = $wpdb->prepare( 'query' , value_parameter[, value_parameter ... ] ); ?>
+</pre>
+; query : (string) SQL запрос который вы хотите выполнить, с заполнителями <code>%s</code> и <code>%d</code>. Другие <code>%</code> символы могут вызвать ошибку обработки, если они не экранированы. Все символы <code>%</code> внутри строкового литерала SQL, включая LIKE шаблоны, должны быть продублированы(<code>%%</code>).
+; value_parameter : (int|string|array) Значения подставляемые в заполнители. Many values may be passed by simply passing more arguments in a [http://php.net/sprintf sprintf()]-like fashion. Alternatively the second argument can be an array containing the values as in PHP's [http://php.net/vsprintf vsprintf()] function. Необходимо соблюдать осторожность, чтобы не допустить прямого ввода пользователем данного параметра, который бы позволил манипулировать массивом любого запроса с несколькими заполнителями. Значения не должны быть уже экранированы.
+
+===Примеры===
+Add Meta key => value pair "Harriet's Adages" => "WordPress' database interface is like Sunday Morning: Easy." to Post 10.
+<pre>
+$metakey	= "Harriet's Adages";
+$metavalue	= "WordPress' database interface is like Sunday Morning: Easy.";
+
+$wpdb->query( $wpdb->prepare( 
+	"
+		INSERT INTO $wpdb->postmeta
+		( post_id, meta_key, meta_value )
+		VALUES ( %d, %s, %s )
+	", 
+        10, 
+	$metakey, 
+	$metavalue 
+) );
+</pre>
+''Performed in WordPress by <code>[[Function_Reference/add_meta|add_meta()]]</code>.''
+
+The same query using [http://php.net/vsprintf vsprintf()]-like syntax.
+<pre>
+$metakey = "Harriet's Adages";
+$metavalue = "WordPress' database interface is like Sunday Morning: Easy.";
+
+$wpdb->query( $wpdb->prepare( 
+	"
+		INSERT INTO $wpdb->postmeta
+		( post_id, meta_key, meta_value )
+		VALUES ( %d, %s, %s )
+	", 
+        array(
+		10, 
+		$metakey, 
+		$metavalue
+	) 
+) );
+</pre>
+''Note that in this example we pack the values together in an array. This can be useful when we don't know the number of arguments we need to pass until runtime.''
+
+Notice that you do not have to worry about quoting strings. Instead of passing the variables directly into the SQL query, use a <code>%s</code> placeholder for strings and a <code>%d</code> placedolder for integers. You can pass as many values as you like, each as a new parameter in the <code>prepare()</code> method.
+
+<strong>Attention:</strong> You can't pass integers/numbers that have comma values via <code>%d</code>. If you need comma values, use <code>%s</code> instead.
+
+== Show and Hide SQL Errors ==
+
+You can turn error echoing on and off with the <code>show_errors</code> and <code>hide_errors</code>, respectively.
+
+%%% <?php $wpdb->show_errors(); ?> 
+ <?php $wpdb->hide_errors(); ?> %%%
+
+You can also print the error (if any) generated by the most recent query with <code>print_error</code>.
+
+%%% <?php $wpdb->print_error(); ?> %%%
+
+<strong>Note:</strong>  If you are running WordPress Multisite, you must define the DIEONDBERROR constant for database errors to display like so:
+<br />%%% <?php define( 'DIEONDBERROR', true ); ?> %%%
+
+== Getting Column Information ==
+You can retrieve information about the columns of the most recent query result with <code>get_col_info</code>.  This can be useful when a function has returned an OBJECT whose properties you don't know.  The function will output the desired information from the specified column, or an array with information on ''all'' columns from the query result if no column is specified.
+
+%%% <?php $wpdb->get_col_info('type', offset); ?> %%%
+; type : (string) What information you wish to retrieve.  May take on any of the following values (list taken from the [http://jvmultimedia.com/docs/ezsql/ez_sql_help.htm ezSQL docs]).  Defaults to '''name'''.
+:*name - column name.  Default.
+:*table - name of the table the column belongs to
+:*max_length - maximum length of the column
+:*not_null - 1 if the column cannot be NULL
+:*primary_key - 1 if the column is a primary key
+:*unique_key - 1 if the column is a unique key
+:*multiple_key - 1 if the column is a non-unique key
+:*numeric - 1 if the column is numeric
+:*blob - 1 if the column is a BLOB
+:*type - the type of the column
+:*unsigned - 1 if the column is unsigned
+:*zerofill - 1 if the column is zero-filled
+; offset : (integer) Specify the column from which to retrieve information (with '''0''' being the first column).  Defaults to '''-1'''.
+:*-1 - Retrieve information from all columns.  Output as array.  Default.
+:*Non-negative integer - Retrieve information from specified column ('''0''' being the first).
+
+== Clearing the Cache ==
+
+You can clear the SQL result cache with <code>flush</code>.
+
+%%% <?php $wpdb->flush(); ?> %%%
+
+This clears <code>$wpdb->last_result</code>, <code>$wpdb->last_query</code>, and <code>$wpdb->col_info</code>.
+
+== Class Variables ==
+
+; $show_errors : Whether or not [[#Show and Hide SQL Errors|Error echoing]] is turned on.  Defaults to TRUE.
+
+; $num_queries : The number of queries that have been executed.
+
+; $last_query : The most recent query to have been executed.
+
+; $last_error : The most recent error text generated by MySQL.
+
+; $queries : You may save all of the queries run on the database and their stop times by setting the SAVEQUERIES constant to TRUE (this constant defaults to FALSE).  If SAVEQUERIES is TRUE, your queries will be stored in this variable as an array.
+
+; $last_result : The most recent query results.
+
+; $col_info : The column information for the most recent query results.  See [[#Getting Column Information|Getting Column Information]].
+
+; $insert_id : ID generated for an AUTO_INCREMENT column by the most recent INSERT query.
+
+; $num_rows : The number of rows returned by the last query.
+
+; $prefix : The assigned WordPress table prefix for the site.
+
+; $base_prefix : The original prefix as defined in wp-config.php. For multi-site: Use if you want to get the prefix without the blog number appended.
+
+=== Multi-Site Variables ===
+
+If you are using Multi-Site, you also have access to the following:
+
+; $blogid :  The id of the current site (blog).
+
+== Tables ==
+<!-- will likely not be useful when the database structure is fully described -->
+The WordPress database tables are easily referenced in the <code>wpdb</code> class.
+
+; $posts : The table of [[Database Description#Table:_wp_posts|Posts]].
+
+; $postmeta : The [[Database Description#Table:_wp_postmeta|Meta Content]] (a.k.a. [[Custom Fields]]) table.
+
+; $comments : The [[Database Description#Table:_wp_comments|Comments]] table.
+
+; $commentmeta : The table contains additional comment information.
+
+; $terms : The [[Database Description#Table:_wp_terms|terms]] table contains the 'description' of Categories, Link Categories, Tags.
+
+; $term_taxonomy : The [[Database Description#Table:_wp_term_taxonomy|term_taxonomy]] table describes the various taxonomies (classes of terms).  Categories, Link Categories, and Tags are taxonomies.
+
+; $term_relationships : The [[Database Description#Table:_wp_term_relationships|term relationships]] table contains link between the term and the object that uses that term, meaning this file point to each Category used for each Post.
+
+; $users : The table of [[Database Description#Table:_wp_users|Users]].
+
+; $usermeta : The [[Database Description#Table:_wp_usermeta|usermeta]] table contains additional user information, such as nicknames, descriptions and permissions.
+
+; $links : The table of [[Database Description#Table:_wp_links|Links]].
+
+; $options : The [[Database Description#Table:_wp_options|Options]] table.
+
+=== Multisite Tables ===
+These tables are used only in multisite installations.
+
+; $blogs : The [[Database Description#Table:_wp_blogs|Blogs]] table contains a list of the separate blogs (sites) that have been set up within the network(s).
+
+; $signups : The [[Database Description#Table:_wp_signups|Signups]] table.
+
+; $site : The [[Database Description#Table:_wp_site|Site]] table contains a list of the networks (previously known as "sites" in WPMU) that are set up in the installation (usually there is only one site listed in this table).
+
+; $sitemeta : The [[Database Description#Table:_wp_sitemeta|Network Options (Site Meta)]] table contains any options that are applicable to the entire multisite installation.
+
+; $sitecategories : The [[Database Description#Table:_wp_sitecategories|Site Categories]] table.
+
+; $registration_log : The [[Database Description#Table:_wp_registration_log|Registration Log]] table.
+
+; $blog_versions : The [[Database Description#Table:_wp_blog_versions|Blog Versions]] table.
+
+== Related ==
+{{Query Tags}}
+
+{{Class Footer}}
+
+[[Category:Classes]]
+
+[[Category:Russian Codex]]

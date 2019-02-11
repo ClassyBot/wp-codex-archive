@@ -1,0 +1,61 @@
+<p>This filter applies to the posts where clause and allows you to restrict which posts will show up in various areas of the site. Combined with <a href="/index.php?title=Plugin_API/Filter_Reference/restrict_manage_posts&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/restrict manage posts (page does not exist)">restrict_manage_posts</a> it allows you to only show posts matching specific conditions. 
+</p><p>Here is an example to match the restrict_manage_posts example
+</p>
+<pre>add_filter( 'posts_where' , 'posts_where' );
+
+function posts_where( $where ) {
+
+	if( is_admin() ) {
+		global $wpdb;
+		
+		if ( isset( $_GET['author_restrict_posts'] ) &amp;&amp;&#160;!empty( $_GET['author_restrict_posts'] ) &amp;&amp; intval( $_GET['author_restrict_posts'] )&#160;!= 0 ) {
+			$author = intval( $_GET['author_restrict_posts'] );
+		
+			$where .= " AND ID IN (SELECT object_id FROM {$wpdb-&gt;term_relationships} WHERE term_taxonomy_id=$author )";
+		}
+	}
+	return $where;
+}</pre>
+<p>Depending on setup, if we had a custom post type of type 'book' with a taxonomy (category style) of type 'author', this filter would allow us to only show books written by a specific author.
+</p>
+<h2><span class="mw-headline" id="Note">Note</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/posts_where&amp;action=edit&amp;section=1" title="Edit section: Note">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Certain functions which retrieve posts do not run filters, so the posts_where filter functions you attach will not modify the query.  To overcome this, set suppress_filters to false in the argument array passed to the function.  The following code sample illustrates this.
+</p>
+<pre>
+&lt;?php
+//some function that modifies the query
+function useless_condition ( $where ) { return $where . ' AND 1=1 '; }
+
+//attach your function to the posts_where filter
+add_filter( 'posts_where' , 'useless_condition' );
+
+//get posts AND make sure filters are NOT suppressed
+$posts = get_posts( array( 'suppress_filters' =&gt; FALSE ) );
+?&gt;
+</pre>
+<h3><span class="mw-headline" id="Functions_which_suppress_filters_by_default">Functions which suppress filters by default</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/posts_where&amp;action=edit&amp;section=2" title="Edit section: Functions which suppress filters by default">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul>
+<li><tt><a href="https://codex.wordpress.org/Function_Reference/get_posts" title="Function Reference/get posts" class="mw-redirect">get_posts()</a></tt></li>
+</ul>
+<h2><span class="mw-headline" id="See_Also">See Also</span></h2>
+<p><a rel="nofollow" class="external free" href="http://codex.wordpress.org/Plugin_API#Create_a_Filter_Function">http://codex.wordpress.org/Plugin_API#Create_a_Filter_Function</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004104
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.004 seconds
+Real time usage: 0.008 seconds
+Preprocessor visited node count: 25/1000000
+Preprocessor generated node count: 52/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

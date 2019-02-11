@@ -1,0 +1,197 @@
+{{Languages|
+{{en|Backing Up Your Database}}
+{{ja|データベースのバックアップ}}
+{{pt-br|Backups do Banco de Dados}}
+{{ru|Создание резервной копии базы данных}}
+{{th|แบคอัพเวิร์ดเพรส}}
+{{zh-hans|备份数据库}}
+}}
+{{Comunidade WP-Brasil}}
+{{Avançado}}
+{{Traduz}}
+'''It is strongly recommended that you backup your database at regular intervals and before an upgrade.'''
+
+[[Restoring Your Database From Backup|Restoring your database from backup]] is then possible if something goes wrong.
+== Usando cPanel ==
+
+cPanel é um painel de controle usado por muitos servidores. O recurso de backup pode ser usado para guardar dados MySql. Não gere um backup completo, uma vez que estas são estritamente para fins de arquivamento e não podem ser restaurados através do cPanel. Procure por '''baixar um banco de dados MySQL Backup''' e clique no nome do banco de dados. Um arquivo *.gz será transferido para sua unidade local.
+
+Não há nenhuma necessidade de descompactar esse arquivo para restaurá-lo. Usando o programa cPanel mesmo, procure o arquivo gz e faça upload. Uma vez que o upload estiver concluído, a parte inferior do navegador irá indicar upload completo. Se você estiver fazendo upload para um novo servidor, você vai precisar para recriar o banco de dados do usuário juntamente com a senha correspondente. Se você alterar a senha, faça a alteração correspondente no arquivo <tt>wp-config.php</tt>.
+
+== Usando phpMyAdmin ==
+
+ [[pt-br:phpMyAdmin|phpMyAdmin]] é um programa de computador desenvolvido em PHP para administração do MySQL pela Internet. A partir deste sistema é possível criar e remover bases de dados, criar, remover e alterar tabelas, inserir, remover e editar campos, executar códigos SQL e manipular campos chaves. O phpMyAdmin é muito utilizado por emuladores de ragnarök online para guardar as informações de contas, e personagens. 
+
+ O [[pt-br:Glossário#MySQL|MySQL]] MySQL é um sistema de gerenciamento de banco de dados (SGBD), que utiliza a linguagem SQL (Linguagem de Consulta Estruturada, do inglês Structured Query Language) como interface. É atualmente um dos bancos de dados mais populares, com mais de 10 milhões de instalações pelo mundo.
+
+[[pt-br:phpMyAdmin|phpMyAdmin]] é o nome do programa usado para manipular seu banco de dados.
+
+As informações abaixo foram experimentadas e testadas usando versões phpMyAdmin 2.5.3, 2.5.7, PL1, e 2.6.1-pl3 rodando em Unix.
+
+Opções mais detalhadas estão listadas abaixo, embora na maioria dos casos, você se sairá muito bem com as opções padrão de exportação.
+
+=== Processo de Backup com o phpMyAdmin ===
+
+1. Faça login no seu serviço e procure pelo administrador de MySQL, com o nome phpMyAdmin. Você terá de entrar com a senha do banco de dados que você criou, quando fez sua conta do WordPress.<br >
+2. A tela do phpMyAdmin é algo assim (pode mudar conforme a versão, skin etc):
+{{Imagens|[[Image:phpMyAdmin---01.png|750px]]|Acessando o serviço de phpMyAdmin}}
+3. Agora, na página que abriu, procure pelo nome do seu banco de dados que quer fazer o backup, no caso o que você usa para seu site do WordPress, e clique nele. Do lado esquerdo ficam listados todos os bancos de dados criados, se houver, caso você tenha mais de um WordPress instalado, fórum, wiki etc, eles aparecem aqui.
+{{Imagens|[[Image:phpMyAdmin---02.png|750px]]|No exemplo da figura, o banco de dados chama '''wpb'''}}
+4. Na página que abrir, aparecerá um menu horizontal. Clique na aba de nome “Exportar” (“Exportar”).
+{{Imagens|[[Image:phpMyAdmin---04.png|750px]]|Clique no item de menu Exportar}}
+5. Há uma coluna, com todos os dados de seu Banco de dados do WordPress, com o prefixo “wp_” que você criou quando ativou a sua conta. Certifique-se de que todos estão marcados e, rolando a página, veja se a opção “SQL” está marcada, e somente ela.
+{{Imagens|[[Image:phpMyAdmin---05.png|750px]]|Clique no item de menu Exportar}}
+6. Ainda na mesma janela, certifique-se principalmente se o campo “Dados” está marcado. marque o item '''Enviado''' para fazer o donwload do arquivo. 
+{{Imagens|[[Image:phpMyAdmin---06.png|750px]]|Clique no item de menu Exportar}}
+7.Mantenha o nome do arquivo como está, deixe a opção do formato do arquivo em ZIP especialmente se possui bastante dados (postagens, comentários, etc).
+8. Agora, clique no botão “Executar”. Uma tela do navegador aparecerá perguntado para salvar o arquivo. Esse é o seu backup. 
+
+'''Observação:''' Nesse procedimento não estão salvas suas pastas e arquivos (como Tema e plugins); isso você terá que salvar à parte. Mas seus artigos, postagens, e comentários estão salvos.
+
+== Usando Comandos MySQL ==
+
+phpMyAdmin pode ''não'' conseguir manipular bancos de dados muito grandes, neste caso, você pode usar comandos diretos.
+
+1. Mude para o diretório que contém seus arquivos.
+
+<pre>user@linux:~> cd files/blog</pre>
+
+2. Use <code>mysqldump</code> para fazer o upload de toda a base de banco de dados. Para baixar somente certas bases do banco de dados, dê seus nomes no local indicado <code>(tablename tablename tablename)</code>, e omita os parênteses <code>( )</code> em todo o caso. (For help, try: <code>man mysqldump</code>.):
+
+<pre>user@linux:~/files/blog> mysqldump --add-drop-table -h mysqlhostserver
+ -u mysqlusername -p databasename (tablename tablename tablename) | bzip2
+ -c > blog.bak.sql.bz2
+
+Enter password: (enter your mysql password)
+user@linux~/files/blog></pre>
+
+<pre>
+Example:
+mysqldump --add-drop-table -h db01.example.net -u dbocodex -p dbwp | bzip2 -c > blog.bak.sql.bz2
+
+Enter password: my-password
+user@linux~/files/blog>
+</pre>
+
+O <code>bzip2 -c</code> depois do | (pipe) significa que o backup é compactado na hora, e o <code>&gt; blog.bak.sql.bz2</code> envia o <code>bzip</code> saída para um arquivo chamado <code>blog.bak.sql.bz2</code>.  Ele faz em uma linha a mesma coisa que esses dois comandos fazem:
+<pre>
+mysqldump --add-drop-table -h db01.example.net -u dbocodex -p dbwp > blog.bak.sql
+bzip2 blog.bak.sql
+</pre>
+
+== Using MySQL Workbench ==
+[http://dev.mysql.com/downloads/workbench MySQL Workbench] (formerly known as MySQL Administrator) is a program for performing administrative operations, such as configuring your MySQL server, monitoring its status and performance, starting and stopping it, managing users and connections, performing backups, restoring backups and a number of other administrative tasks.
+
+You can perform most of those tasks using a command line interface such as that provided by [http://dev.mysql.com/doc/mysql/en/mysqladmin.html '''mysqladmin'''] or [http://dev.mysql.com/doc/mysql/en/mysql.html '''mysql'''], but MySQL Workbench is advantageous in the following respects:
+
+*Its graphical user interface makes it more intuitive to use.
+*It provides a better overview of the settings that are crucial for the performance, reliability, and security of your MySQL servers.
+*It displays performance indicators graphically, thus making it easier to determine and tune server settings.
+*It is available for Linux, Windows and MacOS X, and allows a remote client to backup the database across platforms. As long as you have access to the MySQL databases on the remote server, you can backup your data to wherever you have write access.
+*There is no limit to the size of the database to be backed up as there is with phpMyAdmin.
+
+''Note: The instruction below was written for older version (MySQL Administrator).''
+
+=== Fazendo backup do banco de dados ===
+This assumes you have already installed MySQL Admin and set it up so that you can login to the MySQL Database Server either locally or remotely. Refer to the documentation that comes with the installation package of MySQL Admin for your platform for installation instructions.
+
+<ol>
+	<li>Abra o cliente de MySQL e logue como você tinha configurado para fazer.</li>
+	<li>A partir do ícone do menu no lado esquerdo da janela do cliente MySQL selecione Backup.</li>
+	<li>Se você ainda não criou um Projeto de Backup, faça-o clicando no botão "Novo Projeto" na parte inferior da janela e digite um nome para o Projeto de Backup quando solicitado.</li>
+	<li>Selecione um ou mais banco de dados que quer fazer Backup (no cliente MySQL estes são chamados de "Schema" (pl. "Schemata")). Adicione-o para a janela do conteúdo de Backup á direita usando a seta que aponta para a direita.</li>
+	<li> Quando selecionar a Schema (Esquema) , você poderá salvar o Projeto de Backup. Ou poderá simplesmente escolher Fazer Backup Agora usando o botão inferior direito da janela.</li>
+	<li>Uma janela de dialogo vai aparecer perguntando onde salvar o Backup. Digite o caminho ou navegue para o local usando a janela de dialogo </li>
+	<li>Supondo que tudo esteja correto (e que tenha as permissões para gravar no diretório onde será gravado o Backup), o backup será completado rapidamente.</li>
+</ol>
+
+=== Importando do Backup ===
+Para instalar seu backup basta entrar em “Banco de Dados”, como mostramos no passo 2 e, na página que abrir, selecionar a aba “Importar” no menu horizontal, conforma e imagem abaixo.
+
+Procure o arquivo tipo ZIP que você salvou em seu PC (1) e clique no botão “Executar” (2) no final da página.
+[[Image:painel-importar-SQL-wordpress-8-.png]]
+Como já dissemos antes, faça uma cópia de segurança de seus dados sempre que quiser fazer alterações em seu blog que mexam nos arquivos de alguma forma. Lembre-se de ma
+nter cópias dos plugins e temas do seu Blog no WordPress para evitar perder tempo procurando pelas coisas que você mais usa.
+
+
+== Ferramentas MySQL ==
+In addition to MySQL Workbench, there are many GUI tools that let you backup (export) your database.
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Name
+!OS (Paid edition)
+!OS (Free edition)
+!Notes
+|-
+|[http://www.mysql.com/products/workbench/ MySQL Workbench]
+|Windows/Mac/Linux
+|Windows/Mac/Linux
+|See [[#Using_MySQL_Workbench|above]]
+|-
+|[http://sqlmanager.net/en/products/studio/mysql EMS SQL Management Studio for MySQL]
+|Windows
+| -
+|
+|-
+|[http://www.aquafold.com/ Aqua Data Studio]
+| -
+|Windows/Mac/Linux
+|Available in 21 languages
+|-
+|[http://www.navicat.com/ Navicat for MySQL]
+|Windows/Mac/Linux
+|Windows/Mac/Linux ([http://www.navicat.com/ Lite])
+|Available in 8 languages
+|-
+|[http://www.webyog.com/en/ SQLyog]
+|Windows
+| -
+|
+|-
+|[http://www.quest.com/toad-for-mysql/ Toad for MySQL]
+| -
+|Windows
+|
+|-
+|[http://www.heidisql.com/ HeidiSQL]
+| -
+|Windows
+|
+|-
+|[http://code.google.com/p/sequel-pro/ Sequel Pro]
+| -
+|Mac
+|CocoaMySQL successor
+|-
+|[http://www.araelium.com/querious/ Querious]
+| -
+|Mac
+|
+|}
+
+== Using WordPress Database Backup Plugin ==
+[http://www.ilfilosofo.com/ Austin Matzko] maintains a [[Plugins|WordPress plugin]] originally created by [http://www.skippy.net Skippy] called [http://wordpress.org/extend/plugins/wp-db-backup/ WordPress Database Backup (WP-DB-Backup)]. It was bundled with WordPress 2.0 but is no longer included with WordPress 2.1.
+
+=== Instalação ===
+# Procure por "WP-DB-Backup" em [[Administration_Panels|Administration]] > [[Administration_Panels#Plugins_-_Add_Functionality_to_your_Blog|Plugins Panel]] > [[Administration_Panels#Install_Plugins|Add New]].
+# Ativar plugin.
+#O plugin solicitará para criar um diretório em <code>/wp-content/backup-*/</code> dentro do seu diretório do WordPress. Talvez precise fazer o <code>/wp-content</code> [[Changing_File_Permissions#Permission_Modes|writable]] (Pelo menos temporariamente) para criar este diretório.
+
+=== Backing up ===
+# Navigate to [[Administration_Panels|Administration]] > [[Administration_Panels#Tools_-_Managing_your_Blog|Tools]] > [[Manage_Backup_SubPanel|Backup Panel]]
+# Select any tables, in addition to the core WordPress tables, that should be backed-up.
+# Select the Backup Options; the backup can be saved on the server, downloaded, or emailed.
+# Finally, click on the Backup button to actually perform the backup. You can also schedule regular backups.
+
+=== Restoring the Data===
+The file created is a standard SQL file. If you want information about how to upload that file, look at [[Restoring Your Database From Backup]].
+
+== Plugins ==
+* [http://wordpress.org/extend/plugins/search.php?q=backup Backup Plugins]
+* [http://wordpress.org/extend/plugins/wp-db-backup/ Database Backup Plugin]
+* [http://wordpress.org/extend/plugins/xcloner-backup-and-restore/ XCloner Backup Plugin]
+* [http://wordpress.org/extend/plugins/myrepono-wordpress-backup-plugin/ myRepono WordPress Backup Plugin]
+
+{{DEFAULTSORT:B}}
+[[Category:Codex-pt]]

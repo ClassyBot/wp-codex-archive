@@ -1,0 +1,82 @@
+{{Languages|
+{{en|Function_Reference/add_role}}
+{{ja|関数リファレンス/add_role}}
+}}
+== Description ==
+
+Adds a new [[Roles_and_Capabilities#Roles|role]] to WordPress.
+
+'''NB: This setting is saved to the database (in table wp_options, field wp_user_roles (`wp_` should be changed to match your database prefix defined in wp-config.php)), so it might be better to run this on theme/plugin activation'''
+
+== Usage ==
+
+%%% <?php add_role( $role, $display_name, $capabilities ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$role|string|Role name|required}}
+{{Parameter|$display_name|string|Display name for role|required}}
+{{Parameter|$capabilities|array|Array of capabilities (see [[Roles_and_Capabilities|Roles and Capabilities]] for list of available capabilities)|optional|array()}}
+
+== Returns ==
+
+; (mixed) : Returns a WP_Role object on success, null if that role already exists.
+
+== Example ==
+
+Create a new "Basic Contributor" role.
+
+ $result = add_role(
+     'basic_contributor',
+     __( 'Basic Contributor' ),
+     array(
+         'read'         => true,  // true allows this capability
+         'edit_posts'   => true,
+         'delete_posts' => false, // Use false to explicitly deny
+     )
+ );
+ if ( null !== $result ) {
+     echo 'Yay! New role created!';
+ }
+ else {
+     echo 'Oh... the basic_contributor role already exists.';
+ }
+
+Create a new role when a plugin is activated. See [[Function_Reference/register_activation_hook|register_activation_hook]]
+
+    function add_roles_on_plugin_activation() {
+        add_role( 'custom_role', 'Custom Subscriber', array( 'read' => true, 'edit_posts' => true ) );
+    }
+    register_activation_hook( __FILE__, 'add_roles_on_plugin_activation' );
+
+== Notes ==
+
+===When to call===
+
+Make sure that the global <tt>$wp_roles</tt> is available before attempting to add or modify a role. The best practice of course is to use your plugin- or theme-activation hook to make changes to roles (since you only want to do it once!).
+
+<tt>mu-plugins</tt> will load too early, so use an action hook (like <tt>'init'</tt>) to wrap your <code>add_role()</code> call if you're doing this in the context of an mu-plugin.
+
+===Delete existing role===
+
+If you are defining a custom role, and adding capabilities to the role using <code>add_role()</code>, be aware that modifying the capabilities array and re-executing <code>add_role()</code> ''will not necessarily update the role with the new capabilities list.'' The <code>add_role()</code> function short-circuits if the role already exists in the database.
+
+The workaround in this case is to precede your <code>add_role()</code> call with a <code>[[Function_Reference/remove_role|remove_role()]]</code> call that targets the role you are adding.
+
+'''This is for development only. Once you have nailed down your list of capabilities, there's no need to keep the <code>remove_role()</code> code''', though there is, in fact, no harm in doing so.
+
+== Changelog ==
+
+* Since: [[Version 2.0|2.0.0]]
+
+== Source Code ==
+
+<code>add_role()</code> is located in {{Trac|wp-includes/capabilities.php}}.
+
+== Related ==
+
+{{Role and Capability Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

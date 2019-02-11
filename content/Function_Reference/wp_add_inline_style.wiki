@@ -1,0 +1,60 @@
+{{Languages|
+{{en|Function Reference/wp_add_inline_style}}
+{{it|Riferimento funzioni/wp_add_inline_style}}
+}}
+
+== Description ==
+
+Adds extra CSS.
+
+Works only if the stylesheet has already been added. Accepts a string <tt>$data</tt> containing the CSS. If two or more CSS code blocks are added to the same stylesheet <tt>$handle</tt>, they will be printed in the order they were added, i.e. the latter added styles can redeclare the previous.
+
+Remember that YOU have to sanitize the output, there is actually no sanitization inside the function.
+You can use <tt>wp_kses( $data, array( "\'", '\"' ) );</tt> or <tt>wp_strip_all_tags( $data );</tt> or <tt>esc_html( $data );</tt> but this is NOT 100% secure. The actual (sep. 2015) best way to sanitize custom CSS rules is to use CSSTidy.
+
+== Usage ==
+
+%%%<?php wp_add_inline_style( $handle, $data ); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$handle|string| Name of the script to which to add the extra styles. Lowercase string.|required}}
+
+{{Parameter|$data|string| String containing the CSS to be added. |required}}
+
+== Examples ==
+
+<tt>wp_add_inline_style</tt> allows you to print extra styling whenever a certain stylesheet is loaded. For instance suppose a plug-in or theme makes use of the class <tt>.mycolor</tt> in a stylesheet to set a background color. This can be over-ridden by a user chosen color, stored in the database by using <tt>wp_add_inline_style</tt> to print the extra styling.
+
+<pre>
+<?php
+function my_styles_method() {
+	wp_enqueue_style(
+		'custom-style',
+		get_template_directory_uri() . '/css/custom_script.css'
+	);
+        $color = get_theme_mod( 'my-custom-color' ); //E.g. #FF0000
+        $custom_css = "
+                .mycolor{
+                        background: {$color};
+                }";
+        wp_add_inline_style( 'custom-style', $custom_css );
+}
+add_action( 'wp_enqueue_scripts', 'my_styles_method' );
+?>
+</pre>
+
+== Change Log ==
+
+Since: [[Version 3.3|3.3]]
+
+== Source File ==
+
+<tt>wp_add_inline_style()</tt> is located in {{Trac|wp-includes/functions.wp-styles.php}}
+
+== Related ==
+{{Enqueue Functions Related}}
+
+[[Category:Functions]]
+
+[[Category:New_page_created]]

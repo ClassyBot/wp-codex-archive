@@ -1,0 +1,281 @@
+{{Languages|
+{{en|Plugin API}}
+{{es|Plugin API}}
+{{ja|プラグイン API}}
+{{zh-cn|插件 API}}
+}}
+
+==简介==
+
+本文介绍的是一些为 WordPress 插件开发者提供的 API (编程语言接口)，以及如何调用这些接口。
+
+阅读本文之前，请先参考[[zh-cn:开发一个插件|开发一个插件]]，以便了解一些关于插件的概况和详情。文本着重于“执行挂勾”类的接口，这类接口也被称为“过滤器”(Filters)和“动作”(Actions)，WordPress 正是使用这种接口把插件挂接到系统中的。当然，也可在主题文件里面调用这类接口，请参考：[[Theme_Development#Theme_Functions_File|主题函数文件]]
+
+'''注意：''' 本文的内容适用于 [[WordPress 1.2]] 或更高版本。对于 1.2 之前的版本，只有通过修改 WordPress 的源代码来对系统进行扩展。
+
+== 执行挂钩、动作和过滤器 ==
+
+WordPress 中有一种叫执行挂勾的机制，允许插件把一些功能“挂载”到 WordPress 当中。也就是说，在系统运行至某一个环节时，去调用插件内的一些函数。执行挂勾分为两种：
+
+# [[#Actions|动作 (Action)]]： 动作是 WordPress 运行到某些环节，或者在某些事件发生时，就会被执行的一种挂钩。任何的插件都可以通过动作接口来指示系统在遇到这些环节或者事件的时候，就执行指定的 PHP 函数。
+# [[#Filters|过滤器 (Filter)]]：过滤器的是 WordPress 用于修改即将要保存或者发送出去的数据的一种挂钩。任何的插件都可以通过过滤器接口来指示系统在遇到某些环节或者事件的时候，就执行指定的 PHP 函数去修改特定的数据。
+
+某些时候动作或过滤器可以达到相同的效果。比如要修改文章的内容，可以把插件挂载到动作 <tt>publish_post</tt> 上，在文章的内容保存到数据库前就修改它。也可以把插件挂载到过滤器 <tt>the_content</tt> 上，在文章的内容发送到浏览器前修改它。
+
+如果要查询 WordPress 中所有的标准的动作和插件，请参考： [http://adambrown.info/p/wp_hooks Adam Brown 的 WordPress 执行挂勾数据库]。
+
+== 函数参考 ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''过滤器函数'''
+|-
+|
+* <tt>[[Function Reference/has_filter | has_filter]]</tt>
+* <tt>[[Function Reference/add_filter | add_filter]]</tt>
+* <tt>[[Function Reference/apply_filters | apply_filters]]</tt>
+* <tt>[[Function Reference/current_filter | current_filter]]</tt>
+* <tt>[[Function Reference/merge_filters | merge_filters]]</tt>
+* <tt>[[Function Reference/remove_filter | remove_filter]]</tt>
+* <tt>[[Function Reference/remove_all_filters | remove_all_filters]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''动作函数'''
+|-
+|
+* <tt>[[Function Reference/has_action | has_action]]</tt>
+* <tt>[[Function Reference/add_action | add_action]]</tt>
+* <tt>[[Function Reference/do_action | do_action]]</tt>
+* <tt>[[Function Reference/do_action_ref_array | do_action_ref_array]]</tt>
+* <tt>[[Function Reference/did_action | did_action]]</tt>
+* <tt>[[Function Reference/remove_action | remove_action]]</tt>
+* <tt>[[Function Reference/remove_all_actions | remove_all_actions]]</tt>
+|}
+
+|}
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! colspan="2" | '''激活与屏蔽挂勾的函数'''
+|-
+|
+* <tt>[[Function Reference/register_activation_hook | register_activation_hook]]</tt>
+| 
+* <tt>[[Function Reference/register_deactivation_hook | register_deactivation_hook]]</tt>
+|}
+
+|}
+
+== 动作 ==
+
+'''动作 (Actions)''' 是由 WordPress 内部的某些事件所触发的，比如说发表一篇文章、更换主题或者访问后台的某个管理界面，这些都是一件事件的例子。而插件则可以指定某些 PHP 函数来响应这些事件所触发的动作。例如：
+* 修改数据库数据
+* 发送电子邮件
+* 修改即将显示出来的内容
+
+使用动作来挂载插件的基本步骤如下：
+# 在插件代码中定义当某个事件发生时，需要执行的 PHP　函数
+# 用<tt>[[Function Reference/add_action|add_action()]]</tt> 把这个函数注册到动作执行挂勾上
+# 把插件源码放到 WordPress 指定的地方，然后启用它
+
+=== 定义动作响应函数 ===
+
+要在插件中执行动作，就要先在插件文件(必须放到''wp-content/plugins''下)中定义一个响应动作的 PHP 函数。比如下面的例子，实现的功能是在新文章发布时，通过电子邮件通知好友。
+
+<pre>
+function email_friends($post_ID)  {
+    $friends = 'bob@example.org,susie@example.org';
+    mail($friends, "sally's blog updated", 
+      'I just put something on my blog: http://blog.example.com');
+    return $post_ID;
+}
+</pre>
+
+在大多数的动作会向响应它的函数传递一个参数(根据实际情况可能是文章ID也可能是评论ID)。而有些动作则会传递多个，具体情况请参见文档以及 WordPress 的源代码。当然除了传进来的参数以外，响应的函数还可以调用 WordPress 的全局变量和函数，也可以调用插件自定义的变量和函数。
+
+如果插件中有直接输出结果的指令的话(例如 print 或 echo)，那么输出的内容将根据该动作所执行的时间，出现在页面对应的地方。
+
+'''注意'''：在插件内定义函数时，有可能会跟其它的插件或者 WordPress 里面的函数重名，所以在命名前请先参考：[[Writing a Plugin#Avoiding Function Name Collisions|避免命名冲突]]。
+
+=== 挂载进 WordPress ===
+
+定义完动作响应函数之后，下一步就得把这个函数挂载(或者说注册)到 WordPress 里面去。做法是在插件中调用 <tt>[[Function Reference/add_action|add_action()]]</tt> 函数，如下：
+
+<pre>
+add_action ( '动作名', '响应函数名', [优先级], [参数数目] );
+</pre>
+
+参数说明： 
+; <tt>动作名</tt> : WordPress 所提供的动作名，用于标识在哪个动作发生时，执行响应函数
+; <tt>响应函数名</tt> : 当动作 <tt>hook_name</tt> 发生时需要执行的响应函数的名字。可以是 PHP 标准的函数，或者是 WordPress 内的函数，或者是插件内自定义的函数，例如上述例子中的 <tt>'email_friends'</tt>
+; <tt>优先级</tt> : 这是一个可选的参数，默认值为10。由于可以把多个函数注册到同一个动作，所以这个参于是用于指定注册到这个动作中的这个函数执行的优先级，数字越小优先级越高，执行得也越早，反之亦然。如果若干个函数以相同的优先级注册到同一个动作，那么执行顺序则是由它们注册的先后顺序所决定。
+; <tt>参数数目</tt> : 这是一个可选的参数，确认值是1。由于某些动作可能会把多个参数传给响应函数，所以这个有时候需要指定响应函数能接受多少个参数。这个参数是在 1.5.1 版加进去的。
+
+要是回来讨论之前的例子，我们可以这样把函数挂载到系统中：
+
+<pre>
+add_action ( 'publish_post', 'email_friends' );
+</pre>
+
+在动作挂载进去之后，也可以[[#删除动作和过滤器|删除动作]]。
+
+=== 安装和启用 ===
+
+安装文件并且激活插件之后，那么你的动作挂钩就可以使用了。你编写的PHP函数以及 <tt>add_action</tt> 调用必须保存在同一个PHP文件当中，并且这个PHP文件必须安装（保存）到''wp-content/plugins''目录下。一旦安装成功，你将需要打开WordPress的管理员页面并且激活你的插件。更多信息，请参见[[Managing Plugins]]。
+
+=== 目前提供的动作类挂钩 ===
+
+参看 [[Plugin API/Action Reference]] 以查找WordPress目前提供的动作类挂钩列表，以及过去版本WordPress的动作类挂钩的链接。
+
+== 过滤器 ==
+
+'''过滤器'''是一类函数，WordPress执行传递和处理数据的过程中，在针对这些数据做出某些动作之前的特定点运行(例如将数据写入数据库或将其传递到浏览器页面)。过滤器处于数据库与浏览器中间(当WordPress正在产生页面的时候)，处于浏览器与数据库之间(当WordPress添加新的文章评论到数据库的时候)；WordPress中的多数输入与输出都经过至少一个过滤器。WordPress默认状态做了一些过滤，你的插件可以添加它自己的过滤器。
+
+
+添加你自己过滤器到WordPress中的基本步骤如下(在下面描述了更多细节)：
+# 创建过滤数据的PHP函数。
+# 在WordPress中通过钩子接入过滤器，通过引用<tt>[[Function_Reference/add_filter|add_filter]]</tt>
+# 把你自己的PHP函数放进一个插件文件，并激活它。 
+
+=== 创建过滤器函数 ===
+
+
+一个过滤器函数在输入未调整数据时发挥作用，并返回调整后的数据(或在某些情况，是一个空值以指示这个数据应该被删除或忽略)。如果数据没有被你的过滤器处理，那么初始数据必须必被返回，这样后续的插件可以在必要的时候继续来修正它的值。
+
+
+因此，创建你插件中过滤器的第一步就是创建一个PHP函数来执行过滤，并把它存入你的插件文件中(你的插件文件必须要置于''wp-content/plugins''目录下)。例如，如果你需要确认你的文章和评论中没有包含脏话，你可以定义一个包含禁用词语列表的全局变量，然后创建下面的PHP函数：
+
+<pre>
+function filter_profanity($content) {
+    global $profanities;
+    foreach($profanities as $profanity) {
+        $content=str_ireplace($profanity,'{censored}',$content);
+    }
+    return $content;
+}
+</pre>
+
+'''注意''': 始终留意你想到的函数名是不是可能在其它插件或WordPress核心函数中已经被使用了。参看[[Writing a Plugin#Plugin_Development_Suggestions|Plugin Development Suggestions]]了解更多信息。
+
+=== 挂钩你的过滤器 ===
+
+在你的函数定义完成后，下一步就是钩入或者说在WordPress中注册它。为了达到这一点，在你插件的全局执行空间引用<tt>[[Function_Reference/add_filter|add_filter]]</tt>:
+<pre>
+add_filter ( 'hook_name', 'your_filter', [priority], [accepted_args] );
+</pre>
+
+where:
+; <tt>hook_name</tt> : WordPress提供的过滤器钩子，这钩子定义了你的过滤器何时会被执行。
+; <tt>your_filter</tt> : 你希望用来执行过滤功能的函数名称。这可以是一个标准的PHP函数，一个标准的WordPress核心函数，或者是一个你在一个插件文件中定义过的函数。
+; <tt>priority</tt> : 可选，整型参数，用来确定与特定过滤器相关联的函数在执行过程中的顺序(默认为10)。具有相同优先权的函数在执行时的顺序依据它们在过滤器中的添加顺序。
+; <tt>accepted_args</tt> : 可选，整型参数，定义了你的函数可以接受多少参数(默认为1)。有一定作用价值，因为一些钩子会传递多于一个的参数给你的函数。
+In the example above, we would put the following in the main executing section of the plugin file, to tell WordPress to filter comments for profanity:
+在上面的例子中，我们应当把下面代码放入插件文件的主要执行段，来告诉WordPress来过滤有脏话的评论:
+<pre>
+add_filter('comment_text','filter_profanity');
+</pre>
+
+你也可以使用<tt>remove_filter()</tt>函数把过滤器钩子上的过滤器移除。参看[[#Removing Actions and Filters|Removing Actions and Filters]]
+
+=== 安装并激活 ===
+
+要使你的钩子生效，你需要做的最后一步是安装并激活插件。你写的PHP函数和<tt>[[Function_Reference/add_filter|add_filter]]</tt>必须在一个PHP文件中，该PHP文件必须安装在''wp-content/plugins''目录。安装完毕之后，你需要访问WordPress后台，然后激活你的插件。详情请访问[[Managing Plugins]]。
+
+=== 目前为过滤器提供的钩子 ===
+
+参看 [[Plugin API/Filter Reference]] 查找目前为WordPress过滤器提供的钩子, 以及过去版本WordPress钩子的链接。
+
+=== 示例 ===
+
+[http://comox.textdrive.com/pipermail/wp-hackers/2008-February/018013.html 在wp-hackers邮件列表中Ozh所描述的], 这个插件用于修改(或者覆盖)默认的 <code>[[Template Tags/bloginfo|bloginfo()]]</code> 函数。 这将需要修改一个核心函数的行为。
+
+<pre>
+add_filter('bloginfo', 'mybloginfo', 1, 2);
+add_filter('bloginfo_url', 'mybloginfo', 1, 2);
+
+function mybloginfo($result='', $show='') {
+        switch ($show) {
+        case 'wpurl':
+                $result = SITE_URL;
+                break;
+        case 'template_directory':
+                $result = TEMPL_DIR;
+                break;
+        default: 
+        }
+        return $result;
+}
+</pre>
+
+== 移除钩子与过滤器 ==
+
+
+在某些情况，你会发现你需要关闭你插件或其它插件创建入WordPress的一个动作或过滤器。你可以通过引用<tt>[[Function Reference/remove_filter|remove_filter]]('filter_hook','filter_function')</tt>或<tt>[[Function Reference/remove_action|remove_action]]('action_hook','action_function')</tt>来完成。
+
+例如，<tt>[[Function Reference/remove_action|remove_action]]('publish_post','generic_ping');</tt>会在你的新博文发布的任何时候阻止你的博客发送pings值。
+
+注意如果一个钩子如果被注册了超过优先权默认值10的函数，那么你也必须在使用<tt>[[Function Reference/remove_action|remove_action()]]</tt>指定优先权。也要注意，通常，你不应该移除任何东西除非你知道它是干什么的以及它为什么要这么做--检查WordPress或是其它插件代码来确认。
+
+== 你可以重写的系统函数 ==
+
+
+除了上面描述的钩子(动作和过滤器)，还有另外一个插件办法来处理WordPress的行为，那就是重写WordPress的函数。事实上，有一小部分函数是WordPress准备好用来重新定义的。仅当在所有插件被加载，它们还没有被重新定义的时候WordPress加载这些函数。查看{{Trac|wp-settings.php}}了解更多。
+
+这些函数被定义于{{Trac|wp-includes/pluggable.php}}。这里有一个2.7.1版本的表；它们中少数部分的文档可以在[[Function Reference]]找到。
+
+* <tt>[[Function_Reference/set_current_user|set_current_user]]</tt>
+* <tt>[[Function_Reference/wp_set_current_user|wp_set_current_user]]</tt>
+* <tt>[[Function_Reference/wp_get_current_user|wp_get_current_user]]</tt>
+* <tt>[[Function_Reference/get_currentuserinfo|get_currentuserinfo]]</tt>
+* <tt>[[Function_Reference/get_userdata|get_userdata]]</tt>
+* <tt>[[Function_Reference/update_user_cache|update_user_cache]]</tt>
+* <tt>[[Function_Reference/get_userdatabylogin|get_userdatabylogin]]</tt>
+* <tt>[[Function_Reference/get_user_by_email|get_user_by_email]]</tt>
+* <tt>[[Function_Reference/wp_mail|wp_mail]]</tt>
+* <tt>[[Function_Reference/wp_authenticate|wp_authenticate]]</tt>
+* <tt>[[Function_Reference/wp_logout|wp_logout]]</tt>
+* <tt>[[Function_Reference/wp_validate_auth_cookie|wp_validate_auth_cookie]]</tt>
+* <tt>[[Function_Reference/wp_generate_auth_cookie|wp_generate_auth_cookie]]</tt>
+* <tt>[[Function_Reference/wp_parse_auth_cookie|wp_parse_auth_cookie]]</tt>
+* <tt>[[Function_Reference/wp_set_auth_cookie|wp_set_auth_cookie]]</tt>
+* <tt>[[Function_Reference/wp_clear_auth_cookie|wp_clear_auth_cookie]]</tt>
+* <tt>[[Function_Reference/is_user_logged_in|is_user_logged_in]]</tt>
+* <tt>[[Function_Reference/auth_redirect|auth_redirect]]</tt>
+* <tt>[[Function_Reference/check_admin_referer|check_admin_referer]]</tt>
+* <tt>[[Function_Reference/check_ajax_referer|check_ajax_referer]]</tt>
+* <tt>[[Function_Reference/wp_redirect|wp_redirect]]</tt>
+* <tt>[[Function_Reference/wp_sanitize_redirect|wp_sanitize_redirect]]</tt>
+* <tt>[[Function_Reference/wp_safe_redirect|wp_safe_redirect]]</tt>
+* <tt>[[Function_Reference/wp_notify_postauthor|wp_notify_postauthor]]</tt>
+* <tt>[[Function_Reference/wp_notify_moderator|wp_notify_moderator]]</tt>
+* <tt>[[Function_Reference/wp_password_change_notification|wp_password_change_notification]]</tt>
+* <tt>[[Function_Reference/wp_new_user_notification|wp_new_user_notification]]</tt>
+* <tt>[[Function_Reference/wp_nonce_tick|wp_nonce_tick]]</tt>
+* <tt>[[Function_Reference/wp_verify_nonce|wp_verify_nonce]]</tt>
+* <tt>[[Function_Reference/wp_create_nonce|wp_create_nonce]]</tt>
+* <tt>[[Function_Reference/wp_salt|wp_salt]]</tt>
+* <tt>[[Function_Reference/wp_hash|wp_hash]]</tt>
+* <tt>[[Function_Reference/wp_hash_password|wp_hash_password]]</tt>
+* <tt>[[Function_Reference/wp_check_password|wp_check_password]]</tt>
+* <tt>[[Function_Reference/wp_generate_password|wp_generate_password]]</tt>
+* <tt>[[Function_Reference/wp_rand|wp_rand]]</tt>
+* <tt>[[Function_Reference/wp_set_password|wp_set_password]]</tt>
+* <tt>[[Function_Reference/get_avatar|get_avatar]]</tt>
+* <tt>[[Function_Reference/wp_setcookie|wp_setcookie]]</tt>
+* <tt>[[Function_Reference/wp_clearcookie|wp_clearcookie]]</tt>
+* <tt>[[Function_Reference/wp_get_cookie_login|wp_get_cookie_login]]</tt>
+* <tt>[[Function_Reference/wp_login|wp_login]]</tt>
+* <tt>[[Function_Reference/wp_text_diff|wp_text_diff]]</tt>
+
+[[Category:Chinese Codex]]

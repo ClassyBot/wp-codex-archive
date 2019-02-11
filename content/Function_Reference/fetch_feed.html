@@ -1,0 +1,112 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/関数リファレンス/fetch_feed">日本語</a> 
+<a href="https://codex.wordpress.org/zh-cn:%E5%87%BD%E6%95%B0%E5%8F%82%E8%80%83/fetch_feed" title="zh-cn:函数参考/fetch feed">中文(简体)</a> • 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Example"><span class="tocnumber">4</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Notes"><span class="tocnumber">5</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Change_Log"><span class="tocnumber">6</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">7</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/fetch_feed&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Retrieves an external feed and parses it. Uses the <a rel="nofollow" class="external text" href="http://simplepie.org/">SimplePie</a> and FeedCache functionality for retrieval and parsing and automatic caching.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/fetch_feed&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;$feed&#160;</span><span style="color: #007700">=&#160;</span><span style="color: #0000BB">fetch_feed</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$uri&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/fetch_feed&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$uri</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Mixed" title="How to Pass Tag Parameters"><i>mixed</i></a>) (<i>required</i>) The URI of the RSS feed you want to retrieve. If an array of URIs, the feeds are merged using SimplePie's multifeed feature. The resulting feed is returned as a standard SimplePie object.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/fetch_feed&amp;action=edit&amp;section=4" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This example will retrieve and display a list of links for an existing RSS feed, limiting the selection to the five most recent items:
+</p>
+<pre>&lt;h2&gt;&lt;?php _e( 'Recent news from Some-Other Blog:', 'my-text-domain' );&#160;?&gt;&lt;/h2&gt;
+
+&lt;?php // Get RSS Feed(s)
+include_once( ABSPATH . WPINC . '/feed.php' );
+
+// Get a SimplePie feed object from the specified feed source.
+$rss = fetch_feed( 'http://example.com/rss/feed/goes/here' );
+
+$maxitems = 0;
+
+if (&#160;! is_wp_error( $rss ) )&#160;: // Checks that the object is created correctly
+
+    // Figure out how many total items there are, but limit it to 5. 
+    $maxitems = $rss-&gt;get_item_quantity( 5 ); 
+
+    // Build an array of all the items, starting with element 0 (first element).
+    $rss_items = $rss-&gt;get_items( 0, $maxitems );
+
+endif;
+?&gt;
+
+&lt;ul&gt;
+    &lt;?php if ( $maxitems == 0 )&#160;:&#160;?&gt;
+        &lt;li&gt;&lt;?php _e( 'No items', 'my-text-domain' );&#160;?&gt;&lt;/li&gt;
+    &lt;?php else&#160;:&#160;?&gt;
+        &lt;?php // Loop through each feed item and display each item as a hyperlink.&#160;?&gt;
+        &lt;?php foreach ( $rss_items as $item )&#160;:&#160;?&gt;
+            &lt;li&gt;
+                &lt;a href="&lt;?php echo esc_url( $item-&gt;get_permalink() );&#160;?&gt;"
+                    title="&lt;?php printf( __( 'Posted&#160;%s', 'my-text-domain' ), $item-&gt;get_date('j F Y | g:i a') );&#160;?&gt;"&gt;
+                    &lt;?php echo esc_html( $item-&gt;get_title() );&#160;?&gt;
+                &lt;/a&gt;
+            &lt;/li&gt;
+        &lt;?php endforeach;&#160;?&gt;
+    &lt;?php endif;&#160;?&gt;
+&lt;/ul&gt;</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/fetch_feed&amp;action=edit&amp;section=5" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>fetch_feed</code> caches results for 12 hours by default. You can modify this by modifying the time interval via the filter <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/wp_feed_cache_transient_lifetime" title="Plugin API/Filter Reference/wp feed cache transient lifetime">wp_feed_cache_transient_lifetime</a>. 
+</p>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/fetch_feed&amp;action=edit&amp;section=6" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">Version 2.8</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/fetch_feed&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>fetch_feed</code> is defined in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/feed.php#L0">wp-includes/feed.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/fetch_feed&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://simplepie.org/wiki/reference/start#simplepie_item">SimplePie Documentation</a></li></ul>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003816
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.146 seconds
+Preprocessor visited node count: 115/1000000
+Preprocessor generated node count: 487/1000000
+Post‐expand include size: 1606/2097152 bytes
+Template argument size: 628/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   62.927      1 - -total
+ 46.79%   29.442      1 - Template:Trac
+ 45.58%   28.682      1 - Template:Languages
+ 38.70%   24.354      1 - Template:zh-cn
+ 18.51%   11.649      1 - Template:CurrentVersion
+  4.23%    2.659      1 - Template:Tag_Footer
+  2.51%    1.581      1 - Template:Parameter
+  2.19%    1.377      1 - Template:ja
+  2.05%    1.293      1 - Template:Message
+  2.02%    1.269      1 - Template:en
+-->

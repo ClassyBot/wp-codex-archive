@@ -1,0 +1,185 @@
+{{Languages|
+{{en|Function Reference/add_theme_support}}
+{{ja|関数リファレンス/add_theme_support}}
+{{zh-cn|函数参考/add_theme_support}}
+{{ko|함수 레퍼런스/add_theme_support}}
+}}
+
+== 설명 ==
+
+테마 혹은 플러그인이 특정한 지원([[Theme Features|theme feature]])을 만드는 것을 허락하게 합니다. 만약 테마로부터 불려졌다면, 이것은 반드시 테마안에서 동작하는 ''[[Theme Development#Functions File|functions.php]]'' 파일에서 마쳐져야합니다. 만약 어떠한 액션에 대한 [[Glossary#Hook|hook]] 이 붙여진다면 [http://wordpress.stackexchange.com/questions/23839/using-add-theme-support-inside-a-plugin called from a plugin]와 같이 할 수 있습니다.
+
+만약 액션 후크에 붙여진다면, 이것은 반드시 [[Plugin API/Action Reference/after_setup_theme|after_setup_theme]]을 해야합니다. [[Plugin API/Action Reference/init|init]] 액션 후크는 일부 요소들에 대해서는 꽤 느릴 수 있습니다.
+
+== 사용 ==
+
+%%%<?php add_theme_support( $feature, $arguments ); ?>%%%
+
+서포트는 반드시 <tt>'after_setup_theme'</tt> 혹은  <tt>'init'</tt> 액션에 추가되어져야만 합니다. 그렇다고 함수보다 늦다는 것은 아닙니다. 이것은 더 많은 argument 들을 받아들일 순 없습니다.
+
+<pre>
+function custom_theme_setup() {
+	add_theme_support( $feature, $arguments );
+}
+add_action( 'after_setup_theme', 'custom_theme_setup' );
+</pre>
+
+== 파라메터 ==
+
+{{Parameter|$feature|string|추가될 특징들의 이름입니다.
+::Features list:
+::* [[#Post Formats|<tt>'post-formats'</tt>]]
+::* [[#Post Thumbnails|<tt>'post-thumbnails'</tt>]]
+::* [[#Custom Background|<tt>'custom-background'</tt>]]
+::* [[#Custom Header|<tt>'custom-header'</tt>]]
+::* [[#Feed Links|<tt>'automatic-feed-links'</tt>]]
+::* [[#HTML5| <tt>'html5'</tt>]]
+::* [[#Title Tag| <tt>'title-tag'</tt>]]
+::* <tt>'editor-style'</tt> (테마에 의해서 직접적으로 사용되지 않는 내부의 등록) 
+::* <tt>'widgets'</tt> (테마에 의해서 직접적으로 사용되지 않는 내부의 등록) 
+::* <tt>'menus'</tt> (테마에 의해서 직접적으로 사용되지 않는 내부의 등록)
+}}
+{{Parameter|$args|array|추가적인 인자 (아래를 참조하세요). 만약 전달되지 않는다면, 이것은 <tt>true</tt> 일 것입니다..|optional|<tt>true</tt>}}
+
+== 추가적인 요소들 ==
+
+===Post Formats===
+
+이 요소는 [[Post Formats]] 을 테마에 대해서 허가하도록 합니다. 이 요소는 [[Version 3.1]]과 함께 가능해졌습니다.[[Child Themes]]를 사용할때, ''add_theme_support( 'post-formats' )''는 부모 테마에 의해서 정의된 형식을 추가하지 않고, '''override''' 할 것입니다.
+
+특별한 형식들을 사용가능하게 하기 위해서, 사용하세요. ([[Post Formats]] 에서 지원되는 형식을 살펴보세요):
+
+<pre>add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );</pre>
+
+'quote' 포스트 형식이 존재한다면 검사하기 위해서 사용합니다.
+
+<pre>
+// 테마안의 single.php, page.php 혹은 custom post type 에서
+if ( has_post_format( 'quote' ) ) {
+	echo 'This is a quote.';
+}
+</pre>
+
+=== Post Thumbnails ===
+
+이 요소는 테마에서 [[Post Thumbnails]]을 허가하도록 합니다. [[Version 2.9]]와 함께 가능해졌습니다.[[Post Types]]에 대해서 이 요소에서 허가시키려는 것을 배열과 함께 2번째 인자에 전달하세요.
+
+<pre>
+add_theme_support( 'post-thumbnails' );
+add_theme_support( 'post-thumbnails', array( 'post' ) );          // 포스트에서만 썸네일을 허가시킵니다.
+add_theme_support( 'post-thumbnails', array( 'page' ) );          // 페이지에서만 썸네일을 허가시킵니다.
+add_theme_support( 'post-thumbnails', array( 'post', 'movie' ) ); // 포스트와 movie 에서 썸네일을 허가시킵니다.
+</pre>
+
+이 요소는 init hook 가 실행되기 전에 반드시 불려져야만 합니다. 이것은 functions.php 속으로 직접적으로 위치시켜야 한다는 것 혹은 'after_setup_theme' 를 hook 하는 함수 안에 붙여져야만 한다는 것을 의미합니다. custom post type 들에 대해서, [[register_post_type]] 함수를 사용함에 의해서도 포스트 썸네일을 추가시킬 수 있습니다.
+
+index.php 혹은 single.php 혹은 custom 템플릿들에서 보여주기 위해서 다음과 같이하세요:
+
+<pre>the_post_thumbnail();</pre>
+
+뿌려지기 이전에, 특정 포스트에 대해서 썸네일이 배정되었는지 체크하기 위해서 사용하세요:
+
+<pre>
+if ( has_post_thumbnail() ) {
+	the_post_thumbnail();
+}
+</pre>
+
+=== Custom Background ===
+이 요소는 [[Custom_Backgrounds]] 를 [[Version 3.4]] 로부터 테마에 대해서 지원하도록 허가시킵니다.
+<pre>add_theme_support( 'custom-background' );</pre>
+
+기본 인자들을 추가할 수 있습니다.:
+
+<pre>
+$defaults = array(
+	'default-color'          => '',
+	'default-image'          => '',
+	'wp-head-callback'       => '_custom_background_cb',
+	'admin-head-callback'    => '',
+	'admin-preview-callback' => ''
+);
+add_theme_support( 'custom-background', $defaults );
+</pre>
+
+=== Custom Header ===
+이 요소는 [[Version 3.4]] 로부터 [[Custom_Headers]] 를 추가하도록 허가시킵니다.
+
+<pre>add_theme_support( 'custom-header' );</pre>
+
+기본 인자들을 추가할 수 있습니다.:
+
+<pre>
+$defaults = array(
+	'default-image'          => '',
+	'random-default'         => false,
+	'width'                  => 0,
+	'height'                 => 0,
+	'flex-height'            => false,
+	'flex-width'             => false,
+	'default-text-color'     => '',
+	'header-text'            => true,
+	'uploads'                => true,
+	'wp-head-callback'       => '',
+	'admin-head-callback'    => '',
+	'admin-preview-callback' => '',
+);
+add_theme_support( 'custom-header', $defaults );
+</pre>
+
+===Feed Links===
+
+이 요소는 head 분 안에서 포스트 혹은 댓글에 대해서 [[Automatic Feed Links]]를 허가하도록 합니다. 이것은 사용이 반대되고 있는 ''automatic_feed_links()'' 함수 안에서 위치되어져야만 합니다. [[Version 3.0]]과 함께 사용 가능합니다.
+
+<pre>add_theme_support( 'automatic-feed-links' );</pre>
+
+===HTML5===
+이 요소는 검색 폼, 댓글 폼, 댓글 리스트들, 갤러리 혹은 캡션들에 대해서 [[Theme Markup|HTML5 markup]]의 사용을 허락하도록 합니다. 이 요소는 [[Version 3.6]]과 함께 가능합니다.
+
+<pre>add_theme_support( 'html5', array( 'comment-list', 'comment-form', 'search-form', 'gallery', 'caption' ) );</pre>
+
+===Title Tag===
+
+이 요소는 플러그인 혹은 테마들이 [[Title Tag|document title tag]]을 관리할 수 있도록 허가해줍니다. 이것은 반드시 ''wp_title()''에 위치되어져야만 합니다. 이 요소는 [[Version 4.1]]부터 가능합니다.
+
+<pre>add_theme_support( 'title-tag' );</pre>
+
+== Multisite ==
+
+다중 사이트 설치 안에서 "Featured Image" 메타박스를 보여주기 위해서, 업데이트가 허락한 업로드 파일 타입, 네트워크 관리자 안의 [[Network Admin Settings SubPanel#Upload_Settings]], 미디어 업로드 버튼 옵션들에 대해서 확신할 수 있어야 합니다. 기본값은 jpg jpeg png gif mp3 mov avi wmv midi mid pdf 입니다.
+
+== 알림 ==
+뒤따르는 파라메터들은 읽기전용입니다, 그리고 [[Function_Reference/current_theme_supports|current_theme_supports()]] 내용 안에서 사용되어져야만 합니다.:
+
+* <tt>sidebars</tt>: [[Function_Reference/register_sidebar|register_sidebar()]] 혹은 [[Function_Reference/register_sidebars|register_sidebars()]]를 대신 사용하세요.
+* <tt>menus</tt>: [[Function_Reference/register_nav_menu|register_nav_menu()]] 혹은 [[Function_Reference/register_nav_menus|register_nav_menus()]] 을 대신에 사용하세요.
+* <tt>editor-style</tt>: [[Function_Reference/add_editor_style|add_editor_style()]]을 대신 사용하세요.
+
+== Changelog ==
+
+* [[Version 4.1|4.1]]: Added <tt>'title-tag'</tt> feature.
+* [[Version 3.9|3.9]]: The <tt>'html5'</tt> accepts 'gallery' and 'caption'
+* [[Version 3.6|3.6]]: Added <tt>'html5'</tt> feature.
+* [[Version 3.4|3.4]]: Added <tt>'custom-background'</tt> and deprecated [[Function_Reference/add_custom_background|add_custom_background()]].
+* [[Version 3.4|3.4]]: Added <tt>'custom-header'</tt> and deprecated [[Function_Reference/add_custom_image_header|add_custom_image_header()]].
+* [[Version 3.1|3.1]]: Added <tt>'post-formats'</tt>.([http://core.trac.wordpress.org/ticket/14746 Ticket #14746])
+* [[Version 3.0|3.0]]: Added <tt>'automatic-feed-links'</tt> and deprecated <tt>automatic_feed_links()</tt>.
+* [[Version 2.9|2.9]]: Introduced with <tt>'post-thumbnails'</tt> feature.
+
+== Source File ==
+
+<tt>add_theme_support()</tt> is located in {{Trac|wp-includes/theme.php}}.
+
+== External Resources ==
+
+* [http://generatewp.com/theme-support/ WordPress Theme Support Generator]
+
+== Related ==
+
+{{Theme Support}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+
+이 번역은 한국인 워드프레스 유저 Remoted 에 의해서 작성되어졌습니다. 추가적인 번역이나 문의사항이 있으신경우 35mwlee@naver.com 혹은 http://35mwlee.blog.me 로 문의주세요

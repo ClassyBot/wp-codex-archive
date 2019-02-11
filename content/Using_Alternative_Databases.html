@@ -1,0 +1,115 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/代替データベースの使い方">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>Currently, the official WordPress distribution only supports the MySQL and MariaDB database engines. A number of people have requested support for other database engines, particularly the open-source <b>PostgreSQL</b>. This page is an effort to summarize the <a rel="nofollow" class="external text" href="http://wordpress.org/support/topic.php?id=549&amp;page=1">previous discussion</a> on the topic, and to get a solid roadmap for supporting more databases in WordPress.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Port_vs._Integration"><span class="tocnumber">1</span> <span class="toctext">Port vs. Integration</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Database_Challenges"><span class="tocnumber">2</span> <span class="toctext">Database Challenges</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Solutions"><span class="tocnumber">3</span> <span class="toctext">Solutions</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Status_Quo"><span class="tocnumber">3.1</span> <span class="toctext">Status Quo</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Extend_to_support_PostgreSQL"><span class="tocnumber">3.2</span> <span class="toctext">Extend to support PostgreSQL</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#WordPress-specific_Database_Abstraction_Layer"><span class="tocnumber">3.3</span> <span class="toctext">WordPress-specific Database Abstraction Layer</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Full_Database_Abstraction_Layer"><span class="tocnumber">3.4</span> <span class="toctext">Full Database Abstraction Layer</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Development_Costs"><span class="tocnumber">3.5</span> <span class="toctext">Development Costs</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Port_vs._Integration">Port vs. Integration</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Using_Alternative_Databases&amp;action=edit&amp;section=1" title="Edit section: Port vs. Integration">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The most common way of adding support for another database engine to an existing project involves completely overhauling the source code to replace references to one engine to another - creating a port with support for the database engine of your choice. 
+</p><p>The drawback to porting WordPress is the difficulty of keeping it in sync with the original codebase and up to date with new features and security enhancements. This can be seen in Keenan Tims's <a rel="nofollow" class="external text" href="http://wordpress-pg.sourceforge.net/">PostgreSQL port</a> of WordPress 1.2 - now insecure and out of date. There is also a more recent port by Erwin Wolff <a rel="nofollow" class="external text" href="https://sourceforge.net/projects/postgresqlword/files/">available at Source Forge</a>.
+</p><p>While this is a great first step and sufficient for some needs, a port is not desirable to most users who wish to have the latest security and features available from main WordPress branch. A better solution would be to integrate support for alternative databases into WordPress. This, however, will take a concerted effort from the developers to write queries which port easily, and to get together a good abstraction layer for the database.
+</p>
+<h2><span class="mw-headline" id="Database_Challenges">Database Challenges</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Using_Alternative_Databases&amp;action=edit&amp;section=2" title="Edit section: Database Challenges">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol><li> Current codebase is very MySQL-centric. While WordPress does use the <a rel="nofollow" class="external text" href="http://php.justinvincent.com/">ezSQL</a> class to implement database calls, this cannot properly be called an abstraction layer. Differences in SQL syntax implementations among different databases (whether literals are surrounded by quotes, limit query syntax, case sensitivity, <a rel="nofollow" class="external text" href="http://phplens.com/lens/adodb/tips_portable_sql.htm">etc.</a>) are not cared for by ezSQL, which simply offers a generic "query" call. This means that a large number of queries would have to be rewritten, a large task.</li>
+<li> Database driven plugins depend on the current implementation, and also use MySQL-centric code. Even if the WordPress code were to be rewritten to support a full database abstraction layer, any sudden shift in the database implementation will likely break other plugins that rely on database access. </li>
+<li> Current standard database abstraction layers (<a rel="nofollow" class="external text" href="http://adodb.sourceforge.net/">ADOdb</a>, <a rel="nofollow" class="external text" href="http://pear.php.net/package/DB">Pear DB</a>) are very large and complex, they would represent dependencies as large as or larger than WordPress itself. This could reduce WordPress' portability and ease of installation.</li></ol>
+<h2><span class="mw-headline" id="Solutions">Solutions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Using_Alternative_Databases&amp;action=edit&amp;section=3" title="Edit section: Solutions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Status_Quo">Status Quo</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Using_Alternative_Databases&amp;action=edit&amp;section=4" title="Edit section: Status Quo">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Maintain the current development direction. Very little importance is placed on database independence by the WordPress core developers at the moment, so a fork is necessary to support other databases.
+</p><p><b>Pros:</b>
+</p>
+<ul><li> This approach is already in place for (at least) PostgreSQL support, existing code needs only maintenance</li>
+<li> Cooperation from the WordPress development team is a non-issue</li>
+<li> Performance optimizations can be done with no concern for other databases</li></ul>
+<p><b>Cons:</b>
+</p>
+<ul><li> This approach is very costly for the port developers. Each release of WordPress must be scoured for incompatibilities, ported, and tested independently.</li>
+<li> No user-support for users of alternative databases from the WordPress team</li></ul>
+<h3><span class="mw-headline" id="Extend_to_support_PostgreSQL">Extend to support PostgreSQL</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Using_Alternative_Databases&amp;action=edit&amp;section=5" title="Edit section: Extend to support PostgreSQL">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Extend ezSQL to include any necessary abstractions to make MySQL and PostgreSQL work equally well. 
+</p><p>This would be a matter of including both ezSQL's Postgres abstraction and their MySQL abstractions in the installation, as well as adding necessary methods to generalize between the two (i.e., a <a rel="nofollow" class="external text" href="http://pear.php.net/manual/en/package.database.db.db-common.limitquery.php">limitQuery method</a>, perhaps others). Rewrite SQL queries throughout to be PostgreSQL/MySQL compatible, and to use custom extensions to ezSQL to handle incompatibilities where they exist. Users would set which database they were using in wp-config.php and not have to think about it further.
+</p><p><b>Pros:</b>
+</p>
+<ul><li> This solution is probably the minimal solution to properly support both PostgreSQL and MySQL, and keeps a low footprint and no large dependencies.</li>
+<li> Legacy plugins dependent on MySQL could still function so long as they are used on a MySQL installation.</li>
+<li> Use of the existing WordPress-Pg port code may make this approach even easier.</li></ul>
+<p><b>Cons:</b>
+</p>
+<ul><li> The solution doesn't easily allow support for other databases, and is generally substantially less clean than using a full abstraction layer of some sort.</li>
+<li> Some queries simply cannot be expressed in a database agnostic way (e.g. getting the next value for auto_increment/sequence), which will result in a potentially nasty mix of abstraction and "direct access".</li>
+<li> Abstracting error handling will be hard (will it? --KT).</li>
+<li> Some developers (both of the core project and of plugins) may not keep their changes in sync for both databases.</li>
+<li> Database queries would continue to be scattered all over the code.</li></ul>
+<h3><span class="mw-headline" id="WordPress-specific_Database_Abstraction_Layer">WordPress-specific Database Abstraction Layer</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Using_Alternative_Databases&amp;action=edit&amp;section=6" title="Edit section: WordPress-specific Database Abstraction Layer">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Convert all queries (and blocks of queries) in WordPress to function calls, or more appropriately, object methods, to get that relevant information out of the database. 
+</p><p>Support for new databases can be added by adding code for that database to these functions. Optimizations for specific databases when getting certain blocks of information can be added to the relevant functions. 
+</p><p>For example, fetching the front page posts and their comment count can be done in one query on databases that support subqueries vs. requiring at least the number of posts shown + 1 queries with legacy MySQL. Legacy plugins should still function when MySQL is being used.
+</p><p><b>Pro:</b>
+</p>
+<ul><li> All the code and queries that would need tweaking to support a new database would be in one file rather than being shotgunned all over the codebase as is presently the case.</li>
+<li> Optimizations for specific databases would be easier to implement and maintain (using, for example, subselects); this could offset any overhead from the functional calls. Optimization benefits may exist for newer versions of MySQL as well.</li>
+<li> Future schema changes and cleanup wouldn't require changing as many files.</li>
+<li> No new dependencies besides database support for the database the user is using.</li>
+<li> Schema improvements that could benefit all databases would be easier to implement. </li>
+<li> Ability to support arbitrary storage backends like RSS feeds, text files, or an install of a different piece of blogging software (not just databases). This will also make the upgrade and migration code a lot cleaner and easier.</li></ul>
+<p><b>Con:</b>
+</p>
+<ul><li> The extra function calls and their packaging of data will create a small amount of additional overhead.</li>
+<li> This option will be a fair amount of work and will require developers of the main project and plugins to become familiar with it.</li>
+<li> Code for the various databases may fall out of sync without some diligence on the part of developers.</li>
+<li> Accessing the database data in new ways in the future will require additional functions to be written.</li>
+<li> Additional forethought is required in figuring out what database accesses to group together to reach the full optimization potential.</li></ul>
+<h3><span class="mw-headline" id="Full_Database_Abstraction_Layer">Full Database Abstraction Layer</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Using_Alternative_Databases&amp;action=edit&amp;section=7" title="Edit section: Full Database Abstraction Layer">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Convert all queries in WordPress to function with a database abstraction layer such as ADOdb or Pear DB. 
+</p><p><b>Pro:</b>
+</p>
+<ul><li> Cleanly implements database usage in the most portable means possible, allowing use of WordPress with any database supported by the chosen abstraction layer. </li></ul>
+<p><b>Con:</b>
+</p>
+<ul><li> These tools create large dependencies and break legacy plugins that depend on MySQL specific functions.</li>
+<li> Large generic database (and persistent object) abstraction implementations tend not to be exceedingly fast and may not use optimizations that could benefit specific databases.</li>
+<li> This option will be <b>a lot</b> more work (likely less than implementing a WP-specific layer, however) and will require developers of the main project and plugins to be familiar with the abstraction layer chosen.</li>
+<li> Much diligence will be necessary for developers to ensure that database-specific code doesn't make it into queries despite the abstraction layer, and this goes for plugin developers too.</li>
+<li> Some functionality can't be abstracted easily with ADODb or (to a much greater extent) PEAR; if WordPress uses this functionality, it may have to be reimplemented application-side, which would be a performance hit</li></ul>
+<h3><span class="mw-headline" id="Development_Costs">Development Costs</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Using_Alternative_Databases&amp;action=edit&amp;section=8" title="Edit section: Development Costs">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A number of people (see the previous <a rel="nofollow" class="external text" href="http://wordpress.org/support/topic.php?id=549">discussion thread</a>) had proposed donations to pay for development of one of these choices for alternative database support in WordPress.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004141
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.021 seconds
+Preprocessor visited node count: 50/1000000
+Preprocessor generated node count: 173/1000000
+Post‐expand include size: 535/2097152 bytes
+Template argument size: 182/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    5.148      1 - Template:Languages
+100.00%    5.148      1 - -total
+ 46.91%    2.415      1 - Template:en
+ 23.83%    1.227      1 - Template:ja
+-->

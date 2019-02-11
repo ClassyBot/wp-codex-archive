@@ -1,0 +1,103 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/wp_new_user_notification/}}
+
+{{Languages|
+{{en|Function Reference/wp_new_user_notification}}
+{{ja|関数リファレンス/wp_new_user_notification}}
+}}
+== Description ==
+
+Notify the blog admin of a new user, and optionally send an email to the user with an activation link.
+
+This function can be replaced via [[Glossary#plugins|plugins]]. If plugins do not redefine these functions, then this will be used instead.
+
+== Usage ==
+%%%<?php wp_new_user_notification( $user_id, $deprecated, $notify ) ?>%%%
+
+== Parameters ==
+
+{{Parameter|$user_id|integer|User ID}}
+{{Parameter|$deprecated|string|Deprecated in [[Version 4.3.1]] and should no longer be used.|optional|null}}
+{{Parameter|$notify|string|Whether admin and user should be notified ('both') or only the admin ('admin' or empty)|optional|&#39;&#39;}}
+Note: If $notify value is ('admin' or empty), the newly registered user will not receive their welcome email.
+
+== Return Values ==
+
+; (void) : This function does not return a value.
+
+== Examples ==
+<pre>
+// Redefine user notification function
+if ( !function_exists('wp_new_user_notification') ) {
+
+    function wp_new_user_notification( $user_id, $deprecated = null, $notify = '' ) {
+	if ( $deprecated !== null ) {
+		_deprecated_argument( __FUNCTION__, '4.3.1' );
+	}
+
+	global $wpdb, $wp_hasher;
+	$user = get_userdata( $user_id );
+
+	// The blogname option is escaped with esc_html on the way into the database in sanitize_option
+	// we want to reverse this for the plain text arena of emails.
+	$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+
+	$message  = sprintf(__('New user registration on your site %s:'), $blogname) . "\r\n\r\n";
+	$message .= sprintf(__('Username: %s'), $user->user_login) . "\r\n\r\n";
+	$message .= sprintf(__('E-mail: %s'), $user->user_email) . "\r\n";
+
+	@wp_mail(get_option('admin_email'), sprintf(__('[%s] New User Registration'), $blogname), $message);
+
+	if ( 'admin' === $notify || empty( $notify ) ) {
+		return;
+	}
+
+	// Generate something random for a password reset key.
+	$key = wp_generate_password( 20, false );
+
+	/** This action is documented in wp-login.php */
+	do_action( 'retrieve_password_key', $user->user_login, $key );
+
+	// Now insert the key, hashed, into the DB.
+	if ( empty( $wp_hasher ) ) {
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+		$wp_hasher = new PasswordHash( 8, true );
+	}
+	$hashed = time() . ':' . $wp_hasher->HashPassword( $key );
+	$wpdb->update( $wpdb->users, array( 'user_activation_key' => $hashed ), array( 'user_login' => $user->user_login ) );
+
+	$message = sprintf(__('Username: %s'), $user->user_login) . "\r\n\r\n";
+	$message .= __('To set your password, visit the following address:') . "\r\n\r\n";
+	$message .= '<' . network_site_url("wp-login.php?action=rp&key=$key&login=" . rawurlencode($user->user_login), 'login') . ">\r\n\r\n";
+
+	$message .= wp_login_url() . "\r\n\r\n";
+        $message .= sprintf( __('If you have any problems, please contact us at %s.'), get_option('admin_email') ) . "\r\n\r\n";
+	$message .= __('Adios!') . "\r\n\r\n";
+
+	wp_mail($user->user_email, sprintf(__('[%s] Your username and password info'), $blogname), $message);
+    }
+}
+</pre>
+
+== Notes ==
+
+* This function can be replaced via [[Glossary#plugins|plugins]]. If plugins do not redefine these functions, then this will be used instead.
+* As of WP 4.3, a plain text password is no longer passed to the function. If you have a plugged version of this function and are assuming that the second function argument is `$plaintext_pass`, the password displayed in your email to the user will be "admin" or "both". 
+* As of WP 4.3.1, null value is passed as second function argument. So if you have a plugged version of this function and are assuming that the second function argument is `$plaintext_pass` then the newly registered user will not receive their welcome email.
+
+== Change Log ==
+
+* Since: [[Version 2.0|2.0]]
+* Since: [[Version 4.3|4.3]] The <tt>$plaintext_pass</tt> parameter was changed to <tt>$notify</tt>
+* Since: [[Version 4.3.1|4.3.1]] The <tt>$plaintext_pass</tt> parameter was deprecated. <tt>$notify</tt> added as a third parameter.
+
+== Source File ==
+
+<tt>wp_new_user_notification()</tt> is located in {{Trac|wp-includes/pluggable.php}}.
+
+== Related ==
+* <tt>[[Function Reference/wp_password_change_notification|wp_password_change_notification()]]</tt>
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

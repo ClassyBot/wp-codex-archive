@@ -1,0 +1,227 @@
+{{Languages|
+{{en|Child Themes}}
+{{ja|Child Themes}}
+{{ko|Child Themes}}
+{{fr|Thèmes Enfant}}
+{{pt-br|Temas Filhos}}
+{{ru|Дочерние темы}}
+{{sk|Odvodené témy}}
+{{th|Child Themes}}
+{{zh-hans|子主题}}
+}}
+
+워드 프레스 Child(추가,하위,자식) 테마는 다른 테마의 기능을 상속하는 테마로, 간단히 수정하는것 만으로도 Parent(기존,상위,부모) 테마의 기능을 추가할 수 있습니다. 이 문서에서는 기본적인 Child 테마를 만드는 방법을 예를 들며 무엇을 할 수 있는지를 설명합니다. 예제의 Parent 테마는 [[Version_3.0|워드프레스 3.0]] 에 기본테마인 twentyten(2010) 을 사용합니다. 
+
+Child 테마를 만드는 것은 매우 간단합니다. 디렉토리를 만들고, 거기에 ''style.css'' 파일을 넣어 주는것만으로도 Child 테마를 만들 수 있습니다! 기초적인 HTML 과 [[CSS]] 만으로, 당신은 Parent 테마의 파일을 수정하지 않고 ''아주 기본적인 Child 테마'' 만으로도 어느 정도 Parent 테마의 스타일과 레이아웃을 수정할 수 있습니다. 이렇게하면 Parent 테마가 업데이트 되어도 변경한 사항이 그대로 유지됩니다.
+
+'''이러한 이유로 테마의 수정을 위해서 Child 테마를 만드는 것을 권장합니다.'''  
+
+더불어 기초적인 PHP, [[Templates|워드프레스 템플릿]], 그리고 [[Plugin API|워드프레스 플러그인 API]] 에 대한 이해가 함께한다면, 당신은 Parent 테마 파일의 모든것을 확장하면서도 변경할수 있는 Child 테마를 만들 수 있습니다.
+
+== 디렉토리 구조 ==
+
+Child 테마는 ''wp-content/themes'' 디렉토리 안에 있습니다. 아래의 구조는 일반적인 워드프레스 디렉토리 안에 있는 Parent (twentyten, 2010) 테마와 함께 Child 테마의 위치를​​ 보여줍니다 :
+
+* '''public_html'''
+** '''wp-content''' 
+*** '''themes''' (모든 테마는 이 디렉토리에 있습니다)
+**** '''twentyten''' (우리의 예제인 Parent 테마, 2010 디렉토리 입니다)
+**** '''twentyten-child''' (우리의 Child 테마 디렉토리 입니다; 이름은 아무거나 할 수 있습니다)
+***** '''style.css''' (Child 테마에 필요한 파일입니다; 반드시 이름을 ''style.css''로 해야합니다)
+
+이 디렉터리에는 최소한 ''style.css'' 파일이 있어야 하며, 워드프레스 테마에 필요한만큼 다른 파일을 넣을수 있습니다 : 
+
+# style.css (필수)
+# functions.php (옵션)
+# Template files (옵션)
+# Other files (옵션)
+
+각각 어떻게 동작하는지 알아봅시다!
+
+== 반드시 필요한 style.css 파일 ==
+
+''style.css'' 는 Child 테마에 하나만 있어야 하며, 반드시 '''필요한''' 파일입니다. 이 파일은 워드프레스 Chlid 테마를 인식하는 헤더정보를 제공하며, '''이것은 Parent 의 style.css 를 대체합니다'''.
+
+하위 테마로 인식 될수있는 유일한 점은, 모든 워드프레스 테마와 마찬가지로 파일의 상단에 헤더정보를 가지고 있습니다. 워드프레스 Child 테마의 Parent 라는 사실을 알 수 있도록 <code>Template:</code> 라인이 필요합니다.
+
+다음 예제는 ''style.css''의 Child 테마 헤더정보 입니다 :
+
+<pre>
+/*
+Theme Name:     Twenty Eleven Child
+Theme URI:      http: //example.com/
+Description:    Child theme for the Twenty Eleven theme 
+Author:         Your name here
+Author URI:     http: //example.com/about/
+Template:       twentyeleven
+Version:        0.1.0
+*/
+</pre>
+
+각 라인의 빠른 설명:
+
+* <code>Theme Name</code>.   ('''필수''')    Child 테마의'''이름'''.
+* <code>Theme URI</code>.    (옵션)          Child 테마의 주소.
+* <code>Description</code>.  (옵션)          테마의 설명.  예:  나의 첫번째 Child 테마. 오예스!
+* <code>Author URI</code>.   (옵션)          만든이 사이트.
+* <code>Author</code>.       (옵션)          만든이 이름.
+* <code>Template</code>.     ('''필수''')    Parent '''디렉토리''' 이름, 대소문자를 구분합니다.
+** '''참고'''. 이 라인을 수정할 때에는 다른 테마로 바꾼후, 다시 Child 테마로 전환해야 합니다.
+* <code>Version</code>.      (옵션)          Child 테마 버전.  예:  0.1, 1.0, 등.
+
+<code>*/</code> 이 주석이 끝나는 부분 이후 부터는 일반적인 스타일시트 파일로 동작합니다. 이곳은 당신이 워드프레스에 적용하려는 스타일 규칙을 넣는곳입니다.
+
+참고: Child 테마의 스타일 시트는 완전히 Parent 의 스타일시트를 대체합니다. (Parent 스타일시트는 워드프레스에 의해 작동하지 않습니다.) 그렇기 때문에, 단순히 Parent 테마와 레이아웃의 몇가지 작은 수정을 원하는 경우에는  —기존의 파일을 수정하지 않고— Parent 테마에서 명시해 놓은 스타일시트를 가져와 수정사항을 추가하도록 합니다. 다음 예제에서는 <code>@import</code> 규칙을 어떻게 사용하는지 보여줍니다.
+
+== Child 테마의 기본 예제 ==
+
+이 예제를 위한 우리의 Parent 테마는 Twenty Eleven(2011) 입니다. 우리는 사이트의 제목 색상을 검은색에서 초록색으로 변경하려 합니다. Child 테마를 사용하면, 3단계 만에 모든것이 이루어집니다.:
+
+# ''wp-content/themes'' 안에 ''twentyeleven-child''라는 이름의 (또는 어떠한 이름도 좋습니다) 새로운 디렉토리를 만듭니다. 
+# 위에서 만든 새로운 디렉토리 안에 ''style.css''라는 파일을 만들고 아래코드를 붙여넣은 후 저장합니다.
+# 대시보드 > 테마로 이동하여, 새로이 만든 Child 테마를 활성화 합니다.
+
+<pre>
+/*
+Theme Name: Twentyeleven Child
+Description: Child theme for the twentyeleven theme 
+Author: Your name here
+Template: twentyeleven
+*/
+
+@import url("../twentyeleven/style.css");
+
+#site-title a {
+    color: #009900;
+}
+</pre>
+
+여기서 위 코드가 무엇을 의미하는지 차례차례 알아봅시다:
+
+# <code>/*</code> Child 테마의 헤더정보를 엽니다.
+# <code>Theme Name:</code> Child 테마의 이름을 선언합니다.
+# <code>Description:</code> 주제가 무엇인지 설명합니다.  (선택사항; 생략할 수 있습니다.)
+# <code>Author:</code> 만든이 이름을 선언합니다.  (선택사항; 생략할 수 있습니다.)
+# <code>Template:</code> Child 테마의 Parent 를 선언합니다;  즉슨, 어떤 템플릿 디렉토리의 Child 테마인지 알 수 있도록
+# <code>*/</code> Child 테마의 헤더정보를 닫습니다.
+# <code>@import</code> 로 Parent 스타일시트 규칙을 가져옵니다.
+# <code>#site-title</code> 로 Parent 규칙을 덮어쓰는, 사이트의 제목 색상(초록색) 규칙을 정의합니다.
+
+=== <code>@import</code> 규칙에 대한 참고사항 ===
+
+반드시 위 <code>@import</code> 규칙 이외의 다른 CSS 규칙은 없어야 합니다. 만일 당신이 다른 규칙을 만들면, 그것은 무효가 되고 Parent 의 스타일 시트를 가져올 수 없습니다.
+
+=== RTL 지원에 대한 참고사항 ===
+
+RTL 언어를 지원하기 위해서는 Child 테마에 포함된 '''rtl.css''' 파일을 추가합니다.:
+
+<pre>
+/*
+Theme Name: Twenty Ten Child
+Template: twentyeleven
+*/
+
+@import url("../twentyeleven/rtl.css");
+</pre>
+
+rtl.css 파일은 [[Function Reference/is rtl|is_rtl()]] 함수로 워드프레스에서 자동-로딩됩니다.  만일 테마에 rtl.css 파일이 없더라도, Child 테마에 rtl.css 파일을 추가하는 것을 추천합니다.
+
+=== Twenty Eleven 참고사항과 다크테마 또는 링크색상 옵션 ===
+먼저 Child 테마 스타일시트를 불러온 후, Twenty Eleven 다크테마 스타일시트와 링크색상 옵션을 불러옵니다. 따라서 색상의 변화가 반드시 보여지진 않습니다.
+
+Twenty Eleven Parent 디렉토리의 다크 스타일시트 또는 코드를 변경할 필요는 없습니다., 우리는 색상변경 우선순위를 부여하기 위해, 스타일이 바뀌지 않도록 !important 속성을 추가해 줍니다.
+
+여기서 우리는 사이트의 제목 색깔만 변경할 것이며, 제목의 hover 색깔, 링크로 표시되는 색상은 그대로 둡니다.
+
+<pre>
+/*
+Theme Name: Twenty Eleven Child
+Description: Child theme for the Twenty Eleven theme 
+Author: Your name here
+Template: twentyeleven
+*/
+
+@import url("../twentyeleven/style.css");
+
+/* This will override site title color even on the dark theme */
+#site-title a {
+    color: #009900 !important;
+}
+
+/* This will override the changed link color */
+#site-title a:focus,
+#site-title a:hover,
+#site-title a:active {
+    color: #009900 !important;
+}
+</pre>
+
+!important와 함께 선택한 스타일의 색상은 다크 스타일이나 링크색상 옵션에서도 변경되지 않습니다.
+
+== functions.php 의 사용 ==
+
+''style.css''와는 달리, Child 테마의 ''functions.php''는 Parent 를 오버라이드(덮어쓰기)하지 않습니다. 대신, '''Parent 의 functions.php 가 함께 로드됩니다.''' (특히, 그것은 Parent 파일로 ''로드되기전'' 입니다.)
+
+이렇듯  Parent 테마의 기능을 문제없이 수정하며, Child 테마의 똑똑함을 제공하는 ''function.php''. 당신의 테마에 PHP 기능을 추가하고 싶다면, 가장 빠른 방법은 ''functions.php'' 파일을 열고, 거기에 기능을 넣는것입니다. 하지만 그것은 현명한 방법이 아닙니다: 테마가 업데이트 되버리면, 당신이 만든 함수는 모두 사라집니다. 그러나 현명한 다른 방법이 있습니다: 당신은 Child 테마를 만들고, 거기에 ''functions.php'' 파일을 추가합니다, 그리고 당신의 함수를 그 파일 안에 추가합니다. 그 함수는 Parent 테마의 향후 업데이트에 영향을 받지 않는다는 장점과 함께, 그 역시 똑같은 일을 할 것입니다.
+
+''functions.php''의 구조는 간단합니다: 상단에 PHP 를 여는 태그, 하단에 PHP 를 닫는 태그, 그리고 그 사이 약간의 PHP. 거기에는 당신이 원하는대로 많이 또는 몇 가지 기능을 넣을 수 있습니다. 아래 기초적인 예제는 간단한 ''functions.php'' 파일 입니다: HTML 페이지의 <code>head</code> 요소에 favicon 링크를 추가합니다.
+
+<pre>
+function favicon_link() {
+    echo '<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />' . "\n";
+}
+add_action('wp_head', 'favicon_link');
+</pre>
+
+테마 개발자를 위한 팁. Child 테마의 ''functions.php'' 는 처음 로드되는 시점에 Chlid 테마의 조건들을 선언함으로서 테마에 탈부착 할 수 있는 사용자함수로 만들어 바꿀수 있다는 사실. 예:
+
+<pre>
+if (!function_exists('theme_special_nav')) {
+    function theme_special_nav() {
+        //  Do something.
+    }
+}
+</pre>
+
+이러한 방법으로, Parent 의 단순한 재선언만으로 Child 테마의 PHP 함수를 바꿀 수 있습니다.
+
+==== 참조 / 당신의 Child 테마에 파일을 포함 ====
+
+당신이 Child 테마 디렉토리 구조 내에 있는 파일을 포함시키기 위해서는, [[Function_Reference/get_stylesheet_directory|get_stylesheet_directory()]] 를 사용해야 합니다. 왜냐하면 Parent 템플릿의 style.css 는 Child 테마의 style.css 를 대체하고, Child  테마의 서브(하위)디렉토리 루트에 있는 style.css 는, (Parent 테마 디렉토리가 아닌) Child 테마의 디렉토리를 get_stylesheet_directory() 로 가리킵니다.
+
+다음 예제에서는, <code>require_once</code> 를 사용하여, Child 테마 디렉토리 구조 내에 저장되어 있는 파일을 참조할때 get_stylesheet_directory 를 어떻게 사용할수 있는지를 보여줍니다.
+
+<pre>
+require_once( get_stylesheet_directory(). '/my_included_file.php' );
+</pre>
+
+==== 포스트 형식의 사용 ====
+
+Child 테마는 Parent 테마에 정의된 [[Post Formats|포스트 형식]]으로 상속합니다. 그러나, Child 테마를 만들때, Parent 테마에 정의된 ''오버라이드'' 될 ''add_theme_support('포스트 형식')'' 의 사용에 주의해야 합니다. 그것에 직접 추가할 수는 없습니다.
+
+== 템플릿 파일 ==
+
+Child 테마에서 [[Templates|템플릿]]은 ''style.css'' 처럼 행동합니다, Parent 로부터 '''그들 namesakes를 재정의'''. Child 테마는 간단하게 똑같은 이름의 파일을 사용하여 '''어떠한''' Parent 템플릿도 오버라이딩(덮어쓰기) 할 수 있습니다. (주의. ''index.php''는 워드프레스 3.0 이상에서만 오버라이딩 할 수 있습니다.)
+
+또한, 워드프레스 기능에는 Parent 테마가 업데이트 되어도 편집한 변경사항이 보존되도록, 테마를 다시 편집하지 않게끔 Parent 테마의 템플릿을 수정할 수 있습니다.
+
+다음은 Child 테마에 템플릿 파일을 사용하기위한 몇 가지 예제 사례입니다:
+
+* Parent 테마에서 제공하지 않는 템플릿을 추가하려면 (예, 사이트맵 페이지 또는 단일 컬럼 페이지에 대한 템플릿, 페이지 편집 화면에서 선택가능합니다)
+* Parent 에서 사용하는것보다 더 구체적인 템플릿을 추가하려면 (참조 [[Template_Hierarchy|템플릿 계층 구조]]) (예, Parent 의 일반적인 ''archive.php'' 태그 archive 를 대신하기 위한 ''tag.php'' 템플릿을 사용)
+* Parent 템플릿을 바꾸려면 (예, Parent 의 ''home.php'' 를 오버라이딩하는 직접 만든 ''home.php'')
+
+== 다른 파일 ==
+
+이외에도 ''style.css'', ''functions.php'' 그리고 ''index.php'' 와 ''home.php'' 같은 템플릿 파일, 이미 만들어진 테마 사용시 제대로 연결된 모든 파일 유형을 Child 테마에서 사용할 수 있습니다. 예를 들어, 아이콘과 스타일 시트, 페이지 상단 또는 하단에 링크된 자바스크립트 파일 또는 해당 [[Templates|템플릿]]이나 ''functions.php'' 파일에서 불러오는 별도의 PHP 파일을 Child 테마에서 사용할 수 있습니다.
+
+== 리소스 ==
+
+* [[Theme Development|테마 개발]]
+* [http://themeshaper.com/modify-wordpress-themes/ 워드프레스 테마를 수정하는 가장 스마트한 방법] - 4가지 주제의 Child 테마 시리즈  
+* [http://op111.net/53 워드프레스에서 Child 테마를 어케 만드나요: 초보자를 위한 그림안내] -  그림으로 된 Child 테마 소개
+* [http://aaron.jorb.in/blog/2010/04/05/introducing-thirty-ten/ 3010 소개] - 2010 Child 테마 만들기 안내
+* [http://theme.fm/2011/07/how-to-create-a-child-theme-based-on-twenty-eleven-791/ TwentyEleven 테마 기반의 Child 테마 제작 방법]
+
+[[Category:ko:Design and Layout]]
+[[Category:ko:UI Link]]<!-- link from wp-admin/update-core.php -->

@@ -1,0 +1,144 @@
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Action_Reference/upgrader_process_complete&amp;action=edit">expanding it</a></b>.</div>
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/upgrader_process_complete&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <code>upgrader_process_complete</code> action hook is run when the download process for a plugin install or update finishes.
+</p><p>It is passed two arguments: an instance of the <a href="/index.php?title=Class_Reference/WP_Upgrader&amp;action=edit&amp;redlink=1" class="new" title="Class Reference/WP Upgrader (page does not exist)">WP_Upgrader() class</a> and the <code>$hook_extra</code> array.
+</p><p>Use with caution: When you use the <code>upgrader_process_complete</code> action hook in your plugin and your plugin is the one which under upgrade, then this action will run the old version of your plugin.
+</p>
+<h2><span class="mw-headline" id="PARAMETERS">PARAMETERS</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/upgrader_process_complete&amp;action=edit&amp;section=2" title="Edit section: PARAMETERS">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>   my_upgrade_function( $this, $data )
+</pre>
+<pre>   $this - (Plugin_Upgrader) Plugin_Upgrader instance. In other contexts, $this, might be a Theme_Upgrader or Core_Upgrade instance.
+   $data (array)
+       'action'   -(string) Type of action. Default 'update'.
+       'type'     -(string) Type of update process. Accepts 'plugin', 'theme', or 'core'.  Default:'plugin'
+       'bulk'     - (bool) Whether the update process is a bulk update. Default true.
+       'packages' -  (array) Array of plugin, theme, or core packages to update.
+</pre>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/upgrader_process_complete&amp;action=edit&amp;section=3" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+add_action( 'upgrader_process_complete', 'my_upgrade_function',10, 2);
+
+function my_upgrade_function( $upgrader_object, $options ) {
+    $current_plugin_path_name = plugin_basename( __FILE__ );
+
+    if ($options['action'] == 'update' &amp;&amp; $options['type'] == 'plugin' ){
+       foreach($options['plugins'] as $each_plugin){
+          if ($each_plugin==$current_plugin_path_name){
+             // .......................... YOUR CODES .............
+
+          }
+       }
+    }
+}
+</pre>
+<p>This short plugin demonstrates how to display a notice to the user when they update the plugin. It displays a different notice when they first install the plugin:
+</p>
+<pre>
+&lt;?php
+/*Plugin Name: Upgrader Process Example
+Plugin URI: https://catapultthemes.com/wordpress-plugin-update-hook-upgrader_process_complete/
+Description: Just an example of using upgrader_process_complete
+Version: 1.0.0
+Author: Catapult Themes
+Author URI: https://catapultthemes.com/
+Text Domain: wp-upe
+Domain Path: /languages*/
+
+// Exit if accessed directly
+if (&#160;! defined( 'ABSPATH' ) ) {
+ exit;
+}
+
+/**
+ * This function runs when WordPress completes its upgrade process
+ * It iterates through each plugin updated to see if ours is included
+ * @param $upgrader_object Array
+ * @param $options Array
+ */
+function wp_upe_upgrade_completed( $upgrader_object, $options ) {
+ // The path to our plugin's main file
+ $our_plugin = plugin_basename( __FILE__ );
+ // If an update has taken place and the updated type is plugins and the plugins element exists
+ if( $options['action'] == 'update' &amp;&amp; $options['type'] == 'plugin' &amp;&amp; isset( $options['plugins'] ) ) {
+  // Iterate through the plugins being updated and check if ours is there
+  foreach( $options['plugins'] as $plugin ) {
+   if( $plugin == $our_plugin ) {
+    // Set a transient to record that our plugin has just been updated
+    set_transient( 'wp_upe_updated', 1 );
+   }
+  }
+ }
+}
+add_action( 'upgrader_process_complete', 'wp_upe_upgrade_completed', 10, 2 );
+
+/**
+ * Show a notice to anyone who has just updated this plugin
+ * This notice shouldn't display to anyone who has just installed the plugin for the first time
+ */
+function wp_upe_display_update_notice() {
+ // Check the transient to see if we've just updated the plugin
+ if( get_transient( 'wp_upe_updated' ) ) {
+  echo '&lt;div class="notice notice-success"&gt;' . __( 'Thanks for updating', 'wp-upe' ) . '&lt;/div&gt;';
+  delete_transient( 'wp_upe_updated' );
+ }
+}
+add_action( 'admin_notices', 'wp_upe_display_update_notice' );
+
+/**
+ * Show a notice to anyone who has just installed the plugin for the first time
+ * This notice shouldn't display to anyone who has just updated this plugin
+ */
+function wp_upe_display_install_notice() {
+ // Check the transient to see if we've just activated the plugin
+ if( get_transient( 'wp_upe_activated' ) ) {
+  echo '&lt;div class="notice notice-success"&gt;' . __( 'Thanks for installing', 'wp-upe' ) . '&lt;/div&gt;';
+  // Delete the transient so we don't keep displaying the activation message
+ delete_transient( 'wp_upe_activated' );
+ }
+}
+add_action( 'admin_notices', 'wp_upe_display_install_notice' );
+
+/**
+ * Run this on activation
+ * Set a transient so that we know we've just activated the plugin
+ */
+function wp_upe_activate() {
+ set_transient( 'wp_upe_activated', 1 );
+}
+register_activation_hook( __FILE__, 'wp_upe_activate' );
+</pre>
+<p><br />
+</p>
+The following is example data of the 2nd parameter passed to this hook (as of 4.8.1):<pre>Array
+(
+    [action] =&gt; update
+    [type] =&gt; plugin
+    [bulk] =&gt; 1
+    [plugins] =&gt; Array
+        (
+            [0] =&gt; wordpress-beta-tester/wp-beta-tester.php
+        )
+
+)</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004055
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.012 seconds
+Preprocessor visited node count: 43/1000000
+Preprocessor generated node count: 182/1000000
+Post‐expand include size: 981/2097152 bytes
+Template argument size: 252/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.555      1 - -total
+100.00%    2.555      1 - Template:Stub
+ 55.50%    1.418      1 - Template:Message
+-->

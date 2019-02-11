@@ -1,0 +1,35 @@
+== Deprecated Functions ==
+
+There is a need to inform both theme and plugin developers and users of the usage of deprecated functions. In WordPress 2.4, a way to do that was added.
+
+The following gives instructions on how to turn on the deprecated functions reporting, what hooks can be used for when deprecated functions are used, and code snippets demonstrating how all of this can be accomplished.
+
+== Normal Deprecated Function Reporting ==
+
+When WP_DEBUG is enabled in wp-config.php, it will turn on the notices that deprecated functions were used. When WP_DEBUG is turned off or does not exist, then no reporting will be given.
+
+This prevents the notices for everyday users who are uninterested in receiving these reports. As a consequence, only the users who actively enable WP_DEBUG will receive the information. Those users will not know to upgrade, unless they use a plugin which they download and activate.
+
+The following code snippet enables WP_DEBUG and needs to be placed in wp-config.php.
+
+<code lang="php">
+define('WP_DEBUG', true);
+</code>
+
+== Deprecated Function/File Action Hooks ==
+
+When a deprecated function is used, the 'deprecated_function_run' hook is called. Whenever a deprecated file is included, the 'deprecated_file_included' hook is called. These hooks are actions and do not return anything. The 'deprecated_function_run' is passed the function and the replacement. The 'deprecated_file_included' is passed the file and which file replaced the deprecated one.
+
+If the hooked function wishes to keep track of which deprecated function were run and how many times, the hooked function will have to do that itself.
+
+Which function called the deprecated function or file is not known and is up to the plugin to perform a back trace to get that information.
+
+== Preventing the Notices From Displaying ==
+
+When a plugin uses the above hooks, it could prevent notices from being displayed, even with WP_DEBUG enabled. It is then assumed that if a plugin hooked into both 'deprecated_function_run' and 'deprecated_file_included' that it would record and display the information in a more friendly matter.
+
+To prevent the notices from displaying for functions, the 'deprecated_function_trigger_error' filter hook should return false. To prevent notices from displaying for files, the 'deprecated_file_trigger_error' filter hook should return false.
+
+If a plugin does not have a way to display the deprecated function or file usage, then the plugin should not prevent the notices from appearing when WP_DEBUG is turned on. It should also make sure that the deprecated information is not displayed where any visitor can see it.
+
+[[Category:Plugins]]

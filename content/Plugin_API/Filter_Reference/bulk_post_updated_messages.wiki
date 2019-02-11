@@ -1,0 +1,45 @@
+== Description ==
+This hook allows you to specify custom bulk actions messages for different post types, including custom post types.
+
+== Parameters ==
+
+{{Parameter|$bulk_messages|array|Array of messages, where key is the post type name|required|Array with filled values under keys 'post' and 'page'}}
+{{Parameter|$bulk_counts|array|Array containing count of posts involved in the action under respective keys|required|Array with count of posts under keys 'updated', 'locked', 'deleted', 'trashed' and 'untrashed'}}
+
+== Usage ==
+For this filter to work properly, it's necessary to receive two arguments in your function.
+%%%
+add_filter('bulk_post_updated_messages','function_name',10,2);
+%%%
+
+== Examples ==
+The following example adds custom bulk action updated messages for 'my_cpt' post type:
+
+<pre>
+function my_bulk_post_updated_messages_filter( $bulk_messages, $bulk_counts ) {
+
+    $bulk_messages['my_cpt'] = array(
+        'updated'   => _n( '%s my_cpt updated.', '%s my_cpts updated.', $bulk_counts['updated'] ),
+        'locked'    => _n( '%s my_cpt not updated, somebody is editing it.', '%s my_cpts not updated, somebody is editing them.', $bulk_counts['locked'] ),
+        'deleted'   => _n( '%s my_cpt permanently deleted.', '%s my_cpts permanently deleted.', $bulk_counts['deleted'] ),
+        'trashed'   => _n( '%s my_cpt moved to the Trash.', '%s my_cpts moved to the Trash.', $bulk_counts['trashed'] ),
+        'untrashed' => _n( '%s my_cpt restored from the Trash.', '%s my_cpts restored from the Trash.', $bulk_counts['untrashed'] ),
+    );
+
+    return $bulk_messages;
+
+}
+
+add_filter( 'bulk_post_updated_messages', 'my_bulk_post_updated_messages_filter', 10, 2 );
+</pre>
+
+== Notes ==
+
+Available in WP 3.7+. That does not mean you have to specifically check for WP version before using this filter, no errors happen when using non-existent filters.
+
+==See Also==
+* [[Plugin_API#Create_a_Filter_Function|Creating a Filter Function]]
+* [[Function_Reference/add_filter|add_filter()]]
+
+[[Category:New page created]]
+[[Category:Filters]]

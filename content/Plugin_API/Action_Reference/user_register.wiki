@@ -1,0 +1,43 @@
+==Description==
+This [[Plugin API/Action Reference|action hook]] allows you to access data for a new user immediately '''after''' they are added to the database. The user id is passed to hook as an argument. 
+
+Not all user meta data has been stored in the database when this action is triggered. For example, nickname is in the database but first_name and last_name are not (as of 3.9.1). The password has already been encrypted when this action is triggered.
+
+Typically, this hook is used for saving additional user meta passed by custom registration forms.
+
+==Parameters==
+This hook is passed one parameter:
+;$user_id: The user ID.
+
+==Example==
+This example will save a <tt>first_name</tt> field passed by a custom registration field. 
+
+Also, keep in mind that validation of registration fields should ''not'' be performed within this hook! Validate using the <tt>[[Plugin_API/Filter_Reference/registration_errors|registration_errors]]</tt> hook, instead (the <tt>user_register</tt> hook will not be called if <tt>registration_errors</tt> validation fails).
+ 
+<pre>
+add_action( 'user_register', 'myplugin_registration_save', 10, 1 );
+
+function myplugin_registration_save( $user_id ) {
+
+    if ( isset( $_POST['first_name'] ) )
+        update_user_meta($user_id, 'first_name', $_POST['first_name']);
+
+}
+</pre>
+
+==Source File==
+<tt>user_register</tt> is located in {{Trac|/wp-includes/user.php}} within the function [[Function_Reference/wp_insert_user|wp_insert_user()]]
+
+==Related==
+===Tutorials===
+* [[Customizing the Registration Form]]
+===Action Hooks===
+* [[Plugin_API/Action_Reference/register_form|register_form]]
+* [[Plugin_API/Action_Reference/register_post|register_post]]
+* [[Plugin_API/Action_Reference/user_register|user_register]]
+===Filter Hooks===
+* [[Plugin_API/Filter_Reference/registration_errors|registration_errors]]
+
+Return to [[Plugin API/Action Reference]]
+
+[[Category:Actions]]

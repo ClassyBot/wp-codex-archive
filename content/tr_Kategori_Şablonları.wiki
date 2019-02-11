@@ -1,0 +1,111 @@
+WordPress Temalarda hep aynı şey mevcuttur. Her kategoride en son açılan konu mevcuttur ve her kategori aynı sayfayı kullanmaktadır. Her kategoriye farklı seçimler yaparak çok güzel tasarımlar elde edebilirsiniz.
+Başlık, yazar, yayınlama tarihi, son değişiklik zamanı, vb gibi ekstralardan ziyade resim kategorisinde sadece resimlerin olduğu, video kategorisinde videoların ufak ufak yan yana gelmesi gibi bir çok ayarı yapabilirsiniz. Yani her kategorinizi farklı bir siteymişcesine kodlayabilirsiniz.
+Bu makalede blog sitenizin kategori sayfalarını nasıl değiştirebiliceğinizi açıklıyorum.
+== Hangi Şablon Dosyası Kullanılır? == 
+Birisi Kategori sayfasını ziyaret ettiğinde ilk olarak kategori mesajı daha sonra kategoride bulunan içerikler listelenir. Bu bir şablon hiyerarşisidir. Tüm WordPress temaları bu hiyerarşiye göre kodlanır ve geliştirmek yani zenginleştirmek sizin elinizdedir.
+Kategori halinde hiyerarşi oldukça kolaydır. Örneğin rooteto kategorimiz var ve bu kategorinin ID 1 olduğunu varsayalım. WordPress Hiyerarşik olarak aşağıdaki listeden tema dizininde bulunan ilk şablon dosyasını kullanıcağını belirtir.
+#<tt style="font-weight:bold; color:#036">category-slug.php</tt> ('''Not:''' [[Version 2.9]] ve üstü)
+#<tt style="font-weight:bold; color:#036">category-ID.php</tt>
+#<tt style="font-weight:bold; color:#036">category.php</tt>
+#<tt style="font-weight:bold; color:#036">archive.php</tt>
+#<tt style="font-weight:bold; color:#036">index.php</tt>
+Slug Kısa ismi yani başlık olarakta algılayabilirsiniz. Sistem 1-2-3-4 ve 5 olarak sırayla tarar zaten her temada mutlaka category.php yada archive.php vardır.
+1. Kategori adı rooteto dedik 1.seçenek ile oluşturalım: Kullandığımız tema klasörü içerisine “category-rooteto.php” adında bir klasör oluşturun ve kullandığınız archive.php kodunun aynısını yapıştırıp kaydedin. Daha sonra ”category-rooteto.php” dosyası üzerinde bir kaç değişiklik yapın. Değişikliğin rooteto kategorisine yansıyacağını fark edebilirsiniz.
+2. Eğer sistem 1 numarayı bulmazsa 2′i arıycaktır. Oda şu şekilde rooteto kategori ID’si 1 demiştik onuda hemen oluşturalım. “category-1.php” adında bir dosya oluşturursanız oda rooteto kategorisine özel olucaktır.
+Eğer 1 ve 2 yoksa 3 kesinlikle temanızın klasöründe bulunuyordur. Genede yoksa archive.php vardır. Önemli olan yukarıdaki sıra ile okumaya başladığını bilmek.
+== Örnekler == 
+Şimdi sizlere bazı örnekler vericem. Bazı kategorilere özel şablon oluşturmak ve bu şablonları zenginleştirmek gibi örnekler bunlar. WordPress’in sade olarak verdiği archive.php ile örnekler olduğu için rahat anlatacağım ancak kullandığınız temanın daha çok kodu olabilir kafanız karışmasın.
+== Örnek archive.php == 
+<pre>
+<?php
+/*
+Template Name: Arşiv
+*/
+get_header(); ?>
+ 
+<div id="container">
+    <div id="content" role="main">
+ 
+        <?php the_post(); ?>
+        <h1><?php the_title(); ?></h1>
+ 
+        <?php get_search_form(); ?>
+ 
+        <h2>Archives by Month:</h2>
+        <ul>
+            <?php wp_get_archives('type=monthly'); ?>
+        </ul>
+ 
+        <h2>Archives by Subject:</h2>
+        <ul>
+             <?php wp_list_categories(); ?>
+        </ul>
+ 
+    </div><!-- #content -->
+</div><!-- #container -->
+ 
+<?php get_sidebar(); ?>
+<?php get_footer(); ?>
+</pre>
+== Kategori Sayfalarına Metin Ekleme == 
+Metin ve Link eklemek basit iştir yukarıdaki archive.php dosyasının bir kopyasını alarak archive-rooteto.php yaptık ve rooteto kategorisinde üst kısımda metin ekleyeceğiz.
+<pre>
+get_header();
+</pre>
+Yukarıdaki kodun hemen alt kısmına metinler girebilirsiniz link eklemek için aşağıdaki kodu kullanın.
+<pre>
+<p>
+Bu metin kategoride sayfanın en üst kısmına eklenicek.
+</p>
+</pre>
+=== Bazı kategorilere farklı metin ekleme ===
+Diyelimki ziyaretcilerinizin kategorilerde dolaşırken açıklamaları görmesini istediniz. Yani her kategoride farklı açıklama ve hatta tatmin edici güzel açıklama eklemek istediniz bunun için alttaki kodu kullanmanız yeterli.
+<pre>
+<?php if (is_category('Category A')) : ?>
+<p>This is the text to describe category A</p>
+<?php elseif (is_category('Category B')) : ?>
+<p>This is the text to describe category B</p>
+<?php else : ?>
+<p>This is some generic text to describe all other category pages,
+I could be left blank</p>
+<?php endif; ?>
+</pre>
+Aslında yukarıdaki kod benim kesinlikle önericeğim bir yol veya yöntem değil. Zaten her kategori için farklı php dosyaları oluşturduğumuz için her kategori için tek tek güzel bir açıklama girilebilir.
+=== Kategori sayfalarında farklı metinler ===
+Rooteto Kategorisinde her sayfada farklı metinlerde girebilirsiniz. ilk sayfada güzel bir yazı ikinci sayfada daha farklı bir yazıda girme şansınız var.
+<pre>
+<?php if ( $paged < 2 ) : ?>
+<p>root makalelerinin son çıkanları burada.</p>
+<?php else : ?>
+<p>Bunları kesinlikle kaçırmamanız gerekiyor..</p>
+<?php endif; ?>
+</pre>
+== Kategori Adı ==
+Verdiğim örnek kodda Kategori adı malesef yer almıyor. Kategori isminide girmek için alttaki kodu girmeniz gerekiyor.
+<pre>
+<p>Category: <?php single_cat_title(); ?></p>
+</pre>
+Sonuçta bunlar veritabanından çekilen yazılar eğer temanızda slug yerine ID Kullanırsanız sıkıntı yaşamazsınız kategori adını değiştirseniz bile problem çıkmaz.
+== Mesaj Gösterimleri ==
+Mesajların nasıl gösteriliceği konusunda önemli bilgiler var. 2 önemli kod birisi tam diğeri yarın diye tabir ettiğimiz bir şekilde çalışıyor. Şimdi inceleyelim.
+=== Tam ve Yarım mesajlar ===
+<tt style="font-weight:bold; color:#036">[[Template Tags/the_excerpt|the_excerpt()]]</tt> Kodu yazının belirli karakterine kadarını gösterir devamı için yazıya tıklamanız gerekiyor. Ancak <tt style="font-weight:bold; color:#036">[[Template Tags/the_content|the_content()]]</tt> yazının tamamını gösterir. Ayraç koyduysanız eğer ayraça kadarını gösterir.
+<pre>
+<?php the_excerpt(); ?>
+and
+  <?php the_content(); ?>
+</pre>
+=== Tüm mesaja bağlantı linki vermek ===
+Bir içerik yazın başlık girin ve daha sonra bir resim ekleyin içeriğe. Bir kaç şey yazdıktan sonra ayraç koyun ve devam edin. Şimdi burada yapmaya çalıştığımız olay şu; Ayraca kadar olan kısım veya excerpt kullandıysanız yazının devamına kadar olan kısımdaki tüm yazılara link vermek.
+[[Template Tags/the_excerpt_rss|the_excerpt_rss()]] Yani eklediğiniz resimede otomatik yazının linkini verebilirsiniz.
+<pre>
+<a href="<?php the_permalink() ?>">
+<?php the_excerpt_rss(); ?>
+</a>
+</pre>
+== Diğer Kaynaklar ==
+
+* [http://rooteto.com/wordpress/category-templates Kategori Şablonu kullanımı]
+
+
+[[Category:Templates]]

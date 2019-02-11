@@ -1,0 +1,103 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Function">Reference/esc sql 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Return_Value"><span class="tocnumber">4</span> <span class="toctext">Return Value</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Example"><span class="tocnumber">5</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Notes"><span class="tocnumber">6</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Change_Log"><span class="tocnumber">7</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Source_File"><span class="tocnumber">8</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Related"><span class="tocnumber">9</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Prepares a string for use as an SQL query. This function is a glorified <tt><a rel="nofollow" class="external text" href="http://php.net/manual/en/function.addslashes.php">addslashes()</a></tt> that works with arrays.
+</p><p><b>In 99% of cases, you can use <tt><a href="https://codex.wordpress.org/Class_Reference/wpdb#Protect_Queries_Against_SQL_Injection_Attacks" title="Class Reference/wpdb"> $wpdb-&gt;prepare()</a></tt> instead</b>, and that is the recommended method. This function is only for use in those rare cases where you can't easily use <tt>$wpdb-&gt;prepare()</tt>. One example is preparing an array for use in an IN clause.
+</p><p><b>Note:</b> Be careful to use this function correctly. It <b>will only escape values to be used in strings in the query</b>. That is, it only provides escaping for values that will be within quotes in the SQL (as in <tt>field = '{$escaped_value}'</tt>). If your value is not going to be within quotes, your code will still be vulnerable to SQL injection. For example, this is vulnerable, because the escaped value is not surrounded by quotes in the SQL query: <tt>ORDER BY {$escaped_value}</tt>. As such, <b>this function does not escape unquoted numeric values, field names, or SQL keywords.</b>
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+&#160;<span style="color: #0000BB">&lt;?php&#160;esc_sql</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$sql&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>&#160;</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$data</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String.7Carray" title="How to Pass Tag Parameters"><i>string&#124;array</i></a>) (<i>required</i>) An unescaped string or array that needs to be put into a SQL statement.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Return_Value">Return Value</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=4" title="Edit section: Return Value">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt></tt> <tt style="color:gray">(<a href="https://codex.wordpress.org/Glossary#String.7Carray" title="Glossary"><i>string&#124;array</i></a>)</tt>&#160;</dt>
+<dd>  Escaped value appropriate for use in a SQL query, within quotes (as a string). Notably, this result is NOT safe for use in an SQL statement without quotes surrounding it.</dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=5" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+&lt;?php
+
+$name   = esc_sql( $name );
+$status = esc_sql( $status );
+
+$wpdb-&gt;get_var( "SELECT something FROM table WHERE foo = '$name' and status = '$status'" );
+
+?&gt;
+</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=6" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <tt><a href="https://codex.wordpress.org/Class_Reference/wpdb#Protect_Queries_Against_SQL_Injection_Attacks" title="Class Reference/wpdb">$wpdb-&gt;prepare()</a></tt> is generally preferred as it corrects some common formatting errors.</li>
+<li> This function was formerly just an alias for <tt><a href="https://codex.wordpress.org/Class_Reference/wpdb" title="Class Reference/wpdb">$wpdb-&gt;escape()</a></tt>, but that function has now been deprecated.</li>
+<li>It should be noted that this function will only escape values to be used in strings in the query, as shown in the above example. That is, it only provides escaping for values that will be within quotes (as in <tt>field = '{$escaped_value}'</tt>). If your value is not going to be within quotes, your code will still be vulnerable to SQL injection. For example, this is vulnerable, because the escaped value is not surrounded by quotes in the SQL query: <tt>ORDER BY {$escaped_value}</tt>.</li></ul>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=7" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">2.8.0</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=8" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>esc_sql()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/formatting.php#L0">wp-includes/formatting.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/esc_sql&amp;action=edit&amp;section=9" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/Function_Reference/like_escape" title="Function Reference/like escape">like_escape()</a>, <a href="https://codex.wordpress.org/Function_Reference/tag_escape" title="Function Reference/tag escape">tag_escape()</a>, <a href="https://codex.wordpress.org/Function_Reference/urlencode" title="Function Reference/urlencode">urlencode()</a>, <a href="https://codex.wordpress.org/Function_Reference/urlencode_deep" title="Function Reference/urlencode deep">urlencode_deep()</a>
+</p><p>See: <a href="https://codex.wordpress.org/Data_Validation" title="Data Validation">Data Validation</a> article for an in-depth discussion of input and output sanitization.
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/esc_html" title="Function Reference/esc html">esc_html()</a>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/esc_html_2" title="Function Reference/esc html 2">esc_html__()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/esc_html_e" title="Function Reference/esc html e">esc_html_e()</a></li></ul></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/esc_attr" title="Function Reference/esc attr">esc_attr()</a>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/esc_attr_2" title="Function Reference/esc attr 2">esc_attr__()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/esc_attr_e" title="Function Reference/esc attr e">esc_attr_e()</a></li></ul></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/esc_js" title="Function Reference/esc js">esc_js()</a></li>
+<li> <strong class="selflink">esc_sql()</strong></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/esc_textarea" title="Function Reference/esc textarea">esc_textarea()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/esc_url" title="Function Reference/esc url">esc_url()</a>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/esc_url_raw" title="Function Reference/esc url raw"> esc_url_raw()</a></li></ul></li></ul>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Function_Reference/esc_sql&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003815
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.024 seconds
+Real time usage: 0.163 seconds
+Preprocessor visited node count: 148/1000000
+Preprocessor generated node count: 633/1000000
+Post‐expand include size: 3228/2097152 bytes
+Template argument size: 891/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   75.017      1 - -total
+ 27.99%   20.996      1 - Template:Parameter
+ 20.36%   15.271      1 - Template:Languages
+ 19.76%   14.820      1 - Template:Tag_Footer
+ 16.55%   12.418      1 - Template:Trac
+ 15.36%   11.522      1 - Template:en
+  7.88%    5.914      1 - Template:Esc_Tags
+  5.92%    4.444      2 - Template:Message
+  5.18%    3.884      1 - Template:CurrentVersion
+  3.38%    2.536      1 - Template:Copyedit
+-->

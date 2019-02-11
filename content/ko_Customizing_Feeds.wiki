@@ -1,0 +1,93 @@
+{{Copyedit}}
+{{Languages|
+{{en|Customizing Feeds}}
+{{pt-br|Personalizando Feeds}}
+{{ko|Customizing Feeds}}
+}}
+
+'''[[Glossary#Feed|피드]]''', '''신디케이션''' 및 '''RSS'''와 같은 용어가 헷갈리면 [[Introduction_to_Blogging#Syndication|신디케이션]]을 지금 읽어본다. [[ko:WordPress Feeds|워드프레스 피드]] 및 신디케이션에 대한 개념을 알게 될 것이다. [[ko:WordPress Feeds|워드프레스 피드]] 문서로 기초 개념을 이해할 수 있다. 지금부터 이 문서는 여러분이 피드의 개념 및 사용 방법을 알고 있다고 가정한다.
+
+사용자 정의 피드는 독자에게 블로그에 대한 더 많은 정보를 제공한다: 추가적인 공동 작업자 또는 친구의 친구 파일에 대한 링크를 포함할 수 있다. 반대로, 불필요한 데이터를 제거하거나 또는 저작권에 대해 기계가 있을 수 있는 버전을 제공하여, 신디케이션이 사용할 수 있는 정보를 제한할 수도 있다.
+
+==워드프레스 피드를 생성하는 방법==
+
+워드프레스는 사이트의 피드를 표시하기 위해 피드 템플릿을 사용한다. 콘텐츠를 표시하기 위해 테마 템플릿을 사용하는 방법과 매우 비슷하다. 이 피드 템플릿은 wp-includes 워드프레스 디렉터리에 있다. 이 코어 파일은 테마 시스템과 직접 호환되지는 않는다. 그러나 테마 기반 솔루션(아래 추가 정보 및 링크 참조)을 만들기 위해 사용자정의 페이지 템플릿을 사용하거나 또는 사용하는 템플릿을 변경할 수 있다.  or change which templates are used.
+
+워드프레스에 포함된 피드 템프릿:
+; feed-rss2.php : [http://www.rssboard.org/rss-specification RSS 2.0] 형식으로 항목을 표시.
+; feed-rss.php : [http://backend.userland.com/rss092 RSS 0.92] 형식으로 항목을 표시.
+; feed-rdf.php : [http://purl.org/rss/1.0/ RDF/RSS 1.0] 형식으로 항목을 표시.
+; feed-atom.php : [http://www.atomenabled.org/ Atom] 형식으로 항목을 표시.
+; feed-atom-comments.php : 댓글 표시 - 모든 글의 가장 최근 댓글 또는 특정 글의 댓글 중 하나 - Atom 형식.
+; feed-rss2-comments.php : 댓글 표시 - 모든 글의 가장 최근 댓글 또는 특정 글의 댓글 중 하나 - RSS 2.0 형식.
+
+== 피드 사용자 정의 ==
+피드를 사용자 정의하는 방법은 여러 가지가 있다. 타사 소프트웨어를 설치하고, 워드프레스 사이트에 추가하거나 또는 필요에 따라 피드 템플릿을 수동으로 변경하는 방법 등이 있다.
+
+=== 피드 템플릿 사용자 정의 ===
+
+피트 템플릿 편집은 테마 템플릿 편집과 매우 비슷하다. 그러나, 피드 템플릿은 테마 시스템과 통합되지 않는다; 다른 피드 버전을 사용하려면, 추가 피드 템플릿을 만들어야 한다.
+
+피드 템플릿은 <tt>/wp-includes/feed-{type}.php</tt> 파일에 있고, '''rdf''', '''rss''', '''rss2''' 및 '''atom''' 형식을 포함한다.  이것은 {{Trac|wp-includes/functions.php}}에 정의된 동작을 사용하는 피드 rewrite 규칙으로 작동하고, {{Trac|wp-includes/default-filters.php}}에 있는 [[Function_Reference/add_action|add_action]]을 사용하여 첨부된다.
+
+자신의 템플릿을 우선 적용하기 위해, 기본 동작을 취소하고, [[Function_Reference/load_template|load_template]]을 호출하는 적절한 조치를 취해야 한다. 사용자 정의 글 형식(custom post type)을 위한 템플릿 디렉터리에 있는, 기본 '''RSS2''' 피드 템플릿을 사용하는 예제이다:
+
+<pre>
+remove_all_actions( 'do_feed_rss2' );
+add_action( 'do_feed_rss2', 'acme_product_feed_rss2', 10, 1 );
+
+function acme_product_feed_rss2( $for_comments ) {
+    $rss_template = get_template_directory() . '/feeds/feed-acme_product-rss2.php';
+    if( get_query_var( 'post_type' ) == 'acme_product' and file_exists( $rss_template ) )
+        load_template( $rss_template );
+    else
+        do_feed_rss2( $for_comments ); // Call default function
+}
+</pre>
+
+많은 전문 템플릿 태그는 콘텐츠의 서식을 지정하는데, RSS 표준을 따른다. 이 태그는 다음과 같다:
+*[[Template_Tags/the_category_rss|the_category_rss]]
+*[[Template_Tags/comment_author_rss|comment_author_rss]]
+*[[Template_Tags/comment_text_rss|comment_text_rss]]
+*[[Template_Tags/permalink_comments_rss|permalink_comments_rss]]
+*[[Template_Tags/comment_link_rss|comment_link_rss]]
+*[[Template_Tags/bloginfo_rss|bloginfo_rss]] / [[Template_Tags/get_bloginfo_rss|get_bloginfo_rss]]
+*[[Template_Tags/the_title_rss|the_title_rss]]
+*[[Template_Tags/permalink_single_rss|permalink_single_rss]]
+*[[Template_Tags/the_content_rss|the_content_rss]] (This function was deprecated--2.9.0.)
+*[[Template_Tags/the_content_feed|the_content_feed]]
+*[[Template_Tags/the_excerpt_rss|the_excerpt_rss]]
+
+=== 타사 소프트웨어 ===
+일부 타사 웹 서비스를 사용하여 피드를 관리하고, 사용자 정의할 수 있다. 이런 서비스를 사용하여, 피드를 읽은 사람의 수 계산하거나, 또는 블로그와 Flickr 사진을 통합하는 것과 같은 일을 할 수 있다.
+
+이런 서비스로는 다음과 같은 것이 있다:
+*[http://www.feedburner.com/ FeedBurner] - [[Using FeedBurner]] 참조
+*[http://www.rssmix.com/ RSS Mix] - 여러 개의 RSS 피드를 단일 흐름(stream)에 병합
+
+== 신규 피드 확인 ==
+신규 피드를 보기 위해, 인터넷에서 사용할 수 있는 피드리더 중 하나를 사용할 수 있다. 여러분의 피드가 다른 리더에서 좋게 보일 수 있지만, 여전히 문제가 있을 수도 있다.
+
+피드 형식은 기계가 읽고 조작할 수 있도록 디자인 되어있다; 피트 템플릿 오류는 일부 또는 모든 피드리더가 피드를 읽을 수 없게 한다. 그러므로, 변경을 한 후에는, 피드가 적절한 표준을 충족하는 지를 확인하는 것이 좋다. 유효성 검증 서비스에는 다음과 같은 것이 있다:
+
+*[http://feedvalidator.org/ Feedvalidator.org] - Atom 및 RSS 피드 용.
+*[http://www.ldodds.com/rss_validator/1.0/validator.html Experimental RSS 1.0 Validator]
+*[http://librdf.org/rss/ Redlands RSS 1.0 Validator]
+*[http://feeds.archive.org/validator/ Feeds.archives.org]
+
+== 추가 정보 및 자료 ==
+
+*[http://snook.ca/archives/rss/add_logo_to_feed/ Atom or RSS 피드에 로고 추가]
+*[http://wordlog.com/archives/2004/08/01/add-an-image-to-your-rss-20-field/ RSS 2.0 feed에 이미지 추가 방법]
+*[http://www.onenaught.com/posts/20/adding-a-logo-to-your-wordpress-rss-feed 워드프레스 RSS 피드에 로고 추가]
+*[http://www.oreillynet.com/pub/a/network/2000/08/25/magazine/rss_tut.html RSS 1.0 작성 자습서]
+*[http://www.disobey.com/detergent/2002/extendingrss2/ Namespaces로 RSS 2.0 확장]
+*[http://www.webmasterview.com/2009/12/wordpress-feed-sub-domain/ 워드프레스 피드를 하위 도메인으로 이동하는 방법]
+*[http://yoast.com/custom-rss-feeds-wordpress/ 테마 사용자 정의 페이지 템플릿에 사용자 정의 워드프레스 피드]
+*[http://www.seodenver.com/custom-rss-feed-in-wordpress/ 테마 템플릿에 사용자 정의 워드프레스 피드]
+
+[[Category:WordPress Lessons]]
+[[Category:Advanced Topics]]
+[[Category:Feeds]]
+
+[[Category:New_page_created]]

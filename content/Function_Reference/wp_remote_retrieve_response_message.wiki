@@ -1,0 +1,78 @@
+== Description ==
+
+Retrieve only the response message from the raw response.
+
+Will return an empty array if incorrect parameter value is given.
+
+== Parameters ==
+
+{{Parameter|$response|array|HTTP response.|required}}
+
+== Return Values ==
+
+{{Return||string|The response message. Empty string on incorrect parameter given.}}
+
+==Example==
+
+===Make Request and Display Error===
+
+<pre>
+/**
+ * Get movie information from IMDB.
+ *
+ * @param string $title Title of the movie
+ * @param int $id IMDB ID of the movie
+ * @return string|WP_Error Returns the contents of the response on success, WP_Error on failure
+ */
+function wcpdx_get_movie( $title, $id = 0 ) {
+
+	// Collect the args
+	$params = array(
+		'i' => absint( $id ),
+		't' => sanitize_text_field( $title )
+	);
+
+	// Generate the URL
+	$url = 'http://www.imdbapi.com/';
+	$url = add_query_arg( $params, esc_url_raw( $url ) );
+
+	// Make API request
+	$response = wp_remote_get( esc_url_raw( $url ) );
+
+	// Check the response code
+	$response_code       = wp_remote_retrieve_response_code( $response );
+	$response_message = wp_remote_retrieve_response_message( $response );
+
+	if ( 200 != $response_code && ! empty( $response_message ) ) {
+		return new WP_Error( $response_code, $response_message );
+	} elseif ( 200 != $response_code ) {
+		return new WP_Error( $response_code, 'Unknown error occurred' );
+	} else {
+		return wp_remote_retrieve_body( $response );
+        }
+}
+
+// Make request
+$movie = 'Hairspray';
+$response = wcpdx_get_movie( $movie );
+
+// Print error if error, otherwise print information
+if ( is_wp_error( $response ) ) {
+	echo 'The following error occurred when contacting IMDB: ' . wp_strip_all_tags( $response->get_error_message() );
+} else {
+	$data = json_decode( $response );
+	echo 'The movie ' . esc_html( $data['Title'] ) . ' was released in ' . absint( $data['Year'] ) . '.';
+}
+</pre>
+
+== Change Log ==
+
+Since: [[Version 2.7.0|2.7.0]]
+
+== Source File ==
+
+wp_remote_retrieve_response_message() is located in {{Trac|wp-includes/http.php}}
+
+[[Category:Functions]]
+
+[[Category:New_page_created]]

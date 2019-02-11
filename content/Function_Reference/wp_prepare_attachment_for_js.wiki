@@ -1,0 +1,200 @@
+{{Languages|
+{{en|Function Reference/wp_prepare_attachment_for_js}}
+{{ja|関数リファレンス/wp_prepare_attachment_for_js}}
+}}
+
+== Description ==
+
+Prepares an attachment post object for JS, where it is expected to be JSON-encoded and fit into an Attachment model.
+
+== Usage ==
+
+%%% <?php wp_prepare_attachment_for_js( $attachment ) ?> %%%
+
+== Parameters ==
+
+{{Parameter|$attachment|mixed|Attachment ID or object.}}
+
+== Return Value ==
+
+; (array) : Array of attachment details.
+The fields returned are:
+
+{|
+|-
+! width="150px" | Member Variable
+! width="100px" | Variable Type
+! width="300px" | Notes
+|-
+| id
+| int
+| The ID of the attachment 
+|-
+| title
+| string
+| The attachment's title (Usually the slugified file name without the extension)
+|-
+| filename
+| string
+| The attachment's file name
+|-
+| url
+| string
+| The attachment's direct link (from wp-content)
+|-
+| link
+| string
+| The URL to the attachment page
+|-
+| alt
+| string
+| Alt text of the attachment
+|-
+| author
+| string
+| The Author's ID in string format
+|-
+| description
+| string
+| The attachment's description
+|-
+| caption
+| string
+| The attachment's caption
+|-
+| name
+| string
+| The attachment's name, same as title
+|-
+| status
+| string
+| Attachment's 'post' status (Usually 'inherit')
+|-
+| uploadedTo
+| int
+| Parent post to which the attachment was uploaded
+|-
+| date
+| int
+| Uploaded date, timestamp in milliseconds
+|-
+| modified
+| int
+| Last modified, timestamp in milliseconds
+|-
+| menuOrder
+| int
+| Post's menu order
+|-
+| mime
+| string
+| Attachment's mine (Ex: image/jpeg, application/zip, etc.)
+|-
+| type
+| string
+| Attachment type (Usually first-part of mime, eg: image)
+|-
+| subtype
+| string
+| Attachment's subtype (Usually the last-part of mine, eg: jpeg / zip)
+|-
+| icon
+| string
+| Attachment's icon URL (Eg: /wp-includes/images/media/archive.png)
+|-
+| dateFormatted
+| string
+| Formatted Date (Eg: June 29, 2018)
+|-
+| nonces
+| array
+| Nounces for update, delete and edit
+|-
+| editLink
+| string
+| Link to attachment's edit page
+|-
+| meta
+| array
+| Attachment's meta 
+|-
+| authorName
+| string
+| Author's name
+|-
+| uploadedToLink
+| string
+| Link to the attachment's parent post edit page
+|-
+| uploadedToTitle
+| string
+| Attachment's parent post title
+|-
+| filesizeInBytes
+| int
+| Attachment's filesize in bytes
+|-
+| filesizeHumanReadable
+| string
+| Attachment's filesize in human readable format (Eg: 1 MB)
+|-
+| context
+| string
+|-
+| compat
+| array
+| Containing item and meta
+|-
+| height
+| int/undefined
+| If the attachment's an image, it represents the height of the image.
+|-
+| width
+| int/undefined
+| If the attachment's an image, it represents the width of the image.
+|-
+| orientation
+| string/undefined
+| If the attachment's an image, it represents the image orientation (landscape / portrait).
+|-
+| sizes
+| array/undefined
+| If the attachment's an image, it contains an array of arrays from the different images sizes: thumb, medium, large, full
+|}
+
+== Examples ==
+Pass image data to a js gallery.
+<pre>
+<?php
+add_action( 'wp_head', 'my_js_gallery_add_gallery_images', 1 );
+function my_js_gallery_add_gallery_images(){
+	global $post;
+
+	$gallery_images = array();
+	$attachments = get_posts( array(
+		'post_type' => 'attachment',
+		'post_status' => 'inherit',
+		'post_parent' => $post->ID,
+		'post_mime_type' => 'image',
+	) );
+
+	foreach( $attachments as $attachment )
+		$gallery_images[] = wp_prepare_attachment_for_js( $attachment->ID );
+
+	wp_localize_script( 'my-js-gallery', 'my_js_gallery', array(
+		'images' => $gallery_images,
+	) );
+}
+</pre>
+
+=== Default Usage ===
+
+== Change Log ==
+
+* Since: [[Version_3.5|3.5.0]]
+
+== Source File ==
+
+<tt>wp_prepare_attachment_for_js()</tt> is located in {{Trac|wp-includes/media.php}}.
+
+== Related ==

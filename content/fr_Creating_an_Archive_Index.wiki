@@ -1,0 +1,116 @@
+{{French Header}}
+{{Stub}}
+
+== Introduction ==
+
+So you want a single page with links to all your archived entries, arranged <em>just so</em> to form the main gateway into your blog's past. With the WordPress 1.5 theme system, you can create template files to customize this archive gateway for each theme you use.
+
+Or, maybe you're just wondering how to use the <tt>archives.php</tt> template file that's included with the WordPress Default Theme.
+
+This article describes both those things. The method outlined here can also be used to make other specialized pages that are integrated with the WordPress theme system: a links page, site index, or anything else your heart desires.
+
+== Création du Modèle du Sommaire des Archives et des Pages ==
+
+To set up a separate archive index in a way that plays with the Version 1.5 theme system, you'll need to create it as a [[Pages | Page]], and assign it a special template.
+
+=== Le Modèle (archives.php) ===
+
+Start off with a simple template called <tt>archives.php</tt>, stored in your theme's directory. The WordPress Default Theme includes such a template, and it makes a good starting point.
+
+Technically, the template can be called almost anything (see [[Theme Development#Theme Templates|these two lists]] for names you should ''not'' use; these are special file names WordPress reserves for specific purposes). However, using a standard name for your template will make it easier to change your blog's theme or distribute your theme and template to the WordPress community. It's also possible to display a large archive index using one of the all-purpose templates (like index.php or category.php) and the [[Conditional_Tags|is_page]] function, but again, taking advantage of the theme system's modularity makes it easier for others (and for you!) to edit your template later.
+
+For more information on creating templates, see [[Template_Tags|Template Tags]], particularly [[Template_Tags/wp_get_archives | wp_get_archives]].
+
+=== La Page des Archives ===
+
+==== pour WordPress 1.5 ====
+
+Upload the archives.php in your theme directory (<tt>wp-content/themes/themename/</tt>). Then from the Admin Panel, [[Pages#Creating_Pages|'''Write > Write Page''']], and choose '''Add a New Page''':
+
+# Give your new archives Page a suitable title like ''Archive Index''. Leave the Page content blank.
+# Under '''Custom Fields''', select '''_wp_page_template''' from the dropdown. Leave the Key field blank, and enter '''archives.php''' into the '''Value''' field.
+# Click '''Add Custom Field'''.
+# Voila! Your archive index can be accessed at <tt><nowiki>http://example.com/index.php?pagename=archive-index</nowiki></tt>.
+
+==== pour WordPress 1.5 et + ====
+
+Upload the archives.php in your theme directory 
+(<tt>wp-content/themes/themename/</tt>). Then from the Admin Panel, [[Pages#Creating_Pages|'''Write > Write Page''']]
+
+# Give your new archives Page a suitable title like ''Archive Index''. Leave the Page content blank.
+
+In the sidebar open the //Page templates// box, and select the //Archives// template. After saving it you will see a new item in your pages list, click on it, and enjoy!
+
+== Personnalisation de Vos Archives ==
+
+There are a variety of techniques to customize your Archive Index page. Some involve incorporation of plugins or PHP code to create customized lists of archived posts, and others provide more interesting ways of displaying your archives.
+
+=== Liste des Archives par Année ===
+
+You can set your archives up to be displayed by the year, such as:
+
+<div style="border:1px solid blue; width:40%; font-weight:110%; margin: 20px; padding:20px">
+<span style="font-weight:bold;font-size:120%">Archives</span>
+<ul style="color:blue">
+<li><u>2007</u></li>
+<li><u>2006</u></li>
+<li><u>2005</u></li>
+<li><u>2004</u></li>
+</ul>
+</div>
+
+To list your archives by year instead of by month, use the following code, in which a query to the database is made to collect and sort the posts by year, then display them as links with the [[Function_Reference/get_year_link|get_year_link()]] template tag:
+
+<pre><ul><li><h2>Archives</h2>
+<ul>
+<?php
+$years = $wpdb->get_col("SELECT DISTINCT YEAR(post_date) FROM $wpdb->posts WHERE post_status = 'publish' AND post_type = 'post' ORDER BY post_date DESC");
+foreach($years as $year) : 
+?>
+<li><a href="<?php echo get_year_link($year); ?> "><?php echo $year; ?></a></li>
+<?php endforeach; ?>
+</ul>
+</li></ul></pre>
+
+For versions of WordPress before 2.1, use this for your '''$years''' query:
+
+<pre>$years = $wpdb->get_col("SELECT DISTINCT YEAR(post_date) FROM $wpdb->posts WHERE post_status = 'publish' ORDER BY post_date DESC");</pre>
+
+== Mise en Place des Redirections ==
+
+If you're using [[Using_Permalinks|Permalinks]], WordPress will generate a new set of [[Pages#Creating_Pages|rewrite rules for your new Page]]. You may need to update your <tt>.htaccess</tt> file by hand, if WordPress is unable to do so automatically. See [[Using_Permalinks|Using Permalinks]] for more information.
+
+These automatic rules are based on your Page title or "slug": If your Page is named Archive Index, you'll be able to see it at <tt><nowiki>http://example.net/your-wordpress-dir/archive-index/</nowiki></tt>.
+
+=== Problèmes avec la Génération Automatique des fichiers .htaccess ===
+
+If your archive index Page has a slug that's the same as part of your permalink structure - e.g., your Page is named Archives, and your permalinks are set up as <tt>/archives/%post-id%/</tt> or <tt>/archives/%year%/%monthnum%/%day%/%postname%/</tt> - WordPress will create conflicting rewrite rules. This can cause your monthly/category archives to be displayed using your archive index template.
+
+There are two ways to avoid this problem:
+# Use a different name for your archive index Page
+# Don't allow WordPress to automatically manage your .htaccess file.
+
+== Pour en Savoir Plus ==
+
+=== Plugins Utile ===
+
+* [http://blindmuse.com/blog/2004/03/31/group-archives-by-year/ Group Archives By Year]
+* [http://www.engadgeted.net/archives/2005/02/10/wordpress-heat-map-plugin/ WordPress Heat Map] - Display your archive links with varying sizes or colors, depending on how many posts they contain.
+* [http://www.davidsaccess.com/?p=124 DC's Nicer Archives] - Create a list of archives that can be expanded from a bulleted list to a series of excerpts.
+* [[http://www.wordpress.org/extend/plugins|WordPress Plugins]] - for more possibilites.
+
+=== Sujets de Support sur les Forums de WordPress ===
+
+* [http://wordpress.org/support/topic.php?id=18934 How to Use Archives.php of Ryan's Kubric Theme]
+* [http://wordpress.org/support/topic.php?id=24290 Year Archive Pulling Up Archives.php Page]
+
+=== Exemples Intéressant d'Index d'Archives ===
+
+* [http://www.hitormiss.org/archives/ Hit or Miss] - Flickr-style weighted categories and keywords.
+* [http://www.engadgeted.net/archives/ Engadgeted] - The Heat Map plugin in action.
+
+[[Category:WordPress Lessons]]
+[[Category:Design and Layout]]
+[[Category:Advanced Topics]]
+[[Category:Templates]]
+[[Category:Translating WordPress]]

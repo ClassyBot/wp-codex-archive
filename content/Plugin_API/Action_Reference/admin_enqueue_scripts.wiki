@@ -1,0 +1,68 @@
+==Description==
+
+<tt>admin_enqueue_scripts</tt> is the first action hooked into the admin scripts actions. It provides a single parameter, the <tt>$hook_suffix</tt> for the current admin page. Despite the name, it is used for enqueuing '''both''' scripts and styles.
+
+==Usage==
+
+<pre><?php add_action( 'admin_enqueue_scripts', 'function_name' ); ?></pre>
+
+where "function_name" is the name of the function to be called.
+
+==Example: Load CSS File on All Admin Pages==
+
+Sometimes you want to load a set of CSS and/or Javascript documents to all admin pages. You can do this from within your plugin or from your themes function file:
+
+<pre>
+function load_custom_wp_admin_style() {
+        wp_register_style( 'custom_wp_admin_css', get_template_directory_uri() . '/admin-style.css', false, '1.0.0' );
+        wp_enqueue_style( 'custom_wp_admin_css' );
+}
+add_action( 'admin_enqueue_scripts', 'load_custom_wp_admin_style' );
+</pre>
+
+In this example we are loading a CSS file from the current active "parent" themes directory.
+
+==Example: Load CSS File from a plugin on specific Admin Page==
+<pre>
+function load_custom_wp_admin_style($hook) {
+        // Load only on ?page=mypluginname
+        if($hook != 'toplevel_page_mypluginname') {
+                return;
+        }
+        wp_enqueue_style( 'custom_wp_admin_css', plugins_url('admin-style.css', __FILE__) );
+}
+add_action( 'admin_enqueue_scripts', 'load_custom_wp_admin_style' );
+</pre>
+
+This example can be used by a plugin file in your plugins folder. It will only load when you plugin page in the WP-admin page is loaded. 
+
+If you are unsure what your $hook name is .. use this to determine your hookname. Put the code after the { from the function
+ <pre>wp_die($hook);</pre>
+
+==Example: Target a Specific Admin Page==
+
+The admin_enqueue_scripts action hook can also be used to target a specific admin page. In this example we are loading a javascript file in the head section of edit.php.
+
+<pre>
+function my_enqueue($hook) {
+    if ( 'edit.php' != $hook ) {
+        return;
+    }
+
+    wp_enqueue_script( 'my_custom_script', get_template_directory_uri() . '/myscript.js' );
+}
+add_action( 'admin_enqueue_scripts', 'my_enqueue' );
+</pre>
+
+== See also ==
+* <code>[[Plugin_API/Action_Reference/wp_enqueue_scripts|wp_enqueue_scripts]]</code> - for enqueuing on front pages
+* <code>[[Plugin_API/Action_Reference/login_enqueue_scripts|login_enqueue_scripts]]</code> - for enqueuing on the login page
+
+== Resources ==
+* [http://generatewp.com/register_script/ WordPress Script Registration Generator]
+* [http://generatewp.com/register_style/ WordPress Style Registration Generator]
+
+== Related ==
+{{Enqueue Functions Related}}
+
+[[Category:Actions]]

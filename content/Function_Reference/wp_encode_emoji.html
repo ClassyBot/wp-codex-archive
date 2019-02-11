@@ -1,0 +1,91 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Return_Values"><span class="tocnumber">4</span> <span class="toctext">Return Values</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Example"><span class="tocnumber">5</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Change_Log"><span class="tocnumber">6</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">7</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This function will convert any 4 byte emoji in a string to their equivalent HTML entity and return it. It uses the PHP function 'mb_convert_encoding' to do the real converting. The main purpose of this function is for installs with a database which uses the 3 byte 'utf8' encoding to still be able to store emoji characters. Since WordPress 4.2 most databases will be converted to 4 byte collations with 'utf8mb4'.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+&#160;<span style="color: #0000BB">&lt;?php&#160;</span><span style="color: #007700">echo&#160;</span><span style="color: #0000BB">wp_encode_emoji</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$content&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>&#160;</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$content</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>mandatory</i>) The string of text that is to be converted. There is no default.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Return_Values">Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit&amp;section=4" title="Edit section: Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt></tt> <tt style="color:gray">(<a href="https://codex.wordpress.org/Glossary#String" title="Glossary"><i>string</i></a>)</tt>&#160;</dt>
+<dd> Encoded content. If the content includes 4 byte emoji, it will convert it to the equivalent HTML entity.</dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit&amp;section=5" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Return the converted string
+</p>
+<pre>&lt;?php $content = wp_encode_emoji( $content );&#160;?&gt;
+</pre>
+<p>Providing backwards compatibility for plugin developers with extra code:
+</p>
+<pre>
+ &lt;?php
+ function my_own_maybe_encode_emoji( $string ) {
+	global $wpdb;
+	$db_charset = $wpdb-&gt;charset;
+	if ( 'utf8mb4'&#160;!= $db_charset ) {
+		if ( function_exists('wp_encode_emoji') &amp;&amp; function_exists( 'mb_convert_encoding' ) ) {
+			$string = wp_encode_emoji( $string );
+		}
+	}
+	return $string;
+ }
+
+ $string = my_own_maybe_encode_emoji( $string );
+ ?&gt;
+</pre>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit&amp;section=6" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: 4.2
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>wp encode emoji()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/formatting.php#L0">wp-includes/formatting.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Function_Reference/wp_encode_emoji&amp;action=edit">expanding it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003951
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.051 seconds
+Preprocessor visited node count: 124/1000000
+Preprocessor generated node count: 541/1000000
+Post‐expand include size: 1805/2097152 bytes
+Template argument size: 581/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   12.844      1 - -total
+ 27.34%    3.511      1 - Template:Languages
+ 23.89%    3.069      1 - Template:Stub
+ 19.25%    2.472      1 - Template:Trac
+ 15.70%    2.017      1 - Template:en
+ 12.77%    1.640      1 - Template:Message
+ 11.97%    1.538      1 - Template:Parameter
+ 10.85%    1.394      1 - Template:Return
+  7.79%    1.001      1 - Template:CurrentVersion
+-->

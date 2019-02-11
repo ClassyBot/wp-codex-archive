@@ -1,0 +1,138 @@
+{{Languages|
+{{en|Quicktags API}}
+{{id|Quicktags API}}
+{{it|API dei Quicktag}}
+{{ja|クイックタグAPI}}
+}}
+
+== Description ==
+
+The Quicktags API allows you to include additional buttons in the Text (HTML) mode of the WordPress editor.
+
+This page was proposed on the [http://wpdevel.wordpress.com/2011/12/07/whats-new-javascript-in-3-3/ Make WordPress Core]. A relevant Trac ticket is [http://core.trac.wordpress.org/ticket/16695 16695]
+
+[[Image:quicktags-editor.png‎‎|full|center|WordPress Text editor buttons]]
+
+== Usage ==
+<pre>
+QTags.addButton( id, display, arg1, arg2, access_key, title, priority, instance );
+</pre>
+
+== Parameters ==
+
+{{Parameter|id|string|The html id for the button.}}
+{{Parameter|display|string|The html value for the button.}}
+{{Parameter|arg1|string|Either a starting tag to be inserted like "&lt;span&gt;" or a callback that is executed when the button is clicked.}}
+{{Parameter|arg2|string|Ending tag like "&lt;/span&gt;". Leave empty if tag doesn't need to be closed (i.e. "&lt;hr /&gt;").|optional}}
+{{Parameter|access_key|string|Shortcut access key for the button.|optional}}
+{{Parameter|title|string|The html title value for the button.|optional}}
+{{Parameter|priority|int|A number representing the desired position of the button in the toolbar. 1 - 9 &#61; first, 11 - 19 &#61; second, 21 - 29 &#61; third, etc.|optional}}
+{{Parameter|instance|string|Limit the button to a specific instance of Quicktags, add to all instances if not present.|optional}}
+
+== Return Values ==
+
+{{Return||mixed|Null or the button object that is needed for back-compat.}}
+
+== Examples ==
+
+<pre>
+// add more buttons to the html editor
+function appthemes_add_quicktags() {
+    if (wp_script_is('quicktags')){
+?>
+    <script type="text/javascript">
+    QTags.addButton( 'eg_paragraph', 'p', '<p>', '</p>', 'p', 'Paragraph tag', 1 );
+    QTags.addButton( 'eg_hr', 'hr', '<hr />', '', 'h', 'Horizontal rule line', 201 );
+    QTags.addButton( 'eg_pre', 'pre', '<pre lang="php">', '&lt;/pre>', 'q', 'Preformatted text tag', 111 );
+    </script>
+<?php
+    }
+}
+add_action( 'admin_print_footer_scripts', 'appthemes_add_quicktags' );
+</pre>
+
+(Note: to avoid a Reference Error we check to see whether or not the 'quicktags' script is in use.)
+
+The above would add HTML buttons to the default Quicktags in the Text editor. For example, the "p" button HTML would be:
+<pre>
+<input type="button" id="qt_content_eg_paragraph" accesskey="p" class="ed_button" title="Paragraph tag" value="p">
+</pre>
+
+(The ID value for each button is automatically prepended with the string 'qt_content_'.)
+
+Here is a dump of the docblock from quicktags.js, it's pretty useful on it's own.
+<pre>
+/**
+ * Main API function for adding a button to Quicktags
+ *
+ * Adds qt.Button or qt.TagButton depending on the args. The first three args are always required.
+ * To be able to add button(s) to Quicktags, your script should be enqueued as dependent
+ * on "quicktags" and outputted in the footer. If you are echoing JS directly from PHP,
+ * use add_action( 'admin_print_footer_scripts', 'output_my_js', 100 ) or add_action( 'wp_footer', 'output_my_js', 100 )
+ *
+ * Minimum required to add a button that calls an external function:
+ *     QTags.addButton( 'my_id', 'my button', my_callback );
+ *     function my_callback() { alert('yeah!'); }
+ *
+ * Minimum required to add a button that inserts a tag:
+ *     QTags.addButton( 'my_id', 'my button', '<span>', '</span>' );
+ *     QTags.addButton( 'my_id2', 'my button', '<br />' );
+ */
+</pre>
+
+== Default Quicktags ==
+
+Here are the values of the default Quicktags added by WordPress to the Text editor (table sorted by access key value). Access key and ID must be unique. When adding your own buttons, do not use these values:
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Accesskey''' !! '''ID''' !! '''Value''' !! '''Tag Start''' !! '''Tag End'''
+|-
+| a || link || link || <tt>&lt;a href="' + URL + '"&gt;</tt> || <tt>&lt;/a&gt;</tt>
+|-
+| b || strong || b || <tt>&lt;strong&gt;</tt> || <tt>&lt;/strong&gt;</tt>
+|-
+| c || code || code || <tt>&lt;code&gt;</tt> || <tt>&lt;/code&gt;</tt>
+|-
+| d || del || del || <tt>&lt;del datetime="' + _datetime + '"&gt;</tt> || <tt>&lt;/del&gt;</tt>
+|-
+| f || fullscreen || fullscreen ||  || 
+|-
+| i || em || i || <tt>&lt;em&gt;</tt> || <tt>&lt;/em&gt;</tt>
+|-
+| l || li || li || <tt>\t&lt;li&gt;</tt> || <tt>&lt;/li&gt;\n</tt>
+|-
+| m || img || img || <tt>&lt;img src="' + src + '" alt="' + alt + '" /&gt;</tt> || 
+|-
+| o || ol || ol || <tt>&lt;ol&gt;\n</tt> || <tt>&lt;/ol&gt;\n\n</tt>
+|-
+| q || block || b-quote || <tt>\n\n&lt;blockquote&gt;</tt> || <tt>&lt;/blockquote&gt;\n\n</tt>
+|-
+| s || ins || ins || <tt>&lt;ins datetime="' + _datetime + '"&gt;</tt> || <tt>&lt;/ins&gt;</tt>
+|-
+| t || more || more || <tt>&lt;&#33;--more--&gt;</tt> || 
+|-
+| u || ul || ul || <tt>&lt;ul&gt;\n</tt> || <tt>&lt;/ul&gt;\n\n</tt>
+|-
+|  || spell || lookup ||  || 
+|-
+|  || close || close ||  || 
+|}
+
+(Some tag values above use variables, such as <tt>URL</tt> and <tt>_datetime</tt>, passed from functions.)
+
+== Change Log ==
+
+* Since: [[Version 3.3|3.3]]
+
+== Source File ==
+
+<tt>qt.addButton()</tt> is located in {{Trac|wp-includes/js/quicktags.js}} and {{Trac|wp-includes/js/quicktags.min.js}}.
+
+==Resources==
+* [http://generatewp.com/quicktags/ WordPress Quicktags Generator]
+* [https://www.nimbusthemes.com/add-quicktags-wordpress-snippet-generator/ Add Quicktags Code Generator]
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]

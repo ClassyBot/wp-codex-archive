@@ -1,0 +1,329 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#wp.getComments"><span class="tocnumber">1</span> <span class="toctext">wp.getComments</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Availability"><span class="tocnumber">1.1</span> <span class="toctext">Availability</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Parameters"><span class="tocnumber">1.2</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Response"><span class="tocnumber">1.3</span> <span class="toctext">Response</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Example_Request"><span class="tocnumber">1.4</span> <span class="toctext">Example Request</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Example_Response"><span class="tocnumber">1.5</span> <span class="toctext">Example Response</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#PHP_Example"><span class="tocnumber">1.6</span> <span class="toctext">PHP Example</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h1><span class="mw-headline" id="wp.getComments">wp.getComments</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC/wp.getComments&amp;action=edit&amp;section=1" title="Edit section: wp.getComments">edit</a><span class="mw-editsection-bracket">]</span></span></h1>
+<p>Get data on multiple comments.
+</p>
+<h2><span class="mw-headline" id="Availability">Availability</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC/wp.getComments&amp;action=edit&amp;section=2" title="Edit section: Availability">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>WordPress 2.7+
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC/wp.getComments&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> (string) blog_id</li>
+<li> (string) username</li>
+<li> (string) password</li>
+<li> (struct) filter [optional]
+<ul><li> (string) status (approve, hold, spam) [optional]</li>
+<li> (int) post_id [optional]</li>
+<li> (int) number [optional - default: 10]</li>
+<li> (int) offset [optional]</li></ul></li></ul>
+<p>wp.getComments will return comments from newest to oldest.  If you don't provide a filter['number'] value then it will limit the response to 10.  These parameters can be used in combination, for instance to get up to 100 (filter['number'] = 100) of the spam comments (filter['status'] = 'spam') for a specific post (filter['post_id'] = 1 ).
+</p>
+<h2><span class="mw-headline" id="Response">Response</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC/wp.getComments&amp;action=edit&amp;section=4" title="Edit section: Response">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> (array)
+<ul><li> (dateTime.iso8601) date_created_gmt</li>
+<li> (int) user_id</li>
+<li> (int) comment_id</li>
+<li> (int) parent</li>
+<li> (string) status (approve, hold, spam)</li>
+<li> (string) content</li>
+<li> (string) link</li>
+<li> (int) post_id</li>
+<li> (string) post_title</li>
+<li> (string) author</li>
+<li> (string) author_url</li>
+<li> (string) author_email</li>
+<li> (string) author_ip</li>
+<li> (string) type (&lt;empty&gt;, trackback, pingback)</li></ul></li></ul>
+<p>Each array item is the same as the result of an <a href="https://codex.wordpress.org/XML-RPC/wp.getComment" title="XML-RPC/wp.getComment">XML-RPC/wp.getComment</a> call.
+</p><p>The date_created_gmt field is always the GMT date, even if no time zone information is present.  An empty type field indicates a regular comment.
+</p>
+<h2><span class="mw-headline" id="Example_Request">Example Request</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC/wp.getComments&amp;action=edit&amp;section=5" title="Edit section: Example Request">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+
+&lt;?xml version="1.0"?&gt;
+&lt;methodCall&gt;
+  &lt;methodName&gt;wp.getComments&lt;/methodName&gt;
+  &lt;params&gt;
+    &lt;param&gt;
+      &lt;value&gt;
+        &lt;string&gt;1&lt;/string&gt;
+      &lt;/value&gt;
+    &lt;/param&gt;
+    &lt;param&gt;
+      &lt;value&gt;
+        &lt;string&gt;xmlrpc-example&lt;/string&gt;
+      &lt;/value&gt;
+    &lt;/param&gt;
+    &lt;param&gt;
+      &lt;value&gt;
+        &lt;string&gt;example-password&lt;/string&gt;
+      &lt;/value&gt;
+    &lt;/param&gt;
+    &lt;param&gt;
+      &lt;value&gt;
+        &lt;struct&gt;
+          &lt;member&gt;
+            &lt;name&gt;post_id&lt;/name&gt;
+            &lt;value&gt;
+              &lt;int&gt;41&lt;/int&gt;
+            &lt;/value&gt;
+          &lt;/member&gt;
+        &lt;/struct&gt;
+      &lt;/value&gt;
+    &lt;/param&gt;
+  &lt;/params&gt;
+&lt;/methodCall&gt;
+
+</pre>
+<h2><span class="mw-headline" id="Example_Response">Example Response</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC/wp.getComments&amp;action=edit&amp;section=6" title="Edit section: Example Response">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+
+&lt;?xml version="1.0"?&gt;
+&lt;methodResponse&gt;
+  &lt;params&gt;
+    &lt;param&gt;
+      &lt;value&gt;
+        &lt;array&gt;
+          &lt;data&gt;
+            &lt;value&gt;
+              &lt;struct&gt;
+                &lt;member&gt;
+                  &lt;name&gt;date_created_gmt&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;dateTime.iso8601&gt;20081121T02:54:08&lt;/dateTime.iso8601&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;user_id&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;1&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;comment_id&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;8&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;parent&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;0&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;status&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;approve&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;content&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;Need more comments.&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;link&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;http://example.com/?p=41&amp;cpage=1#comment-8&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;post_id&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;41&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;post_title&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;This is a test post&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;author&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;admin&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;author_url&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;http://example.com/&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;author_email&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;example@example.com&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;author_ip&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;::1&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;type&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string/&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+              &lt;/struct&gt;
+            &lt;/value&gt;
+            &lt;value&gt;
+              &lt;struct&gt;
+                &lt;member&gt;
+                  &lt;name&gt;date_created_gmt&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;dateTime.iso8601&gt;20081120T23:49:42&lt;/dateTime.iso8601&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;user_id&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;1&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;comment_id&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;7&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;parent&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;0&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;status&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;approve&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;content&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;Yet another comment.&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;link&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;http://example.com/?p=41&amp;cpage=1#comment-7&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;post_id&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;41&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;post_title&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;This is a test post&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;author&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;admin&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;author_url&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;http://example.com/&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;author_email&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;example@example.com&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;author_ip&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string&gt;::1&lt;/string&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+                &lt;member&gt;
+                  &lt;name&gt;type&lt;/name&gt;
+                  &lt;value&gt;
+                    &lt;string/&gt;
+                  &lt;/value&gt;
+                &lt;/member&gt;
+              &lt;/struct&gt;
+            &lt;/value&gt;
+          &lt;/data&gt;
+        &lt;/array&gt;
+      &lt;/value&gt;
+    &lt;/param&gt;
+  &lt;/params&gt;
+&lt;/methodResponse&gt;
+
+</pre>
+<h2><span class="mw-headline" id="PHP_Example">PHP Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC/wp.getComments&amp;action=edit&amp;section=7" title="Edit section: PHP Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+
+require "./IXR_Library.inc.php";
+
+$rpc = new IXR_Client( "http://example.com/xmlrpc.php" );
+$status = $rpc-&gt;query(
+    "wp.getComments",   // method name
+    "1",                // blog id
+    "xmlrpc-example",   // username
+    "example-password", // password
+    array(
+        "post_id"   =&gt; 41
+    )
+);
+
+if(&#160;!$status ) {
+    print "Error ( " . $rpc-&gt;getErrorCode( ) . " )&#160;: ";
+    print $rpc-&gt;getErrorMessage( ) . "\n";
+    exit;
+}
+
+$comment = $rpc-&gt;getResponse( );
+print_r( $comment );
+
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004232
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.011 seconds
+Preprocessor visited node count: 47/1000000
+Preprocessor generated node count: 92/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

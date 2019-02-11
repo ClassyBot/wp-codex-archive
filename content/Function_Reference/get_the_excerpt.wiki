@@ -1,0 +1,83 @@
+{{Languages|
+{{en|Function Reference/get the excerpt}}
+{{ja| 関数リファレンス/get the excerpt}}
+}}
+== Description ==
+
+Returns the excerpt of the post. This is either a user-supplied excerpt, that is returned unchanged, or an automatically generated word-counted trimmed-down version of the full post content.
+
+The auto-generated excerpts have all shortcodes and tags removed which means it is just an unformatted string that would not see any line-breaks in any form of output, since the actual line-breaks in the raw text are also removed.
+
+When called through [[Function Reference/the_excerpt|the_excerpt()]] this implies that the auto-gen excerpts are just raw text with <tt>&lt;p&gt;&lt;/p&gt;</tt> tags wrapped around it, basically.
+
+Auto-gen excerpts have a "more" tag appended to them. This tag is '<tt>[&hellip;]</tt>' by default. It can be changed through the [[Plugin API/Filter Reference/excerpt_more|excerpt_more]] filter.
+
+The default word length is 55 words. It can be changed through the [[Plugin API/Filter Reference/excerpt_length|excerpt_length]] filter.
+
+== Usage ==
+%%% <?php $excerpt = get_the_excerpt( int|WP_Post $post ) ?> %%%
+
+This function must be used within [[The Loop]] when no <code>$post</code> or ID parameter is passed.
+
+If this function is used outside The Loop and the post doesn't have a custom excerpt, this function will use [[Function Reference/wp_trim_excerpt|wp_trim_excerpt()]] to generate an excerpt. That function uses [[Function Reference/get_the_content|get_the_content()]], which must be used with The Loop and will cause problems if get_the_excerpt() is being used outside The Loop. In order to avoid the issues, use [[Function Reference/setup_postdata|setup_postdata()]] prior to calling get_the_excerpt() to set up the global $post object.
+
+== Parameters ==
+{{Parameter|$post|integer&#124;WP_Post|Post ID or [[Class_Reference/WP_Post|WP_Post]] object. Default is global <code>$post</code>.|optional|null}}
+
+== Return Values ==
+
+* Returns an existing excerpt unchanged (by default) but applies [[Plugin_API/Filter_Reference/get_the_excerpt|get_the_excerpt]] filters to it.
+* Returns a trimmed-down version of the full post content as described, additionally applying [[Plugin_API/Filter_Reference/wp_trim_excerpt|wp_trim_excerpt]] filters to it. <tt>'wp_trim_excerpt'</tt> is chained from <tt>'get_the_excerpt'</tt>, meaning that your own <tt>get_the_excerpt</tt> filter will get called before or after the trim depending on the priority of your filter. If called before, your <tt>$text</tt> parameter will be an empty string if there is no user supplied excerpt, whereas it will be the trimmed-down version of the full post if called after. In the latter case it might be useful or more meaningful to use <tt>'wp_trim_excerpt'</tt> since it has a second parameter giving you the untrimmed input to the [[Function_Reference/wp_trim_excerpt|wp_trim_excerpt]] function, meaning this second parameter is simply the raw <tt>$post->post_excerpt</tt>.
+* For password protected pages it returns a string, which has a default value of "''There is no excerpt because this is a protected post.''" This text can be changed in the function definition.
+
+== Examples ==
+
+'''get_the_excerpt()''' can be used to retrieve and store the value in a variable, without outputting it to the page.
+
+<pre><nowiki><?php
+$my_excerpt = get_the_excerpt();
+if ( '' != $my_excerpt ) {
+	// Some string manipulation performed
+}
+echo $my_excerpt; // Outputs the processed value to the page
+?></nowiki></pre>
+
+Use '''get_the_excerpt()''' to print an excerpt by specifying a maximium number of characters.
+
+<pre><nowiki><?php
+the_excerpt_max_charlength(140);
+
+function the_excerpt_max_charlength($charlength) {
+	$excerpt = get_the_excerpt();
+	$charlength++;
+
+	if ( mb_strlen( $excerpt ) > $charlength ) {
+		$subex = mb_substr( $excerpt, 0, $charlength - 5 );
+		$exwords = explode( ' ', $subex );
+		$excut = - ( mb_strlen( $exwords[ count( $exwords ) - 1 ] ) );
+		if ( $excut < 0 ) {
+			echo mb_substr( $subex, 0, $excut );
+		} else {
+			echo $subex;
+		}
+		echo '[...]';
+	} else {
+		echo $excerpt;
+	}
+}
+?>
+</nowiki></pre>
+
+== Change Log ==
+Since: 0.71
+
+== Source File ==
+
+<tt>get_the_excerpt()</tt> is located in {{Trac|wp-includes/post-template.php}}.
+
+== Related ==
+[[Template_Tags/the_excerpt|the_excerpt()]]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

@@ -1,0 +1,83 @@
+== Description ==
+
+Applied to the list of columns to print on the manage [[Posts Screen|posts screen]] for a custom post type. Filter function argument/return value is an associative array where the element key is the name of the column, and the value is the header text for that column.
+
+In [[Version 3.1|WP 3.1]], <code>manage_edit-{$post_type}_columns</code> has been supplanted by [[Plugin API/Filter Reference/manage_$post_type_posts_columns|manage_{$post_type}_posts_columns]].
+
+See also the action [[Plugin_API/Action_Reference/manage_posts_custom_column|manage_posts_custom_column]], which alters the column information for each post in the edit table.
+
+== Built-in Column Types ==
+
+{{Manage_Posts_Columns}}
+
+== Examples ==
+
+==== Add Columns ====
+Suppose you have a 'books' custom post type and you want to add the publisher and book author to the list of columns.
+
+<code><pre>
+function book_cpt_columns($columns) {
+
+	$new_columns = array(
+		'publisher' => __('Publisher', 'ThemeName'),
+		'book_author' => __('Book Author', 'ThemeName'),
+	);
+    return array_merge($columns, $new_columns);
+}
+add_filter('manage_books_posts_columns' , 'book_cpt_columns');
+</pre></code>
+
+==== Replace Columns ====
+Here's another example that with removing and replacing some of the columns.
+
+<code><pre>
+function book_cpt_columns($columns) {
+	
+	unset(
+		$columns['author'],
+		$columns['comments']
+	);
+	$new_columns = array(
+		'publisher' => __('Publisher', 'ThemeName'),
+		'book_author' => __('Book Author', 'ThemeName'),
+	);
+    return array_merge($columns, $new_columns);
+}
+add_filter('manage_books_posts_columns' , 'book_cpt_columns');
+</pre></code>
+
+Note that unlike an ''array'' data type the ''unset'' PHP function accepts arguments in which the last argument should ''NOT'' end with a comma.
+
+==== Hide Columns ====
+Here is an example of how to remove or (hide) columns from Pages / Posts and Custom Post Types without adding any.
+
+You can also add the name of the custom-post type and filter them out in there too… But if you have 5 custom post types you will need five different filters.
+
+<code><pre>
+
+function my_columns_filter( $columns ) {
+   unset($columns['author']);
+   unset($columns['categories']);
+   unset($columns['tags']);
+   unset($columns['comments']);
+   return $columns;
+   }
+       
+    // Filter pages
+    add_filter( 'manage_edit-page_columns', 'my_columns_filter',10, 1 );	
+
+    // Filter Posts
+    add_filter( 'manage_edit-post_columns', 'my_columns_filter',10, 1 );
+
+    // Custom Post Type
+    add_filter( 'manage_edit-CUSTOMPOSTTYPE_columns', 'my_columns_filter',10, 1 );
+
+</pre></code>
+
+Note: Replace CUSTOMPOSTTYPE with the name of your post type.
+
+== Related ==
+
+{{Manage_Posts_Hooks}}
+
+[[Category:Filters]]

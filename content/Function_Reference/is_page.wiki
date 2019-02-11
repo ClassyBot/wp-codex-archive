@@ -1,0 +1,206 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/is_page/}}
+
+{{Languages|
+{{en|Function Reference/is_page}}
+{{ja|関数リファレンス/is_page}}
+}}
+
+==Description==
+This [[Conditional Tags|Conditional Tag]] checks if [[Pages]] are being displayed. This is a boolean function, meaning it returns either TRUE or FALSE. This tag must be used BEFORE [[The Loop]] and does not work inside The Loop (see [[#Notes|Notes]] below).
+
+==Usage==
+%%%<?php is_page($page); ?>%%%
+
+==Parameters==
+{{Parameter|$page|mixed|Page ID, Page Title or Page Slug|optional}}
+
+==Return Values==
+; <tt>(boolean)</tt> : <tt>true</tt> on success, <tt>false</tt> on failure.
+
+==Examples==
+ is_page();
+ // When any single Page is being displayed.
+ 
+ is_page( 42 );
+ // When Page 42 (ID) is being displayed.
+ 
+ is_page( 'Contact' );
+ // When the Page with a ''post_title'' of "Contact" is being displayed.
+ 
+ is_page( 'about-me' );
+ // When the Page with a ''post_name'' (slug) of "about-me" is being displayed.
+ 
+ is_page( array( 42, 'about-me', 'Contact' ) );
+ // Returns true when the Pages displayed is either post ID 42, or ''post_name'' "about-me", or ''post_title'' "Contact".  Note: the array ability was added at [[Version 2.5]].
+
+
+==== Testing for paginated Pages ====
+
+You can use this code to check whether you're on the nth page in a Post or PAGE Page that has been divided into pages using the <tt><!<nowiki></nowiki>--nextpage--></tt> QuickTag. This can be useful, for example, if you wish to display meta-data only on the first page of a post divided into several pages.
+
+'''Example 1'''
+<pre><?php         
+$paged = $wp_query->get( 'paged' );
+
+if ( ! $paged || $paged < 2 ) 
+{
+    // This is not a paginated page (or it's simply the first page of a paginated page/post)
+
+} 
+else 
+{
+   // This is a paginated page.
+
+}
+?>
+</pre>
+
+'''Example 2'''
+<!-- Could someone please take a look at the difference between 'paged' & 'page'? I ran into some support requests, where people said it's 'page', not 'paged' -->
+
+<pre><?php
+$paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : false;
+if ( $paged === false ) 
+{
+    // This is not a paginated page (or it's simply the first page of a paginated page/post)
+
+} 
+else 
+{
+   // This is a paginated page.
+
+}
+?></pre>
+
+'''Example 3'''
+<pre><?php
+if ( 0 === get_query_var( 'page' ) ) {
+	// This is not a paginated page (or it's simply the first page of a paginated page/post)
+}
+else {
+	// This is a paginated page.
+}
+</pre>
+
+==== Testing for sub-Pages ====
+
+There is no <tt>is_subpage()</tt> function yet, but you can test this with a little code:
+
+'''Snippet 1'''
+<pre><?php
+
+global $post;     // if outside the loop
+
+if ( is_page() && $post->post_parent ) {
+    // This is a subpage
+
+} else {
+    // This is not a subpage
+}
+?></pre>
+
+You can create your own is_subpage() function using the code in Snippet 2. Add it to your [http://codex.wordpress.org/Theme_Development#Theme_Functions_File functions.php] file. It tests for a parent page in the same way as Snippet 1, but will return the ID of the page parent if there is one, or <tt>false</tt> if there isn't.
+
+'''Snippet 2'''
+<pre>
+function is_subpage() {
+    global $post;                              // load details about this page
+
+    if ( is_page() && $post->post_parent ) {   // test to see if the page has a parent
+        return $post->post_parent;             // return the ID of the parent post
+
+    } else {                                   // there is no parent so ...
+        return false;                          // ... the answer to the question is false
+    }
+}
+</pre>
+
+It is advisable to use a function like that in Snippet 2, rather than using the simple test like Snippet 1, if you plan to test for sub pages frequently.
+
+To test if the parent of a page is a specific page, for instance "About" (page id ''pid'' 2 by default), we can use the tests in Snippet 3. These tests check to see if we are looking at the page in question, as well as if we are looking at any child pages. This is useful for setting variables specific to different sections of a web site, so a different banner image, or a different heading.
+
+'''Snippet 3'''
+<pre>
+<?php
+
+if ( is_page( 'about' ) || '2' == $post->post_parent ) {    
+    // the page is "About", or the parent of the page is "About"
+    $bannerimg = 'about.jpg';
+
+} elseif ( is_page( 'learning' ) || '56' == $post->post_parent ) {	
+    $bannerimg = 'teaching.jpg';
+
+} elseif ( is_page( 'admissions' ) || '15' == $post->post_parent ) { 
+    $bannerimg = 'admissions.jpg';
+
+} else { 
+    $bannerimg = 'home.jpg'; // just in case we are at an unclassified page, perhaps the home page
+}	
+
+?>
+</pre>
+
+Snippet 4 is a function that allows you to carry out the tests above more easily. This function will return true if we are looking at the page in question (so "About") or one of its sub pages (so a page with a parent with ID "2").
+
+'''Snippet 4'''
+<pre>
+function is_tree( $pid ) {      // $pid = The ID of the page we're looking for pages underneath
+    global $post;               // load details about this page
+
+    if ( is_page($pid) )
+        return true;            // we're at the page or at a sub page
+
+    $anc = get_post_ancestors( $post->ID );
+    foreach ( $anc as $ancestor ) {
+        if( is_page() && $ancestor == $pid ) {
+            return true;
+        }
+    }
+
+    return false;  // we arn't at the page, and the page is not an ancestor
+}
+</pre>
+
+Add Snippet 4 to your [http://codex.wordpress.org/Theme_Development#Theme_Functions_File functions.php] file, and call <tt>is_tree( 'id' )</tt> to see if the current page is the page, or is a sub page of the page. In Snippet 3, <tt>is_tree( '2' )</tt> would replace "<tt>is_page( 'about' ) || '2' == $post->post_parent</tt>" inside the first <tt>if</tt> tag. 
+
+Note that if you have more than one level of pages the parent page is the one directly above and not the one at the very top of the hierarchy.
+
+====Is a Page Template====
+Allows you to determine whether or not you are in a page template or if a specific page template is being used.
+
+; <tt>[http://codex.wordpress.org/Function_Reference/is_page_template is_page_template()]</tt> : Is a [[Page_Templates|Page Template]] being used?
+; <tt>is_page_template( 'about.php' )</tt> : Is [[Page_Templates|Page Template]] 'about' being used? Note that unlike with other conditionals, if you want to specify a particular Page Template, you need to use the filename, such as about.php or my_page_template.php. Note: if the file is in a subdirectory you must include this as well. Meaning that this should be the filepath in relation to your theme as well as the filename, for example 'page-templates/about.php'.
+
+==Notes==
+
+===Passing Empty Value Returns TRUE===
+Be very careful if there's a possibility of passing an empty value as a parameter to check for a specific page, since the following lines will return <tt>true</tt>:
+<pre>is_page( '' )
+is_page( 0 )
+is_page( '0' )
+is_page( null )
+is_page( false )
+is_page( array() )</pre>
+
+* See also: [[Function Reference/is singular|is_singular()]]
+
+===Cannot Be Used Inside The Loop===
+Due to certain global variables being overwritten during The Loop <code>is_page()</code> will not work. In order to use it after The Loop you must call [[Function_Reference/wp_reset_query| wp_reset_query()]] after The Loop.
+
+* See also [[Function_Reference/is_page_template|is_page_template()]]
+
+==Change Log==
+Since: 1.5.0
+
+==Source File==
+<!-- Need links to current source code files -->
+<tt>is_page()</tt> is located in {{Trac|wp-includes/query.php}}.
+
+==Related==
+
+{{Conditional Tags}}
+
+{{Tag Footer}}
+
+[[Category:Conditional Tags]]
+[[Category:Functions]]

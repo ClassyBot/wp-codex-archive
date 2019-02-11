@@ -1,0 +1,127 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<a href="https://codex.wordpress.org/Debugging_in_WordPress" title="Debugging in WordPress">English</a> • 
+<a href="https://codex.wordpress.org/es:Depurar_en_WordPress" title="es:Depurar en WordPress">Español</a> • 
+
+<strong class="selflink">Français</strong> • 
+
+<a href="https://codex.wordpress.org/hr:Ispitivanje_kvarova_u_WordPressu" title="hr:Ispitivanje kvarova u WordPressu">Hrvatski</a> • 
+<a href="https://codex.wordpress.org/it:Debug_in_WordPress" title="it:Debug in WordPress">Italiano</a> • 
+
+<a href="https://codex.wordpress.org/pt-br:Depura%C3%A7%C3%A3o_no_WordPress" title="pt-br:Depuração no WordPress">Português do Brasil</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>Le débogage du code PHP fait partie de tout projet, mais WordPress est livré avec des systèmes de débogage spécifiques visant à simplifier le processus ainsi que de normaliser le code du noyau, des extensions et des thèmes. Cette page décrit les divers outils de débogage dans WordPress et comment être plus productif dans votre codage ainsi que comment augmenter de la qualité globale et interopérabilité de votre code.
+</p>
+<div style="background-color:#ffffff; border:1px solid #c6d9e9; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;"><b>NOTE:</b> Même s'il n'est pas obligatoire de tenir compte de <tt>WP_DEBUG</tt> dans les extensions et les thèmes il est <b>fortement recommandé</b> aux développeurs d'extensions et de thèmes d'utiliser le mode <tt>WP_DEBUG</tt> pour travailler sur le code qu'ils prévoient de publier. Si votre extension ou votre thème n'est pas compatible alors les erreurs, avertissements et mises en garde qui s'afficheront rendront votre thème / extension impossible à utiliser pour les autres développeurs lorsqu'ils auront activé <tt>WP_DEBUG</tt>. De plus, votre thème ne sera pas admissible à la promotion des outils officiels <a href="https://codex.wordpress.org/Theme_Review#PHP.2C_JS.2C_CSS.2C_HTML" title="Theme Review">WordPress</a> (en anglais).</div>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#WP_DEBUG"><span class="tocnumber">1</span> <span class="toctext">WP_DEBUG</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Erreurs.2C_alertes_et_avertissements_PHP"><span class="tocnumber">1.1</span> <span class="toctext">Erreurs, alertes et avertissements PHP</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Fonctions_et_arguments_obsol.C3.A8tes"><span class="tocnumber">1.2</span> <span class="toctext">Fonctions et arguments obsolètes</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="#WP_DEBUG_LOG"><span class="tocnumber">2</span> <span class="toctext">WP_DEBUG_LOG</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#WP_DEBUG_DISPLAY"><span class="tocnumber">3</span> <span class="toctext">WP_DEBUG_DISPLAY</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#SCRIPT_DEBUG"><span class="tocnumber">4</span> <span class="toctext">SCRIPT_DEBUG</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#SAVEQUERIES"><span class="tocnumber">5</span> <span class="toctext">SAVEQUERIES</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Exemple_de_wp-config.php_pour_le_d.C3.A9bogage"><span class="tocnumber">6</span> <span class="toctext">Exemple de wp-config.php pour le débogage</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#D.C3.A9bogage_des_extensions"><span class="tocnumber">7</span> <span class="toctext">Débogage des extensions</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#Histoire"><span class="tocnumber">8</span> <span class="toctext">Histoire</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="WP_DEBUG">WP_DEBUG</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=1" title="Edit section: WP DEBUG">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/fr:WP_DEBUG" title="fr:WP DEBUG">WP_DEBUG</a> est une constante PHP (une variable globale permanente) qui peut être utilisée pour déclencher le mode "debug" tout au long de WordPress. Il est supposé être faux (false) par défaut et est généralement fixé à vrai (true) dans le fichier <a href="https://codex.wordpress.org/fr:Modifier_wp-config.php" title="fr:Modifier wp-config.php"> wp-config.php</a> sur les copies de développement de WordPress.
+</p><p>  define ('WP_DEBUG', true);
+  define ('WP_DEBUG', false);
+</p><p>Remarque&#160;: Les valeurs <tt>true</tt> and <tt>false</tt> dans l'exemple ne sont pas entourées par des apostrophes (') parce que ce sont des valeurs booléennes (vrai / faux). Si vous définissez des constantes à <tt>'false'</tt>, elles seront interprétés comme vraies parce que les guillemets font que c'est interprété comme une chaîne plutôt que comme un booléen.
+</p><p>Il n'est pas recommandé d'utiliser <tt>WP_DEBUG</tt> ou les autres outils de débogage sur les sites en production&#160;; Ils sont destinés aux tests locaux et à la mise en place.
+</p>
+<h3><span class="mw-headline" id="Erreurs.2C_alertes_et_avertissements_PHP">Erreurs, alertes et avertissements PHP</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=2" title="Edit section: Erreurs, alertes et avertissements PHP">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>L'activation de <tt>WP_DEBUG</tt> provoquera l'affichage de toutes les erreurs, alertes et avertissements de PHP. C'est susceptible de modifier le comportement de PHP par défaut qui affiche seulement les erreurs fatales et / ou montre un écran blanc de la mort lorsque des erreurs sont présentes.
+</p><p>Afficher toutes les alertes et avertissements PHP se traduit souvent par des messages d'erreur pour des choses qui ne semblent pas cassées, mais ne suivent pas correctement les conventions de validation des données de PHP. Ces avertissements sont faciles à corriger, une fois que le code correspondant a été identifié, et le code résultant est presque toujours plus résistant aux bogues et plus facile à maintenir.
+</p>
+<h3><span class="mw-headline" id="Fonctions_et_arguments_obsol.C3.A8tes">Fonctions et arguments obsolètes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=3" title="Edit section: Fonctions et arguments obsolètes">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>L'activation de <tt>WP_DEBUG</tt> entraînera aussi des avertissements sur les fonctions et les arguments obsolètes dans WordPress qui sont utilisés sur votre site. Ce sont des fonctions ou des arguments de fonctions qui n'ont pas encore été retirées du code du noyau, mais sont prévues pour la suppression dans un proche avenir. Les avis d'obsolescence indiquent souvent la nouvelle fonction qui doit être utilisée à la place.
+</p>
+<h2><span class="mw-headline" id="WP_DEBUG_LOG">WP_DEBUG_LOG</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=4" title="Edit section: WP DEBUG LOG">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>WP_DEBUG_LOG</tt> est un compagnon à <tt>WP_DEBUG</tt> qui provoque l'enregistrement de toutes les erreurs dans un fichier <tt>debug.log</tt> présent à l'intérieur du répertoire <tt>/wp-content/</tt>. C'est utile si vous voulez examiner tous les avertissements plus tard, ou si vous avez besoin de consulter les avertissements générés en dehors de l'écran (par exemple lors d'une requête <a href="https://codex.wordpress.org/AJAX_in_Plugins" title="AJAX in Plugins">AJAX</a> (en anglais) demande ou l'exécution de <a href="https://codex.wordpress.org/Function_Reference/wp_schedule_event" title="Function Reference/wp schedule event">wp-cron</a>).
+</p><p>Notez que cela vous permet d'écrire dans <tt>/wp-content/debug.log</tt> en utilisant la fonction native de PHP <tt>error_log()</tt>, ce qui peut être utile, par exemple, lors du débogage des événements AJAX.
+</p>
+<pre>define('WP_DEBUG_LOG', true);
+</pre>
+<h2><span class="mw-headline" id="WP_DEBUG_DISPLAY">WP_DEBUG_DISPLAY</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=5" title="Edit section: WP DEBUG DISPLAY">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>WP_DEBUG_DISPLAY</tt> est un autre compagnon de WP_DEBUG qui contrôle si les messages de débogage sont affichés dans le HTML des pages ou pas. La valeur par défaut est 'true' ce qui montre les erreurs et avertissements lorsqu'ils sont générés. Ce paramètre à 'false' permet de masquer toutes les erreurs. Il doit être utilisé en conjonction avec <tt>WP_DEBUG_LOG</tt> de sorte que des erreurs puissent être examinées ultérieurement.
+</p>
+<pre>define('WP_DEBUG_DISPLAY', false);
+</pre>
+<h2><span class="mw-headline" id="SCRIPT_DEBUG">SCRIPT_DEBUG</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=6" title="Edit section: SCRIPT DEBUG">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>SCRIPT_DEBUG</tt> est une constante liée qui forcera WordPress à utiliser les versions «&#160;dev&#160;» des fichiers CSS et JavaScript du noyau plutôt que les versions minifiées qui sont normalement chargées. Ceci est utile lorsque vous testez des modifications à tous fichiers .js ou .css intégrés. La valeur par défaut est 'false'.
+</p>
+<pre>define('SCRIPT_DEBUG', true);
+</pre>
+<h2><span class="mw-headline" id="SAVEQUERIES">SAVEQUERIES</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=7" title="Edit section: SAVEQUERIES">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>La définition<tt>SAVEQUERIES</tt> enregistre les requêtes de la base de données dans un tableau et ce tableau peut être affiché pour aider à analyser ces requêtes. La constante définie à 'true' provoque l'enregistrement de chaque requête, combien de temps elle à mis pour s'exécuter, et quelle fonction l'a appelée.
+</p>
+<pre>define('SAVEQUERIES', true);
+</pre>
+<p>Le tableau est stocké dans la globale <tt>$wpdb-&gt;queries</tt>.
+</p><p>REMARQUE&#160;: Cela aura un impact sur les performances sur votre site, assurez-vous donc désactiver cette fonction lorsque vous n'êtes pas en mode débogage.
+</p>
+<h2><span class="mw-headline" id="Exemple_de_wp-config.php_pour_le_d.C3.A9bogage">Exemple de wp-config.php pour le débogage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=8" title="Edit section: Exemple de wp-config.php pour le débogage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Le code suivant, inséré dans votre fichier <a href="https://codex.wordpress.org/fr:Modifier_wp-config.php" title="fr:Modifier wp-config.php">wp-config.php</a>, va enregistrer toutes les erreurs, alertes et avertissements  dans un fichier appelé debug.log dans le répertoire wp-content. Il masquera également les erreurs de manière à ne pas interrompre la génération de la page.
+</p>
+<pre> // Activer le mode WP_DEBUG
+define('WP_DEBUG', true);
+
+// EActiver l'enregistrement de débogage dans le fichier /wp-content/debug.log
+define('WP_DEBUG_LOG', true);
+
+// Désactiver l'affichage des erreurs et des alertes 
+define('WP_DEBUG_DISPLAY', false);
+@ini_set('display_errors',0);
+
+// Utiliser les versions de dev des fichiers JS et CSS du noyau (nécessaire seulement si vous modifiez ces fichiers)
+define('SCRIPT_DEBUG', true);
+</pre>
+<p>REMARQUE&#160;: Vous devez insérer cela <b>AVANT</b> <tt>/* C'est tout, ne touchez pas à ce qui suit&#160;! Bon blogging&#160;! */</tt> dans le fichier <a href="https://codex.wordpress.org/fr:Modifier_wp-config.php" title="fr:Modifier wp-config.php">wp-config.php</a>.
+</p>
+<h2><span class="mw-headline" id="D.C3.A9bogage_des_extensions">Débogage des extensions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=9" title="Edit section: Débogage des extensions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Il y a beaucoup d'<a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/search.php?q=debug&amp;sort=">extensions bien écrites</a> qui gèrent le débogage dans WordPress et montrent plus d'informations sur l’intérieur, soit pour un composant spécifique ou en général . Quelques exemples de ces extensions sont <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/debug-bar/">Debug Bar</a> avec <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/debug-bar/">Debug Bar</a> puis <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/debug-bar-console/">Debug Bar Console</a>,  <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/log-deprecated-notices/">Log Deprecated Notices</a> et <a rel="nofollow" class="external text" href="http://wordpress.org/plugins/total-security/">Total Security</a>.
+</p>
+<h2><span class="mw-headline" id="Histoire">Histoire</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=fr:D%C3%A9bogage_dans_WordPress&amp;action=edit&amp;section=10" title="Edit section: Histoire">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Avant WordPress 3.1, la constante <tt>STYLE_DEBUG</tt> se comportait de façon similaire à <tt>SCRIPT_DEBUG</tt>, mais affectait les fichiers CSS plutôt que JavaScript. Dans la version 3.1 les deux constantes ont été fusionnés dans <tt>SCRIPT_DEBUG</tt>, qui affecte désormais les deux types de fichier minifiés.
+</p><p>== == Ressources externes
+</p>
+<ul><li> ['Wp-config.php' déposer Générateur <a rel="nofollow" class="external free" href="http://generatewp.com/wp-config/">http://generatewp.com/wp-config/</a> WordPress] (en anglais)</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004305
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.024 seconds
+Real time usage: 0.030 seconds
+Preprocessor visited node count: 112/1000000
+Preprocessor generated node count: 511/1000000
+Post‐expand include size: 2603/2097152 bytes
+Template argument size: 1832/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   12.073      1 - -total
+ 77.40%    9.344      1 - Template:Languages
+ 21.86%    2.639      1 - Template:Note
+ 11.07%    1.337      1 - Template:es
+ 11.00%    1.328      1 - Template:en
+ 10.82%    1.306      1 - Template:Message
+ 10.56%    1.275      1 - Template:pt-br
+ 10.42%    1.258      1 - Template:it
+ 10.14%    1.224      1 - Template:fr
+  9.80%    1.183      1 - Template:hr
+-->

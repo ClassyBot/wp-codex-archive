@@ -1,0 +1,136 @@
+{{Languages|
+{{en|Quicktags API}}
+{{id|Quicktags API}}
+{{it|API dei Quicktag}}
+}}
+
+== Descrizione ==
+
+Le API dei Quicktag permettono di includere tasti aggiuntivi all'editor di testo.
+
+Questa pagina fu proposta su [http://wpdevel.wordpress.com/2011/12/07/whats-new-javascript-in-3-3/ Make WordPress Core]. Un ticket Trac rilevante è [http://core.trac.wordpress.org/ticket/16695 16695]
+
+[[Image:quicktags-editor_it.png|full|center|Tasti dell'editor di testo di WordPress]]
+
+== Utilizzo ==
+<pre>
+QTags.addButton( id, display, arg1, arg2, access_key, title, priority, instance );
+</pre>
+
+== Parametri ==
+
+{{it:Parameter|id|string|Valore dell'attributo "id" del tasto.}}
+{{it:Parameter|display|string|Valore dell'attributo "value" del tasto.}}
+{{it:Parameter|arg1|string|Tag di apertura da inserire, come "&lt;span&gt;", o funzione di callback da eseguire quando si preme il tasto.}}
+{{it:Parameter|arg2|string|Tag di chiusura come "&lt;/span&gt;". Lasciare vuoto se il tag non ha bisogno di essere chiuso (es. "&lt;hr /&gt;").|opzionale}}
+{{it:Parameter|access_key|string|Scorciatoia per il tasto (valore dell'attributo "accesskey").|opzionale}}
+{{it:Parameter|title|string|Valore dell'attributo "title" del tasto.|opzionale}}
+{{it:Parameter|priority|int|Numero che rappresenta la posizione desiderata del tasto nella barra degli strumenti. 1 - 9 &#61; primo, 11 - 19 &#61; secondo, 21 - 29 &#61; terzo, ecc.|opzionale}}
+{{it:Parameter|instance|string|Se presente limita il tasto ad essere incluso in una specifica istanza dei Quicktag, altrimenti lo aggiunge a tutte le istanze.|opzionale}}
+
+== Valori restituiti ==
+
+{{it:Return||mixed|Nullo o l'oggetto tasto che serve per retrocompatibilità.}}
+
+== Esempi ==
+
+<pre>
+// aggiungere più tasti all'editor HTML
+function appthemes_add_quicktags() {
+    if (wp_script_is('quicktags')){
+?>
+    <script type="text/javascript">
+    QTags.addButton( 'eg_paragraph', 'p', '<p>', '</p>', 'p', 'Paragrafo', 1 );
+    QTags.addButton( 'eg_hr', 'hr', '<hr />', '', 'h', 'Linea orizzontale', 201 );
+    QTags.addButton( 'eg_pre', 'pre', '<pre lang="php">', '&lt;/pre>', 'q', 'Testo preformattato', 111 );
+    </script>
+<?php
+    }
+}
+add_action( 'admin_print_footer_scripts', 'appthemes_add_quicktags' );
+</pre>
+
+(Nota: per evitare un "errore di referenziazione", è bene controllare se lo script 'quicktags' è in uso.)
+
+Il codice qui sopra aggiunge tasti HTML ai Quicktag predefiniti nell'editor di testo. Ad esempio, il tasto per il tag HTML "p" diventa:
+<pre>
+<input type="button" id="qt_content_eg_paragraph" accesskey="p" class="ed_button" title="Paragrafo" value="p">
+</pre>
+
+(Al valore ID di ogni tasto viene automaticamente anteposta la stringa 'qt_content_'.)
+
+Di seguito vi è un estratto (tradotto in italiano) del codice sorgente presente in quicktags.js, che è piuttosto utile già di per se.
+<pre>
+/**
+ * Funzione API principale per aggiungere un tasto ai Quicktag
+ *
+ * Aggiunge qt.Button o qt.TagButton a seconda degli argomenti. I primi tre argomenti sono sempre richiesti.
+ * Per poter aggiungere tasti ai Quicktag, lo script deve essere accodato in modo dipendente
+ * da "quicktags" e stampato nel footer. Se si stampa JS direttamente da PHP,
+ * usare add_action( 'admin_print_footer_scripts', 'output_my_js', 100 ) oppure add_action( 'wp_footer', 'output_my_js', 100 )
+ *
+ * Minimo richiesto per aggiungere un tasto che richiama una funzione esterna:
+ *     QTags.addButton( 'my_id', 'my button', my_callback );
+ *     function my_callback() { alert('yeah!'); }
+ *
+ * Minimo richiesto per aggiungere un tasto che inserisce un tag:
+ *     QTags.addButton( 'my_id', 'my button', '<span>', '</span>' );
+ *     QTags.addButton( 'my_id2', 'my button', '<br />' );
+ */
+</pre>
+
+== Quicktag predefiniti ==
+
+Di seguito vi sono i valori dei Quicktag predefiniti aggiunti da WordPress all'editor di testo (la tabella è ordinata per valore di access key). Gli access key e gli ID devono essere univoci. Quando si aggiungono i propri tasti, non si devono usare i seguenti valori:
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Accesskey''' !! '''ID''' !! '''Valore''' !! '''Tag di apertura''' !! '''Tag di chiusura'''
+|-
+| a || link || link || <tt>&lt;a href="' + URL + '"&gt;</tt> || <tt>&lt;/a&gt;</tt>
+|-
+| b || strong || b || <tt>&lt;strong&gt;</tt> || <tt>&lt;/strong&gt;</tt>
+|-
+| c || code || code || <tt>&lt;code&gt;</tt> || <tt>&lt;/code&gt;</tt>
+|-
+| d || del || del || <tt>&lt;del datetime="' + _datetime + '"&gt;</tt> || <tt>&lt;/del&gt;</tt>
+|-
+| f || fullscreen || fullscreen ||  || 
+|-
+| i || em || i || <tt>&lt;em&gt;</tt> || <tt>&lt;/em&gt;</tt>
+|-
+| l || li || li || <tt>\t&lt;li&gt;</tt> || <tt>&lt;/li&gt;\n</tt>
+|-
+| m || img || img || <tt>&lt;img src="' + src + '" alt="' + alt + '" /&gt;</tt> || 
+|-
+| o || ol || ol || <tt>&lt;ol&gt;\n</tt> || <tt>&lt;/ol&gt;\n\n</tt>
+|-
+| q || block || b-quote || <tt>\n\n&lt;blockquote&gt;</tt> || <tt>&lt;/blockquote&gt;\n\n</tt>
+|-
+| s || ins || ins || <tt>&lt;ins datetime="' + _datetime + '"&gt;</tt> || <tt>&lt;/ins&gt;</tt>
+|-
+| t || more || more || <tt>&lt;&#33;--more--&gt;</tt> || 
+|-
+| u || ul || ul || <tt>&lt;ul&gt;\n</tt> || <tt>&lt;/ul&gt;\n\n</tt>
+|-
+|  || spell || lookup ||  || 
+|-
+|  || close || close ||  || 
+|}
+
+(Alcuni dei tag qui sopra utilizzano variabili, come <tt>URL</tt> e <tt>_datetime</tt>, passate dalle funzioni.)
+
+== Log delle modifiche ==
+
+* Da: [[Version 3.3|3.3]]
+
+== File sorgente ==
+
+<tt>qt.addButton()</tt> si trova in {{Trac|wp-includes/js/quicktags.js}} e {{Trac|wp-includes/js/quicktags.min.js}}.
+
+== Risorse ==
+
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]

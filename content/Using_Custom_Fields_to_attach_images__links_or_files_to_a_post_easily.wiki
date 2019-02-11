@@ -1,0 +1,121 @@
+Custom Fields can be very helpfull for attaching content to your post or pages, for example a number of links, files or maybe an image slideshow. 
+I wrote a small PHP function to automate the creation of image, link and file arrays, and to create an array with their labels.
+
+Here's an example of its use: suppose I need to attach 5 images to a post, each with their own label.
+I could place them in the editor yourself, but using Custom Fields I could also create a nice slideshow.
+To accomplish this I need to create several Custom Fields. First we have the "image1", "image2", "image*" to "image5" keys, these will hold the image URL. This would be enough to create an array of images, but I'd like some of them to have a label too. Lets say the image with key "image2" needs the label "Second Image", I could accomplish that by adding a field called "image2_label" with the value "Second Image".
+
+In this example the function would create two PHP arrays, one called "$post_images" which contains the images, and another one "$post_images_label" which contains the labels for these images. I'll show you how to loop through these arrays later on, but you should get the point of doing this now. The list of links and files and the image slideshow is created using Custom Fields. There's an example at the bottom of the original blogpost, which you can find here: http://www.bydust.com/using-custom-fields-in-wordpress-to-attach-images-or-files-to-your-posts/
+
+The function also simplifies fetching other (non-list keys) too, by putting all of them in the "$post_var"-object. If I created a Custom Field called "myField", I could easily reach its value through $post_var["myField"]. This is shorter than the "get_post_meta()"-method mentioned above.
+
+<h2>The magic function</h2>
+Here's the function that does the trick, copy/paste this in your functions.php file so you can access it from your theme. I'd appreciate it if you would keep the author notice at the top intact ;-)
+<pre lang="php" line="1">function bd_parse_post_variables(){
+// bd_parse_post_variables function for WordPress themes by Nick Van der Vreken.
+// please refer to bydust.com/using-custom-fields-in-wordpress-to-attach-images-or-files-to-your-posts/
+// for further information or questions.
+global $post, $post_var;
+
+// fill in all types you'd like to list in an array, and
+// the label they should get if no label is defined.
+// example: each file should get label "Download" if no
+// label is set for that particular file.
+$types = array('image' => 'no info available',
+'file' => 'Download',
+'link' => 'Read more...');
+
+// this variable will contain all custom fields
+$post_var = array();
+foreach(get_post_custom($post->ID) as $k => $v) $post_var[$k] = array_shift($v);
+
+// creating the arrays
+foreach($types as $type => $message){
+global ${'post_'.$type.'s'}, ${'post_'.$type.'s_label'};
+$i = 1;
+${'post_'.$type.'s'} = array();
+${'post_'.$type.'s_label'} = array();
+while($post_var[$type.$i]){
+echo $type.$i.' - '.${$type.$i.'_label'};
+array_push(${'post_'.$type.'s'}, $post_var[$type.$i]);
+array_push(${'post_'.$type.'s_label'},  $post_var[$type.$i.'_label']?htmlspecialchars($post_var[$type.$i.'_label']):$message);
+$i++;
+}
+}
+}</pre>
+<h2>Customizing the script to your needs</h2>
+You may need to edit this function to suit your needs. It currently creates a list for files, links and images in these variables:
+<ul>
+	<li>$post_images (hold the values given to "image1", "image2", "image*")</li>
+	<li>$post_images_label (holds the values given to "image1_label", "image2_label", "image*_label". If no label is specified but an image*-key is, the label for that image will be the default label specified in the script. This goes for all _label arrays.</li>
+	<li>$post_files (holds the values given to "file1", "file2", "file*")</li>
+	<li>$post_files_label (holds the values given to "file1_label", "file2_label", "file*_label")</li>
+	<li>$post_links (holds the values given to "link1", "link2", "link*")</li>
+	<li>$post_links_label (holds the values given to "link1_label", "link2_label", "link*_label")</li>
+</ul>
+All information for these arrays is included in the $types-variable. The only thing you need to do to add a type is adding that type to the array. For example if you want to output a list of your cats names and pictures, you'd need this:
+<pre lang="php" line="1">
+// fill in all types you'd like to list in an array, and
+// the label they should get if no label is defined.
+// example: each file should get label "Download" if no
+// label is set for that particular file.
+$types = array('image' => 'no info available',
+'file' => 'Download',
+'link' => 'Read more...',
+'cat' => 'This cat has no name');</pre>
+With this example you could add Custom Keys named "cat1", "cat1_label", "cat2", "cat2_label", "cat*", "cat*_label" where the "cat*"-key would hold the cats picture, and the "cat*_label"-key would be the cats name.
+This function would create the arrays "$post_cats" and "$post_cats_label", containing each cats picture and name.
+
+<h2>Using the parsed Custom Fields in your theme</h2>
+We now have our arrays which contain the values of the Custom Fields we've set up. You can use these as regular PHP arrays, here's how I did it:
+<pre lang="php" line="1">
+
+ <!-- Start the Loop. -->
+ <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); 
+// call the function in our functions.php file
+bd_parse_post_variables(); 
+// these variables are now available:
+// $post_var
+// $post_images and $post_images_label
+// $post_links and $post_links_label
+// $post_files and $post_files_label
+?>
+
+ <!-- Display the Post's Content in a div box. -->
+ <div class="entry">
+   <?php the_content(); ?>
+ </div>
+ 
+ 
+<!-- Display our Custom Field -->
+<div class="link">
+   link1: "<?php echo $post_var['myField']; ?>"
+ </div>
+
+<!-- Display the list of links -->
+<ul>
+<?php while(count($post_files) > 0): ?>
+ <li class="file">
+<a href="<?php echo array_shift($post_files); ?>" title="Click to download this file">
+<?php echo array_shift($post_files_label); ?>
+</a>
+</li>
+<?php endwhile; ?>
+</ul>
+ 
+ <!-- Stop The Loop (but note the "else:" - see next line). -->
+ <?php endwhile; else: ?>
+
+ <!-- The very first "if" tested to see if there were any Posts to -->
+ <!-- display.  This "else" part tells what do if there weren't any. -->
+ <p>Sorry, no posts matched your criteria.</p>
+
+ <!-- REALLY stop The Loop. -->
+ <?php endif; ?>
+</pre>
+
+I hope you've found this explenation usefull. If you used my code or made changes to it to increase its function, please let me know ;-)
+
+You can find me at http://www.bydust.com. If you have comments, remarks or questions about this script, please post them at http://www.bydust.com/using-custom-fields-in-wordpress-to-attach-images-or-files-to-your-posts/
+
+[[Category:Advanced_Topics]]

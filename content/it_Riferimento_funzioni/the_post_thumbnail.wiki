@@ -1,0 +1,124 @@
+{{Languages|
+{{en|Function Reference/the_post_thumbnail}}
+{{it|Riferimento funzioni/the_post_thumbnail}}
+{{ja|テンプレートタグ/the_post_thumbnail}}
+{{mk|Функција: the_post_thumbnail}}
+}}
+
+== Descrizione ==
+
+Mostra l'[[it:Immagini in evidenza|immagine in evidenza]] del post corrente che gli è stata associata nella sua pagina di modifica.
+
+Questa funzione deve essere usata all'interno del [[it:Il_Loop|loop]]. Si usi <code>[[it:Riferimento funzioni/get_the_post_thumbnail|get_the_post_thumbnail]]( $id, $size, $attr )</code> se si vuole recuperare l'immagine in evidenza di qualunque post.
+
+Per abilitare le immagini in evidenza, o miniature del post, il tema corrente deve includere <code>[[Function Reference/add theme support|add_theme_support]]( 'post-thumbnails' );</code> nel suo file <tt>[[Theme_Development#Functions_File|functions.php]]</tt>. Si veda anche [[it:Immagini in evidenza|Immagini in evidenza]].
+
+== Utilizzo ==
+
+%%% <?php the_post_thumbnail( $size, $attr ); ?> %%%
+
+== Parametri ==
+
+{{it:Parameter|$size|string/array|Dimensione dell'immagine. Può essere una stringa con parola chiave (thumbnail, medium, large, full), oppure qualunque parola chiave definita da [[it:Riferimento funzioni/add image size|add_image_size()]], oppure un array con due elementi che rappresentano larghezza e altzza in pixel, es. array(32,32).|opzionale|'post-thumbnail', che il tema imposta usando [[it:Riferimento funzioni/set_post_thumbnail_size|set_post_thumbnail_size]]. }}
+
+{{it:Parameter|$attr|array|Array di coppie attributo/valore. Per i dettagli, si cerchi il codice sorgente della funzione su cui si basa <code>the_post_thumbnail</code>: <code>[[it:Riferimento funzioni/wp_get_attachment_image|wp_get_attachment_image()]]</code>|opzionale}}
+<pre>
+$default_attr = array(
+	'src'	=> $src,
+	'class'	=> "attachment-$size",
+	'alt'	=> trim(strip_tags( $wp_postmeta->_wp_attachment_image_alt )),
+);
+</pre>
+
+== Esempi ==
+
+=== Utilizzo standard ===
+
+ <?php 
+ if ( has_post_thumbnail() ) { // controlla se il post ha un'immagine in evidenza assegnata.
+   the_post_thumbnail();
+ } 
+ ?>
+ <?php the_content(); ?>
+
+'''Nota:''' Per restituire la miniatura in modo da usarla nel proprio codice PHP invece di stamparla a video, si usi: [[it:Riferimento funzioni/get_the_post_thumbnail|get_the_post_thumbnail()]]
+
+=== Dimensioni delle miniature  ===
+
+Le dimensioni predefinite delle immagini di WordPress sono "thumbnail", "medium", "large" e "full" (la dimensione dell'immagine così come caricata). Queste dimensioni possono essere configurate nel pannello di amministrazione [[Settings Media SubPanel|Media]] in Impostazioni > Media. Le dimensioni predefinite possono essere usate con [[it:Riferimento funzioni/get_the_post_thumbnail|get_the_post_thumbnail()]] nei seguenti modi:
+
+ get_the_post_thumbnail($post_id);                  // senza parametro -> miniatura
+ 
+ get_the_post_thumbnail($post_id, 'thumbnail');     // miniatura
+ get_the_post_thumbnail($post_id, 'medium');        // risoluzione media
+ get_the_post_thumbnail($post_id, 'large');         // risoluzione grande
+ get_the_post_thumbnail($post_id, 'full');          // risoluzione originale
+ 
+ get_the_post_thumbnail($post_id, array(100,100) ); // altre risoluzioni
+
+Si possono registrare nuove dimensioni per le immagini in evidenza con: [[it:Riferimento_funzioni/add_image_size|add_image_size()]].<br />Per impostarne la dimensione predefinita si veda: [[it:Riferimento_funzioni/set_post_thumbnail_size|set_post_thumbnail_size()]].
+
+=== Miniature con collegamento al permalink del post ===
+
+Questo esempio mostra le ultime 5 immagini in evidenza con il collegamento al permalink del rispettivo post.
+
+<pre><?php 
+  $thumbnails = get_posts('numberposts=5');
+  foreach ($thumbnails as $thumbnail) {
+    if ( has_post_thumbnail($thumbnail->ID)) {
+      echo '<a href="' . get_permalink( $thumbnail->ID ) . '" title="' . esc_attr( $thumbnail->post_title ) . '">';
+      echo get_the_post_thumbnail($thumbnail->ID, 'thumbnail');
+      echo '</a>';
+    }
+  }
+?></pre>
+
+=== Miniatura con collegamento all'immagine di dimensione grande ===
+
+Questo esempio crea un collegamento all'immagine di dimensione grande e deve essere usato all'interno del [[it:Il_Loop|loop]].
+
+<pre><?php 
+ if ( has_post_thumbnail()) {
+   $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($post->ID), 'large');
+   echo '<a href="' . $large_image_url[0] . '" title="' . the_title_attribute('echo=0') . '" >';
+   echo get_the_post_thumbnail($post->ID, 'thumbnail'); 
+   echo '</a>';
+ }
+?></pre>
+
+=== Dare stile alle immagini in evidenza ===
+
+Le immagini in evidenza hanno una classe di stile "wp-post-image". Hanno anche una classe che dipende dalla dimensione in cui sono mostrate. Per dare uno stile all'output si possono usare questi [[it:Glossario#CSS|selettori CSS]]:
+
+ img.wp-post-image
+ img.attachment-thumbnail
+ img.attachment-medium
+ img.attachment-large
+ img.attachment-full
+
+Si può anche assegnare alle miniature la propria classe. In questo esempio, viene assegnata la classe "alignleft".
+
+<pre><?php echo get_the_post_thumbnail($post_id, 'thumbnail', array('class' => 'alignleft')); ?></pre>
+
+== Log delle modifiche ==
+
+* Da: [[Version 2.9|2.9.0]]
+
+== File sorgente ==
+
+<tt>the_post_thumbnail()</tt> si trova in {{Trac|wp-includes/post-thumbnail-template.php}}.
+
+== Risorse esterne ==
+
+* [http://justintadlock.com/archives/2009/11/16/everything-you-need-to-know-about-wordpress-2-9s-post-image-feature Tutto ciò che è necessario conoscere sulle immagini in evidenza di WordPress 2.9], di JustintAdlock.com (in inglese)
+* [http://wpengineer.com/the-ultimative-guide-for-the_post_thumbnail-in-wordpress-2-9/ La guida definitiva per the_post_thumbnail in WordPress 2.9], di wpEngineer.com (in inglese)
+* [http://markjaquith.wordpress.com/2009/12/23/new-in-wordpress-2-9-post-thumbnail-images/ Novità in WordPress 2.9: Le miniature dei post], di Mark Jaquith (in inglese)
+* [http://www.prelovac.com/vladimir/simple-wordpress-thumbnail-function semplice funzione WordPress per le miniature], di Vladimir Prelovac (in inglese)
+
+== Correlati ==
+
+{{it:Post Thumbnail Tags}}
+
+{{it:Tag Footer}}
+
+[[Category:Template Tags]]

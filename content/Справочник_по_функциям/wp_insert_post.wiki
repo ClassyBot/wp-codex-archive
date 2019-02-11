@@ -1,0 +1,117 @@
+{{Languages|
+{{en|Function Reference/wp insert post}}
+{{ru|Справочник по функциям/wp insert post}}
+}}
+== Описание ==
+Эта функция создает записи (и страницы) в базе данных. Она очищает переменные, делает некоторые проверки, заполняет недостающие переменные, такие как дата/время, и тп. Она берет объект в качестве аргумента и возвращает значение post ID созданной записи (или <tt>0</tt> если обнаружены ошибки).
+
+== Параметры ==
+{{Parameter|$post|object|Объект, представляющий элементы, которые создают запись.Сходство между этими элементами и именами столбцов в wp_posts таблице в базе данных один к одному.}}
+
+'''ВАЖНО''': Установленное значение для $post['ID'] НЕ БУДЕТ создавать запись с этим ID номером. Установка этого значения вызовет функцию для обновления записи с этим ID номером с другими значениями, указанными в $post. Короче говоря, чтобы создать новую запись, параметр $post['ID'] должен быть пустым или вообще не установлен. 
+
+Содержание массива записи может зависеть от того, как много (или мало) параметров вы хотите оставить по умолчанию. Вот список с кратким описанием всех ключей, которые можно установить для записи:
+<pre>
+$post = array(
+  'ID' => [ <post id> ] //ID записи в случае её редактирования.
+  'menu_order' => [ <order> ] //Если создаём страницу, то здесь устанавливаем порядок её отображения.
+  'comment_status' => [ 'closed' | 'open' ] //'closed' - комментирование закрыто.
+  'ping_status' => [ 'closed' | 'open' ] //'closed' - отключает pingbacks или trackbacks
+  'pinged' => [ ? ] //?
+  'post_author' => [ <user ID> ] //ID автора поста.
+  'post_category' => [ array(<category id>, <...>) ] //Добавление ID категорий.
+  'post_content' => [ <the text of the post> ] //Полный текст поста.
+  'post_date' => [ Y-m-d H:i:s ] //Дата создания поста.
+  'post_date_gmt' => [ Y-m-d H:i:s ] //Дата создания поста по Гринвичу.
+  'post_excerpt' => [ <an excerpt> ] //Для ваших цитат из поста.
+  'post_name' => [ <the name> ] //Имя (slug) вашего поста.
+  'post_parent' => [ <post ID> ] //Установить родителя поста.
+  'post_password' => [ ? ] //Пароль для поста.
+  'post_status' => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' ] //Статус для нового поста.
+  'post_title' => [ <the title> ] //Название вашего поста.
+  'post_type' => [ 'post' | 'page' | 'link' | 'nav_menu_item' | custom post type ] //Тип поста: статья, страница, ссылка, пункт меню, иной тип.
+  'tags_input' => [ '<tag>, <tag>, <...>' ] //Для тэгов.
+  'to_ping' => [ ? ] //?
+  'tax_input' => [ array( 'taxonomy_name' => array( 'term', 'term2', 'term3' ) ) ] //Поддержка пользовательской таксономии.
+);  
+</pre>
+
+'''Примечание''': Ключ '''page_template''' был удален из таблицы параметра $post и теперь находится в таблице wp_postmeta. Чтобы настроить шаблон записи, используйте функцию [[Function Reference/update_post_meta|update_post_meta]] совместно с ключом  '''_wp_page_template'''.
+
+'''Примечание 2''': Ключ '''post_status''' описан в [[Post Status Transitions]].
+
+'''Примечание 3''': Если вы указываете post_status со значением 'future', то вы должны указать post_date для того, чтобы WordPress знал, когда опубликовывать вашу запись.
+
+{{Parameter|$wp_error|bool|Разрешает возвращение объекта [[Class Reference/WP_Error|WP_Error]] в случае возникновения ошибки|optional|false}}
+
+==Возвращаемые значения==
+Возвращает ID записи, если запись была успешно добавлена в базу данных. В случае неудачи, возвращает <tt>0</tt>, если значением $wp_error является FALSE, или же возвращает объект [[Class Reference/WP_Error|WP_Error]], если $wp_error равно TRUE.
+
+==Использование==
+%%% <?php wp_insert_post( $post, $wp_error ); ?> %%%
+
+==Примеры==
+Перед вызовом wp_insert_post() необходимо создать массив, чтобы передать необходимые элементы, которые будут формировать запись. Обязательно надо указать название (post_title) и содержимое (post_content) записи, иначе запись не будет создана.
+
+Пользователь может предоставить больше элементов, чем перечислено здесь. Для этого надо определить новые ключи в базе данных. Ключи должны совпадать с именами столбцов таблицы wp_posts базы данных.
+<pre>
+// Создаём объект записи
+  $my_post = array(
+     'post_title' => 'Название записи',
+     'post_content' => 'А вот и текст. Ура, товарищи!',
+     'post_status' => 'publish',
+     'post_author' => 1,
+     'post_category' => array(8,39)
+  );
+
+// Вставляем запись в базу данных
+  wp_insert_post( $my_post );
+</pre>
+
+Список по умолчанию определён в теле функции и выглядит так:
+<pre>
+$defaults = array(
+'post_status' => 'draft', 
+'post_type' => 'post',
+'post_author' => $user_ID,
+'ping_status' => get_option('default_ping_status'), 
+'post_parent' => 0,
+'menu_order' => 0,
+'to_ping' =>  '',
+'pinged' => '',
+'post_password' => '',
+'guid' => '',
+'post_content_filtered' => '',
+'post_excerpt' => '',
+'import_id' => 0);
+</pre>
+
+===Категории===
+Категории должны быть переданы в виде массива целых чисел, которые соответствуют ID категорий в базе данных, даже в том случае, когда пост сопоставляется только одной категории.
+
+Смотрите также: [[Function_Reference/wp_set_post_terms|wp_set_post_terms()]]
+
+==Безопасность==
+
+<tt>wp_insert_post()</tt> передает данные через функцию sanitize_post(), которая сама по себе производит всю необходимую обработку и проверку на безопасность (kses и т.д.).
+
+Таким образом, вам не нужно беспокоиться об этом.
+
+== Исходные файлы ==
+<!-- Ссылка на текущий исходный файл кода -->
+<tt>wp_insert_post()</tt> расположена в {{Trac|wp-includes/post.php}}.
+
+==Related==
+[[Function Reference/wp update post|wp_update_post()]], 
+[[Function Reference/wp delete post|wp_delete_post()]], 
+[[Function Reference/wp publish post|wp_publish_post()]], 
+[[Function Reference/wp delete attachment|wp_delete_attachment()]],
+[[Function Reference/wp get attachment url|wp_get_attachment_url()]],
+[[Function Reference/wp insert attachment|wp_insert_attachment()]],
+[[Plugin API/Filter Reference/wp insert post data|wp_insert_post_data()]]
+
+{{Tag Footer}}
+{{Copyedit}}
+
+[[Category:Functions]]
+[[Category:New page created]]

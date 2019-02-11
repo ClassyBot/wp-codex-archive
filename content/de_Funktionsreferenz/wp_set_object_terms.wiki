@@ -1,0 +1,104 @@
+{{Languages|
+{{en|Function Reference/wp set object terms}}
+{{de|Funktionsreferenz/wp set object terms}}
+{{it|Riferimento_funzioni/wp set object terms}}
+{{ja|関数リファレンス/wp set object terms}}
+}}
+
+
+== Beschreibung ==
+Weist einem Objekt (Seite (page), Beitrag (post), Custom Post Types usw) einen Term (Kategorie, Schlagwort, Custom Taxonomy Term) zu.
+Wenn es den Term nicht gibt, wird dieser erstellt.
+
+== Verwendung ==
+
+%%%<?php wp_set_object_terms( $object_id, $terms, $taxonomy, $append ); ?>%%%
+
+== Parameter ==
+
+{{Parameter|$object_id|int| Das Objekt, das mit dem Term verknüpft werden soll, zb Post ID.}}
+{{Parameter|$terms|array/int/string|ID oder Slug des Terms (Kategorie oder Tag IDs). Wenn der Parameter $append nicht auf true gesetzt wird, dann '''werden alle bestehenden Terms''' mit diesem hier ersetzt. Sollen alle Terms des Objektes gelöscht werden, dann muss hier ein leerer String oder NULL übergeben werden. Integers werden als Term IDs angesehen. '''Warnung:''' Manche Funktionen in deinem Code geben term_ids als einen '''String''' zurück. Strings werden als Slug angesehen, nicht als Term ID!  }}
+{{Parameter|$taxonomy|array/string| Die Taxonomie, mit der das Ojekt verknüpft werden soll. In Fragen kommen alle Custom Taxonomies oder die eingebauten Taxonomien "post_tag", "category", "post_format".. }}
+{{Parameter|$append|bool| Wenn der Wert auf "true" gesetzt wird, dann werden die übergebenen Terms an die bestehenden angehängt. Sonst werden die bestehenden Terms des Objektes ersetzt.|optional|False}}
+
+
+== Rückgabewerte ==
+
+; (mixed) :
+
+* (array) Ein Array der Terms die dem Objekt zugewiesen wurden. '''Achtung''', das Array besteht aus '''term_taxonomy_ids''' und nicht aus '''term_ids''',
+* ([[Class Reference/WP_Error|WP_Error]]) Ein WordPress Error Ojekt, bei ungültiger Taxonomie (<tt>'invalid_taxonomy'</tt>).
+* (string) Wenn ein falscher Slug beim $terms Parameter übergeben wurde, dann wird der erste Term zurückgegeben. (Wenn eine Term ID ein String ist, dann wird das Term aber ganz normal gespeichert!)
+
+
+== Hooks ==
+*Action '''set_object_terms''' in {{Trac|wp-includes/taxonomy.php}}
+
+== Beispiele == 
+
+=== Gib einem Post eine Kategorie ===
+
+Hier wird dem Post mit der ID 42 die Kategorien mit der ID 6 und 8 zugewiesen.
+
+
+<pre>
+<?php
+
+// Array der Kategorie IDs, welche dem Post zugewiesen werden.
+$cat_ids = array( 6, 8 );
+
+/*
+ * Wir sollten sicherstellen, dass die IDs eh Integers sind und nicht Strings. Dies ginge hiermit:
+
+
+$cat_ids = array_map( 'intval', $cat_ids );
+$cat_ids = array_unique( $cat_ids );
+
+ */
+
+$term_taxonomy_ids = wp_set_object_terms( 42, $cat_ids, 'category' );
+
+if ( is_wp_error( $term_taxonomy_ids ) ) {
+	// Es gab ein Problem, die Kategorien konnten nicht mit dem Objekt verknüpft werden.
+} else {
+	// Perfekt! Alle Kategorien wurden zum Post Objekt gespeichert
+}
+</pre>
+
+Hinweis: Mit diesem Code hat der bearbeitete Post genau die Kategorien mit der ID 6 und 8. Alle anderen, vorher zugewiesen, bisherigen Kategorien gehen dadurch verloren! Will man das verhinden, muss $append auf "true" gesetzt werden.
+
+
+=== Alle Kategorien eines Posts löschen ===
+
+Will man alle Kategorien eines Posts entfernen, muss man nur NULL oder einen leeren Wert für <tt>$terms</tt> übergeben
+
+<pre>
+<?php wp_set_object_terms( 42, null, 'category' ); ?>
+</pre>
+
+== Anmerkung ==
+*Die Funktion [[Function_Reference/wp_set_post_terms|wp_set_object_terms()]] überprüft nicht, ob der Term in einer Taxonomie ist, die dem Objekt zugewiesen wurde. Aka ob der Term überhaupt mit dem Objekt verknüpft werden darf. ( [http://www.wp-entwickler.at/vorsicht-beim-setzen-von-terms-mit-wp-set-object-terms/ Ausführlichere Informationen zu diesem Problem ] )
+
+*[[Function_Reference/wp_set_post_terms|wp_set_post_terms()]] könnte für viele Zwecke hilfreicher sein, weil diese Funktion mehrere Überprüfungen vornimmt, ZB Umwandeln von kommagetrennten Taxonomien, umwandeln von Elternterms in Integerwerte uvm.
+
+*Bitte berücksichtigen, dass der Rückgabewerte ein Array ist, dass aus '''term_taxonomy_ids''' besteht. Annehmen könnte man, dass term_ids zurückkomen, dies ist aber falsch.
+
+* Verwendet wp_get_object_terms, taxonomy_exists, term_exists, wp_insert_term, get_taxonomy,
+
+== Änderungsprotokoll ==
+
+Seit: [[Version 2.3.0|2.3.0]]
+
+== Quelltext ==
+
+<tt>wp_set_object_terms()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== Ähnlich ==
+* <tt>[[Function_Reference/wp_remove_object_terms| wp_remove_object_terms()]]</tt>
+
+{{Term Tags}}
+
+{{Tag Footer}}
+
+[[Category:de:Functions]]
+[[Category:German_Codex]]

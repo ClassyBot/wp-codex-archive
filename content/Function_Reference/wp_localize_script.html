@@ -1,0 +1,153 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Example"><span class="tocnumber">4</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Notes"><span class="tocnumber">5</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Resources"><span class="tocnumber">7</span> <span class="toctext">Resources</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_localize_script&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Localizes a registered script with data for a JavaScript variable. 
+</p><p>This lets you offer properly localized translations of any strings used in your script. This is necessary because WordPress currently only offers a <a href="https://codex.wordpress.org/L10n" title="L10n">localization API in PHP</a>, not directly in JavaScript (but see ticket <a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/ticket/20491">#20491</a>).
+</p><p>Though localization is the primary use, it can be used to make any data available to your script that you can normally only get from the server side of WordPress.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_localize_script&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+&#160;<span style="color: #0000BB">&lt;?php&#160;wp_localize_script</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$handle</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$name</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$data&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>&#160;</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_localize_script&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$handle</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The registered script handle you are attaching the data for.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$name</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The name of the variable which will contain the data. Note that this should be unique to both the script and to the plugin or theme. Thus, the value here should be properly prefixed with the slug or another unique value, to prevent conflicts. However, as this is a JavaScript object name, it cannot contain dashes. Use underscores or camelCasing.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$data</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>required</i>) The data itself. The data can be either a single- or multi- (as of 3.3) dimensional array. Like <tt><a rel="nofollow" class="external text" href="http://php.net/json_encode">json_encode()</a></tt>, the data will be a JavaScript object if the array is an associate array (a map), otherwise the array will be a JavaScript array.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_localize_script&amp;action=edit&amp;section=4" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+&lt;?php
+
+// Register the script
+wp_register_script( 'some_handle', 'path/to/myscript.js' );
+
+// Localize the script with new data
+$translation_array = array(
+	'some_string' =&gt; __( 'Some string to translate', 'plugin-domain' ),
+	'a_value' =&gt; '10'
+);
+wp_localize_script( 'some_handle', 'object_name', $translation_array );
+
+// Enqueued script with localized data.
+wp_enqueue_script( 'some_handle' );
+</pre>
+<p>You can access the variables in JavaScript as follows:
+</p>
+<pre>
+&lt;script&gt;
+// alerts 'Some string to translate'
+alert( object_name.some_string);
+&lt;/script&gt; 
+</pre>
+<p><b>Note:</b> The data in the resulting JavaScript call will be passed as text (see ticket <a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/ticket/25280">#25280</a>).  If you are trying to pass integers you will need to call the JavaScript <tt><a rel="nofollow" class="external text" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt">parseInt()</a></tt> function.
+</p>
+<pre>
+&lt;script&gt;
+// Call a function that needs an int.
+FinalZoom = map.getBoundsZoomLevel( bounds ) - parseInt( object_name.a_value, 10 ); 
+&lt;/script&gt;
+</pre>
+<hr />
+<p>Another example in case you need the plugins URL, which might be handy:<br />
+</p>
+<b>PHP:</b><pre>
+wp_enqueue_script('my-script', get_stylesheet_directory_uri() . '/js/my-script.js');
+wp_localize_script('my-script', 'myScript', array(
+    'pluginsUrl' =&gt; plugins_url(),
+));
+</pre>
+<p>Now you will have access to myScript.pluginsUrl in your script file:<br />
+</p>
+<b>Javascript:</b><pre>
+var href = myScript.pluginsUrl + '/path/to/resource';
+</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_localize_script&amp;action=edit&amp;section=5" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>IMPORTANT!</b> <tt>wp_localize_script()</tt> MUST be called <i>after</i> the script has been registered using <tt><a href="https://codex.wordpress.org/Function_Reference/wp_register_script" title="Function Reference/wp register script"> wp_register_script()</a></tt> or <tt><a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script" title="Function Reference/wp enqueue script"> wp_enqueue_script()</a></tt>.
+</p><p>Furthermore, the actual output of the JavaScript <code>&lt;script&gt;</code> tag containing your localization variable occurs <i>at the time that the enqueued script is printed (output/included on the page)</i>. This has some significant repercussions if you enqueue your script as you should using the appropriate actions (<tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_enqueue_scripts" title="Plugin API/Action Reference/wp enqueue scripts">wp_enqueue_scripts</a></tt> and <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts" title="Plugin API/Action Reference/admin enqueue scripts">admin_enqueue_scripts</a></tt>), but wish to localize later using data that is not available at enqueue time.
+</p><p>In this case, consider enqueueing your script with the <tt>in_footer</tt> argument set to <tt>true</tt>, to delay the printing of your script include until much later in the page build (ie: <code>wp_enqueue_script( $slug, $URL, $deps, $ver, true ); </code>). The last chance to localize your script would then be on the <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_print_footer_scripts" title="Plugin API/Action Reference/wp print footer scripts"> 'wp_print_footer_scripts'</a></tt> hook.
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_localize_script&amp;action=edit&amp;section=6" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>wp_localize_script()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/functions.wp-scripts.php#L0">wp-includes/functions.wp-scripts.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_localize_script&amp;action=edit&amp;section=7" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li><a rel="nofollow" class="external text" href="http://pippinsplugins.com/use-wp_localize_script-it-is-awesome/">Use wp_localize_script, It Is Awesome</a></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_localize_script&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>Enqueue Styles</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/wp_register_style" title="Function Reference/wp register style">wp_register_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_deregister_style" title="Function Reference/wp deregister style">wp_deregister_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_style" title="Function Reference/wp enqueue style">wp_enqueue_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_dequeue_style" title="Function Reference/wp dequeue style">wp_dequeue_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_add_inline_style" title="Function Reference/wp add inline style">wp_add_inline_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_style_is" title="Function Reference/wp style is">wp_style_is()</a></li></ul>
+<p><b>Enqueue Scripts</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/wp_register_script" title="Function Reference/wp register script">wp_register_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_deregister_script" title="Function Reference/wp deregister script">wp_deregister_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script" title="Function Reference/wp enqueue script">wp_enqueue_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_dequeue_script" title="Function Reference/wp dequeue script">wp_dequeue_script()</a></li>
+<li> <a rel="nofollow" class="external text" href="https://developer.wordpress.org/reference/functions/wp_add_inline_script/">wp_add_inline_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_script_is" title="Function Reference/wp script is">wp_script_is()</a></li>
+<li> <strong class="selflink">wp_localize_script()</strong></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_media" title="Function Reference/wp enqueue media">wp_enqueue_media()</a></li></ul>
+<p><b>Front-End Hooks</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_enqueue_scripts" title="Plugin API/Action Reference/wp enqueue scripts">wp_enqueue_scripts</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_print_scripts" title="Plugin API/Action Reference/wp print scripts">wp_print_scripts</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_print_styles" title="Plugin API/Action Reference/wp print styles">wp_print_styles</a></li></ul>
+<p><b>Admin Hooks</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts" title="Plugin API/Action Reference/admin enqueue scripts">admin_enqueue_scripts</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_print_scripts" title="Plugin API/Action Reference/admin print scripts">admin_print_scripts</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_print_styles" title="Plugin API/Action Reference/admin print styles">admin_print_styles</a></li></ul>
+<p><b>Login Hooks</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/login_enqueue_scripts" title="Plugin API/Action Reference/login enqueue scripts">login_enqueue_scripts</a></li></ul>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Function_Reference/wp_localize_script&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004004
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.028 seconds
+Real time usage: 0.250 seconds
+Preprocessor visited node count: 183/1000000
+Preprocessor generated node count: 548/1000000
+Post‐expand include size: 5705/2097152 bytes
+Template argument size: 1181/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   96.252      1 - -total
+ 36.71%   35.338      1 - Template:Enqueue_Functions_Related
+ 33.57%   32.311      1 - Template:Tag_Footer
+ 13.99%   13.466      1 - Template:Copyedit
+ 12.01%   11.559      1 - Template:Trac
+  9.31%    8.963      2 - Template:Message
+  8.73%    8.402      1 - Template:CurrentVersion
+  2.57%    2.470      3 - Template:Parameter
+  1.45%    1.400      1 - Template:Enqueue_Functions
+  1.30%    1.249      1 - Template:Enqueue_Actions
+-->

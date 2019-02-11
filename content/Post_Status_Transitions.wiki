@@ -1,0 +1,95 @@
+{{Languages|
+{{en|Post_Status_Transitions}}
+{{ja|Post_Status_Transitions}}
+}}
+
+__TOC__[[Version 2.3|WordPress 2.3]] introduced some new actions that plugins can use to hook into post status transitions. Prior to Version 2.3, WordPress had a <tt>private_to_published</tt> (deprecated) action that only announced when a post transitioned from private to published. As of Version 2.3, there are actions for every possible transition.
+
+There are three kinds of post status transition action hooks:
+
+* <tt>[[Plugin API/Action Reference/transition_post_status|transition_post_status ]]</tt>
+* <tt>{old_status}_to_{new_status}</tt>
+* <tt>{status}_{post_type}</tt>
+
+All three actions are called by <tt>[[Function_Reference/wp_transition_post_status|wp_transition_post_status()]]</tt> in {{Trac|wp-includes/post.php}}.
+
+The available post statuses are:
+
+* <tt>new</tt> – When there’s no previous status (this means these hooks are always run whenever "save_post" runs.
+* <tt>publish</tt> – A published post or page.
+* <tt>pending</tt> – A post pending review.
+* <tt>draft</tt> – A post in draft status.
+* <tt>auto-draft</tt> – A newly created post with no content.
+* <tt>future</tt> – A post scheduled to publish in the future.
+* <tt>private</tt> – Not visible to users who are not logged in.
+* <tt>inherit</tt> – A revision or attachment (see [[Function Reference/get_children|get_children()]]).
+* <tt>trash</tt> – Post is in the trash (added with [[Version 2.9]]).
+
+===transition_post_status Hook===
+
+<tt>[[Plugin API/Action Reference/transition_post_status|transition_post_status]]</tt> is a generic action that is called every time a post changes status. When [[Function Reference/do_action|do_action()]] is called for <tt>transition_post_status</tt>, three arguments are passed to it: <tt>$new_status</tt>, <tt>$old_status</tt> and the <tt>$post</tt> object. Therefore, these are also available to be used in the callback function. In the <tt>[[Function Reference/add_action|add_action()]]</tt> call, the action priority may be set between 0 and 20 (default is 10) and it is necessary to specify the number of arguments <tt>do_action()</tt> should pass to the callback function.
+
+<pre>function on_all_status_transitions( $new_status, $old_status, $post ) {
+    if ( $new_status != $old_status ) {
+        // A function to perform actions any time any post changes status.
+    }
+}
+add_action(  'transition_post_status',  'on_all_status_transitions', 10, 3 );</pre>
+
+<pre>function post_unpublished( $new_status, $old_status, $post ) {
+    if ( $old_status == 'publish'  &&  $new_status != 'publish' ) {
+        // A function to perform actions when a post status changes from publish to any non-public status.
+    }
+}
+add_action( 'transition_post_status', 'post_unpublished', 10, 3 );</pre>
+
+Don’t confuse the <tt>transition_post_status</tt> action hook with the <tt>[[Function_Reference/wp_transition_post_status|wp_transition_post_status()]]</tt> function or the private function <tt>[[Function_Reference/_transition_post_status|_transition_post_status()]]</tt>. The function <tt>wp_transition_post_status()</tt> is used to call the post status transition actions and can be found in {{Trac|wp-includes/post.php}}. This function would be useful if your plugin directly modifies the database, thereby bypassing the usual post status transition action hooks. If you want to transition the status of a post, rather than perform actions when a post status is transitioned, use [[Function_Reference/wp_update_post|wp_update_post()]] or [[Function_Reference/wp_publish_post|wp_publish_post()]].
+
+==={old_status}_to_{new_status} Hook===
+
+An <tt>{old_status}_to_{new_status}</tt> action will execute when a post transitions from <tt>{old_status}</tt> to <tt>{new_status}</tt>. The action is accompanied by the <tt>$post</tt> object. In the <tt>[[Function Reference/add_action|add_action()]]</tt> function call, the action priority may be set between 0 and 20 (default is 10) and it is necessary to specify the number of arguments <tt>do_action()</tt> should pass to the callback function.
+
+<pre>function on_publish_pending_post( $post ) {
+    // A function to perform when a pending post is published.
+}
+add_action(  'pending_to_publish',  'on_publish_pending_post', 10, 1 );</pre>
+
+==={status}_{post_type} Hook===
+
+A <tt>{status}_{post_type}</tt> action will execute when a post of type <tt>{post_type}</tt> transitions to <tt>{status}</tt> from any other status. For example, when a post is published, a <tt>publish_post</tt> action is triggered. The action is accompanied by the post ID and <tt>$post</tt> object. Default values for [[Post_Types|post type]] are ''post'', ''page'', ''attachment'', ''revision'', ''navigation''. Additionally, custom post types may also be used.
+
+<pre>function on_post_publish( $ID, $post ) {
+    // A function to perform actions when a post is published.
+}
+add_action(  'publish_post',  'on_post_publish', 10, 2 );</pre>
+
+<pre>function on_post_scheduled( $ID, $post ) {
+    // A function to perform actions when a post is scheduled to be published.
+}
+add_action(  'future_post',  'on_post_scheduled', 10, 2 );</pre>
+
+===Not Deprecated Hooks===
+
+The <tt>publish_post</tt> and <tt>publish_page</tt> actions had been identified as deprecated on the [[Plugin_API/Action_Reference|Action Reference]] page and the [[Plugin_API/Action_Reference/publish_post|publish_post]] and [[Plugin_API/Action_Reference/publish_page|publish_page]] action pages. '''This was not correct.''' Prior to [[Version 2.3|WordPress 2.3]], the callback function for <tt>publish_post</tt> took only the post ID as an argument and no other arguments were passed to the action by default. Since Version 2.3, both the post ID and the <tt>$post</tt> object are passed to the action and the <tt>add_action()</tt> call should specify the action priority and the number of arguments the action accepts. If called correctly, <tt>publish_post</tt> and <tt>publish_page</tt> are still legitimate action hooks.
+
+===Deprecated Hooks===
+
+<tt>private_to_published</tt> is deprecated but may be replaced with <tt>private_to_publish</tt>.
+
+<tt>publish_future_post</tt> is deprecated but may be replaced with <tt>future_to_publish</tt>.
+
+==Related==
+[[Plugin API/Action Reference/transition_post_status|transition_post_status ]]<br />
+[[Function_Reference/wp_transition_post_status|wp_transition_post_status()]]<br />
+[[Plugin_API/Action_Reference/publish_post|publish_post]]<br />
+[[Plugin_API/Action_Reference/publish_page|publish_page]]<br />
+[[Post_Types|Post Types]]<br />
+[[Function_Reference/add_action|add_action()]]<br />
+[[Function_Reference/wp_update_post|wp_update_post()]]<br />
+[[Function_Reference/wp_publish_post|wp_publish_post()]]
+
+==Source File==
+
+See <tt>wp_transition_post_status()</tt> in {{Trac|wp-includes/post.php}}.
+
+[[Category:Advanced Topics]]

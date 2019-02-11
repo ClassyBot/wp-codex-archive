@@ -1,0 +1,259 @@
+{{es:Stub}}
+{{Languages|
+{{en|Changing File Permissions}}
+{{es|Modificar los permisos de ficheros}}
+{{fr|Modifier_les_Permissions_sur_les_Fichiers}}
+{{pt-br|Mudando Permissões de Arquivos}}
+{{ja|ファイルパーミッションの変更}}
+{{zh-cn|更改文件权限}}
+}}
+
+__TOC__
+En los sitemas de computación, los distintos ficheros y directorios pooseen <strong>permisos</strong> que especifican quien y que puede leer, escribir, modificar y accederlos. Esto es importante puesto que WordPress puede necesitar accesoo de escritura a ficheros en tu directorio <code>wp-content</code> para activar ciertas funcionalidades. 
+
+== Modalidades de permisos ==
+
+<pre style="font-size:1.1em;font-weight:bold;border:1px solid #80C9FF;background-color:#BFE4FF;width:45%;color:#000;padding:.5em;">
+  7        5      5
+(user) (group) (world)
+usuario grupo   mundo
+ r+w+x   r+x     r+x
+ 4+2+1   4+2+1   4+2+1  = 755
+</pre>
+
+El modo de permisos se computa sumando los valores para el usuario el grupo de ficheros y para el resto de lso demás. Este diagrama muestra como.
+* '''R'''ead    4  - Permitido leer ficheros/leer directorio
+* '''W'''rite   2  - Permitido escribir/modificar ficheros/directorios
+*  e'''X'''ecute1  - Leer/escribir/eliminar/modificar/usar de directorio en el path
+
+<pre style="font-size:1.1em;font-weight:bold;border:1px solid #80FF80;background-color:#BFFFBF;width:45%;color:#000;padding:.5em;">
+  7       4      4
+(user) (group) (world)
+usuario grupo   mundo
+ r+w+x    r      r
+ 4+2+1  4+0+0  4+0+0  = 744
+</pre>
+
+=== Ejemplo de modos de permisos ===
+{|
+|-  style="width:99%; margin:0 auto;" border="0" cellpadding="3" cellspacing="1" align="center" bgcolor="#eee" color="000" border="1"
+! '''Modo''' !! '''Cadena perms.''' !! '''Explicación'''
+|-
+| '''0477''' ||-r--rwxrwx||el propietario solo puede leer (4), los otros y el grupo tienen acceso total rwx (7)
+|-
+| '''0677''' || -rw-rwxrwx||el propietario tiene sólamente lectura y escritura rw (6), los otros y el grupo tienen acceso total rwx (7)
+|-
+| '''0444''' || -r--r--r--||todos pueden sólamente leer (4)
+|-
+| '''0666''' || -rw-rw-rw-||todos pueden sólamente leer y escribir rw (6)
+|-
+| '''0400''' || -r--------||el propietario tiene solo lectura(4), los otros y el grupo no tienen permiso(0)
+|-
+| '''0600''' || -rw-------||el propietario tiene sólamente lectura y escritura rw, los otros y el grupo no tienen permiso(0)
+|-
+| '''0470''' || -r--rwx---||el propietario tiene sólamente lectura, el grupo tiene acceso total rwx, los otros no tienen permiso
+|-
+| '''0407''' || -r-----rwx||el propietario tiene sólamente lectura, los otros tienen acceso total rwx, el grupo no tiene permiso
+|-
+| '''0670''' || -rw-rwx---||el propietario tiene sólamente lectura y escritura rw, el grupo tiene acceso total rwx, los otros no tienen permiso
+|-
+| '''0607''' || -rw----rwx||el propietario tiene sólamente lectura y escritura rw, el grupo no tienen permiso y los otros tienen acceso total rwx
+|+Mirar la lista complreta en [http://www.askapache.com/security/chmod-stat.html#chmod-0-to-7777 0000 to 0777].
+|}
+
+== Esquema de permisos para WordPress ==
+
+Los permisos serán diferentes de un host a otros host, así que esta guía solamente detalla principios genéricos. No puede cubrir todos los casos. Esta guía es válida para servidores que corren una configuración normal (nota: para hosting compartido utilizar métodos "suexec", ver mas abajo).
+
+Típicamente, todos los ficheros deberían pertenecer a tu cuenta (ftp) de usuario de tu servidor web, y deberían ser escribibles por esa cuenta. En hosting compartido, los ficheros nunca deben pertenecer al proceso mismo del servicio web (ciertas veces este es el usuario '''www''', o '''apache''', o '''nobody''').
+
+Cualquier fichero que necesite acceso de escritura desde WordPress debería pertenecer o pertenecer grupalmente a la cuenta de usuario utilizada por WordPress (la cual puede que sea diferente de la cuenta del servidor). Por ejemplo, puede que tengas una cuenta de usuario que te deje usar FTP cargando y descargando ficheros a tu servidor, pero tu servidor mismo puede que use un usuario separado, en un grupo de usuario aparte, tal como '''dhapache''' o '''nobody'''. Si WordPress se ejecuta como la cuenta de FTP, esa cuenta necesita tener permisos de escritura, p. ej: ser el propietario de los ficheros, o pertenecer a un grupo que tenga permiso de escritura. En este último caso, significaría que los permisos están establecidos más permisivamente que por defecto (por ejemplo, 775 en vez de 755 para directorios(carpetas), y 664 en vez de 644).
+
+Los permisos de fichero y directorio de WordPress deberían ser los mismos para la mayoría de usuarios, dependiendo del tipo de instalación que hayas realizado y la configuración de umask del entorno de sistema en el momento de la instalación.
+
+{{es:Nota| Si has instalado tu mismo el WordPress, probablemente no necesites modificar permisos de ficheros. A menosque estes experimentando problemas con errores de permisos, o  ''quieras tenerlos'', deberías no enredar con ésto.}}
+
+{{es:Nota| Si has instalado tu mismo el WordPress, probablemente SI necesites modificar permisos de ficheros.  Algunos ficheros y directorios deberán ser "sobreprotegidos" con permisos más estrictos, en concreto, el fichero wp-config.php . Este fichero se crea inicialmente creado con permisos 644, y es un riesgo dejarlo talcual. Mira Seguridad y Sobreprotección. }}
+
+Típicamente, todos los ficheros del núcleo de WordPress deberían ser escribibles sólamente por tu cuenta de usuario (o la cuenta del demonio httpd, si es diferente). (A pesar de ello algunas veces, se utilizan cuentas ftp múltiples para gestionar una instalación, y si todos los usuarios de ftp son conocidos y de confianza, es decir: no un host compartido, entonces puede ser apropiado asignarlos a un grupo escribible. Pregunta al administrador de tu servidor  para saber más.) De todos modos, si utilizas mod_rewrite Permalinks u otras características de  .htaccess deberías asegurarte de que WordPress tambieén puede escribir en tu fichero <code>/.htaccess</code>.
+
+Si quieres utilizar el editor incorporado del tema, todos los ficheros necesitan ser grupalmente escribibles.  Intenta usarlo antes de modificar los permisos de ficheros, debería funcionar. (Esto puede ser cierto si diferentes usuarios subieron el paquete de WordPress y el  Plugin o Tema. No habría ningún problema para los Plugin y Temas instalados vía admin. Al cargar ficheros con diferentes usuarios de ftp se necesita que sea grupalmente escribible. En hosting compartido, asegúrate que el grupo es exclusivo a los usuarios en quienes confíes... el usuario apache no debería estar en ese grupo y no debería poseer ficheros propios.)
+
+Ciertos plugins requieren que el directorio /wp-content/ sea escribible, pero en muchos caso te lo dejarán saber durante su instalación. En algunos casos, esto puede requerir asignar permisos 755.  Lo mismo es cierto para <code>/wp-content/cache/</code> y puede que <code>/wp-content/uploads/</code> (si estás usando [[MultiSite]] [[es:MultiSitio]] puede que necesites también hacer esto para <code>/wp-content/blogs.dir/</code>)
+
+Los directorios adicionales bajo /wp-content/ deberían ser documentados por cualquier plugin /tema que los necesite. Los permisos variarán. 
+
+<pre>
+/   
+|- index.php
+|- wp-admin
+|   `- wp-admin.css
+|- wp-blog-header.php
+|- wp-comments-post.php
+|- wp-commentsrss2.php
+|- wp-config.php
+|- wp-content
+|   |- cache
+|   |- plugins
+|   |- themes
+|   `- uploads
+|- wp-cron.php
+|- wp-includes
+`- xmlrpc.php
+</pre>
+
+=== Hosting compartido con suexec ===
+
+Lo arriba descrito puede que no se aplique a sistemas de hosting compartido que usen la aproximación "suexec" para ejecutar binarios PHP. Esta es una aproximación popular usada por muchos host web. Para estos sistemas, el proceso php corre como el propietario de los propios ficheros, permitiendo una configuración más simple y un entorno más seguro ara el caso específico de hosting compartido.
+
+{{es:Nota| Los métodos suexec NUNCA deberían ser usados en una configuración de un sitio  único, son más seguros '''sólamente''' para el caso concreto de hosting compartido.}}
+
+En tal configuración suexec,el esquema de permisos correctos es simple de entender.
+
+* Todos los ficheros deberían pertenecer a la verdadera cuenta de usuario ftp, no a la cuenta de usuario usada por el proceso demonio httpd. 
+* la propiedad de grupo es irrelevante, a menos que haya requisitos específicos de grupo para el proceso de comprobación de permisos del servidor web. Esto no es habitualmente el caso.
+* Todos los directorios deberían ser 755 o 750. 
+* Todos los ficheros deberían ser 644 o 640. Excepción: wp-config.php debería ser 600 para prevenir que otros usuarios del servidor lo lean.
+* Ningún directorio debería tener nunca los 777, incluso los directorios de carga. Ya que el proceso php se ejecuta como el propietario de los ficheros, consigue los permisos del usuario  puede escribir incluso en un directorio 755.
+
+En este tipo de configurción específica, WordPress detectará que puede crear directamente ficheros con la propiedad adecuada, y de ese modo no preguntara por las credenciales de FTP cuando se actualicen o instalen plugins.
+
+== Usando un Cliente FTP ==
+
+[[FTP_Clients|programas FTP]] ("clientes") te permiten establecer permisos a los archivos y directorios en tu host remoto. Esta función se suele llamar <code>chmod</code> or <code>establecer permisos</code> en el menú del programa.
+
+En una [[Installing_WordPress|instalación de WordPress]], dos archivos que es probable que desee modificar son la página de índice y el css que controla [[Blog_Design_and_Layout|el diseño]]. He aquí cómo cambiar index.php - ''el proceso es el mismo para cualquier archivo''.
+
+En la pantalla de abajo, mira la última columna - que muestra los permisos. Parece un poco confuso, pero por ahora sólo ten en cuenta la secuencia de letras.
+<br />
+[[Image:podz_filezilla_12.gif|center|thumb|400px|Permisos iniciales]]
+
+Haz clic derecho en 'index.php' y seleccione 'Permisos de archivo'<br/>
+Aparecerá una pantalla emergente.
+[[Image:podz_filezilla_13.gif|center|thumb|305px|Modificando los permisos de archivo]]
+
+No te preocupes por las casillas de verificación. Simplemente elimina el 'valor numérico:' e introduce el número que necesitas - en este caso es 666. A continuación, haz clic en Aceptar.
+<br />
+[[Image:podz_filezilla_14.gif|center|thumb|400px|Los permisos han sido modificados]]
+Ahora puedes ver que los permisos de archivos se han cambiado.
+
+=== Unhide the hidden files ===
+
+By default, most [[FTP_Clients|FTP Clients]], including [http://filezilla.sourceforge.net/ FileZilla], keep hidden files, those files beginning with a period (.), from being displayed.  But, at some point, you may need to see your hidden files so that you can change the permissions on that file.  For example, you may need to make your [[Glossary#.htaccess|.htaccess]] file, the file that controls [[Using Permalinks|permalinks]], writeable.  
+
+To display hidden files in FileZilla, in it is necessary to select 'View' from the top menu, then select 'Show hidden files'.  The screen display of files will refresh and any previously hidden file should come into view.
+
+To get FileZilla to always show hidden files - under Edit, Settings, Remote File List, check the Always show hidden files box.
+
+In the latest version of Filezilla, the 'Show hidden files' option was moved to the 'Server' tab. Select 'Force show hidden files.'
+
+== Using the Command Line ==
+
+If you have shell/SSH access to your hosting account, you can use <code>chmod</code> to change file permissions, which is the preferred method for experienced users.  Before you start using <code>chmod</code> it would be recommended to read some tutorials to make sure you understand what you can achieve with it.  Setting incorrect permissions can take your site offline, so please take your time.
+
+* [http://www.washington.edu/computing/unix/permissions.html Unix Permissions]
+* [http://developer.apple.com/documentation/Darwin/Reference/ManPages/man1/chmod.1.html Apple Chmod Reference] 
+
+You can make '''all''' the files in your <code>wp-content</code> directory writable in two steps, but before making every single file and folder writable you should first try safer alternatives like modifying just the directory.  Try each of these commands first and if they dont work then go recursive, which will make even your themes image files writable.  Replace '''DIR''' with the folder you want to write in
+
+ chmod -v 746 DIR
+ chmod -v 747 DIR
+ chmod -v 756 DIR
+ chmod -v 757 DIR
+ chmod -v 764 DIR
+ chmod -v 765 DIR
+ chmod -v 766 DIR
+ chmod -v 767 DIR
+
+If those fail to allow you to write, try them all again in order, except this time replace -v with -R, which will recursively change each file located in the folder.  If after that you still cant write, you may now try 777.
+
+=== About Chmod ===
+
+<code>chmod</code> is a unix command that means "<strong>ch</strong>ange <strong>mod</strong>e" on a file. The <code>-R</code> flag means to apply the change to every file and directory inside of <code>wp-content</code>. 766 is the mode we are changing the directory to, it means that the directory is readable and writable by WordPress and any and all other users on your system. Finally, we have the name of the directory we are going to modify, <code>wp-content</code>.  If 766 doesn't work, you can try 777, which makes all files and folders readable, writable, and executable by all users, groups, and processes.
+
+If you use [[Using Permalinks|Permalinks]] you should also change permissions of <tt>.htaccess</tt> to make sure that WordPress can update it when you change settings such as adding a new page, redirect, category, etc.. which requires updating the .htaccess file when mod_rewrite Permalinks are being used.
+
+# Go to the main directory of WordPress
+# Enter <code>chmod -v 666 .htaccess</code>
+
+{{Note|From a security standpoint, even a small amount of protection is preferable to a world-writeable directory.  Start with low permissive settings like 744, working your way up until it works.  Only use 777 if necessary, and hopefully only for a temporary amount of time.}}
+
+== The dangers of 777 ==
+
+The crux of this permission issue is how your server is configured.  The username you use to FTP or SSH into your server is most likely not the username used by the server application itself to serve pages.
+
+<pre style="font-size:1.2em;font-weight:bold;border:1px solid #FF9980;background-color:#FFCCBF;width:45%;color:#000;padding:.5em;">
+  7      7      7
+ user   group  world
+ r+w+x  r+w+x  r+w+x
+ 4+2+1  4+2+1  4+2+1  = 777
+</pre>
+
+Often the Apache server is 'owned' by the '''dhapache''' or '''nobody''' user accounts.  These accounts have a limited amount of access to files on the server, for a very good reason.  By setting your personal files and folders owned by your user account to be World-Writable, you are literally making them World Writable.  Now the dhapache and nobody users that run your server, serving pages, executing php interpreters, etc.. will have full access to your user account files.  
+
+This provides an avenue for someone to gain access to your files by hijacking basically any process on your server, this also includes any other users on your machine.   So you should think carefully about modifying permissions on your machine. I've never come across anything that needed more than 767, so when you see 777 ask why its necessary. 
+
+=== The Worst Outcome ===
+
+The worst that can happen as a result of using 777 permissions on a folder or even a file, is that if a malicious cracker or entity is able to upload a devious file or modify a current file to execute code, they will have complete control over your blog, including having your database information and password.
+
+=== Find a Workaround ===
+
+Its usually pretty easy to have the enhanced features provided by the impressive WordPress plugins available, without having to put yourself at risk.  Contact the Plugin author or your server support and request a workaround.
+
+== Finding Secure File Permissions ==
+
+The .htaccess file is one of the files that is accessed by the owner of the process running the server.  So if you set the permissions too low, then your server won't be able to access the file and will cause an error.  Therein lies the method to find the most secure settings.  Start too restrictive and increase the permissions until it works. 
+
+=== Example Permission Settings ===
+
+The following example has a ''custom compiled php-cgi binary'' and a ''custom php.ini'' file located in the cgi-bin directory for executing php scripts.  To prevent the interpreter and php.ini file from being accessed directly in a web browser they are protected with a .htaccess file.
+
+Default Permissions (umask 022)
+
+ 644 -rw-r--r--  /home/user/wp-config.php
+ 644 -rw-r--r--  /home/user/cgi-bin/.htaccess
+ 644 -rw-r--r--  /home/user/cgi-bin/php.ini
+ 755 -rwxr-xr-x  /home/user/cgi-bin/php.cgi
+ 755 -rwxr-xr-x  /home/user/cgi-bin/php5.cgi
+
+Secured Permissions
+
+ 600 -rw-------  /home/user/wp-config.php
+ 6'''0'''4 -rw----r--  /home/user/cgi-bin/.htaccess
+ 6'''00''' -rw-------  /home/user/cgi-bin/php.ini
+ 7'''11''' -rwx--x--x  /home/user/cgi-bin/php.cgi
+ '''100''' ---x------  /home/user/cgi-bin/php5.cgi
+
+==== .htaccess permissions ====
+
+'''644 > 604''' - The bit allowing the group owner of the .htaccess file read permission was removed.   644 is normally required and recommended for .htaccess files.
+
+==== php.ini permissions ====
+
+'''644 > 600''' - Previously all groups and all users with access to the server could access the php.ini, even by just requesting it from the site.  The tricky thing is that because the php.ini file is only used by the php.cgi, we only needed to make sure the php.cgi process had access.   The php.cgi runs as the same user that owns both files, so that single user is now the only user able to access this file.
+
+==== php.cgi permissions ====
+
+'''755 > 711'''
+This file is a compiled php-cgi binary used instead of mod_php or the default vanilla php provided by the hosting company.  The default permissions for this file are 755.
+
+==== php5.cgi permissions ====
+
+'''755 > 100''' - Because of the setup where the user account is the owner of the process running the php cgi, no other user or group needs access, so we disable all access except execution access.  This is interesting because it really works.  You can try reading the file, writing to the file, etc.. but the only access you have to this file is to run php scripts.  And as the owner of the file you can always change the permission modes back again.
+ 
+ $ cat: php5.cgi: Permission denied
+ ./php5.cgi:  Welcome
+
+== See Also ==
+
+* [http://wordpress.org/support/topic/50863 Support Forum thread]
+* [[htaccess for subdirectories]]
+* [http://codex.wordpress.org/Editing_wp-config.php#Override_of_default_file_permissions Override WordPress Default permissions]
+
+
+[[Category:es:Installation]]
+[[Category:es:Getting Started]]
+[[Category:es:Advanced Topics]]
+[[Category:es:Troubleshooting]]
+[[Category:es:UI Link]]

@@ -1,0 +1,300 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/ダッシュボードウィジェット">API 日本語</a> 
+<a href="https://codex.wordpress.org/API_%D0%BA%D0%BE%D0%BD%D1%81%D0%BE%D0%BB%D0%B8" title="API консоли">Русский</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>The <b>Dashboard Widgets API</b> (added in WP <a href="https://codex.wordpress.org/Version_2.7" title="Version 2.7">2.7</a>) makes it very simple to add new widgets to the <a href="https://codex.wordpress.org/Dashboard_SubPanel" title="Dashboard SubPanel" class="mw-redirect"> administration dashboard</a>. Doing so requires working knowledge of PHP and the WordPress <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">Plugin API</a>, but to plugin or theme authors familiar with hooking actions and filters it only takes a few minutes and can be a great way to make your plugin even more useful.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Overview"><span class="tocnumber">1</span> <span class="toctext">Overview</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#The_Function"><span class="tocnumber">1.1</span> <span class="toctext">The Function</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#The_Action"><span class="tocnumber">1.2</span> <span class="toctext">The Action</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="#Examples"><span class="tocnumber">2</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-5"><a href="#Advanced:_Forcing_your_widget_to_the_top"><span class="tocnumber">2.1</span> <span class="toctext">Advanced: Forcing your widget to the top</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Advanced:_Removing_Dashboard_Widgets"><span class="tocnumber">2.2</span> <span class="toctext">Advanced: Removing Dashboard Widgets</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Advanced:_Adding_Widgets_onto_the_side"><span class="tocnumber">2.3</span> <span class="toctext">Advanced: Adding Widgets onto the side</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Aggregating_RSS_feeds_in_the_dashboard"><span class="tocnumber">2.4</span> <span class="toctext">Aggregating RSS feeds in the dashboard</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-9"><a href="#Widget_Options"><span class="tocnumber">3</span> <span class="toctext">Widget Options</span></a>
+<ul>
+<li class="toclevel-2 tocsection-10"><a href="#Getting_Widget_Options"><span class="tocnumber">3.1</span> <span class="toctext">Getting Widget Options</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Get_a_Single_Widget_Option"><span class="tocnumber">3.2</span> <span class="toctext">Get a Single Widget Option</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Update_Widget_Options"><span class="tocnumber">3.3</span> <span class="toctext">Update Widget Options</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-13"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Overview">Overview</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=1" title="Edit section: Overview">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="The_Function">The Function</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=2" title="Edit section: The Function">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The main tool needed to add Dashboard Widgets is the <tt><a href="https://codex.wordpress.org/Function_Reference/wp_add_dashboard_widget" title="Function Reference/wp add dashboard widget"> wp_add_dashboard_widget()</a></tt> function. You will find a complete description of this function at that link, but a brief overview is given below.
+</p><p>Usage:
+</p>
+<pre>wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null )
+</pre>
+<ul><li> <tt>$widget_id</tt> - an identifying slug for your widget. This will be used as its CSS class and its key in the array of widgets.</li>
+<li> <tt>$widget_name</tt> - this is the name your widget will display in its heading.</li>
+<li> <tt>$callback</tt> - The name of a function you will create that will display the actual contents of your widget. </li>
+<li> <tt>$control_callback</tt> - (Optional) The name of a function you create that will handle submission of widget options forms, and will also display the form elements.</li></ul>
+<h3><span class="mw-headline" id="The_Action">The Action</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=3" title="Edit section: The Action">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To run the function you will need to hook into the action <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_dashboard_setup" title="Plugin API/Action Reference/wp dashboard setup">'wp_dashboard_setup'</a> via <tt><a href="https://codex.wordpress.org/Function_Reference/add_action" title="Function Reference/add action"> add_action()</a></tt>. For the Network Admin dashboard, use the hook <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_network_dashboard_setup" title="Plugin API/Action Reference/wp network dashboard setup"> 'wp_network_dashboard_setup'</a></tt>.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=4" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+/**
+ * Add a widget to the dashboard.
+ *
+ * This function is hooked into the 'wp_dashboard_setup' action below.
+ */
+function example_add_dashboard_widgets() {
+
+	wp_add_dashboard_widget(
+                 'example_dashboard_widget',         // Widget slug.
+                 'Example Dashboard Widget',         // Title.
+                 'example_dashboard_widget_function' // Display function.
+        );	
+}
+add_action( 'wp_dashboard_setup', 'example_add_dashboard_widgets' );
+
+/**
+ * Create the function to output the contents of our Dashboard Widget.
+ */
+function example_dashboard_widget_function() {
+
+	// Display whatever it is you want to show.
+	echo "Hello World, I'm a great Dashboard Widget";
+}
+</pre>
+<h3><span class="mw-headline" id="Advanced:_Forcing_your_widget_to_the_top">Advanced: Forcing your widget to the top</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=5" title="Edit section: Advanced: Forcing your widget to the top">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Normally you should just let the users of your plugin put your Dashboard Widget wherever they want by dragging it around. There currently isn't an easy API way to pre-sort the default widgets, meaning your new widget will always be at the bottom of the list. Until sorting is added to the API its a bit complicated to get around this problem. 
+</p><p>Below is an example hooking function that will try to put your widget before the default ones. It does so by manually altering the internal array of metaboxes (of which dashboard widgets are one type) and putting your widget at the top of the list so it shows first. 
+</p>
+<pre>
+function example_add_dashboard_widgets() {
+ 	wp_add_dashboard_widget( 'example_dashboard_widget', 'Example Dashboard Widget', 'example_dashboard_widget_function' );
+ 	
+ 	// Globalize the metaboxes array, this holds all the widgets for wp-admin
+ 
+ 	global $wp_meta_boxes;
+ 	
+ 	// Get the regular dashboard widgets array 
+ 	// (which has our new widget already but at the end)
+ 
+ 	$normal_dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
+ 	
+ 	// Backup and delete our new dashboard widget from the end of the array
+ 
+ 	$example_widget_backup = array( 'example_dashboard_widget' =&gt; $normal_dashboard['example_dashboard_widget'] );
+ 	unset( $normal_dashboard['example_dashboard_widget'] );
+ 
+ 	// Merge the two arrays together so our widget is at the beginning
+ 
+ 	$sorted_dashboard = array_merge( $example_widget_backup, $normal_dashboard );
+ 
+ 	// Save the sorted array back into the original metaboxes 
+ 
+ 	$wp_meta_boxes['dashboard']['normal']['core'] = $sorted_dashboard;
+} 
+
+add_action( 'wp_dashboard_setup', 'example_add_dashboard_widgets' );
+</pre>
+<p>Unfortunately this only works for people who have never re-ordered their widgets. Once a user has done so their existing preferences will override this and they will have to move your widget to the top for it to stay there.
+</p>
+<h3><span class="mw-headline" id="Advanced:_Removing_Dashboard_Widgets">Advanced: Removing Dashboard Widgets</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=6" title="Edit section: Advanced: Removing Dashboard Widgets">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In some situations, especially on multi-user blogs, it may be useful to completely remove widgets from the interface. Each individual user can, by default, turn off any given widget using the <i>Screen Options</i> tab at the top, but if you have a lot of non-technical users it might be nicer for them to not see it at all. 
+</p><p>To remove dashboard widget, use the <tt><a href="https://codex.wordpress.org/Function_Reference/remove_meta_box" title="Function Reference/remove meta box">remove_meta_box()</a></tt> function. See the example code below for the required parameters.
+</p><p>These are the names of the default widgets on the dashboard:
+</p>
+<pre>
+// Main column (left):
+$wp_meta_boxes['dashboard']['normal']['high']['dashboard_browser_nag']
+$wp_meta_boxes['dashboard']['normal']['core']['dashboard_right_now']
+$wp_meta_boxes['dashboard']['normal']['core']['dashboard_activity']
+
+// Side Column (right):
+$wp_meta_boxes['dashboard']['side']['core']['dashboard_quick_press']
+$wp_meta_boxes['dashboard']['side']['core']['dashboard_primary']
+</pre>
+<p>Here is an example function that removes the QuickPress widget. 
+</p>
+<pre>
+// Create the function to use in the action hook
+function example_remove_dashboard_widget() {
+ 	remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+} 
+ 
+// Hook into the 'wp_dashboard_setup' action to register our function
+add_action('wp_dashboard_setup', 'example_remove_dashboard_widget' );
+</pre>
+<p>From the <a rel="nofollow" class="external text" href="https://wordpress.org/support/topic/programatically-remove-the-wordpress-news-widget-from-the-dashboard#post-5060314">WordPress Forums</a>, the example below removes all Dashboard Widgets
+</p>
+<pre>
+function remove_dashboard_meta() {
+        remove_meta_box( 'dashboard_incoming_links', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_plugins', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_secondary', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_recent_drafts', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_right_now', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_activity', 'dashboard', 'normal');//since 3.8
+}
+add_action( 'admin_init', 'remove_dashboard_meta' );
+</pre>
+<h3><span class="mw-headline" id="Advanced:_Adding_Widgets_onto_the_side">Advanced: Adding Widgets onto the side</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=7" title="Edit section: Advanced: Adding Widgets onto the side">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The function doesn't allow you to choose where you want your widget to go and will automatically add it to the "core" which is the left side. However you are able to get it on the right side very easily. 
+</p><p>You can use the <tt><a href="https://codex.wordpress.org/Function_Reference/add_meta_box" title="Function Reference/add meta box">add_meta_box()</a></tt> function instead of <code>wp_add_dashboard_widget</code>. Simply specify <tt>'dashboard'</tt> in place of the <tt>$post_type</tt>. For example:
+</p>
+<pre>
+add_meta_box( 'id', 'Dashboard Widget Title', 'dash_widget', 'dashboard', 'side', 'high' );
+</pre>
+<p>Or, after creating the widget what you do is:
+</p>
+<pre>
+// Global the $wp_meta_boxes variable (this will allow us to alter the array).
+global $wp_meta_boxes;
+
+// Then we make a backup of your widget.
+$my_widget = $wp_meta_boxes['dashboard']['normal']['core']['{widget id here}'];
+
+// We then unset that part of the array.
+unset($wp_meta_boxes['dashboard']['normal']['core']['{widget id here}']);
+
+// Now we just add your widget back in.
+$wp_meta_boxes['dashboard']['side']['core']['{widget id here}'] = $my_widget;
+</pre>
+<h3><span class="mw-headline" id="Aggregating_RSS_feeds_in_the_dashboard">Aggregating RSS feeds in the dashboard</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=8" title="Edit section: Aggregating RSS feeds in the dashboard">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If you need to aggregate RSS in your widget you should take a look at the way the existing plugins are set up with caching in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src//wp-admin/includes/dashboard.php#L0">/wp-admin/includes/dashboard.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Widget_Options">Widget Options</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=9" title="Edit section: Widget Options">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>WordPress does not provide a built-in way to fetch options for a specific widget. By default, you would need to use <a href="https://codex.wordpress.org/Function_Reference/get_option" title="Function Reference/get option">get_option( 'dashboard_widget_options' )</a> to fetch all widget options and then filter the returned array manually.  This section presents some functions that can easily be added to a theme or plugin to help getting and setting of widget options.
+</p>
+<h3><span class="mw-headline" id="Getting_Widget_Options">Getting Widget Options</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=10" title="Edit section: Getting Widget Options">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This function will fetch all widget options, or only options for a specified widget.
+</p>
+<pre>
+/**
+ * Gets all widget options, or only options for a specified widget if a widget id is provided.
+ *
+ * @param string $widget_id Optional. If provided, will only get options for that widget.
+ * @return array An associative array
+ */
+public static function get_dashboard_widget_options( $widget_id='' )
+{
+    //Fetch ALL dashboard widget options from the db...
+    $opts = get_option( 'dashboard_widget_options' );
+
+    //If no widget is specified, return everything
+    if ( empty( $widget_id ) )
+        return $opts;
+
+    //If we request a widget and it exists, return it
+    if ( isset( $opts[$widget_id] ) )
+        return $opts[$widget_id];
+
+    //Something went wrong...
+    return false;
+}
+</pre>
+<h3><span class="mw-headline" id="Get_a_Single_Widget_Option">Get a Single Widget Option</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=11" title="Edit section: Get a Single Widget Option">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If you want to easily fetch only a single option (for outputting to a theme), the following function will make that easier.
+</p><p>This example should be used with the previous "Getting Widget Options" example function.
+</p>
+<pre>
+/**
+ * Gets one specific option for the specified widget.
+ * @param $widget_id
+ * @param $option
+ * @param null $default
+ *
+ * @return string
+ */
+public static function get_dashboard_widget_option( $widget_id, $option, $default=NULL ) {
+
+    $opts = get_dashboard_widget_options($widget_id);
+
+    //If widget opts dont exist, return false
+    if (&#160;! $opts )
+        return false;
+
+    //Otherwise fetch the option or use default
+    if ( isset( $opts[$option] ) &amp;&amp;&#160;! empty($opts[$option]) )
+        return $opts[$option];
+    else
+        return ( isset($default) )&#160;? $default&#160;: false;
+
+}
+</pre>
+<h3><span class="mw-headline" id="Update_Widget_Options">Update Widget Options</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=12" title="Edit section: Update Widget Options">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This function can be used to easily update all of a widget's options. It can also be used to add a widget option non-destructively. Simply set the $add_option argument to true, and this will NOT overwrite any existing options (although it will add any missing ones).
+</p>
+<pre>
+/**
+ * Saves an array of options for a single dashboard widget to the database.
+ * Can also be used to define default values for a widget.
+ *
+ * @param string $widget_id The name of the widget being updated
+ * @param array $args An associative array of options being saved.
+ * @param bool $add_only Set to true if you don't want to override any existing options.
+ */
+public static function update_dashboard_widget_options( $widget_id , $args=array(), $add_only=false )
+{
+    //Fetch ALL dashboard widget options from the db...
+    $opts = get_option( 'dashboard_widget_options' );
+
+    //Get just our widget's options, or set empty array
+    $w_opts = ( isset( $opts[$widget_id] ) )&#160;? $opts[$widget_id]&#160;: array();
+
+    if ( $add_only ) {
+        //Flesh out any missing options (existing ones overwrite new ones)
+        $opts[$widget_id] = array_merge($args,$w_opts);
+    }
+    else {
+        //Merge new options with existing ones, and add it back to the widgets array
+        $opts[$widget_id] = array_merge($w_opts,$args);
+    }
+
+    //Save the entire widgets array back to the db
+    return update_option('dashboard_widget_options', $opts);
+}
+</pre>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dashboard_Widgets_API&amp;action=edit&amp;section=13" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Tutorial: <a rel="nofollow" class="external text" href="http://deluxeblogtips.com/remove-dashboard-widgets-in-wordpress/">Remove dashboard widgets - The better way</a></li>
+<li> Article: <strong class="selflink">Dashboard Widgets API</strong></li>
+<li> Lesson: <a href="https://codex.wordpress.org/Example_Dashboard_Widget" title="Example Dashboard Widget">Example Dashboard Widget</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003745
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.030 seconds
+Preprocessor visited node count: 177/1000000
+Preprocessor generated node count: 504/1000000
+Post‐expand include size: 767/2097152 bytes
+Template argument size: 310/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   11.616      1 - -total
+ 53.01%    6.158      1 - Template:Languages
+ 42.13%    4.894      1 - Template:Trac
+ 20.72%    2.407      1 - Template:en
+ 14.04%    1.631      1 - Template:CurrentVersion
+  9.77%    1.135      1 - Template:ru
+  9.70%    1.127      1 - Template:ja
+-->

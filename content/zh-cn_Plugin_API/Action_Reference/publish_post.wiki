@@ -1,0 +1,52 @@
+==Description==
+
+每当一个帖子发布时触发publish_post动作，或者帖子被编辑时状态转为发布时。
+
+
+它只对帖子有效触发。对页面要用publish_page动作。
+(警告：publish_page勾似乎在v2.3及更高版本没火。它的使用出现在2.6。 考虑用transition_post_status勾来代替。)
+
+==Example==
+
+下面这个栗子在文章发布的时候，将发送一封邮件给文章的作者。
+（当作者的帖子在发布前需要评阅时，将对通知帖子的作者有用。）
+
+
+<pre><?php
+
+// SEND EMAIL ONCE POST IS PUBLISHED
+
+function notify_new_post($post_id) {
+    if( ( $_POST['post_status'] == 'publish' ) && ( $_POST['original_post_status'] != 'publish' ) ) {
+        $post = get_post($post_id);
+        $author = get_userdata($post->post_author);
+        $author_email = $author->user_email;
+        $email_subject = "Your post has been published.";
+
+        ob_start(); ?>
+
+        <html>
+            <head>
+                <title>New post at <?php bloginfo( 'name' ) ?></title>
+            </head>
+            <body>
+                <p>
+                    Hi <?php echo $author->user_firstname ?>,
+                </p>
+                <p>
+                    Your post <a href="<?php echo get_permalink($post->ID) ?>"><?php the_title_attribute() ?></a> has been published.
+                </p>
+            </body>
+        </html>
+
+        <?php
+
+        $message = ob_get_contents();
+
+        ob_end_clean();
+
+        wp_mail( $author_email, $email_subject, $message );
+    }
+}
+
+add_action( 'publish_post', 'notify_new_post' ); ?></pre>

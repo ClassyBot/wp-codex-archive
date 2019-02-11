@@ -1,0 +1,105 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Return"><span class="tocnumber">4</span> <span class="toctext">Return</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Examples"><span class="tocnumber">5</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Change_Log"><span class="tocnumber">6</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_Files"><span class="tocnumber">7</span> <span class="toctext">Source Files</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2 tocsection-9"><a href="#Functions"><span class="tocnumber">8.1</span> <span class="toctext">Functions</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>editable_roles</code> is a filter applied by the function <code><a href="https://codex.wordpress.org/Function_Reference/get_editable_roles" title="Function Reference/get editable roles">get_editable_roles()</a></code> to the list of roles that one user can assign to others (a user must have the <tt><a href="https://codex.wordpress.org/Roles_and_Capabilities#edit_users" title="Roles and Capabilities">edit_users</a></tt> capability to change another user's role). This list is displayed in the bulk operations (if the user has the <tt><a href="https://codex.wordpress.org/Roles_and_Capabilities#list_users" title="Roles and Capabilities">list_users</a></tt> and <tt><a href="https://codex.wordpress.org/Roles_and_Capabilities#promote_users" title="Roles and Capabilities">promote_users</a></tt>) of the <a href="https://codex.wordpress.org/Users_Screen" title="Users Screen">Users Screen</a>, and on the <a href="https://codex.wordpress.org/Users_Your_Profile_Screen" title="Users Your Profile Screen">profile screen</a>.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&#160;</span><span style="color: #0000BB">my_editable_roles</span><span style="color: #007700">(</span><span style="color: #0000BB">$all_roles</span><span style="color: #007700">)&#160;{<br />&#160;&#160;&#160;&#160;</span><span style="color: #FF8000">#&#160;...<br /></span><span style="color: #007700">}<br /></span><span style="color: #0000BB">add_filter</span><span style="color: #007700">(</span><span style="color: #DD0000">'editable_roles'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'my_editable_roles'</span><span style="color: #007700">);</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$all_roles</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>required</i>) All roles.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Return">Return</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=4" title="Edit section: Return">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Filter functions should return an array of roles with the same format as the <var>$all_roles</var> parameter.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=5" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Filter out roles with levels higher than the current user's:
+</p>
+<code><pre>&lt;?php
+function remove_higher_levels($all_roles) {
+    $user = wp_get_current_user();
+    $next_level = 'level_' . ($user-&gt;user_level + 1);
+
+    foreach ( $all_roles as $name =&gt; $role ) {
+        if (isset($role['capabilities'][$next_level])) {
+            unset($all_roles[$name]);
+        }
+    }
+
+    return $all_roles;
+}
+
+add_filter('editable_roles', 'remove_higher_levels');</pre></code>
+<p>Add a "No role" option that sets users' roles to nothing on pages other than the user profile screen (where it already exists):
+</p>
+<code><pre>&lt;?php
+function add_empty_editable_role($all_roles) {
+    $screen = get_current_screen();
+
+    if (! (isset($all_roles['']) || 'user-edit' == $screen-&gt;id)) {
+        $all_roles[''] = array(
+            'name' =&gt; __('&#8212; No role for this site &#8212;'),
+            'capabilities' =&gt; array(),
+            );
+    }
+
+    return $all_roles;
+}
+
+add_filter('editable_roles', 'add_empty_editable_role');</pre></code>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=6" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">Version 2.8</a>
+</p>
+<h2><span class="mw-headline" id="Source_Files">Source Files</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=7" title="Edit section: Source Files">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This filter is applied by:
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/get_editable_roles" title="Function Reference/get editable roles">get_editable_roles()</a> in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/user.php#L0">wp-includes/user.php</a></code></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Functions">Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit&amp;section=9" title="Edit section: Functions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/get_editable_roles" title="Function Reference/get editable roles">get_editable_roles()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_dropdown_roles" title="Function Reference/wp dropdown roles">wp_dropdown_roles()</a></li></ul>
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Filter_Reference/editable_roles&amp;action=edit">expanding it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004059
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.020 seconds
+Preprocessor visited node count: 118/1000000
+Preprocessor generated node count: 367/1000000
+Post‐expand include size: 1180/2097152 bytes
+Template argument size: 311/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    6.289      1 - -total
+ 37.97%    2.388      1 - Template:Stub
+ 33.39%    2.100      1 - Template:Trac
+ 22.18%    1.395      1 - Template:Parameter
+ 21.98%    1.382      1 - Template:Message
+ 13.09%    0.823      1 - Template:CurrentVersion
+-->

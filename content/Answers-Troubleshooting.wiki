@@ -1,0 +1,132 @@
+<div style="border:1px solid blue; background: #CCFFE6; padding:10px; margin:10px; font-size:130%">
+These FAQs have been deprecated. You will find the new updated '''Frequently Asked Questions''' on the new pages for the [[FAQ]].
+</div>
+
+[[FAQ|Back to FAQ]]
+
+==CSS Problems==
+The following are articles that will help you troubleshoot and solve many of your CSS problems:
+
+* [[Blog Design and Layout]]
+* [[Finding Your CSS Styles]]
+* [[CSS Fixing Browser Bugs]]
+* [[CSS Troubleshooting]]
+* [[CSS|WordPress CSS Information and Resources]]
+
+== No posts matched your criteria ==
+
+Clear your browser cache and cookies.  This may sort this issue. Read [[I Make Changes and Nothing Happens]] for more information. Also, check your <tt>search.php</tt> and <tt>index.php</tt> template files for errors.
+
+== base64 encoding ==
+
+If the password emailed to you looks strange, the following article might clear this up:  [http://allnarfedup.com/2004/11/10/solving-garbled-text/ Solving Garbled Text].
+
+==Errorcode 13==
+The Problem: The MySQL variable <tt>tmpdir</tt> is set to a directory that cannot be written to when using PHP to access MySQL.
+
+To verify this, enter MySQL at the command line and type <tt>show variables</tt>;
+
+You'll get a long list and one of them will read: '''tmpdir = /somedir/''' (whatever your setting is.)
+The Solution: Alter the '''tmpdir''' variable to point to a writable directory.
+
+The Steps:
+<ol>
+<li>Find the '''my.cnf''' file. On *nix systems this is usually in '''/etc/'''.</li>
+<li>Once found, open this in a simple text editor and find the '''[mysqld]''' section.</li>
+<li>Under this section, find the '''tmpdir''' line. If this line is commented (has a '''#''' at the start), delete the '''#''' and edit the line so that it reads: '''tmpdir = /writable/dir''' where '''/writable/dir''' is a directory to which you can write. Some use '''/tmp''', or you might also try '''/home//'''.
+</li>
+<li>Save the file.</li>
+<li>Shutdown MySQL by typing <tt>mysqlshutdown -u -p shutdown</tt>.</li>
+<li>Start MySQL by going to the MySQL directory and typing <tt>./bin/safe_mysqld &</tt>. Usually the MySQL directory is in '''/usr/local''' or sometimes in '''/usr/''' on Linux systems.
+</li>
+</ol>
+If none of this make sense and you have someone to administrate your system for you, show the above to them and they should be able to figure it out.
+
+==Error 28 ==
+This is a MySQL error and has nothing to do with WordPress directly. You should probably contact your host about it. Some users have reported that running a repair table command in phpMyAdmin fixed the problem.
+
+You can also check this newsletter on Error 28, and how to avoid it at 
+[http://www.mysql.com/newsletter/2003-10/a0000000249.html MySQL.com]
+
+== Headers already sent ==
+'''Description:''' You get a warning message on your browser that says:
+
+<tt>Warning: Cannot modify header information - headers already sent by
+(output started at</tt>
+
+'''Reason and Solution :'''
+
+It is usually because there are spaces, new lines, or other garbage
+before an opening '''<tt><?php</tt>''' tag or after a closing '''<tt>?></tt>''' tag, typically in
+'''wp-config.php'''. This could be true about some other file too, so please check the error message, as it will list the specific file name where the error occurred (see "Interpreting the Error Message" below).  Replacing the faulty file with one from your most recent backup or one from a fresh WordPress download is your best bet, but if neither of those are an option, please follow the steps below.
+
+Just because you cannot see anything does not mean that PHP sees the same.
+
+# Download the file mentioned in the error message by using [[FTP_Clients|FTP]] or whatever file management application your host provides.
+# Open that file in a [[Glossary#Text editor|plain text editor]] ('''NOT''' MS Word or similar. Notepad or BBEdit are fine).
+# Check that the ''very'' first characters are '''<tt><?php</tt>'''
+# Check that the ''very'' last characters are '''<tt>?></tt>'''
+#Re-upload the file by using [[FTP_Clients|FTP]] or whatever file management application your host provides.
+
+To be sure about the end of the file, do this:
+#Place the cursor between the ? and >
+#Now press the DELETE key on your computer
+#*Note to MAC users: The "DELETE" key on a PC deletes characters to the ''right'' of the cursor.  That's the key meant here.
+#Keep that key pressed
+#For at least 15 seconds
+#Now type > and
+#'''save''' without pressing any other key at all.
+#If you press another key, you will bring the problem back.
+
+'''Interpreting the Error Message:'''
+
+If the error message states: <code>Warning: Cannot modify header information - headers already sent by (output started at /path/blog/wp-config.php:34) in /path/blog/wp-login.php on line 42</code>, then the problem is at line #34 of <code>wp-config.php</code>, not line #42 of <code>wp-login.php</code>.  In this scenario, line #42 of <code>wp-login.php</code> is the victim.  It is being affected by the excess whitespace at line #34 of <code>wp-config.php</code>.
+
+If the error message states: <code>Warning: Cannot modify header information - headers already sent by (output started at /path/wp-admin/admin-header.php:8) in /path/wp-admin/post.php on line 569</code>, then the problem is at line #8 of <code>admin-header.php</code>, not line #569 of <code>post.php</code>.  In this scenario, line #569 of <code>post.php</code> is the victim.  It is being affected by the excess whitespace at line #8 of <code>admin-header.php</code>.
+
+== No Quicktag buttons in Safari ==
+'''Description:''' The Quicktag buttons in the Write interface do not display when using Apple's Safari browser.
+
+'''Reason and Solution :'''
+In Safari, the Quicktag buttons will function, but not as intended.  This is due to a bug in Safari, not WordPress.  Since the WordPress developers have no way of correcting this, they have chosen to disable the Quicktag buttons for Safari users.  At this point in time, there are a few choices to make.  One could use [http://www.mozilla.org/products/firefox/ Firefox], or comment lines 581 and 589 in <tt>/wp-admin/admin-functions.php</tt> .
+
+For example, change this:
+<pre>function the_quicktags () {
+// Browser detection sucks, but until Safari supports 
+the JS needed for this to work people just assume it's a bug in WP
+if ( !strstr($_SERVER['HTTP_USER_AGENT'], 'Safari') ) :
+echo '
+<div id="quicktags">
+<a href="http://wordpress.org/docs/reference/post/#quicktags" title="' 
+. __('Help with quicktags') . '">' . __('Quicktags') . '</a>:
+<script src="quicktags.js" type="text/javascript"></script>
+<script type="text/javascript">edToolbar();</script>
+';
+echo '</div>';
+endif;
+}
+</pre>
+
+to this:
+<pre>function the_quicktags () {
+// Browser detection sucks, but until Safari supports the JS needed for this to work people just assume it's a bug in WP
+//if ( !strstr($_SERVER['HTTP_USER_AGENT'], 'Safari') ) :
+echo '
+<div id="quicktags">
+<a href="http://wordpress.org/docs/reference/post/#quicktags" title="' 
+. __('Help with quicktags') . '">' . __('Quicktags') . '</a>:
+<script src="quicktags.js" type="text/javascript"></script>
+<script type="text/javascript">edToolbar();</script>
+';
+echo '</div>';
+//endif;
+}</pre>
+
+== Emailed passwords not received ==
+'''Description:''' When users try to register with your blog or change their passwords by entering their username and/or email, WordPress says that their password has been emailed to them, but it's never received.
+
+'''Reason and Solution:'''  See [[FAQ_Troubleshooting#E-mailed_passwords_are_not_being_received|Answer in FAQ Troubleshooting]]
+
+[[FAQ|Back to FAQ]]
+
+[[Category:Troubleshooting]]

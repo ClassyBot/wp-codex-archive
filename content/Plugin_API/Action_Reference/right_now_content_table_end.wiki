@@ -1,0 +1,60 @@
+This action adds table rows to the content column on the Right Now widget on the Dashboard. Useful for adding your own custom post types to this table.
+== Deprecated Function == 
+This action hook is '''deprecated''' as of WordPress 4.0
+
+See the new @filter <code>dashboard_glance_item</code>
+
+[http://wordpress.stackexchange.com/questions/127750/right-now-content-table-end-function-not-working StackExchange Article about the migration]
+
+== Usage ==
+
+<pre><?php add_action('rightnow_end', 'function_name'); ?></pre>
+
+where "function_name" is the name of the function to be called.
+
+== Example ==
+
+For this example we will assume you have created a custom post type of "recipes" using the [[Function_Reference/register_post_type|register_post_type]] function. We are going to be adding a row that shows all published recipes, and if there are any pending review, a row showing how many are pending.
+
+<pre>
+<?php
+add_action('rightnow_end', 'add_recipe_counts');
+
+function add_recipe_counts() {
+        if (!post_type_exists('recipes')) {
+             return;
+        }
+
+        $num_posts = wp_count_posts( 'recipes' );
+        $num = number_format_i18n( $num_posts->publish );
+        $text = _n( 'Recipe', 'Recipes', intval($num_posts->publish) );
+        if ( current_user_can( 'edit_posts' ) ) {
+            $num = "<a href='edit.php?post_type=recipes'>$num</a>";
+            $text = "<a href='edit.php?post_type=recipes'>$text</a>";
+        }
+        echo '<tr>';
+        echo '<td class="first b b-recipes">' . $num . '</td>';
+        echo '<td class="t recipes">' . $text . '</td>';
+        echo '</tr>';
+
+        if ($num_posts->pending > 0) {
+            $num = number_format_i18n( $num_posts->pending );
+            $text = _n( 'Recipe Pending', 'Recipes Pending', intval($num_posts->pending) );
+            if ( current_user_can( 'edit_posts' ) ) {
+                $num = "<a href='edit.php?post_status=pending&post_type=recipes'>$num</a>";
+                $text = "<a href='edit.php?post_status=pending&post_type=recipes'>$text</a>";
+            }
+            echo '<tr>';
+            echo '<td class="first b b-recipes">' . $num . '</td>';
+            echo '<td class="t recipes">' . $text . '</td>';
+            echo '</tr>';
+        }
+}
+?>
+</pre>
+
+It is important that we first make sure the post type of 'recipes' is registered before adding the rows, otherwise the links created would not work properly.
+
+In the $text variable, the first occurrence of the post type is the singular form, the second occurrence is the plural form.
+
+[[Category:Actions]]

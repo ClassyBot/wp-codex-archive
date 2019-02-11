@@ -1,0 +1,84 @@
+<div style="background-color:#FCECAD; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is a <a href="https://codex.wordpress.org/Category:Drafts" title="Category:Drafts">ROUGH DRAFT</a>.  The author is still working on this document, so <b>please do not edit this without the author's permission</b>. The content within this article may not yet be verified or valid.  This information is subject to change.</div>
+<p>Many CSS3 features do not work with earlier releases of Internet Explorer. This can cause your WordPress site to look unattractive for those that haven't or are unable to upgrade to a more current version.
+</p><p>There is a work around but it's ugly. Add conditional CSS to your head for any version of IE less than 9 and reference <a rel="nofollow" class="external text" href="http://css3pie.com/download-latest">PIE.htc</a> from <a rel="nofollow" class="external text" href="http://css3pie.com/">CSS3 PIE</a>.
+</p><p>This is easily done by adding some code to your theme's functions.php file.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Download_the_zip_file_for_PIE"><span class="tocnumber">1</span> <span class="toctext">Download the zip file for PIE</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Create_a_pie_directory_where_your_theme_is_and_extract_that_zip_file_there"><span class="tocnumber">2</span> <span class="toctext">Create a pie directory where your theme is and extract that zip file there</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Find_the_.22offending.22_CSS"><span class="tocnumber">3</span> <span class="toctext">Find the "offending" CSS</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Add_code_to_your_functions.php_file"><span class="tocnumber">4</span> <span class="toctext">Add code to your functions.php file</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#I_don.27t_have_Internet_Explorer_8_installed.2C_how_can_I_test_this.3F"><span class="tocnumber">5</span> <span class="toctext">I don't have Internet Explorer 8 installed, how can I test this?</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Download_the_zip_file_for_PIE">Download the zip file for PIE</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Working_with_PIE_in_WordPress_for_older_IE_versions&amp;action=edit&amp;section=1" title="Edit section: Download the zip file for PIE">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>As of this writing that is PIE-1.0beta5.zip. Head over to <a rel="nofollow" class="external free" href="http://css3pie.com/download-latest">http://css3pie.com/download-latest</a> and grab a copy.
+</p>
+<h2><span class="mw-headline" id="Create_a_pie_directory_where_your_theme_is_and_extract_that_zip_file_there">Create a pie directory where your theme is and extract that zip file there</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Working_with_PIE_in_WordPress_for_older_IE_versions&amp;action=edit&amp;section=2" title="Edit section: Create a pie directory where your theme is and extract that zip file there">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In your theme directory, create a new folder called pie i.e. your-theme/pie. I like to make a separate directory to keep things organized. In 6 months I don't want to ask myself "what's that file again?"
+</p>
+<h2><span class="mw-headline" id="Find_the_.22offending.22_CSS">Find the "offending" CSS</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Working_with_PIE_in_WordPress_for_older_IE_versions&amp;action=edit&amp;section=3" title="Edit section: Find the &quot;offending&quot; CSS">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In your theme's style.css look for any references for border radius, those are the elements you'll need to apply the fix to. The one's I've looked for are these.
+</p>
+<pre>-moz-border-radius: 10px;
+-webkit-border-radius: 10px;
+border-radius: 10px;
+</pre>
+<p>Those are the elements that need this hack for IE 8. For my theme those elements (separated by commas) are
+</p>
+<pre>#header, .post-nav span span, .number, .back-top a,
+input[type=reset], input[type=submit], input[type=text],
+input[type=password], textarea, input[type=search]
+</pre>
+<h2><span class="mw-headline" id="Add_code_to_your_functions.php_file">Add code to your functions.php file</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Working_with_PIE_in_WordPress_for_older_IE_versions&amp;action=edit&amp;section=4" title="Edit section: Add code to your functions.php file">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>What we want to do is add to the head a conditional so that if the Internet Explorer browser is less than version 9, add the behavior tag to those CSS elements. We could do if via editing the theme's header.php but that's an even uglier solution.
+</p>
+<pre>add_filter( 'wp_head' , 'mh_ie_lt_9_hack' );
+function mh_ie_lt_9_hack() {&#160;?&gt;
+&lt;!-- child theme hack for versions of IE 8 or less --&gt;
+&lt;!--[if lt IE 9]&gt;
+&lt;style type="text/css" media="screen"&gt;
+#header, .post-nav span span, .number, .back-top a,
+input[type=reset], input[type=submit], input[type=text],
+input[type=password], textarea, input[type=search] {
+        behavior: url("&lt;?php echo get_stylesheet_directory_uri() . '/pie/PIE.htc';&#160;?&gt;");
+        position: relative;
+        zoom: 1;
+}
+&lt;/style&gt;
+&lt;![endif]--&gt;
+&lt;!-- /child theme hack for versions of IE 8 or less --&gt;
+&lt;?php }
+</pre>
+<p>To get it work you may have to add position and zoom. Not sure why, my CSS is often lacking.
+</p><p>Now visit your site via Internet Explorer 8 or even 7. The site should now enjoy it's CSS3 radius glory for those elements you've identified.
+</p>
+<h2><span class="mw-headline" id="I_don.27t_have_Internet_Explorer_8_installed.2C_how_can_I_test_this.3F">I don't have Internet Explorer 8 installed, how can I test this?</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Working_with_PIE_in_WordPress_for_older_IE_versions&amp;action=edit&amp;section=5" title="Edit section: I don't have Internet Explorer 8 installed, how can I test this?">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>If you have patience you can check out your site via <a rel="nofollow" class="external text" href="http://browsershots.org/">Browser Shots</a> or via <a rel="nofollow" class="external text" href="https://browserlab.adobe.com/">Adobe's Browser Lab</a>.
+</p><p>This is something to make your WordPress site look spiffy for older browsers. In IE 8 and IE 9 a problem site may render well. Even in version 7 it will look mostly okay. 
+</p><p>IE version 6 and below need not apply.
+</p><p>People should be encouraged to upgrade to the latest version of their browser. Even Microsoft get's that and is trying to stomp out version 6. But this will permit some of the newer CSS functionality to work for those other users.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004231
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 64/1000000
+Preprocessor generated node count: 168/1000000
+Post‐expand include size: 898/2097152 bytes
+Template argument size: 291/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.127      1 - -total
+100.00%    3.127      1 - Template:Draft
+ 50.34%    1.574      1 - Template:Message
+-->

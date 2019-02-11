@@ -1,0 +1,108 @@
+== Introduction ==
+When a viewer clicks on a link to one of the Tags on your site, he or she is taken to a page listing the [[Writing_Posts|Posts]] using that particular Tag in chronological order, from newest Posts at the top to oldest at the bottom. There are many display choices, including whether to display the complete post or post excerpts, and what additional information to display (title, author, publish date, last modified time, etc.). Each theme makes different choices, and you might want to change them. 
+
+This article explains how to change what happens when the blog viewer is visiting one of your site's Tag pages. This involves the use of Themes and Template files, so if you are new to template files, you might want to read [[Using Themes]] and [[Stepping Into Templates]] first.
+
+Permalinks to tag archives are controlled [[Using_Permalinks#Category_base_and_Tag_base|Using Permalinks]] settings.
+
+=== What Template File is Used? === 
+
+The first step in modifying what happens when someone visits a Tag page is to figure out which of your theme's files is going to be used to display the posts. This is known as the [[Template Hierarchy]]. 
+
+In the case of tags, the hierarchy is fairly simple. For instance, suppose the slug of the Tag in question is '''slug'''.  The Template Hierarchy specifies that WordPress will use the ''first'' Template file it finds in your current Theme's directory from the following list:
+#<tt style="font-weight:bold; color:#036">tag-slug.php</tt>
+#<tt style="font-weight:bold; color:#036">tag-id.php</tt>
+#<tt style="font-weight:bold; color:#036">tag.php</tt>
+#<tt style="font-weight:bold; color:#036">archive.php</tt>
+#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+That is, if you do not have a <tt style="font-weight:bold; color:#036">tag-slug.php</tt>, WordPress will check for a <tt style="font-weight:bold; color:#036">tag-id.php</tt>, and so on. 
+
+So, if you want to make the Tag whose ID number is 6 look different from what it is currently (and different from other Tag pages), you would want to create a <tt>tag-slug.php</tt> file. If you want to make all Tag pages look different from other archive pages (such as date and author archives), then you would want to create or modify the <tt>tag.php file</tt>. If you want to make changes to the look of all archive pages, you can create or modify the <tt>archive.php</tt> file. And if you modify the <tt>index.php</tt> file, you will affect your entire blog.
+
+If you need to create a new file, it is a good idea to copy it from the next file in the hierarchy that exists. For instance, if you want a special display for the tag "slug", begin by copying the <tt>tag.php</tt> file, or if you don't have one, use <tt>archive.php</tt>, and so on.
+
+== Examples ==
+
+Now that you've figured out which template file in your theme's directory you need to modify, in order to make changes to the look of Tag pages, let's look at some examples. In these examples, when it says "edit your template file", it means to edit the file you chose in the section above.
+
+=== Adding Text to Tag Pages ===
+
+==== Static Text Above Posts ====
+
+Suppose you want some static text displayed before the list of Posts on your Tag page(s). By "static", we mean text that remains the same, no matter which posts will be displayed below, and no matter which Tag is being displayed. Here is how to do it: above [[The Loop]] section of your Template file, insert the following code:
+<pre><nowiki>
+<p>
+This is some text that will display at the top of the Tag page.
+</p></nowiki></pre>
+
+==== Different Text on Some Tag Pages ====
+
+A slightly more complex possibility is that you want different text to display depending on which Tag page the visitor is viewing. Then you would add the "default" text to the main <tt>tag.php</tt> file, and create special <tt>tag-slug.php</tt> files (with their own version of the text, as described in the Introduction) for each Tag that needs special text at the top. 
+
+==== Text Displaying Only on First Page of Archive ====
+
+Another thing that can happen is that if your Tag contains more posts than will fit on one page (according to the Options for Blog Reading you have set in the Administration panels of your blog), the Tag archive will split into multiple pages. And maybe you only want to display your static text if the viewer is on the first page of results, or you want to display different text for the other pages.
+
+To make this happen, you can use a PHP <tt>if</tt> statement, which looks at the value of the <tt>$paged</tt> WordPress variable (<tt>$paged</tt> is equal to the page number: 1 for the first page of results, 2 for the second page, etc.). It may sound complicated, but it's actually not too bad. Just put the following above [[The Loop]]:
+<pre>
+<?php if ( $paged < 2 ) { 
+<p>Text for first page of Tag archive.</p>
+<?php } else { 
+<p>Text for subsequent pages of Tag.
+Can be left out.</p>
+<?php } ?>
+</pre>
+
+==== Tag Name ====
+
+Another possibility is to put the Tag name at the top of the page. If this is not already part of your template, you can add it by doing something like this, above [[The Loop]]:
+<pre>
+<p>Tag: <?php single_tag_title(); ?></p>
+</pre>
+
+=== Modifying How Posts are Displayed ===
+
+==== Excerpts vs. Full Posts ====
+
+Perhaps you are looking to cut down on the size of your Tag pages.  You could do this by displaying excerpts rather than the entire content of each Post. To do this, you will just need to find where it says <tt style="font-weight:bold; color:#036">[[Template Tags/the_content|the_content()]]</tt> inside [[The Loop]] in your Template, and replace it with <tt style="font-weight:bold; color:#036">[[Template Tags/the_excerpt|the_excerpt()]]</tt>. These will most likely be inside PHP tags:
+<pre>
+  <?php the_excerpt(); ?>
+and
+  <?php the_content(); ?>
+</pre>
+
+Conversely, if your Theme is currently displaying excerpts and you want full posts, replace <tt>the_excerpt</tt> with <tt>the_content</tt>.
+
+==== Display Images Linking to Full Posts ====
+
+Another thing that is interesting to do in a Tag archive page is to replace the post content with an image that links to your post. To do this, you will first need to put images into the Excerpt sections of your posts. Here's how to do that, for one post:
+# Upload an image on the post editing screen.
+# Switch to the "Code" editor, rather than the "Visual" editor.
+# Use the Uploads / Browse tab to insert the image into your post. Make sure to insert the full-sized image, with no link.
+# Copy the inserted HTML <tt>img</tt> tag, and paste it into the "Optional Excerpt" section of the post editing screen.
+# Finish writing the post content (you can remove the image), and publish the post.
+
+Now you will need to modify your template. We'll use a trick: the [[Template Tags/the_excerpt_rss|the_excerpt_rss()]] Template Tag does not put a paragraph tag around the excerpt. So we can use it to insert the <tt>img</tt> HTML and put it inside a link. Here's what you need to put into your Template, in place of using <tt>the_content</tt>:
+<pre>
+<a href="<?php the_permalink() ?>">
+<?php the_excerpt_rss(); ?>
+</a>
+</pre>
+
+Caveat: using the excerpt this way '''may''' effect your RSS feed, because it places an img tag in the excerpt, instead of text. So if you are going to do this, you probably want to set your options so that the full posts are put in RSS feeds, rather than excerpts.
+
+== Further Reading ==
+
+* [http://wordpress.org/support/topic/135881 Support Forum discussion of Tag Templates]
+* [[Templates]] - Comprehensive list of resources related to Themes and Templates
+
+== Related ==
+
+{{Theme Templates}}
+{{Tag Footer}}
+
+[[Category:WordPress Lessons]]
+[[Category:Design and Layout]]
+[[Category:Advanced Topics]]
+[[Category:Templates]]

@@ -1,0 +1,416 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="https://codex.wordpress.org/zh-cn:%E5%87%BD%E6%95%B0%E5%8F%82%E8%80%83/register_taxonomy" title="zh-cn:函数参考/register taxonomy">中文(简体)</a> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/関数リファレンス/register_taxonomy">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Arguments"><span class="tocnumber">3.1</span> <span class="toctext">Arguments</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Example"><span class="tocnumber">4</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Basic_Example"><span class="tocnumber">5</span> <span class="toctext">Basic Example</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Example_Private_Taxonomy"><span class="tocnumber">6</span> <span class="toctext">Example Private Taxonomy</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Reserved_Terms"><span class="tocnumber">7</span> <span class="toctext">Reserved Terms</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Changelog"><span class="tocnumber">8</span> <span class="toctext">Changelog</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#Source_File"><span class="tocnumber">9</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-11"><a href="#Resources"><span class="tocnumber">10</span> <span class="toctext">Resources</span></a></li>
+<li class="toclevel-1 tocsection-12"><a href="#Related"><span class="tocnumber">11</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This function adds or overwrites a <a href="https://codex.wordpress.org/Taxonomies" title="Taxonomies">taxonomy</a>.  It takes in a name, an object name that it affects, and an array of parameters. It does not return anything.
+</p><p>Care should be used in selecting a taxonomy name so that it does not conflict with other taxonomies, post types, and <a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/browser/trunk/wp-includes/class-wp.php">reserved WordPress public and private query variables</a>.  A complete list of those is described in the <a href="#Reserved_Terms">Reserved Terms section</a>. In particular, capital letters should be avoided (This was allowed in 3.0, but not enforced until 3.1 with the "Cheatin'" error).
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+&#160;<span style="color: #0000BB">&lt;?php&#160;register_taxonomy</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$taxonomy</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$object_type</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$args&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>&#160;</span>
+</code>
+</p><p><b>Use the <tt>init</tt> action to call this function.</b> Calling it outside of an action can lead to troubles. See <a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/ticket/15568">#15568</a> for details.
+</p><p>Better <b>be safe than sorry</b> when registering custom taxonomies for custom post types. Use <a href="https://codex.wordpress.org/Function_Reference/register_taxonomy_for_object_type" title="Function Reference/register taxonomy for object type">register_taxonomy_for_object_type()</a> right after the function to interconnect them. Else you could run into minetraps where the post type isn't attached inside filter callback that run during <code>parse_request</code> or <code>pre_get_posts</code>.
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$taxonomy</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The name of the taxonomy.  Name should only contain lowercase letters and the underscore character, and not be more than 32 characters long (database structure restriction).
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$object_type</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array.2Fstring" title="How to Pass Tag Parameters"><i>array/string</i></a>) (<i>required</i>) Name of the object type for the taxonomy object. Object-types can be built-in <a href="https://codex.wordpress.org/Post_Type" title="Post Type" class="mw-redirect">Post Type</a> or any <a href="https://codex.wordpress.org/Post_Types#Custom_Types" title="Post Types">Custom Post Type</a> that may be registered.
+<dl><dd> Default: <i>None</i></dd></dl></dd>
+<dd>Built-in Post Types:
+<ul><li> <b><tt>post</tt></b></li>
+<li> <b><tt>page</tt></b></li>
+<li> <b><tt>attachment</tt></b></li>
+<li> <b><tt>revision</tt></b></li>
+<li> <b><tt>nav_menu_item</tt></b></li>
+<li> <b><tt>custom_css</tt></b></li>
+<li> <b><tt>customize_changeset</tt></b></li></ul></dd>
+<dd>Custom Post Types:
+<ul><li> <b><tt>{custom_post_type}</tt></b> - Custom Post Type names must be all in lower-case and without any spaces.</li>
+<li> <b><tt>null</tt></b> - Setting explicitly to <tt>null</tt> registers the taxonomy but doesn't associate it with any objects, so it won't be directly available within the Admin UI. You will need to manually register it using the 'taxonomy' parameter (passed through $args) when registering a custom post_type (see <a href="https://codex.wordpress.org/Function_Reference/register_post_type" title="Function Reference/register post type">register_post_type()</a>), or using <a href="https://codex.wordpress.org/Function_Reference/register_taxonomy_for_object_type" title="Function Reference/register taxonomy for object type">register_taxonomy_for_object_type()</a>.</li></ul></dd></dl>
+<dl><dt> <tt>$args</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array.2Fstring" title="How to Pass Tag Parameters"><i>array/string</i></a>) (<i>optional</i>) An array of <a href="#Arguments">Arguments</a>.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h3><span class="mw-headline" id="Arguments">Arguments</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=4" title="Edit section: Arguments">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<dl><dt> <tt>label</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) A <b>plural</b> descriptive name for the taxonomy marked for translation.
+<dl><dd> Default: overridden by <i>$labels-&gt;name</i></dd></dl></dd></dl>
+<dl><dt> <tt>labels</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>optional</i>) labels - An array of labels for this taxonomy. By default tag labels are used for non-hierarchical types and category labels for hierarchical ones.
+<dl><dd> Default: if empty, name is set to label value, and singular_name is set to name value</dd></dl>
+<ul><li> '<b>name'</b> - general name for the taxonomy, usually plural. The same as and overridden by $tax-&gt;label. Default is <code>_x( 'Post Tags', 'taxonomy general name' )</code> or <code>_x( 'Categories', 'taxonomy general name' )</code>.  When internationalizing this string, please use a <a href="https://codex.wordpress.org/I18n_for_WordPress_Developers#Disambiguation_by_context" title="I18n for WordPress Developers">gettext context</a> matching your post type. Example: <code>_x('Writers', 'taxonomy general name');</code></li>
+<li> '<b>singular_name'</b> - name for one object of this taxonomy. Default is <code>_x( 'Post Tag', 'taxonomy singular name' )</code> or <code>_x( 'Category', 'taxonomy singular name' )</code>.  When internationalizing this string, please use a <a href="https://codex.wordpress.org/I18n_for_WordPress_Developers#Disambiguation_by_context" title="I18n for WordPress Developers">gettext context</a> matching your post type. Example: <code>_x('Writer', 'taxonomy singular name');</code></li>
+<li> '<b>menu_name'</b> - the menu name text. This string is the name to give menu items. If not set, defaults to value of <i>name</i> label. </li>
+<li> '<b>all_items'</b> - the all items text.  Default is <code>__( 'All Tags' )</code> or <code>__( 'All Categories' )</code></li>
+<li> '<b>edit_item'</b> - the edit item text. Default is <code>__( 'Edit Tag' )</code> or <code>__( 'Edit Category' )</code></li>
+<li> '<b>view_item'</b> - the view item text, Default is <code>__( 'View Tag' )</code> or <code>__( 'View Category' )</code></li>
+<li> '<b>update_item'</b> - the update item text.  Default is <code>__( 'Update Tag' )</code> or <code>__( 'Update Category' )</code></li>
+<li> '<b>add_new_item'</b> - the add new item text.  Default is <code>__( 'Add New Tag' )</code> or <code>__( 'Add New Category' )</code></li>
+<li> '<b>new_item_name'</b> - the new item name text.  Default is <code>__( 'New Tag Name' )</code> or <code>__( 'New Category Name' )</code></li>
+<li> '<b>parent_item'</b> - the parent item text.  This string is not used on non-hierarchical taxonomies such as post tags. Default is null  or <code>__( 'Parent Category' )</code></li>
+<li> '<b>parent_item_colon'</b> - The same as <code>parent_item</code>, but with colon <code>:</code> in the end null, <code>__( 'Parent Category:' )</code></li>
+<li> '<b>search_items'</b> - the search items text.  Default is <code>__( 'Search Tags' )</code> or <code>__( 'Search Categories' )</code> </li>
+<li> '<b>popular_items'</b> - the popular items text.  This string is not used on hierarchical taxonomies.  Default is <code>__( 'Popular Tags' )</code> or null</li>
+<li> '<b>separate_items_with_commas'</b> - the separate item with commas text used in the taxonomy meta box.  This string is not used on hierarchical taxonomies. Default is <code>__( 'Separate tags with commas' )</code>, or null</li>
+<li> '<b>add_or_remove_items'</b> - the add or remove items text and used in the meta box when JavaScript is disabled.  This string is not used on hierarchical taxonomies.  Default is <code>__( 'Add or remove tags' )</code> or null</li>
+<li> '<b>choose_from_most_used'</b> - the choose from most used text used in the taxonomy meta box. This string is not used on hierarchical taxonomies. Default is <code>__( 'Choose from the most used tags' )</code> or null</li>
+<li> '<b>not_found'</b> (3.6+) - the text displayed via clicking 'Choose from the most used tags' in the taxonomy meta box when no tags are available and (4.2+) - the text used in the terms list table when there are no items for a taxonomy. Default is <code>__( 'No tags found.' )</code> or <code>__( 'No categories found.' )</code></li>
+<li>  '<b>back_to_items'</b> - the text displayed after a term has been updated for a link back to main index. Default is <code>__( '&#8592; Back to tags' )</code> or <code>__( '&#8592; Back to categories' )</code></li></ul></dd></dl>
+<dl><dt> <tt>public</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether a taxonomy is intended for use publicly either via the admin interface or by front-end users. The default settings of `$publicly_queryable`, `$show_ui`, and `$show_in_nav_menus` are inherited from `$public`.
+<dl><dd> Default: true</dd></dl></dd></dl>
+<dl><dt> <tt>publicly_queryable</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether the taxonomy is publicly queryable.
+<dl><dd> Default: $public</dd></dl></dd></dl>
+<dl><dt> <tt>show_ui</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether to generate a default UI for managing this taxonomy.
+<dl><dd> Default: if not set, defaults to value of <i>public</i> argument. As of <a href="https://codex.wordpress.org/Version_3.5" title="Version 3.5">3.5</a>, setting this to <strong>false</strong> for attachment taxonomies will hide the UI.</dd></dl></dd></dl>
+<div id="show_in_menu">
+<dl><dt> <tt>show_in_menu</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Where to show the taxonomy in the admin menu. <tt>show_ui</tt> must be <tt>true</tt>.
+<dl><dd> Default: value of show_ui argument</dd></dl>
+<ul><li> 'false' - do not display in the admin menu</li>
+<li> 'true' - show as a submenu of associated object types</li></ul></dd></dl>
+</div>
+<dl><dt> <tt>show_in_nav_menus</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) true makes this taxonomy available for selection in navigation menus.
+<dl><dd> Default: if not set, defaults to value of <i>public</i> argument</dd></dl></dd></dl>
+<dl><dt> <tt>show_in_rest</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether to include the taxonomy in the REST API.
+<dl><dd> Default: false</dd></dl></dd></dl>
+<dl><dt> <tt>rest_base</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) To change the base url of REST API route.
+<dl><dd> Default: $taxonomy</dd></dl></dd></dl>
+<dl><dt> <tt>rest_controller_class</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) REST API Controller class name.
+<dl><dd> Default: <a href="/index.php?title=Class_Reference/WP_REST_Terms_Controller&amp;action=edit&amp;redlink=1" class="new" title="Class Reference/WP REST Terms Controller (page does not exist)">WP_REST_Terms_Controller</a></dd></dl></dd></dl>
+<dl><dt> <tt>show_tagcloud</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether to allow the Tag Cloud widget to use this taxonomy.
+<dl><dd> Default: if not set, defaults to value of <i>show_ui</i> argument</dd></dl></dd></dl>
+<dl><dt> <tt>show_in_quick_edit</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether to show the taxonomy in the quick/bulk edit panel. (Available since <a href="https://codex.wordpress.org/Version_4.2" title="Version 4.2">4.2</a>)
+<dl><dd> Default: if not set, defaults to value of <i>show_ui</i> argument</dd></dl></dd></dl>
+<dl><dt> <tt>meta_box_cb</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Callback" title="How to Pass Tag Parameters"><i>callback</i></a>) (<i>optional</i>) Provide a callback function name for the meta box display. (Available since <a href="https://codex.wordpress.org/Version_3.8" title="Version 3.8">3.8</a>)
+<dl><dd> Default: null</dd></dl></dd></dl>
+<p><b>Note:</b> Defaults to the categories meta box (<tt>post_categories_meta_box()</tt> in <tt>meta-boxes.php</tt>) for hierarchical taxonomies and the tags meta box (<tt>post_tags_meta_box()</tt>) for non-hierarchical taxonomies. No meta box is shown if set to false.
+</p>
+<dl><dt> <tt>show_admin_column</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether to allow automatic creation of taxonomy columns on associated post-types table. (Available since <a href="https://codex.wordpress.org/Version_3.5" title="Version 3.5">3.5</a>)
+<dl><dd> Default: false</dd></dl></dd></dl>
+<dl><dt> <tt>description</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) Include a description of the taxonomy.
+<dl><dd> Default: ""</dd></dl></dd></dl>
+<dl><dt> <tt>hierarchical</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Is this taxonomy hierarchical (have descendants) like categories or not hierarchical like tags.
+<dl><dd> Default: false</dd></dl></dd></dl>
+<p><b>Note:</b> Hierarchical taxonomies will have a list with checkboxes to select an existing category in the taxonomy admin box on the post edit page (like default post categories). Non-hierarchical taxonomies will just have an empty text field to type-in taxonomy terms to associate with the post (like default post tags).
+</p>
+<dl><dt> <tt>update_count_callback</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) A function name that will be called when the count of an associated <i>$object_type</i>, such as post, is updated. Works much like a hook.
+<dl><dd> Default: None - but see Note, below.</dd></dl></dd></dl>
+<p><b>Note:</b> While the default is <tt>''</tt>, when actually performing the count update in <tt>wp_update_term_count_now()</tt>, if the taxonomy is only attached to <tt>post</tt> types (as opposed to other WordPress objects, like <tt>user</tt>), the built-in <tt>_update_post_term_count()</tt> function will be used to count only published posts associated with that term, otherwise <tt>_update_generic_term_count()</tt> will be used instead, that does no such checking.
+</p><p>This is significant in the case of <b>attachments</b>. Because an attachment is a type of <tt>post</tt>, the default <tt>_update_post_term_count()</tt> will be used. However, this may be undesirable, because this will only count attachments that are actually attached to another post (like when you insert an image into a post). This means that attachments that you simply upload to WordPress using the Media Library, but do not actually attach to another post will <b>not</b> be counted. If your intention behind associating a taxonomy with attachments was to leverage the Media Library as a sort of Document Management solution, you are probably more interested in the counts of unattached Media items, than in those attached to posts. In this case, you should force the use of <tt>_update_generic_term_count()</tt> by setting '_update_generic_term_count' as the value for <tt>update_count_callback</tt>.
+</p><p>Another important consideration is that <tt>_update_post_term_count()</tt> only counts <b>published</b> posts. If you are using custom statuses, or using custom post types where being published is not necessarily a consideration for being counted in the term count, then you will need to provide your own callback that doesn't include the <tt>post_status</tt> portion of the <tt>where</tt> clause.
+</p>
+<dl><dt> <tt>query_var</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean_or_string" title="How to Pass Tag Parameters"><i>boolean or string</i></a>) (<i>optional</i>) False to disable the query_var, set as string to use custom query_var instead of default which is $taxonomy, the taxonomy's "name". True is not seen as a valid entry and will result in 404 issues.
+<dl><dd> Default: $taxonomy</dd></dl></dd></dl>
+<p><b>Note:</b> The query_var is used for direct queries through WP_Query like <code>new WP_Query(array('people'=&gt;$person_name))</code> and URL queries like <code>/?people=$person_name</code>. Setting query_var to false will disable these methods, but you can still fetch posts with an explicit WP_Query taxonomy query like <code>WP_Query(array('taxonomy'=&gt;'people', 'term'=&gt;$person_name))</code>.
+</p>
+<dl><dt> <tt>rewrite</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean.2Farray" title="How to Pass Tag Parameters"><i>boolean/array</i></a>) (<i>optional</i>) Set to false to prevent automatic URL rewriting a.k.a. "pretty permalinks". Pass an <i>$args</i> array to override default URL settings for permalinks as outlined below:
+<dl><dd> Default: true</dd></dl>
+<ul><li> '<b>slug'</b> - Used as pretty permalink text (i.e. /tag/) - defaults to $taxonomy (taxonomy's name slug)</li>
+<li> '<b>with_front'</b> - allowing permalinks to be prepended with front base - defaults to true</li>
+<li> '<b>hierarchical'</b> - true or false allow hierarchical urls (implemented in <a href="https://codex.wordpress.org/Version_3.1" title="Version 3.1">Version 3.1</a>) - defaults to false</li>
+<li> '<b>ep_mask'</b> - (Required for pretty permalinks) Assign an endpoint mask for this taxonomy - defaults to EP_NONE. If you do not specify the EP_MASK, pretty permalinks will not work. For more info see <a rel="nofollow" class="external text" href="http://make.wordpress.org/plugins/2012/06/07/rewrite-endpoints-api/">this Make WordPress Plugins summary of endpoints</a>.</li></ul></dd></dl>
+<p><b>Note:</b> You may need to flush the rewrite rules after changing this. You can do it manually by going to the Permalink Settings page and re-saving the rules -- you don't need to change them -- or by calling <tt>$wp_rewrite-&gt;flush_rules()</tt>. You should only flush the rules once after the taxonomy has been created, not every time the plugin/theme loads.
+</p>
+<dl><dt> <tt>capabilities</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>optional</i>) An array of the capabilities for this taxonomy.
+<dl><dd> Default: <i>None</i></dd></dl>
+<ul><li> '<b>manage_terms'</b> - 'manage_categories'</li>
+<li> '<b>edit_terms'</b> - 'manage_categories'</li>
+<li> '<b>delete_terms'</b> - 'manage_categories'</li>
+<li> '<b>assign_terms'</b> - 'edit_posts'</li></ul></dd></dl>
+<dl><dt> <tt>sort</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether this taxonomy should remember the order in which terms are added to objects.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>_builtin</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>not for general use</i>) Whether this taxonomy is a native or "built-in" taxonomy. <b>Note: this Codex entry is for documentation - core developers recommend you don't use this when registering your own taxonomy</b>
+<dl><dd> Default: false</dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=5" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>An example of registering a two taxonomies, genres and writers, for the post type called "book" (uses <a href="https://codex.wordpress.org/Version_3.1" title="Version 3.1">Version 3.1</a> arguments):
+</p><p>Note: You can define custom taxonomies in a themes's <code>functions.php</code> template file:
+</p>
+<pre>
+&lt;?php
+// hook into the init action and call create_book_taxonomies when it fires
+add_action( 'init', 'create_book_taxonomies', 0 );
+
+// create two taxonomies, genres and writers for the post type "book"
+function create_book_taxonomies() {
+	// Add new taxonomy, make it hierarchical (like categories)
+	$labels = array(
+		'name'              =&gt; _x( 'Genres', 'taxonomy general name', 'textdomain' ),
+		'singular_name'     =&gt; _x( 'Genre', 'taxonomy singular name', 'textdomain' ),
+		'search_items'      =&gt; __( 'Search Genres', 'textdomain' ),
+		'all_items'         =&gt; __( 'All Genres', 'textdomain' ),
+		'parent_item'       =&gt; __( 'Parent Genre', 'textdomain' ),
+		'parent_item_colon' =&gt; __( 'Parent Genre:', 'textdomain' ),
+		'edit_item'         =&gt; __( 'Edit Genre', 'textdomain' ),
+		'update_item'       =&gt; __( 'Update Genre', 'textdomain' ),
+		'add_new_item'      =&gt; __( 'Add New Genre', 'textdomain' ),
+		'new_item_name'     =&gt; __( 'New Genre Name', 'textdomain' ),
+		'menu_name'         =&gt; __( 'Genre', 'textdomain' ),
+	);
+
+	$args = array(
+		'hierarchical'      =&gt; true,
+		'labels'            =&gt; $labels,
+		'show_ui'           =&gt; true,
+		'show_admin_column' =&gt; true,
+		'query_var'         =&gt; true,
+		'rewrite'           =&gt; array( 'slug' =&gt; 'genre' ),
+	);
+
+	register_taxonomy( 'genre', array( 'book' ), $args );
+
+	// Add new taxonomy, NOT hierarchical (like tags)
+	$labels = array(
+		'name'                       =&gt; _x( 'Writers', 'taxonomy general name', 'textdomain' ),
+		'singular_name'              =&gt; _x( 'Writer', 'taxonomy singular name', 'textdomain' ),
+		'search_items'               =&gt; __( 'Search Writers', 'textdomain' ),
+		'popular_items'              =&gt; __( 'Popular Writers', 'textdomain' ),
+		'all_items'                  =&gt; __( 'All Writers', 'textdomain' ),
+		'parent_item'                =&gt; null,
+		'parent_item_colon'          =&gt; null,
+		'edit_item'                  =&gt; __( 'Edit Writer', 'textdomain' ),
+		'update_item'                =&gt; __( 'Update Writer', 'textdomain' ),
+		'add_new_item'               =&gt; __( 'Add New Writer', 'textdomain' ),
+		'new_item_name'              =&gt; __( 'New Writer Name', 'textdomain' ),
+		'separate_items_with_commas' =&gt; __( 'Separate writers with commas', 'textdomain' ),
+		'add_or_remove_items'        =&gt; __( 'Add or remove writers', 'textdomain' ),
+		'choose_from_most_used'      =&gt; __( 'Choose from the most used writers', 'textdomain' ),
+		'not_found'                  =&gt; __( 'No writers found.', 'textdomain' ),
+		'menu_name'                  =&gt; __( 'Writers', 'textdomain' ),
+	);
+
+	$args = array(
+		'hierarchical'          =&gt; false,
+		'labels'                =&gt; $labels,
+		'show_ui'               =&gt; true,
+		'show_admin_column'     =&gt; true,
+		'update_count_callback' =&gt; '_update_post_term_count',
+		'query_var'             =&gt; true,
+		'rewrite'               =&gt; array( 'slug' =&gt; 'writer' ),
+	);
+
+	register_taxonomy( 'writer', 'book', $args );
+}
+?&gt;
+</pre>
+<h2><span class="mw-headline" id="Basic_Example">Basic Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=6" title="Edit section: Basic Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+&lt;?php
+add_action( 'init', 'create_book_tax' );
+
+function create_book_tax() {
+	register_taxonomy(
+		'genre',
+		'book',
+		array(
+			'label' =&gt; __( 'Genre' ),
+			'rewrite' =&gt; array( 'slug' =&gt; 'genre' ),
+			'hierarchical' =&gt; true,
+		)
+	);
+}
+?&gt;
+</pre>
+<p>Note: If you want to ensure that your custom taxonomy behaves like a tag, you must add the option 'update_count_callback' =&gt; '_update_post_term_count'.  Not doing so will result in multiple comma-separated items added at once being saved as a single value, not as separate values. This can cause undue stress when using get_the_term_list and other term display functions.
+</p><p><br />
+</p>
+<h2><span class="mw-headline" id="Example_Private_Taxonomy">Example Private Taxonomy</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=7" title="Edit section: Example Private Taxonomy">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>If you do not want your taxonomy to be exposed publicly, you can use the 'public' and 'rewrite' parameters to suppress it. It will be available to use internally by your plugin or theme, but will not generate a url of it's own.
+</p>
+<pre>
+&lt;?php
+add_action( 'init', 'create_private_book_tax' );
+
+function create_private_book_tax() {
+    register_taxonomy(
+        'genre',
+        'book',
+        array(
+            'label' =&gt; __( 'Genre' ),
+            'public' =&gt; false,
+            'rewrite' =&gt; false,
+            'hierarchical' =&gt; true,
+        )
+    );
+}
+?&gt;
+</pre>
+<h2><span class="mw-headline" id="Reserved_Terms">Reserved Terms</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=8" title="Edit section: Reserved Terms">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Avoiding the following reserved terms is particularly important if you are passing the term through the $_GET or $_POST array.  Doing so can cause WordPress to respond with a 404 error without any other hint or explanation.  
+</p>
+<ul><li> attachment</li>
+<li> attachment_id</li>
+<li> author</li>
+<li> author_name</li>
+<li> calendar</li>
+<li> cat</li>
+<li> category</li>
+<li> category__and</li>
+<li> category__in</li>
+<li> category__not_in</li>
+<li> category_name</li>
+<li> comments_per_page</li>
+<li> comments_popup</li>
+<li> customize_messenger_channel</li>
+<li> customized</li>
+<li> cpage</li>
+<li> day</li>
+<li> debug</li>
+<li> error</li>
+<li> exact</li>
+<li> feed</li>
+<li> fields</li>
+<li> hour</li>
+<li> link_category</li>
+<li> m</li>
+<li> minute</li>
+<li> monthnum</li>
+<li> more</li>
+<li> name</li>
+<li> nav_menu</li>
+<li> nonce</li>
+<li> nopaging</li>
+<li> offset</li>
+<li> order</li>
+<li> orderby</li>
+<li> p</li>
+<li> page</li>
+<li> page_id</li>
+<li> paged</li>
+<li> pagename</li>
+<li> pb</li>
+<li> perm</li>
+<li> post</li>
+<li> post__in</li>
+<li> post__not_in</li>
+<li> post_format</li>
+<li> post_mime_type</li>
+<li> post_status</li>
+<li> post_tag</li>
+<li> post_type</li>
+<li> posts</li>
+<li> posts_per_archive_page</li>
+<li> posts_per_page</li>
+<li> preview</li>
+<li> robots</li>
+<li> s</li>
+<li> search</li>
+<li> second</li>
+<li> sentence</li>
+<li> showposts</li>
+<li> static</li>
+<li> subpost</li>
+<li> subpost_id</li>
+<li> tag</li>
+<li> tag__and</li>
+<li> tag__in</li>
+<li> tag__not_in</li>
+<li> tag_id</li>
+<li> tag_slug__and</li>
+<li> tag_slug__in</li>
+<li> taxonomy</li>
+<li> tb</li>
+<li> term</li>
+<li> theme</li>
+<li> type</li>
+<li> w</li>
+<li> withcomments</li>
+<li> withoutcomments</li>
+<li> year</li></ul>
+<h2><span class="mw-headline" id="Changelog">Changelog</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=9" title="Edit section: Changelog">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Version_4.7" title="Version 4.7">4.7.0</a>: 
+<ul><li> Introduced `<tt>show_in_rest</tt>`, '<tt>rest_base</tt>' and '<tt>rest_controller_class</tt>' arguments to register the Taxonomy in REST API.</li></ul></li>
+<li> <a href="https://codex.wordpress.org/Version_4.5" title="Version 4.5">4.5.0</a>: 
+<ul><li> Add '<tt>publicly_queryable</tt>' argument.</li></ul></li>
+<li> <a href="https://codex.wordpress.org/Version_4.4" title="Version 4.4">4.4.0</a>:
+<ul><li> The '<tt>public</tt>' argument now controls whether the taxonomy can be queried on the front end..</li>
+<li> The '<tt>show_ui</tt>' argument is now enforced on the term editing screen.</li></ul></li>
+<li> <a href="https://codex.wordpress.org/Version_4.2" title="Version 4.2">4.2.0</a>: 
+<ul><li> Introduced'<tt>show_in_quick_edit</tt>' argument.</li></ul></li>
+<li> <a href="https://codex.wordpress.org/Version_3.5" title="Version 3.5">3.5.0</a>:
+<ul><li> Setting '<tt>show_ui</tt>' to false hides UI for attachment taxonomies.</li>
+<li> Add '<tt>show_admin_column</tt>' to allow automatic creation of taxonomy columns on associated post types.</li></ul></li>
+<li> Since: <a href="https://codex.wordpress.org/Version_2.3" title="Version 2.3">2.3.0</a></li></ul>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=10" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>register_taxonomy()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/taxonomy.php#L0">wp-includes/taxonomy.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=11" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="https://metabox.io/plugins/custom-taxonomy/">MB Custom Taxonomy plugin: Create and manage custom taxonomies with UI</a></li>
+<li> <a rel="nofollow" class="external text" href="https://generatewp.com/taxonomy/">WordPress Taxonomy Generator</a></li>
+<li> <a rel="nofollow" class="external text" href="https://wordpress.org/plugins/taxonomy-terms-order/">Create custom sorting for terms</a></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/register_taxonomy&amp;action=edit&amp;section=12" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a rel="nofollow" class="external text" href="http://codex.wordpress.org/Function_Reference/register_post_type">register_post_type()</a>  
+</p>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003926
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.048 seconds
+Real time usage: 0.677 seconds
+Preprocessor visited node count: 540/1000000
+Preprocessor generated node count: 1911/1000000
+Post‐expand include size: 7683/2097152 bytes
+Template argument size: 4726/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  210.673      1 - -total
+ 32.52%   68.515     25 - Template:Parameter
+ 23.02%   48.491      1 - Template:Languages
+ 15.85%   33.398      1 - Template:ja
+  1.47%    3.101      1 - Template:en
+  1.28%    2.702      1 - Template:Trac
+  1.18%    2.492      1 - Template:Tag_Footer
+  0.62%    1.298      1 - Template:Message
+  0.59%    1.245      1 - Template:zh-cn
+  0.49%    1.040      1 - Template:CurrentVersion
+-->

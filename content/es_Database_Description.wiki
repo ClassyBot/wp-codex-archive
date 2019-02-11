@@ -1,0 +1,386 @@
+__TOC__
+El siguiente articulo es una descripción general de las tablas que WordPress {{CurrentVersion}} genera durante una instalación normal en la base de datos. Actualmente la unica base de datos soportada por WordPress Versión {{CurrentVersion}} es [[Glossary#MySQL|MySQL]] version 4.0 o mayor.
+
+Puedes ademas leer:
+*[[Database_Description/2.0|Descripción de la base de datos en WordPress 2.0.x]]
+*[[Database_Description/2.2|Descripción de la base de datos en WordPress 2.2.x]]
+*[[Database_Description/2.3|Descripción de la base de datos en WordPress 2.3.x]]
+
+Debido a que WordPress interactua con la base de datos por si mismo, tu como usuario no debes preocuparte demasiado acerca de su estructura. Si estas [[Writing a Plugin|Creando un Plugin]] te sera interesante aprender como interactuar con la base de datos. WordPress provee la clase [[Function_Reference/wpdb Class|wpdb]] para hacer esto fácil.
+
+= Vista General =
+
+Esta sección es una vista en general de todas las tablas creadas durante la instalación de WordPress. Es seguida por información especifica de lo que hay en cada tabla.
+
+{| width="75%" border="1"
+|- valign="top"
+| colspan="3" bordercolor="#FFFFFF" | <strong>Tablas de WordPress 2.5(10)</strong>
+|- valign="top"
+| width="6%" | <strong>Nombre de la Tabla</strong> || width="15%" | <strong>Descripción</strong> || width="15%" | <strong>Áreas relevantes de la Interface al Usuario</strong>
+|- valign="top"
+|  [[#Table:_wp_comments|wp_comments]] || Los '''comentarios''' en WordPress se mantienen aquí || Los comentarios son creados por lectores y autores como respuestas a entradas en el blog. Son administrados a través de [[Administration Panels]] &gt;&gt; [[Administration_Panels#Manage_-_Change_your_content|Manage]] &gt;&gt; [[Administration_Panels#Comments|Comments]]
+|- valign="top"
+| [[#Table:_wp_links|wp_links]] || Información relacionada con las ligas ingresadas al [[Manage_Blogroll_SubPanel|Blogroll Manager]] de WordPress. || [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Blogroll_-_Putting_the_Inter_in_the_Internet|Blogroll]] &gt;&gt; [[Administration_Panels#Manage_Blogroll|Manage Blogroll]]<br />  [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Blogroll_-_Putting_the_Inter_in_the_Internet|Blogroll]] &gt;&gt; [[Administration_Panels#Add_Link|Add Links]]<br />  [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Blogroll_-_Putting_the_Inter_in_the_Internet|Blogroll]] &gt;&gt; [[Administration_Panels#Import_Links|Import Links]]
+|- valign="top"
+|  [[#Table:_wp_options|wp_options]] || Las '''[[Administration_Panels#Options_-_Configuration_Settings|Opciones]]''' configuradas en '''Administration > [[Administration_Panels#Options_-_Configuration_Settings|Options]]''' se mantienen aquí.  || [[Administration Panels]] &gt;&gt; [[Administration_Panels#Options_-_Configuration_Settings|Options]] &gt; &gt; [[Administration_Panels#General|General]]<br />  [[Administration Panels]] &gt;&gt; [[Administration_Panels#Options_-_Configuration_Settings|Options]] &gt; &gt;[[Administration_Panels#Writing|Writing]]<br />  [[Administration Panels]] &gt;&gt; [[Administration_Panels#Options_-_Configuration_Settings|Options]] &gt; &gt;[[Administration_Panels#Reading|Reading]]<br />  [[Administration Panels]] &gt;&gt; [[Administration_Panels#Options_-_Configuration_Settings|Options]] &gt; &gt;[[Administration_Panels#Discussion|Discussion]]<br />  [[Administration Panels]] &gt;&gt; [[Administration_Panels#Options_-_Configuration_Settings|Options]] &gt; &gt;[[Administration_Panels#Permalinks|Permalinks]]<br />  [[Administration Panels]] &gt;&gt; [[Administration_Panels#Options_-_Configuration_Settings|Options]] &gt; &gt;[[Administration_Panels#Miscellaneous|Miscellaneous]]
+|- valign="top"
+| [[#Table:_wp_postmeta|wp_postmeta]] || Los '''metadatos''' de cada entrada en el blog se mantienen aqui. Algunos plugins de etiquetas (tags) y otros pueden agregar su propia información a esta tabla. || [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Write_-_Make_some_content|Write]]  &gt;&gt; [[Administration_Panels#Write_Post|Write a Post]]
+|- valign="top"
+| [[#Table:_wp_posts|wp_posts]] || La información principal de WordPress son las entradas ('''posts'''), que son guardados en esta tabla. || [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Write_-_Make_some_content|Write]]  &gt;&gt; [[Administration_Panels#Write_Post|Write a Post]]
+|- valign="top"
+| [[#Table:_wp_terms|wp_terms]] || Las '''categorías''' de las entradas y las ligas se mantienen aquí. || [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Manage_-_Change_your_content|Manage]] &gt;&gt; [[Administration_Panels#Categories|Categories]]<br />[[Administration Panels]] &gt;&gt; [[Administration_Panels#Write_-_Make_some_content|Write]] &gt;&gt; [[Administration_Panels#Write_Post|Write Post]]<br />  [[Administration Panels]] &gt;&gt; [[Administration_Panels#Manage_-_Change_your_content|Manage]] &gt;&gt; [[Administration_Panels#Posts|Posts]] &gt;&gt; [[Administration_Panels#Write_Post|Edit]]
+|- valign="top"
+| [[#Table:_wp_term_relationships|wp_term_relationships]] || Asociaciones de las entradas con categorías y etiquetas de la tabla <tt>wp_terms</tt>, junto con asociaciones de ligas con sus respectivas categorías. || [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Manage_-_Change_your_content|Manage]] &gt;&gt; [[Administration_Panels#Categories|Categories]]<br />[[Administration Panels]] &gt;&gt; [[Administration_Panels#Write_-_Make_some_content|Write]] &gt;&gt; [[Administration_Panels#Write_Post|Write Post]]<br />  [[Administration Panels]] &gt;&gt; [[Administration_Panels#Manage_-_Change_your_content|Manage]] &gt;&gt; [[Administration_Panels#Posts|Posts]] &gt;&gt; [[Administration_Panels#Write_Post|Edit]]
+|- valign="top"
+| [[#Table:_wp_term_taxonomy|wp_term_taxonomy]] || Contiene descripciones de la taxonomia('''categoria''', '''liga''', o '''etiqueta''') para los datos mantenidos en la tabla <tt>wp_terms</tt>. || [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Manage_-_Change_your_content|Manage]] &gt;&gt; [[Administration_Panels#Categories|Categories]]<br />[[Administration Panels]] &gt;&gt; [[Administration_Panels#Write_-_Make_some_content|Write]] &gt;&gt; [[Administration_Panels#Write_Post|Write Post]]<br />  [[Administration Panels]] &gt;&gt; [[Administration_Panels#Manage_-_Change_your_content|Manage]] &gt;&gt; [[Administration_Panels#Posts|Posts]] &gt;&gt; [[Administration_Panels#Write_Post|Edit]]
+|- valign="top"
+| [[#Table:_wp_usermeta|wp_usermeta]] || Cada usuario tiene sus propios metadatos, que se guardan en esta tabla. || [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Users_-_Your_Blogging_Family|Users]]
+|- valign="top"
+| height="55" | [[#Table:_wp_users|wp_users]] || La lista de usuarios se mantiene aqui. || [[Administration Panels]]  &gt;&gt; [[Administration_Panels#Users_-_Your_Blogging_Family|Users]]
+|}<br /><br />
+
+=Detalles de las tablas=
+
+La siguiente información son los campos específicos en cada de las tablas creadas durante una instalación normal de WordPress
+
+==Tabla: wp_comments==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|comment_ID||bigint(20) unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|comment_post_ID||int(11)||&nbsp;||IND||0||FK-&gt;wp_posts.ID
+|-
+|comment_author||tinytext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_url||varchar(200)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_IP||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_date||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|comment_date_gmt||datetime||&nbsp;||IND & IND Pt2||0000-00-00 00:00:00||&nbsp;
+|-
+|comment_content||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_karma||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|comment_approved||varchar(20)||&nbsp;||IND & Ind Pt1||1||&nbsp;
+|-
+|comment_agent||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_type||varchar(20)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_parent||bigint(20)||&nbsp;||&nbsp;||0||FK-&gt;wp_comment.ID
+|-
+|user_id||bigint(20)||&nbsp;||&nbsp;||0||FK-&gt;wp_users.ID
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||1||comment_ID
+|- 
+|comment_approved||INDEX||None||comment_approved 
+|- 
+|comment_post_ID||INDEX||None||comment_post_ID 
+|- 
+|comment_approved_date_gmt||INDEX||None||comment_approved<br />comment_date_gmt
+|- 
+|comment_date_gmt||INDEX||None||comment_date_gmt 
+|}
+
+==Tabla: wp_links==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|link_id||bigint(20)||&nbsp;||PRI||NULL||auto_increment
+|-
+|link_url||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_name||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_image||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_target||varchar(25)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_category||bigint(20)||&nbsp;||IND||0||
+|-
+|link_description||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_visible||varchar(20)||&nbsp;||IND||Y||&nbsp;
+|-
+|link_owner||int(11)||&nbsp;||&nbsp;||1||&nbsp;
+|-
+|link_rating||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|link_updated||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|link_rel||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_notes||mediumtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_rss||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||7||link_ID
+|- 
+|link_category||INDEX||None||link_category 
+|- 
+|link_visible||INDEX||None||link_visible 
+|}
+
+==Tabla: wp_options==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|option_id||bigint(20)||&nbsp;||PRI Pt1||NULL||auto_increment
+|-
+|blog_id||int(11)||&nbsp;||PRI Pt2||0||&nbsp;
+|-
+|option_name||varchar(64)||&nbsp;||PRI Pt3 & IND||&nbsp;||&nbsp;
+|-
+|option_value||longtext||&nbsp;||&nbsp;||&nbsp;||
+|-
+|autoload||varchar(20)||&nbsp;||&nbsp;||yes||&nbsp;
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||90||option_id<br />blog_id<br />option_name
+|- 
+|option_name||INDEX||None||option_name 
+|}
+
+==Tabla: wp_postmeta==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|meta_id||bigint(20)||&nbsp;||PRI||NULL||auto_increment
+|-
+|post_id||bigint(20)||&nbsp;||IND||0||FK-&gt;wp_posts.ID
+|-
+|meta_key||varchar(255)||YES||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||YES||&nbsp;||NULL||&nbsp;
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||0||meta_ID
+|- 
+|post_id||INDEX||None||post_id 
+|- 
+|meta_key||INDEX||None||meta_key 
+|}
+
+==Tabla: wp_posts==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI & IND Pt4||&nbsp;||auto_increment
+|-
+|post_author||bigint(20)||&nbsp;||&nbsp;||0||FK-&gt;wp_users.ID
+|-
+|post_date||datetime||&nbsp;||IND Pt3||0000-00-00 00:00:00||&nbsp;
+|-
+|post_date_gmt||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_content||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_title||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_category||int(4)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|post_excerpt||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_status||varchar(20)||&nbsp;||IND PT2||publish||&nbsp;
+|-
+|comment_status||varchar(20)||&nbsp;||&nbsp;||open||&nbsp;
+|-
+|ping_status||varchar(20)||&nbsp;||&nbsp;||open||&nbsp;
+|-
+|post_password||varchar(20)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_name||varchar(200)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|to_ping||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|pinged||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_modified||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_modified_gmt||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_content_filtered||text||&nbsp;||&nbsp;||&nbsp;||
+|-
+|post_parent||bigint(20)||&nbsp;||&nbsp;||0||FK-&gt;wp_posts.ID
+|-
+|guid||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|menu_order||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|post_type||varchar(20)||&nbsp;||IND Pt1||post||&nbsp;
+|-
+|post_mime_type||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_count||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||2||ID
+|- 
+|post_name||INDEX||None||post_name 
+|-
+|type_status_date||INDEX||None||post_type<br />post_status<br />post_date<br />ID
+|}
+
+==Tabla: wp_terms==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|term_id||bigint(20)||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|name||varchar(55)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|-
+|slug||varchar(200)||&nbsp;||UNI||&nbsp;||&nbsp;
+|-
+|term_group||bigint(10)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||2||term_ID
+|- 
+|slug||UNIQUE||2||slug
+|}
+
+==Tabla: wp_term_relationships==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|object_id||bigint(20)||&nbsp;||PRI Pt1||0||&nbsp;
+|-
+|term_taxonomy_id||bigint(20)||&nbsp;||PRI Pt2 & IND||0||FK-&gt;wp_term_taxonomy.term_taxonomy_id
+|-
+|term_order||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||8||object_id<br />term_taxonomy_id
+|- 
+|term_taxonomy_id||INDEX||None||term_taxonomy_id 
+|}
+
+==Tabla: wp_term_taxonomy==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|term_taxonomy_id||bigint(20)||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|term_id||bigint(20)||&nbsp;||UNI Pt1||0 ||FK-&gt;wp_terms.term_id
+|-
+|taxonomy||varchar(32)||&nbsp;||UNI Pt2||&nbsp;||&nbsp;
+|-
+|description||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|parent||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|count||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||2||term_taxonomy_id
+|- 
+|term_id_taxonomy||UNIQUE||2||term_id<br />taxonomy
+|}
+
+==Tabla: wp_usermeta==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|umeta_id||bigint(20)||&nbsp;||PRI||NULL||auto_increment
+|-
+|user_id||bigint(20)||&nbsp;||&nbsp;||'0'||FK-&gt;wp_users.ID
+|-
+|meta_key||varchar(255)||Yes||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||Yes||IND||NULL||&nbsp;
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||4||umeta_id
+|- 
+|user_id||INDEX||None||user_id 
+|- 
+|meta_key||INDEX||None||meta_key 
+|}
+
+==Tabla: wp_users==
+{| table width="90%" border=1
+!Campo!!Tipo!!Null!!Llave!!Valor Predeterminado!!Extra
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI||NULL||auto_increment
+|-
+|user_login||varchar(60)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_pass||varchar(64)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_nicename||varchar(50)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_url||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|user_activation_key||varchar(60)||&nbsp;||&nbsp;||&nbsp;||
+|-
+|user_status||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|display_name||varchar(250)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|}
+
+===Indices===
+{| table width="60%" border=1
+!Keyname!!Tipo!!Cardinalidad!!Campo
+|-
+|PRIMARY||PRIMARY||1||ID
+|- 
+|user_login_key||INDEX||None||user_login 
+|- 
+|user_nicename||INDEX||None||user_nicename 
+|}
+
+= Resources =
+*[http://wpbits.wordpress.com/2007/08/08/a-look-inside-the-wordpress-database/ A look inside the WordPress database] - an indepth dicussion of the database tables by Leonid Mamchenkov.
+
+[[Category:Getting Started]]
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

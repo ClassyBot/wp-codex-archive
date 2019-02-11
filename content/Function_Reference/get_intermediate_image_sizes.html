@@ -1,0 +1,231 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Return_Values"><span class="tocnumber">3</span> <span class="toctext">Return Values</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Demo"><span class="tocnumber">3.1</span> <span class="toctext">Demo</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Examples"><span class="tocnumber">4</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Change_Log"><span class="tocnumber">5</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_intermediate_image_sizes&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Get the available image sizes
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_intermediate_image_sizes&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;get_intermediate_image_sizes</span><span style="color: #007700">();&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Return_Values">Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_intermediate_image_sizes&amp;action=edit&amp;section=3" title="Edit section: Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt></tt> <tt style="color:gray">(<a href="https://codex.wordpress.org/Glossary#Array" title="Glossary"><i>array</i></a>)</tt>&#160;</dt>
+<dd> Returns a filtered array of image size strings</dd></dl>
+<h3><span class="mw-headline" id="Demo">Demo</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_intermediate_image_sizes&amp;action=edit&amp;section=4" title="Edit section: Demo">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<pre>
+var_dump( get_intermediate_image_sizes() );
+
+  array(4) {
+    [0]=&gt;
+    string(9) "thumbnail"
+    [1]=&gt;
+    string(6) "medium"
+    [2]=&gt;
+    string(12) "medium_large"
+    [3]=&gt;
+    string(5) "large"
+    [4]=&gt;
+    string(10) "custom-size"
+  }
+</pre>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_intermediate_image_sizes&amp;action=edit&amp;section=5" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>List available image sizes with width and height following
+</p>
+<pre>/**
+ * Get size information for all currently-registered image sizes.
+ *
+ * @global $_wp_additional_image_sizes
+ * @uses   get_intermediate_image_sizes()
+ * @return array $sizes Data for all currently-registered image sizes.
+ */
+function get_image_sizes() {
+	global $_wp_additional_image_sizes;
+
+	$sizes = array();
+
+	foreach ( get_intermediate_image_sizes() as $_size ) {
+		if ( in_array( $_size, array('thumbnail', 'medium', 'medium_large', 'large') ) ) {
+			$sizes[ $_size ]['width']  = get_option( "{$_size}_size_w" );
+			$sizes[ $_size ]['height'] = get_option( "{$_size}_size_h" );
+			$sizes[ $_size ]['crop']   = (bool) get_option( "{$_size}_crop" );
+		} elseif ( isset( $_wp_additional_image_sizes[ $_size ] ) ) {
+			$sizes[ $_size ] = array(
+				'width'  =&gt; $_wp_additional_image_sizes[ $_size ]['width'],
+				'height' =&gt; $_wp_additional_image_sizes[ $_size ]['height'],
+				'crop'   =&gt; $_wp_additional_image_sizes[ $_size ]['crop'],
+			);
+		}
+	}
+
+	return $sizes;
+}
+
+/**
+ * Get size information for a specific image size.
+ *
+ * @uses   get_image_sizes()
+ * @param  string $size The image size for which to retrieve data.
+ * @return bool|array $size Size data about an image size or false if the size doesn't exist.
+ */
+function get_image_size( $size ) {
+	$sizes = get_image_sizes();
+
+	if ( isset( $sizes[ $size ] ) ) {
+		return $sizes[ $size ];
+	}
+
+	return false;
+}
+
+/**
+ * Get the width of a specific image size.
+ *
+ * @uses   get_image_size()
+ * @param  string $size The image size for which to retrieve data.
+ * @return bool|string $size Width of an image size or false if the size doesn't exist.
+ */
+function get_image_width( $size ) {
+	if (&#160;! $size = get_image_size( $size ) ) {
+		return false;
+	}
+
+	if ( isset( $size['width'] ) ) {
+		return $size['width'];
+	}
+
+	return false;
+}
+
+/**
+ * Get the height of a specific image size.
+ *
+ * @uses   get_image_size()
+ * @param  string $size The image size for which to retrieve data.
+ * @return bool|string $size Height of an image size or false if the size doesn't exist.
+ */
+function get_image_height( $size ) {
+	if (&#160;! $size = get_image_size( $size ) ) {
+		return false;
+	}
+
+	if ( isset( $size['height'] ) ) {
+		return $size['height'];
+	}
+
+	return false;
+}
+</pre>
+<p>Some examples:
+</p>
+<pre>
+var_dump( get_image_sizes() );
+/*
+array(5) {
+  ["thumbnail"]=&gt;
+  array(3) {
+    ["width"]=&gt;
+    string(3) "150"
+    ["height"]=&gt;
+    string(3) "150"
+    ["crop"]=&gt;
+    bool(true)
+  }
+  ["medium"]=&gt;
+  array(3) {
+    ["width"]=&gt;
+    string(3) "300"
+    ["height"]=&gt;
+    string(3) "300"
+    ["crop"]=&gt;
+    bool(false)
+  }
+  ["medium_large"]=&gt;
+  array(3) {
+    ["width"]=&gt;
+    string(4) "768"
+    ["height"]=&gt;
+    string(4) "0"
+    ["crop"]=&gt;
+    bool(false)
+  }
+  ["large"]=&gt;
+  array(3) {
+    ["width"]=&gt;
+    string(4) "1024"
+    ["height"]=&gt;
+    string(4) "1024"
+    ["crop"]=&gt;
+    bool(false)
+  }
+  ["juliobox-size"]=&gt;
+  array(3) {
+    ["width"]=&gt;
+    int(211)
+    ["height"]=&gt;
+    int(279)
+    ["crop"]=&gt;
+    bool(false)
+  }
+}
+*/
+</pre>
+<pre>
+var_dump( get_image_size( 'large' ) );
+/*
+array(3) {
+  ["width"]=&gt;
+  int(1024)
+  ["height"]=&gt;
+  int(1024)
+  ["crop"]=&gt;
+  bool(false)
+}
+*/
+</pre>
+<pre>
+var_dump( get_image_size( 'foo-bar' ) );
+/*
+bool(false)
+*/</pre>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_intermediate_image_sizes&amp;action=edit&amp;section=6" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_3.0" title="Version 3.0">3.0</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/get_intermediate_image_sizes&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>get_intermediate_image_sizes()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/media.php#L0">wp-includes/media.php</a></code>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211003830
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.054 seconds
+Preprocessor visited node count: 97/1000000
+Preprocessor generated node count: 318/1000000
+Post‐expand include size: 245/2097152 bytes
+Template argument size: 98/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   17.625      1 - -total
+ 70.23%   12.378      1 - Template:Trac
+ 37.00%    6.521      1 - Template:CurrentVersion
+ 27.04%    4.765      1 - Template:Return
+-->

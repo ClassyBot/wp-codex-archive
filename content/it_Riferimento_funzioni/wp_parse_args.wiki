@@ -1,0 +1,115 @@
+{{Languages|
+{{en|Function Reference/wp_parse_args}}
+{{it|Riferimento funzioni/wp_parse_args}}
+}}
+== Descrizione ==
+
+<tt>'''wp_parse_args'''</tt> è un'utilità generica che si usa per fondere un array di argomenti con un array di valori predefiniti. Può ricevere in input anche la query string di un URL che verrà convertita in un array (es. <tt>"id=5&status=bozza"</tt>).
+
+&Egrave; usata in tutto WordPress per evitare di preoccuparsi della logica dei valori predefiniti e di quelli di input, e produce un modello stabile per passare gli argomenti. Funzioni come <tt>[[Template_Tags/query_posts | query_posts]]</tt>, <tt>[[Template_Tags/wp_list_comments | wp_list_comments]]</tt> e <tt>[[Function_Reference/get_terms | get_terms]]</tt> sono comuni esempi del potere semplificatorio di <tt>wp_parse_args</tt>.
+
+Le funzioni che hanno impostazioni basate su un <tt>'''$args'''</tt> sono in grado di espandere all'infinito il numero di valori che possono essere potenzialmente passate loro, evitando la seccatura di dover effettuare chiamate molto lunghe a funzioni in quanto ci sono troppi argomenti di cui tenere traccia, la cui funzione di molti è quella di sovrascrivere i valori di default di solito buoni in rare occasioni.
+
+== Utilizzo ==
+<tt>'''wp_parse_args()'''</tt> si usa all'interno della funzione che si sta definendo per elaborare gli argomenti in entrata. Di seguito vi è un esempio di come <tt>wp_parse_args()</tt> può combinare un array di valori predefiniti con un array di argomenti misti.
+
+<pre>
+/**
+ * Definisce l'array con i valori di default
+ */ 
+$defaults = array(
+	'type' => 'post',
+	'before' => "<nowiki><p></nowiki>",
+	'after' => "<nowiki></p></nowiki> \n",
+	'echo' => TRUE
+);
+
+/**
+ * Parsifica l'argomento $args in entrata in un array e lo combina con $defaults
+ */ 
+$args = wp_parse_args( $args, $defaults );
+
+/**
+ * OPZIONALE: Dichiara ogni elemento in $args come variabile, es. $type, $before.
+ */ 
+extract( $args, EXTR_SKIP );
+</pre>
+
+== Parametri ==
+{{it:Parameter|$args|array/string|Query string o array di argomenti misti che sovrascriveranno i valori in <tt>$defaults</tt>.}}
+Può essere passato come un URL in stile query-string
+ type=post&posts_per_page=5&cat=1
+o come una definizione di array
+ array( 'type' => 'post', 'posts_per_page' => 5, 'cat' => '1' )
+
+{{it:Parameter|$defaults|array|Array dei valori predefiniti che verranno sovrascritti da <tt>$args</tt>}}
+
+== Esempio ==
+Di seguito vi è una funzione di esempio che usa <tt>wp_parse_args</tt> per gestire il suo unico argomento <tt>$args</tt>, a cui si può dare qualunque valore si voglia.
+
+<pre>
+/**
+ * Definisce una nuova funzione che usa $args e wp_parse_args()
+ */
+function explain_parse_args( $args ) {
+	$defaults = array (
+ 		'text' => 'wp_parse_args() combina $args in $defaults',
+ 		'before' => "<nowiki><p></nowiki>",
+ 		'after' => "<nowiki></p></nowiki> \n",
+ 		'echo' => TRUE
+	);
+	
+	// Parsifica $args in entrata in un array e lo combina con $defaults
+	$args = wp_parse_args( $args, $defaults );
+	
+	// OPZIONALE: Dichiara ogni elemento in $args come sua propria variabile, es. $type, $before.
+	extract( $args, EXTR_SKIP );
+
+	$output = $before . $text . $after;
+	
+	if (!$echo) 
+		return $output;
+	
+	echo $output;
+}
+
+/**
+ * Esegue la funzione usando i valori di default (no $args)
+ * Questo stampa: 
+ * 	<p>wp_parse_args() combina $args in $defaults</p>
+ */
+explain_parse_args();
+
+/**
+ * Esegue la funzione con alcune opzioni sovrascritte da un array.
+ * Questo stampa l'output con i valori degli argomenti text e before modificati:
+ * 	<p class='specialclass'>Una spiegazione migliore</p>
+ */
+explain_parse_args( array (
+	'text' => "Una spiegazione migliore",
+	'before' => "<p class='specialclass'>"
+) );
+
+/**
+ * &Egrave; anche possibile passare una query string in stile URL la quale verrà convertita.
+ * Questo imposta $args['echo'] a 1 e $args['text'] a 0
+ */
+explain_parse_args( 'echo=1&text=0' );
+
+</pre>
+
+== Log delle modifiche ==
+
+Da: [[Version 2.2|2.2.0]]
+
+== File sorgente ==
+
+<tt>wp_parse_args()</tt> si trova in {{Trac|wp-includes/functions.php|trunk}}.
+
+== Correlati ==
+
+<tt>[[it:Riferimento funzioni/shortcode_atts | shortcode_atts()]]</tt>
+
+{{it:Tag Footer}}
+
+[[Category:Functions]]

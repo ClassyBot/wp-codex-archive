@@ -1,0 +1,64 @@
+== Description ==
+Adds a new comment to the database. 
+
+Filters new comment to ensure that the fields are sanitized and valid before inserting comment into database. Calls <tt>'comment_post'</tt> action with comment ID and whether comment is approved by WordPress. Also has <tt>'preprocess_comment'</tt> filter for processing the comment data before the function handles it. 
+
+== Usage ==
+%%%<?php wp_new_comment( $commentdata, $avoid_die = false ) ?>%%%
+
+== Parameters ==
+{{Parameter|$commentdata|array|Contains information on the comment.}}
+{{Parameter|$avoid_die |boolean|Should errors be returned as WP_Error objects instead of executing wp_die()? Default false.}}
+
+== Return Values ==
+; <tt>(integer)</tt> : The ID of the comment after adding.
+
+== Examples ==
+<!-- Added a detailed example, read the proof please -->
+<pre>
+global $post, $current_user; //for this example only :)
+
+$commentdata = array(
+	'comment_post_ID' => $post->ID, // to which post the comment will show up
+	'comment_author' => 'Another Someone', //fixed value - can be dynamic 
+	'comment_author_email' => 'someone@example.com', //fixed value - can be dynamic 
+	'comment_author_url' => 'http://example.com', //fixed value - can be dynamic 
+	'comment_content' => 'Comment messsage...', //fixed value - can be dynamic 
+	'comment_type' => '', //empty for regular comments, 'pingback' for pingbacks, 'trackback' for trackbacks
+	'comment_parent' => 0, //0 if it's not a reply to another comment; if it's a reply, mention the parent comment ID here
+	'user_id' => $current_user->ID, //passing current user ID or any predefined as per the demand
+);
+
+//Insert new comment and get the comment ID
+$comment_id = wp_new_comment( $commentdata );
+</pre>
+
+== Notes ==
+* Uses: [[Function_Reference/apply_filters|<tt>apply_filters()</tt>]] Calls <tt>'preprocess_comment'</tt> hook on <tt>$commentdata</tt> parameter array before processing
+* Uses: [[Function_Reference/do_action|<tt>do_action()</tt>]] Calls <tt>'comment_post'</tt> hook on <tt>$comment_ID</tt> returned from adding the comment and if the comment was approved.
+* Uses: [[Function_Reference/wp_filter_comment|<tt>wp_filter_comment()</tt>]] Used to filter comment before adding comment.
+* Uses: [[Function_Reference/wp_allow_comment|<tt>wp_allow_comment()</tt>]] checks to see if comment is approved.
+* Uses: [[Function_Reference/wp_insert_comment|<tt>wp_insert_comment()</tt>]] Does the actual comment insertion to the database.
+* Uses: [[Function_Reference/wp_notify_moderator|<tt>wp_notify_moderator()</tt>]]
+* Uses: [[Function_Reference/wp_notify_postauthor|<tt>wp_notify_postauthor()</tt>]]
+* Uses: [[Function_Reference/wp_get_comment_status|<tt>wp_get_comment_status()</tt>]]
+
+== Change Log ==
+Since: 1.5.0
+
+== Source File ==
+<!-- Need links to current source code files -->
+<tt>wp_new_comment()</tt> is located in  {{Trac|wp-includes/comment.php}}.
+
+== Related ==
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

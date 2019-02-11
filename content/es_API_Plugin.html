@@ -1,0 +1,242 @@
+<div style="background-color:#FCECAD; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article has been requested to be <a href="https://codex.wordpress.org/Category:Merges" title="Category:Merges">merged</a> into <a href="https://codex.wordpress.org/es:Plugin_API" title="es:Plugin API">es:Plugin API</a> with histories.</div>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Introducci.C3.B3n"><span class="tocnumber">1</span> <span class="toctext">Introducción</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Hooks.2C_Acciones_y_Filtros"><span class="tocnumber">2</span> <span class="toctext">Hooks, Acciones y Filtros</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Referencia_de_Funciones"><span class="tocnumber">3</span> <span class="toctext">Referencia de Funciones</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Acciones"><span class="tocnumber">4</span> <span class="toctext">Acciones</span></a>
+<ul>
+<li class="toclevel-2 tocsection-5"><a href="#Crear_una_Funci.C3.B3n_de_Acci.C3.B3n"><span class="tocnumber">4.1</span> <span class="toctext">Crear una Función de Acción</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Hook_a_WordPress"><span class="tocnumber">4.2</span> <span class="toctext">Hook a WordPress</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Instalar_y_Activar"><span class="tocnumber">4.3</span> <span class="toctext">Instalar y Activar</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Hooks_Actuales_para_Acciones"><span class="tocnumber">4.4</span> <span class="toctext">Hooks Actuales para Acciones</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-9"><a href="#Filtros"><span class="tocnumber">5</span> <span class="toctext">Filtros</span></a>
+<ul>
+<li class="toclevel-2 tocsection-10"><a href="#Crear_una_Funci.C3.B3n_de_Filtro"><span class="tocnumber">5.1</span> <span class="toctext">Crear una Función de Filtro</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Hook_in_your_Filter"><span class="tocnumber">5.2</span> <span class="toctext">Hook in your Filter</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Install_and_Activate"><span class="tocnumber">5.3</span> <span class="toctext">Install and Activate</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="#Current_Hooks_for_Filters"><span class="tocnumber">5.4</span> <span class="toctext">Current Hooks for Filters</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Example"><span class="tocnumber">5.5</span> <span class="toctext">Example</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Introducci.C3.B3n">Introducción</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=1" title="Edit section: Introducción">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Esta página documenta los hooks API (Interface de Programación de Aplicaciones) disponibles para desarrolladores de plugin de WordPress, y su uso. 
+</p><p>Este artículo asume que usted ya ha leído <a href="https://codex.wordpress.org/Escribiendo_un_Plugin" title="Escribiendo un Plugin" class="mw-redirect">Escribiendo un Plugin</a>, que le ofrece una visión general (y muchos detales) sobre como desarrollar un plugin. Este artículo trata específicamente sobre el API de los "Hooks", también conocidos como "Filtros" y "Acciones", que WordPress utiliza para poner su plugin en marcha. Estos hooks se pueden utilizar también en plantillas tal y como <a href="https://codex.wordpress.org/Theme_Development#Theme_Functions_File" title="Theme Development">se describe aquí</a>.
+</p><p><b>Nota:</b> Esta información se aplica a versiones de WordPress <a href="/index.php?title=Versions_1.2&amp;action=edit&amp;redlink=1" class="new" title="Versions 1.2 (page does not exist)">Versions 1.2</a> y superiores.  Antes de la Version 1.2, las modificaciones se llamaban "hacks" e involucraba editar el código fuente del mismo WordPress.
+</p>
+<h2><span class="mw-headline" id="Hooks.2C_Acciones_y_Filtros">Hooks, Acciones y Filtros</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=2" title="Edit section: Hooks, Acciones y Filtros">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>WordPress dispone de Hooks para permitir a los plugin 'anclarse' en el resto de WordPress; esto es, llamar a las funciones de su plugin en momentos específicos, y de esta forma, poner su plugin en marcha. Hay dos tipos de hooks:
+</p>
+<ol><li> <a href="#Acciones">Acciones</a>: Las Acciones son los hooks que lanza el núcleo de WordPress en puntos específicos durante la ejecución, o cuando ocurre un evento concreto. Su plugin puede especificar que una o más de sus funciones PHP se ejecuten en esos puntos, utilizando el API Acción.</li>
+<li> <a href="#Filtros">Filtros</a>: Los Filtros son los hooks que lanza el WordPress para modificar textos de varios tipos antes de añadirlos a la base de datos o enviarlos a la pantalla del navegador. Su plugin puede especificar que una o más de sus funciones PHP se ejecuten para modificar tipos específicos de texto en esos momentos, utilizando el API de Filtro. </li></ol>
+<p>A veces se puede conseguir el mismo fin ya sea con acciones como con filtros. Por ejemplo, si desea que su plugin cabie el texto de un post, usted podría añadir una función de acción a <tt>publish_post</tt> ( de forma que el post se modifica cuando es guardado en la base de datos), o una función de filtro a  <tt>the_content</tt> (de forma que el post se modificará en el momento en que es mostrado en pantalla).
+</p><p>Para una lista completa de todos los hooks de acción y filtro consultar <a rel="nofollow" class="external text" href="http://adambrown.info/p/wp_hooks">Adam Brown's WP Hooks Database</a>.
+</p>
+<h2><span class="mw-headline" id="Referencia_de_Funciones">Referencia de Funciones</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=3" title="Edit section: Referencia de Funciones">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<table cellspacing="10" width="100%">
+
+<tr valign="top">
+<td width="50%">
+<table class="widefat">
+
+<tr style="background:#464646; color:#d7d7d7;">
+<th> <b>Funciones de Filtro</b>
+</th></tr>
+<tr>
+<td>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/has_filter" title="Function Reference/has filter"> has_filter</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_filter" title="Function Reference/add filter"> add_filter</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/apply_filters" title="Function Reference/apply filters"> apply_filters</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/current_filter" title="Function Reference/current filter"> current_filter</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/merge_filters" title="Function Reference/merge filters"> merge_filters</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/remove_filter" title="Function Reference/remove filter"> remove_filter</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/remove_all_filters" title="Function Reference/remove all filters"> remove_all_filters</a></tt></li></ul>
+</td></tr></table>
+</td>
+<td width="50%">
+<table class="widefat">
+
+<tr style="background:#464646; color:#d7d7d7;">
+<th> <b>Funciones de Acción</b>
+</th></tr>
+<tr>
+<td>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/has_action" title="Function Reference/has action"> has_action</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/add_action" title="Function Reference/add action"> add_action</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/do_action" title="Function Reference/do action"> do_action</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/do_action_ref_array" title="Function Reference/do action ref array"> do_action_ref_array</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/did_action" title="Function Reference/did action"> did_action</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/remove_action" title="Function Reference/remove action"> remove_action</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/remove_all_actions" title="Function Reference/remove all actions"> remove_all_actions</a></tt></li></ul>
+</td></tr></table>
+</td></tr></table>
+<table cellspacing="10" width="100%">
+
+
+<table class="widefat">
+
+<tr style="background:#464646; color:#d7d7d7;">
+<th colspan="2"> <b>Funciones de Activation/Desactivation</b>
+</th></tr>
+<tr>
+<td>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/register_activation_hook" title="Function Reference/register activation hook"> register_activation_hook</a></tt></li></ul>
+</td>
+<td>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/register_deactivation_hook" title="Function Reference/register deactivation hook"> register_deactivation_hook</a></tt></li></ul>
+</td></tr></table>
+</table>
+<p><br />
+</p>
+<h2><span class="mw-headline" id="Acciones">Acciones</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=4" title="Edit section: Acciones">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Las <b>Acciones</b> son disparadas por eventos específicos que tienen lugar en WordPress, tales como publicar un post, cambiar una plantilla o mostrando una página del panel de administración. Su plugin puede responder al evento ejecutando una función PHP, que puede hacer uno o más de lo siguiente:
+</p>
+<ul><li> Modificar la base de datos</li>
+<li> Enviar un correo electrónico</li>
+<li> Modificar lo que se muestra en la pantalla del navegador (del admin o de un usuario final)</li></ul>
+<p>Lo pasos básicos para hacer que esto suceda (descritos en más detalle más adelante) son:
+</p>
+<ol><li> Crear una función PHP, en su archivo de plugin, que podría ejecutarse cuando ocurre el evento.</li>
+<li> Crear un Hook de acción en WordPress, llamando a <tt><a href="/index.php?title=Referencia_de_Funciones/add_action&amp;action=edit&amp;redlink=1" class="new" title="Referencia de Funciones/add action (page does not exist)">add_action()</a></tt></li>
+<li> Poner su función PHP en un archivo de plugin, y activarlo.</li></ol>
+<h3><span class="mw-headline" id="Crear_una_Funci.C3.B3n_de_Acci.C3.B3n">Crear una Función de Acción</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=5" title="Edit section: Crear una Función de Acción">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>El primer paso para crear una acción en su plugin es crear una función PHP con la funcionalidad que usted desea para el mismo, y ponerla en su archivo de plugin (su archivo de plugin debe ir en la carpeta  <i>wp-content/plugins</i>). Por ejemplo, si usted desea que sus amigos reciban un correo cada vez que usted  crea un nuevo post, debería definir la siguiente función:
+</p>
+<pre>
+function email_friends($post_ID)  {
+    $friends = 'bob@example.org,susie@example.org';
+    mail($friends, "sally's blog updated", 
+      'Acabo de publicar algo en mi bitácora: http://blog.example.com');
+    return $post_ID;
+}
+</pre>
+<p>Para la mayoría de las acciones, su función debería aceptar un único parámetro (normalmente el ID del post o comentario, dependiendo de la acción). Algunas acciones toman más de un parámetro -- Compruebe la documentación de la acción (si está disponible) o la fuente del código de WordPress para obtener más información. Además de un parámetro, usted también puede acceder a las variables golbales de WordPress, y llamar a otras funciones de WordPress (o funciones en su archivo de plugin).
+</p><p>Cualquier salida de texto hecha por la función (p.ej. con print) aparecerá en la página en la ubicación donde se invocó la acción.
+</p><p><b>NOTA</b>:  Tenga en cuenta que otros plugins o el núcleo de WordPress puede estar ya utilizando el nombre de función que usted ha pensado. Consulte <a href="https://codex.wordpress.org/Escribiendo_un_Plugin#Avoiding_Function_Name_Collisions" title="Escribiendo un Plugin" class="mw-redirect">Avoiding Function Name Collisions</a> para más información.
+</p>
+<h3><span class="mw-headline" id="Hook_a_WordPress">Hook a WordPress</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=6" title="Edit section: Hook a WordPress">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Una vez usted ha definido su función, el siguiente paso es "anclarla" o registrarla con WordPress. Para hacerlo, haga una llamada a  <tt><a href="/index.php?title=Referencia_de_Funciones/add_action&amp;action=edit&amp;redlink=1" class="new" title="Referencia de Funciones/add action (page does not exist)">add_action()</a></tt> en el espacio global de ejecución en su archivo de plugin:
+</p>
+<pre>
+add_action ( 'nombre_del_hook', 'nombre_de_su_función', [prioridad], [argumentos_aceptados] );
+</pre>
+<p>donde: 
+</p>
+<dl><dt> <tt>nombre_del_hook</tt>&#160;</dt>
+<dd> El nombre de un hook de acción provisto por WordPress, que indica con que evento ha de asociarse su función.</dd>
+<dt> <tt>nombre_de_su_función</tt>&#160;</dt>
+<dd> El nombre de la función que usted quiere que se ejecute siguiendo al evento especificado por <tt>nombre_del_hook</tt>. Esta puede ser una función PHP estándar, una función presente en el núcleo de WordPress, o una función definida por usted en su archivo de plugin (tal como <tt>'email_friends'</tt> definida anteriormente).</dd>
+<dt> <tt>prioridad</tt>&#160;</dt>
+<dd> Un número entero opcional que puede usarse para especificar el orden en el cual se ejecutarán las funciones asociadas con una acción particular (por defecto: 10). Los número más pequeños se ejecutarán antes, y las funciones con la misma prioridad se ejecutarán en el orden en el que han sido añadidas a la acción.</dd>
+<dt> <tt>argumentos_aceptados</tt>&#160;</dt>
+<dd> Un argumento de número entero, opcional, que define el número de argumentos que puede aceptar la función (por defecto 1), útil porque algunos hooks pueden pasar más de un argumento a su función. Este parámetro es nuevo desde la versión 1.5.1.</dd></dl>
+<p>En el ejemplo anterior,podríamos poner la siguiente línea en el archivo de plugin:
+</p>
+<pre>
+add_action ( 'publish_post', 'email_friends' );
+</pre>
+<p>Igualmente, usted además puede <a href="#Quitando_Acciones_y_Filtros">Quitar Acciones</a> de los hooks de acción. Consulte esta sección para detalles.
+</p>
+<h3><span class="mw-headline" id="Instalar_y_Activar">Instalar y Activar</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=7" title="Edit section: Instalar y Activar">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>El último paso para hacer funcionar su hook de acción es instalar el archivo y activar el plugin. La función PHP que usted escribió y la llamada a <tt>add_action</tt> deben ir en un archivo PHP juntas, y el archivo PHP debe instalarse en la carpeta <i>wp-content/plugins</i>. Una vez instalado, usted necesitará visitar la sección admin de WordPress y activar su plugin; consulte <a href="/index.php?title=Gestionando_Plugins&amp;action=edit&amp;redlink=1" class="new" title="Gestionando Plugins (page does not exist)">Gestionando Plugins</a> para más detalles.
+</p>
+<h3><span class="mw-headline" id="Hooks_Actuales_para_Acciones">Hooks Actuales para Acciones</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=8" title="Edit section: Hooks Actuales para Acciones">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Consulte <a href="/index.php?title=API_Plugin/Referencia_de_Acci%C3%B3n&amp;action=edit&amp;redlink=1" class="new" title="API Plugin/Referencia de Acción (page does not exist)">API Plugin/Referencia de Acción</a> para la lista actual de hooks de acción en WordPress, y enlaces a versiones previas de WordPress.
+</p>
+<h2><span class="mw-headline" id="Filtros">Filtros</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=9" title="Edit section: Filtros">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Los <b>Filtros</b> son funciones a través de las cuales WordPress hace pasar los datos, en momentos particulares de la ejecución, justo antes de tomar alguna acción con ellos (tal como añadir la información a la base de datos o mandarla a la pantalla del navegador). Los filtros se situan entre la base de datos y el navegador (cuando WordPress añade nuevos post y comentarios a la base de datos); la mayor parte de las entradas y salidas en WordPress pasa a través de, al menos, un filtro. WordPress hace algún filtro por defecto, y su plugin puede añadir sus propios filtros.
+</p><p>Los pasos básicos para añadir sus propios filtros a WordPress (descritos en más detalle más adelante) son:
+</p>
+<ol><li> Crear un afunción PHP que filtre los datos.</li>
+<li> Hacer un hook al filtro en WordPress, llamando a <tt><a href="/index.php?title=Referencia_de_Funciones/add_filter&amp;action=edit&amp;redlink=1" class="new" title="Referencia de Funciones/add filter (page does not exist)">add_filter()</a></tt></li>
+<li> Poner su función PHP en un archivo de plugin, y activarlo.</li></ol>
+<h3><span class="mw-headline" id="Crear_una_Funci.C3.B3n_de_Filtro">Crear una Función de Filtro</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=10" title="Edit section: Crear una Función de Filtro">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Una función de filtros toma una entrada de datos sin modificar, y devuelve los datos modificados (o, en algunos casos, un valor null para indicar que la información debería ser borrada o ignorada). Si los datos no son modificados por su filtro, entonces deberá obtenerse la información original de forma que los subsiguientes plugins puedan continuar modificando los datos si es necesario. 
+</p><p>Así, el primer paso en crear un filtro para su plugin es crear una función PHP que haga el filtro, y ponerla en el archivo de plugin (su archivo de plugin debe ubicarse en la carpeta <i>wp-content/plugins</i>). Por ejemplo, si usted quiere asegurarse de que sus post y comentarios no contenganFor example, if you want to make sure that your posts and comments contain no mal lenguaje, debería definir una variable con una lista de palabras prohibidas, y crear la siguiente función: 
+</p>
+<pre>
+function filter_profanity($content) {
+    $profanities = array('malapalabra','tambiénmala','...');
+    $content=str_ireplace($profanities,'{censurado}',$content);
+    return $content;
+}
+</pre>
+<p><i>Why does this work without a loop? Because $profanities is an array, and <a rel="nofollow" class="external text" href="http://www.php.net/manual/en/function.str-ireplace.php">str_ireplace</a> loops through the array for you. The <a rel="nofollow" class="external text" href="http://www.php.net/manual/en/function.str-ireplace.php">str_ireplace</a> function is used instead of <a rel="nofollow" class="external text" href="http://www.php.net/manual/en/function.str-replace.php">str_replace</a> because <a rel="nofollow" class="external text" href="http://www.php.net/manual/en/function.str-ireplace.php">str_ireplace</a> is case insensitive.</i> 
+</p><p><b>NOTE</b>:  Keep in mind that other plugins or the WordPress core may already be using the function name you have thought of. See the <a href="https://codex.wordpress.org/Writing_a_Plugin#Plugin_Development_Suggestions" title="Writing a Plugin">Plugin Development Suggestions</a> for more information.
+</p>
+<h3><span class="mw-headline" id="Hook_in_your_Filter">Hook in your Filter</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=11" title="Edit section: Hook in your Filter">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>After your function is defined, the next step is to "hook" or register it with WordPress. To do this, call <tt><a href="https://codex.wordpress.org/Function_Reference/add_filter" title="Function Reference/add filter">add_filter()</a></tt> in the global execution space of your plugin file:
+</p>
+<pre>
+add_filter ( 'hook_name', 'your_filter', [priority], [accepted_args] );
+</pre>
+<p>where:
+</p>
+<dl><dt> <tt>hook_name</tt>&#160;</dt>
+<dd> The name of a filter hook provided by WordPress, which defines when your filter should be applied.</dd>
+<dt> <tt>your_filter</tt>&#160;</dt>
+<dd> The name of the function that you want to use for filtering. This can be a standard PHP function, a function present in the WordPress core, or a function defined by you in the plugin file.</dd>
+<dt> <tt>priority</tt>&#160;</dt>
+<dd> An optional integer argument that can be used to specify the order in which the functions associated with a particular filter are executed (default: 10). Lower numbers correspond with earlier execution, and functions with the same priority are executed in the order in which they were added to the filter.</dd>
+<dt> <tt>accepted_args</tt>&#160;</dt>
+<dd> An optional integer argument defining how many arguments your function can accept (default 1), useful because some hooks can pass more than one argument to your function.</dd></dl>
+<p>In the example above, we would put the following in the main executing section of the plugin file, to tell WordPress to filter comments for profanity:
+</p>
+<pre>
+add_filter('comment_text','filter_profanity');
+</pre>
+<p>You can also remove filters from filter hooks using the <tt>remove_filter()</tt> function.  See <a href="#Removing_Actions_and_Filters">Removing Actions and Filters</a>.
+</p>
+<h3><span class="mw-headline" id="Install_and_Activate">Install and Activate</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=12" title="Edit section: Install and Activate">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The last step in getting your filter hook to work is to install the file and activate the plugin. The PHP function you wrote and the <tt><a href="https://codex.wordpress.org/Function_Reference/add_filter" title="Function Reference/add filter">add_filter()</a></tt> call must go into a PHP file together, and the PHP file must be installed in the <i>wp-content/plugins</i> directory. Once it is installed, you will need to visit the admin section of WordPress and activate your plugin; see <a href="https://codex.wordpress.org/Managing_Plugins" title="Managing Plugins">Managing Plugins</a> for more details.
+</p>
+<h3><span class="mw-headline" id="Current_Hooks_for_Filters">Current Hooks for Filters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=13" title="Edit section: Current Hooks for Filters">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>See <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">Plugin API/Filter Reference</a> for a current list of filter hooks in WordPress, and links to previous versions of WordPress.
+</p>
+<h3><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:API_Plugin&amp;action=edit&amp;section=14" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This is an example, <a rel="nofollow" class="external text" href="http://comox.textdrive.com/pipermail/wp-hackers/2008-February/018013.html">as described by Ozh on the wp-hackers email list</a>, for a plugin to modify (or overwrite) the default <code><a href="https://codex.wordpress.org/Template_Tags/bloginfo" title="Template Tags/bloginfo" class="mw-redirect">bloginfo()</a></code> function.  This will require modifying a core function behavior.
+</p>
+<pre>
+add_filter('bloginfo', 'mybloginfo', 1, 2);
+add_filter('bloginfo_url', 'mybloginfo', 1, 2);
+
+function mybloginfo($result='', $show='') {
+        switch ($show) {
+        case 'wpurl':
+                $result = SITE_URL;
+                break;
+        case 'template_directory':
+                $result = TEMPL_DIR;
+                break;
+        default: 
+        }
+        return $result;
+}
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004250
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.024 seconds
+Real time usage: 0.028 seconds
+Preprocessor visited node count: 132/1000000
+Preprocessor generated node count: 298/1000000
+Post‐expand include size: 566/2097152 bytes
+Template argument size: 157/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    2.926      1 - -total
+100.00%    2.926      1 - Template:merge-into
+ 45.59%    1.334      1 - Template:Message
+-->

@@ -1,0 +1,957 @@
+{{Copyedit}}
+
+{{Languages|
+{{en|Class Reference/WP_Query}}
+{{it|Riferimento classi/WP_Query}}
+{{ja|関数リファレンス/WP_Query}}
+}}
+
+==Descrizione==
+
+<tt>WP_Query</tt> è una classe definita in {{Trac|wp-includes/query.php}} che gestisce le complesse operazioni di richieste di articoli (o pagine) di un blog WordPress. Con <tt>{{Trac|wp-blog-header.php}}</tt> (o la classe WP nella [[Version 2.0]]) si forniscono all'oggetto <tt>$wp_query</tt> le informazioni che definiscono la richiesta corrente, quindi <tt>$wp_query</tt> determina il tipo di query con cui ha a che fare (probabilmente un archivio di categoria, un archivio per data, un feed o una ricerca) e recupera gli articoli richiesti. Con la richiesta vengono mantenute molte altre informazioni che potranno essere recuperate successivamente.
+
+==Interagire con WP_Query==
+
+La maggior parte delle volte è possibile trovare le informazioni desiderate senza dover gestire le funzioni della classe e le variabili globali. Vi sono un insieme di funzioni che è possibile richiamare ovunque che permettono di ottenere le informazioni desiderate.
+
+Vi sono due scenari nei quali si desidererà utilizzare <tt>WP_Query</tt>. Il primo è quello nel quale si desidera scoprire con quale tipo di richiesta abbia attualmente a che fare WordPress. Le proprietà <tt>$is_*</tt> sono studiate per fornire queste informazioni: utilizzare i [[Conditional Tags]] per interagire con queste cose. Questo è lo scenario più comune per chi scrive plugin (il secondo normalmente si applica a chi scrive temi).
+
+Il secondo scenario è durante [[Il Loop]]. <tt>WP_Query</tt> fornisce numerose funzioni per le operazioni più comuni con The Loop. Per cominciare, [[Function_Reference/have_posts|have_posts()]], che richiama <tt>$wp_query->have_posts()</tt>, viene chiamato per verificare che vi siano articoli da visualizzare. Se ve ne sono inizia un ciclo <tt>while</tt>, utilizzando [[Function_Reference/have_posts|have_posts()]] come condizione. Questo fa si che si ripeta il ciclo sino a quando vi sono articoli da visualizzare. In ciascuna interazione viene chiamata la funzione [[Function_Reference/the_post|the_post()]], che richiama  <tt>$wp_query->the_post()</tt> la quale imposta le variabili interne a <tt>$wp_query</tt> e la variabile globale <tt>$post</tt> (sulla quale i [[Template Tags]] si basano). Queste sono le funzioni che si dovrebbero utilizzare quando si scrive un tema che necessita di un ciclo. Si veda anche [[Il Loop]] e [[The Loop in Action]] per avere maggiori informazioni sul funzionamento.
+
+'''Nota:''' Se si utilizza [[Function_Reference/the_post|the_post()]] nella propria query occorre eseguire [[Function_Reference/wp_reset_postdata|wp_reset_postdata()]] subito dopo per far si che i [[Template Tags]] utilizzino nuovamente l'articolo corrente della query principale.
+
+==Utilizzo==
+
+<pre>
+<?php
+
+// La Query
+$the_query = new WP_Query( $args );
+
+// Il Loop
+while ( $the_query->have_posts() ) :
+	$the_query->the_post();
+	echo '<li>' . get_the_title() . '</li>';
+endwhile;
+
+// Ripristina Query & Post Data originali
+wp_reset_query();
+wp_reset_postdata();
+
+
+/* La seconda Query (senza variabili globali) */
+$query2 = new WP_Query( $args2 );
+
+// Il secondo Loop
+while( $query2->have_posts() ):
+	$query2->next_post();
+	echo '<li>' . get_the_title( $query2->post->ID ) . '</li>';
+endwhile;
+
+// Ripristina Query & Post Data originali
+wp_reset_query();
+wp_reset_postdata();
+
+?>
+</pre>
+
+==Metodi e proprietà==
+
+Questa è la documentazione formale di <tt>WP_Query</tt>. Non è possibile modificare direttamente le proprietà ma si dovranno utilizzare dei metodi. Si veda anche [[#Interagire_con_WP_Query|Interagire con WP_Query]] per alcune utili funzioni per evitare di pasticciare con le funzioni interne alla classe e le variabili globali.
+
+===Proprietà===
+
+; <tt>$query</tt>
+: mantiene la stringa della query passata all'oggetto $wp_query dalla classe WP.
+
+; <tt>$query_vars</tt>
+: Un array associativo contenente la <tt>$query</tt> dissezionata: un array delle variabili della query ed i rispettivi valori.
+
+; <tt>$queried_object</tt>
+: Applicabile se la richiesta è una categoria, un autore, un permalink o una pagina. Contiene le informazioni della categoria, dell'autore, dell'articolo o della Pagina richiesti.
+
+; <tt>$queried_object_id</tt>
+: Se la richiesta è una categoria, un autore, un articolo / pagina, contiene l?ID corrispondente.
+
+; <tt>$posts</tt>
+: Viene riempito con gli articoli richiesti prelevati dal database.
+
+; <tt>$post_count</tt>
+: Il numero di articoli che vengono visualizzati.
+
+; <tt>$found_posts</tt>
+: Il numero totale di articoli recuperati che corrispondono ai parametri della query corrente
+
+; <tt>$max_num_pages</tt>
+: Il numero totale di pagine. &Egrave; il risultato di $found_posts / $posts_per_page
+
+; <tt>$current_post</tt>
+: (disponibile durante [[Il Loop]]) Indice dell'articolo attualmente visualizzato.
+
+; <tt>$post</tt>
+: (disponibile durante [[Il Loop]]) L'articolo correntemente visualizzato.
+
+; <tt>$is_single</tt>, <tt>$is_page</tt>, <tt>$is_archive</tt>, <tt>$is_preview</tt>, <tt>$is_date</tt>, <tt>$is_year</tt>, <tt>$is_month</tt>, <tt>$is_time</tt>, <tt>$is_author</tt>, <tt>$is_category</tt>, <tt>$is_tag</tt>, <tt>$is_tax</tt>, <tt>$is_search</tt>, <tt>$is_feed</tt>, <tt>$is_comment_feed</tt>, <tt>$is_trackback</tt>, <tt>$is_home</tt>, <tt>$is_404</tt>, <tt>$is_comments_popup</tt>, <tt>$is_admin</tt>, <tt>$is_attachment</tt>, <tt>$is_singular</tt>, <tt>$is_robots</tt>, <tt>$is_posts_page</tt>, <tt>$is_paged</tt>
+: [[Glossary#Boolean|Booleani]] che indicano di quale tipo di richiesta si tratta. I primi tre ad esempio rappresentano rispettivamente 'è un permalink?', 'è una Pagina?', 'è un qualche tipo di pagina di arcvhivio?'.
+
+===Metodi===
+
+(Una e commerciale (ampersand - &) prima del nome di un metodo indica che viene [http://www.php.net/manual/en/language.references.return.php returns by reference].)
+
+; <tt>init()</tt>
+: Inizializza l'oggetto, imposta tutte le proprietà a null, zero o falso.
+
+; <tt>parse_query( $query )</tt>
+: Prende la stringa di query che definisce la rischiesta, la analizza e popola tutte le proprietà ad esclusione di <tt>$posts</tt>, <tt>$post_count</tt>, <tt>$post</tt> e <tt>$current_post</tt>.
+
+; <tt>parse_query_vars()</tt>
+: Rianalizza la vecchia stringa di query.
+
+; <tt>get( $query_var )</tt>
+: Recupera una variabile di query col nome indicato.
+
+; <tt>set( $query_var, $value )</tt>
+: Imposta una variabile di query col nome indicato ad un valore specifico.
+
+; <tt>&get_posts()</tt>
+: Recupera dal database e restituisce gli articoli richiesti. Inoltre popola <tt>$posts</tt> e <tt>$post_count</tt>.
+
+; <tt>next_post()</tt>
+: (da utilizzare con [[IlLoop]]) Avanza all'articolo successivo in <tt>$posts</tt>. Incrementa <tt>$current_post</tt> ed imposta <tt>$post</tt> con l'oggetto dell'articolo corrente (nota: non imposta la variabile globale <tt>$post</tt> solo la variabile di istanza dell'oggetto WP_Query.) Restituisce l'oggetto corrispondente all'articolo corrente.
+
+; <tt>the_post()</tt>
+: (da utilizzare con [[Il Loop]]) Avanza all'articolo successivo ed imposta la variabile globale <tt>$post</tt>.
+
+; <tt>have_posts()</tt>
+: (da utilizzare con [[Il Loop]], o subito prima del The Loop) Determina se vi sono ancora articoli da visualizzare.
+
+; <tt>rewind_posts()</tt>
+: Azzera <tt>$current_post</tt> e <tt>$post</tt>.
+
+; <tt>&query( $query )</tt>
+: Chiama <tt>parse_query()</tt> e <tt>get_posts()</tt>. Restituisce il risultato di <tt>get_posts()</tt>.
+
+; <tt>get_queried_object()</tt>
+: Imposta <tt>$queried_object</tt> se non ancora impostato e lo restituisce.
+
+; <tt>get_queried_object_id()</tt>
+: Imposta <tt>$queried_object_id</tt> se non ancora impostato e lo restituisce.
+
+; <tt>WP_Query( $query = <nowiki>''</nowiki> )</tt> (costruttore)
+: Se si fornisce una stringa di query chiama <tt>query()</tt> utilizzando tale stringa.
+
+==Parametri==
+
+===Parametri Autore===
+
+Visualizza gli articoli associati ad un determinato autore.
+
+* '''<tt>author</tt>''' (''int'') - utilizza l'id autore.
+* '''<tt>author_name</tt>''' (''string'') - utilizza '<tt>user_nicename</tt>' (NON il nome).
+
+'''Visualizza gli articoli di un Autore'''
+
+Visualizza gli articoli di un autore utilizzando l'id autore:
+
+ $query = new WP_Query( 'author=123' );
+
+Visualizza gli articoli di un autore utilizzando il '<tt>user_nicename</tt>' dell'autore:
+
+ $query = new WP_Query( 'author_name=rami' );
+
+'''Visualizza gli articoli di diversi Autori'''
+
+Visualizza gli articoli da diversi autori specifici: 
+
+ $query = new WP_Query( 'author=2,6,17,38' );
+
+'''Esclude gli articoli appartenenti ad un Autore'''
+
+Visualizza tutti gli articoli ''eccetto'' quelli di un autore(singolo) mettendo come prefisso all'id un segno '-' (meno):
+
+ $query = new WP_Query( 'author=-12' );
+
+===Parametri di categoria===
+
+Visualizza gli articoli associati a determinate categorie.
+
+* '''<tt>cat</tt>''' (''int'') - utiliza l'id di categoria.
+* '''<tt>category_name</tt>''' (''stringa'') - utilizza l'abbreviazione (slug) di categoria (NON il nome).
+* '''<tt>category__and</tt>''' (''array'') - utilizza l'id di categoria.
+* '''<tt>category__in</tt>''' (''array'') - utilizza l'id di categoria.
+* '''<tt>category__not_in</tt>''' (''array'') - utilizza l'id di categoria.
+
+'''Mostra articoli di una categoria'''
+
+Visualizza gli articoli che hanno questa categoria (e ogni figlio di questa categoria), using category id:
+
+ $query = new WP_Query( 'cat=4' );
+
+Visualizza gli articoli che hanno questa categoria (e ogni figlio di questa categoria), using category slug:
+
+ $query = new WP_Query( 'category_name=staff' );
+
+'''Mostra articoli di varie categorie'''
+
+Visualizza gli articoli che hanno queste categorie, utilizzando l'id di categoria:
+
+ $query = new WP_Query( 'cat=2,6,17,38' );
+
+Visualizza gli articoli che hanno queste categorie, utilizzando l'abbreviazione (slug) di categoria:
+
+ $query = new WP_Query( 'category_name=staff,news' );
+
+Visualizza gli articoli che hanno tutte queste categorie, utilizzando l'abbreviazione (slug) di categoria:
+
+ $query = new WP_Query( 'category_name=staff+news' );
+
+'''Escludere articoli appartenenti ad una categoria'''
+
+Visualizza tutti gli articoli ''meno'' quelli che hanno una categoria mettendo come prefisso ai loro id un segno '-' (meno).
+
+ $query = new WP_Query( 'cat=-12,-34,-56' );
+
+'''Gestione di categorie multiple'''
+
+Visualizza gli articoli che sono in categorie multiple. L'esempio seguente visualizza gli articoli che appartengono sia categoria 2 che 6:
+
+ $query = new WP_Query( array( 'category__and' => array( 2, 6 ) ) );
+
+Per visualizzare articoli dalla categoria 2 OPPURE 6, è possibile utilizzare <tt>cat</tt> come spiegato in precedenza oppure utilizzare <tt>category__in</tt> (si noti che i questo caso non verranno visualizzati articoli appartenenti ai figli di queste categorie):
+
+ $query = new WP_Query( array( 'category__in' => array( 2, 6 ) ) );
+
+&Egrave; anche possibile escludere categorie multiple in questo modo:
+
+ $query = new WP_Query( array( 'category__not_in' => array( 2, 6 ) ) );
+
+===Parametri dei tag===
+
+Mostra gli articoli associati a determinati tag.
+
+* '''<tt>tag</tt>''' (''stringa'') - utilizza l'abbreviazione (slug) del tag.
+* '''<tt>tag_id</tt>''' (''int'') - utilizza l'id del tag.
+* '''<tt>tag__and</tt>''' (''array'') - utilizza gli id dei tag.
+* '''<tt>tag__in</tt>''' (''array'') - utilizza gli id dei tag.
+* '''<tt>tag__not_in</tt>''' (''array'') - utilizza gli id dei tag.
+* '''<tt>tag_slug__and</tt>''' (''array'') - utilizza l'abbreviazione (slug) dei tag.
+* '''<tt>tag_slug__in</tt>''' (''array'') - utilizza l'abbreviazione (slug) dei tag.
+
+'''Mostra gli articoli per un tag'''
+
+Visualizza gli articoli che hanno questo tag utilizzando l'abbreviazione del tag:
+
+ $query = new WP_Query( 'tag=cooking' );
+
+Visualizza gli articoli che hanno questo tag utilizzando l'id del tag
+
+ $query = new WP_Query( 'tag_id=13' );
+
+'''Mostra gli articoli con diversi tag'''
+
+Visualizza gli articoli che hanno "uno" di questi tag:
+
+ $query = new WP_Query( 'tag=bread,baking' );
+
+Visualizza gli articoli che hanno "tutti" questi tag:
+
+ $query = new WP_Query( 'tag=bread+baking+recipe' );
+
+'''Gestione tag multipli'''
+
+Visualizza gli articoli sono contrassegnati sia dal tag di id 37 che dal tag di id 47:
+
+ $query = new WP_Query( array( 'tag__and' => array( 37, 47 ) ) );
+
+Per visualizzare gli articoli che abbiano o il di id 37 oppure 47 è possibile utilizzare <tt>tag</tt> come spiegato in precedenza oppure specificarlo esplicitamente usando <tt>tag__in</tt>:
+
+ $query = new WP_Query( array( 'tag__in' => array( 37, 47 ) ) );
+
+Visualizza gli articoli che nessuno dei due tag di id 37 e 47:
+
+ $query = new WP_Query( array( 'tag__not_in' => array( 37, 47 ) ) );
+
+I parametri <tt>tag_slug__in</tt> e <tt>tag_slug__and</tt> operano praticamente nello stesso modo ma utilizzano l'abbreviazione (slug) del tag.
+
+===Parametri di tassonomia===
+
+Mostra gli articoli associati a determinate [[Taxonomies|tassonomie]].
+
+* '''<tt>{tax}</tt>''' (''stringa'') - utilizza l'abbreviazione della tassonomia. '''Deprecata''' dalla versione [[Version 3.1]] in favore di '<tt>tax_query</tt>'.
+* '''<tt>tax_query</tt>''' (''array'') - utilizza i paramentri della tassonomia (disponibile dalla [[Version 3.1]]).
+** '''<tt>taxonomy</tt>''' (''stringa'') - Tassonomia.
+** '''<tt>field</tt>''' (''stringa'') -  Seleziona il temine della tassonomia per ('id' o 'slug')
+** '''<tt>terms</tt>''' (''int/stringa/array'') - Termine/i della tassonomia.
+** '''<tt>include_children</tt>''' (''booleano'') -  Indic se includere o meno i figli per le tassonomie gerarchiche. Valore predefinito impostato a true.
+** '''<tt>operator</tt>''' (''stringa'') - Operatore di verifica. I valori possibili sono 'IN', 'NOT IN', 'AND', 'EXISTS' e 'NOT EXISTS'. Il valore di default è 'IN'.
+
+'''Nota importante:''' <tt>tax_query</tt> accetta un '''array''' di parametri di '''arrays''' di argomenti di tax query (prende un array di array) - si veda il secondo esempio qua sotto.
+Questo construtto permette di interrogare tassonomie multiple utilizzando il parametro '''<tt>relation</tt>''' nel primo array (quello più esterno) (outer) per descrivere la relazione booleana fra le varie query di tassonomia.
+
+Dalla [[Version_3.5|3.5]] è stato risolto un bug che restituiva inavvertitamente '''tutti''' gli articoli quando il risultato doveva essere vuoto.
+
+'''Query di tassonomia semplice:'''
+
+Visualizza gli '''articoli''' contrassegnati con '''bob''' nella tassonomia personalizzata  '''persone''':
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'persone' => 'bob'
+);
+$query = new WP_Query( $args );
+</pre>
+
+Visualizza gli '''articoli''' contrassegnati con '''bob''' nella tassonomia personalizzata  '''persone''' utilizzando '''tax_query''':
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'tax_query' => array(
+		array(
+			'taxonomy' => 'persone',
+			'field' => 'slug',
+			'terms' => 'bob'
+		)
+	)
+);
+$query = new WP_Query( $args );
+</pre>
+
+'''Gestione tassonomie multiple:'''
+
+Visualizza '''articoli''' da diverse tassonomie personalizzate:
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'persone' => 'bob',
+	'lingua' => 'inglese'
+);
+$query = new WP_Query( $args );
+</pre>
+
+Visualizza '''articoli''' da diverse tassonomie personalizzate utilizzando '''tax_query''':
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'tax_query' => array(
+		'relation' => 'AND',
+		array(
+			'taxonomy' => 'genere_film',
+			'field' => 'slug',
+			'terms' => array( 'azione', 'commedia' )
+		),
+		array(
+			'taxonomy' => 'attore',
+			'field' => 'term_id',
+			'terms' => array( 103, 115, 206 ),
+			'operator' => 'NOT IN'
+		)
+	)
+);
+$query = new WP_Query( $args );
+</pre>
+
+Visualizza '''articoli''' che sono nella categoria '''citazioni''' OPPURE che sono nel [[Post Formats|formato]] '''quote''':
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'tax_query' => array(
+		'relation' => 'OR',
+		array(
+			'taxonomy' => 'category',
+			'field' => 'slug',
+			'terms' => array( 'citazioni' )
+		),
+		array(
+			'taxonomy' => 'post_format',
+			'field' => 'slug',
+			'terms' => array( 'post-format-quote' )
+		)
+	)
+);
+$query = new WP_Query( $args );
+</pre>
+
+===Parametri di ricerca===
+
+Visualizza gli articoli in base ad una ricerca per parole chiave.
+
+* '''<tt>s</tt>''' (''stringa'') - Parola chiave di ricerca.
+
+'''Mostra gli articoli in base ad una chiave di ricerca'''
+
+Visualizza gli articoli che corrispondono alla ricerca del termine "keyword":
+
+ $query = new WP_Query( 's=keyword' );
+
+===Parametri Articolo e Pagina===
+
+Visualizza il contenuto in base ai parametri di articolo e di pagina.
+
+* '''<tt>p</tt>''' (''int'') - utilizza l'id dell'articolo.
+* '''<tt>name</tt>''' (''string'') - utilizza l'abbreviazione (slug) dell'articolo.
+* '''<tt>page_id</tt>''' (''int'') - utilizza l'id della pagina.
+* '''<tt>pagename</tt>''' (''string'') - utilizza l'abbreviazione (slug) della pagina.
+* '''<tt>post_parent</tt>''' (''int'') - utilizza l'id della pagina. Restituisce solele Pagine figlie.
+* '''<tt>post__in</tt>''' (''array'') - utilizza l'id dell'articolo. Specifica quali articoli recuperare.
+* '''<tt>post__not_in</tt>''' (''array'') - utilizza l'id dell'articolo. Specifica quali articolo NON recuperare.
+
+'''Mostra Articolo/Pagina per ID'''
+
+Visualizza un articolo in base al suo ID:
+
+ $query = new WP_Query( 'p=7' );
+
+Visualizza una pagina in base al suo ID::
+
+ $query = new WP_Query( 'page_id=7' );
+
+'''Mostra Articolo/Pagina per abbreviazione (slug)'''
+
+Visualizza un articolo in base alla sua <tt>abbreviazione (slug)</tt>:
+
+ $query = new WP_Query( 'name=informazioni-su-di-me' );
+
+Visualizza una pagina in base alla sua <tt>abbreviazione (slug)</tt>:
+
+ $query = new WP_Query( 'pagename=contatti' );
+
+'''Mostra i figli di una Pagina'''
+
+Visualizza le pagine figlie utilizzando l'abbreviazione della apgina genitrice e figlia, separate da una barra (es. 'abbreviazione_genitore/abbreviazione_figlio'):
+
+ $query = new WP_Query( 'pagename=contattaci/canada' );
+
+Visualizza le pagine figlie utilizzando l'ID della pagina madre:
+
+ $query = new WP_Query( 'post_parent=93' );
+
+Visualizza solo le pagine principali escludendo tutte le pagine figlie:
+
+ $query = new WP_Query( 'post_parent=0' );
+
+'''Gestione Articoli/Pagine multiple'''
+
+Visualizza solo specifici articoli:
+
+ $query = new WP_Query( array( 'post_type' => 'page', 'post__in' => array( 2, 5, 12, 14, 20 ) ) );
+
+Visualizza tutti gli articoli ma NON quelli specificati:
+
+ $query = new WP_Query( array( 'post_type' => 'post', 'post__not_in' => array( 2, 5, 12, 14, 20 ) ) );
+
+Nota: non è possibile combinare 'post__in' e 'post__not_in' nella medesima query.
+
+===Parametri Tipo===
+
+Visualizza gli articoli associati a specifici [[Post Types|tipi di articolo]].
+
+* '''<tt>post_type</tt>''' (''stringa'' / ''array'') - utilizza i tipi di articolo. Recupera articoli di genere [[Post Types]], il valore predefinito è '<tt>post</tt>';
+** '<tt>post</tt>' - un articolo.
+** '<tt>page</tt>' - una pagina.
+** '<tt>revision</tt>' - una revisione.
+** '<tt>attachment</tt>' - un allegato. Di base WP_Query imposta 'post_status'=>'publish', ma gli allegati hanno un 'post_status'=>'inherit' quindi si dovrà impostare lo status a 'inherit' o 'any'.
+** '<tt>any</tt>' - recupera tutti i tipi escluso le revisioni e le tipologie con  'exclude_from_search' impostate a vero.
+** Custom Post Types (es. film)
+
+'''Visualizza articolo per tipo'''
+
+Visualizza solo pagine:
+
+ $query = new WP_Query( 'post_type=page' );
+
+Visualizza '<tt>any</tt>' tipo di articolo (recupera qualiasi tipo escludendo le revisioni e le tipologie con  'exclude_from_search' impostate a TRUE):
+
+ $query = new WP_Query( 'post_type=any' );
+
+Visualizza vari tipi di articolo, compresi i custom post types:
+
+ $query = new WP_Query( array( 'post_type' => array( 'post', 'page', 'film', 'libri' ) ) );
+
+===Parametri di stato===
+
+Visualizza articoli associati a determinati tipi di [[Post Status|stato]].
+
+* '''<tt>post_status</tt>''' (''stringa'' / ''array'') - utilizza lo stato degli articoli. Recupera gli articoli in base al [[Post Status]], il valore predefinito è '<tt>publish</tt>'.
+** '<tt>publish</tt>' - un articolo o una pagina pubblicati.
+** '<tt>pending</tt>' - articolo in attesa di revisione.
+** '<tt>draft</tt>' - un articolo con lo stato di bozza.
+** '<tt>auto-draft</tt>' - un articolo appena creato, senza alcun contenuto.
+** '<tt>future</tt>' - un articolo da pubblicare in futuro.
+** '<tt>private</tt>' - non visibile agli utenti che non sono autenticati.
+** '<tt>inherit</tt>' - una revisione. si veda  [[Function_Reference/get_children|get_children]].
+** '<tt>trash</tt>' - articolo nel cestino (disponibile dalla [[Version 2.9]]).
+** '<tt>any</tt>' - recupera qualsiaso stato eccetto quelli dei tipi di articolo con 'exclude_from_search' impostato a TRUE.
+
+'''Visualizza articolo in base allo stato'''
+
+Visualizza solo le bozze:
+
+ $query = new WP_Query( 'post_status=draft' );
+
+Visualizza articoli con diversi stati:
+
+ $query = new WP_Query( array( 'post_status' => array( 'pending', 'draft', 'future' ) ) );
+
+Visualizza tutti gli allegati:
+
+ $query = new WP_Query( array( 'post_status' => 'any', 'post_type' => 'attachment' ) );
+
+===Parametri di paginazione===
+
+* '''<tt>nopaging</tt>''' (''booleano'') - visualizza tutti gli articoli o utilizza la paginazione. Il valore predefinito è 'false', utilizza la paginazione.
+* '''<tt>posts_per_page</tt>''' (''int'') - numero di articoli da visualizzare per ciascuna pagina (disponibile dalla [[Version 2.1]], ha sostituito il parametro '''<tt>showposts</tt>'''). Utilizzare <tt>'posts_per_page'=>-1</tt> per mostrare tutti gli articoli. ''Nota'': se la quaery è in un feed, WordPress sovrascrive il parametro con quello memorizzato nella opzione 'posts_per_rss'. Per reimpostare il limite, si utilizzi il filtro 'post_limits' oppure filtrare su 'pre_option_posts_per_rss' e restituire -1
+* '''<tt>offset</tt>''' (''int'') - numero di articoli da ''scartare'' o ignorare. ''Nota'': Impostando il parametro offset si ignorera il parametro paged.
+* '''<tt>paged</tt>''' (''int'') - numero di pagina. Visualizza gli articoli che normalmente appaiono nella pagina X quando si utilizza il link "Voci precedenti".
+* '''<tt>posts_per_archive_page</tt>''' (''int'') - numero di articoli da mostrare per ciascuna pagina - solo nelle pagine di archivio. Sovrascrive <tt>showposts</tt> e <tt>posts_per_page</tt> nelle pagine in cui <tt>[[Function_Reference/is_archive|is_archive()]]</tt> o <tt>[[Function_Reference/is_search|is_search()]]</tt> sono vere
+
+'''Mostrare x articoli per pagina'''
+
+Visualizza 3 articoli per pagina:
+
+ $query = new WP_Query( 'posts_per_page=3' );
+
+'''Mostrare tutti gli articoli'''
+
+Visualizza tutti gli articoli su una singola pagina:
+
+ $query = new WP_Query( 'posts_per_page=-1' );
+
+Visualizza tutti gli articoli disabilitando la paginazione:
+
+ $query = new WP_Query( 'nopaging=true' );
+
+'''Scartare alcuni articoli'''
+
+Visualizza gli articoli a partire dal quarto:
+
+ $query = new WP_Query( 'offset=3' ) );
+
+Visualizza 5 articoli per pagina a partire da dopo i 3 articoli più recenti:
+
+ $query = new WP_Query( array( 'posts_per_page' => 5, 'offset' => 3 ) );
+
+'''Mostrare articoli dalla pagina x'''
+
+Visualizza gli articoli dalla pagina numero 6:
+
+ $query = new WP_Query( 'paged=6' );
+
+'''Mostrare articoli dalla pagina corrente'''
+
+Visualizza gli articoli a partire dalla pagina corrente:
+ 
+ $query = new WP_Query( array( 'paged' => get_query_var( 'paged' ) ) );
+
+Visualizza gli articoli a partire dalla pagina corrente ed imposta il parametro 'paged' ad 1 quando la variabile di query non è impostata (prima pagina).
+
+ $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+ $query = new WP_Query( array( 'paged' => $paged ) );
+
+Nota sulla paginazione: Utilizzare <tt>get_query_var('page');</tt> se si desidera che la query funzioni nel [[Pages#Page_Templates|Template di pagina]] che è stato impostato come [[Creating_a_Static_Front_Page|pagina iniziale statica]].  La variabile di query 'page' contiene il numero di pagina per un singolo articolo o pagina che contiene il [[Write_Post_SubPanel#Quicktags | Quicktag]] <code>&lt;!--nextpage--&gt;</code> nel contenuto dell'articolo.
+
+Visualizza gli articoli della pagina corrente su una [[Creating_a_Static_Front_Page|pagina iniziale statica]]:
+ $paged = (get_query_var('page')) ? get_query_var('page') : 1;
+ $query = new WP_Query( array( 'paged' => $paged ) );
+
+===Parametri Order & Orderby===
+
+Ordinanono gli articoli recuperati.
+
+* '''<tt>order</tt>''' (''stringa'') - Determina l'ordinamento ascendente o discendente del parametro '<tt>orderby</tt>'.  Valore predefinito 'DESC'.
+** '<tt>ASC</tt>' - ordine ascendente dal valore più piccolo a quello più grande (1, 2, 3; a, b, c).
+** '<tt>DESC</tt>' - ordine discendente dal valore più grande a quello più piccolo (3, 2, 1; c, b, a).
+
+* '''<tt>orderby</tt>''' (''stringa'') -Ordina gli articoli recuperati in base al parametro.  Valore predefinito 'date'.
+** '<tt>none</tt>' - Nessun ordinamento (disponibile dalla [[Version 2.8]]).
+** '<tt>ID</tt>' - Ordina per id articolo. Si noti il maiuscolo.
+** '<tt>author</tt>' - Ordina per autore.
+** '<tt>title</tt>' - Ordina per titolo.
+** '<tt>name</tt>' - Ordina per nome articolo (abbreviazione (slug) dell'articolo).
+** '<tt>date</tt>' - Ordina per data.
+** '<tt>modified</tt>' - Ordina per data di ultima modifica.
+** '<tt>parent</tt>' - Ordina in base all'id dell'articolo/pagina genitore.
+** '<tt>rand</tt>' - Ordina casualmente.
+** '<tt>comment_count</tt>' - Ordina in base al numero dei commenti (disponibile dalla [[Version 2.9]]).
+** '<tt>menu_order</tt>' - Ordina in base all'odinamento Pagina. Utilizzato principalmente per [[Pages]] (il campo ''Ordine'' nel riquadro degli attributi nell'editor di Pagine) e per gli  [[Attachments|Allegati]] (il campi numerici interi nella finestra di dialogo Inserisci / Carica galleria media), ma può essere utilizzato per qualsiasi tipi di articolo con distinti valori di '<tt>menu_order</tt>' (di base valgono tutti <var>0</var>).
+** '<tt>meta_value</tt>' - Si noti che una definizione '<tt>meta_key=nomechiave</tt>' deve essere presente nella query. Si noti anche che l'ordinamento è alfabetico che è corretto per le stringhe (es. parole) ma può fornire risultati inaspettati per i numeri (es. 1, 3, 34, 4, 56, 6, ecc, anzichè 1, 3, 4, 6, 34, 56 come si si aspetterebbe). Utilizzare in questo caso  '<tt>meta_value_num</tt>' per i valori numerici.
+** '<tt>meta_value_num</tt>' - Ordinamento per valori numerici dei metadati (disponibile dalla [[Version 2.8]]). Si noti che una definizione '<tt>meta_key=nomechiave</tt>' deve essere presente nella query. Questo valore consente l'ordinamento numerico come indicato precedentemente in '<tt>meta_value</tt>'.
+** '<tt>post__in</tt>' - Mantiene l'ordine indicato degli ID fornito con l'array post__in array (disponibile dalla [[Version 3.5]]).
+
+'''Mostrare articoli ordinati per titolo in ordine discendente'''
+
+Visualizza gli articoli odinati in base al titolo in ordine discendente:
+
+ $query = new WP_Query( array ( 'orderby' => 'title', 'order' => 'DESC' ) );
+
+'''Mostrare articoli casuali'''
+
+Visualizza un articolo a caso:
+
+ $query = new WP_Query( array ( 'orderby' => 'rand', 'posts_per_page' => '1' ) );
+
+'''Mostrare gli articoli più popolari'''
+
+Visualizza gli articoli ordinati in base la numero dei commenti:
+
+ $query = new WP_Query( array( 'orderby' => 'comment_count' ) );
+
+'''Mostrare dei prodotti ordinati in base al prezzo'''
+
+Visualizza gli articoli di tipo 'Prodotto' ordinati in base al campo personalizzato 'Prezzo':
+
+ $query = new WP_Query( array ( 'post_type' => 'prodotto', 'orderby' => 'meta_value', 'meta_key' => 'prezzo' ) );
+
+'''Valori multipli di 'orderby' '''
+
+Visualizza le pagine ordinate in base al 'title' ed al 'menu_order'. (il titolo è predominante):
+
+ $query = new WP_Query( array( 'post_type' => 'page', 'orderby' => 'title menu_order', 'order' => 'ASC' ) );
+
+''''orderby' con 'meta_value' e tipi di articolo personalizzati'''
+
+Visualizza gli articoli di tipo 'mio_tipo_di_articolo', ordinati per 'eta' e filtrati per mostrare solo le età 3 e 4 (utilizzando meta_query).
+
+  $args = array(
+    'post_type' => 'mio_tipo_di_articolo',
+    'meta_key' => 'eta',
+    'orderby' => 'meta_value_num',
+    'order' => 'ASC',
+    'meta_query' => array(
+        array(
+            'key' => 'eta',
+            'value' => array(3, 4),
+            'compare' => 'IN',
+        )
+    )
+  );
+  $query = new WP_Query($args);
+
+===Parametri articolo in evidenza===
+
+Mostra [[Sticky Posts|articoli in evidenza]] oppure li ignora.
+
+* '''<tt>ignore_sticky_posts</tt>''' (''booleano'') - ignora gli articoli in evidenzaoppure no (disponibile dalla [[Version 3.1]], sostituito dal parametro '''<tt>caller_get_posts</tt>'''). Valore predefinito 0 - non ignora gli articoli in evidenza. ''Nota'': ignora/esclude gli articoli in evidenza dall'essere inclusi all'inizio degli articoli restituiti, ma gli articoli in evidenza appariranno nell'ordine naturale dell'elenco degli articoli che viene restituito.
+
+'''Mostrare gli articoli in videnza'''
+
+Visualizza solo il primo articolo in evidenza:
+
+ $sticky = get_option( 'sticky_posts' );
+ $query = new WP_Query( 'p=' . $sticky[0] );
+
+Visualizza solo il primo articolo in evidenza e se non ve ne è alcuno l'ultimo articolo pubblicato:
+
+ $args = array(
+ 	'posts_per_page' => 1,
+ 	'post__in'  => get_option( 'sticky_posts' ),
+ 	'ignore_sticky_posts' => 1
+ );
+ $query = new WP_Query( $args );
+
+Visualizza solo il primo articolo in evidenza, se non ve ne è alcuno non restituisce nulla:
+
+ $sticky = get_option( 'sticky_posts' );
+ $args = array(
+ 	'posts_per_page' => 1,
+ 	'post__in'  => $sticky,
+ 	'ignore_sticky_posts' => 1
+ );
+ $query = new WP_Query( $args );
+ if ( $sticky[0] ) {
+ 	// inserire il proprio codice...
+ }
+
+'''Non mostrare gli articoli in evidenza'''
+
+Esclude tutti gli articoli in evidenza dalla query:
+
+ $query = new WP_Query( array( 'post__not_in' => get_option( 'sticky_posts' ) ) );
+
+Esclude gli articoli in evidenza di una categoria. Restituisce TUTTI gli articoli di una categoria ma non mette gli articoli in evidenza all'inizio dell'elenco. Gli 'articoli in evidenza' appariranno però nell'elenco nella loro posizione naturale in base all'ordinamento  (es. per data):
+
+ $query = new WP_Query( array( 'ignore_sticky_posts' => 1, 'posts_per_page' => 3, 'cat' => 6 );
+
+Esclude gli articoli in evidenza di una data categoria. Restituisce gli articoli appartenenti ad una categoria ma esclude completamente gli articoli in evidenza e gestisce correttamente le regole di paginazione:
+
+ $paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
+ $sticky = get_option( 'sticky_posts' );
+ $args = array(
+ 	'cat' => 3,
+ 	'ignore_sticky_posts' => 1,
+ 	'post__not_in' => $sticky,
+ 	'paged' => $paged
+ );
+ $query = new WP_Query( $args );
+
+===Parametri di tempo===
+
+Mostrare gli articoli associati ad un certo periodo di tempo.
+
+* '''<tt>year</tt>''' (''int'') - anno a 4 cifre (es. 2011).
+* '''<tt>monthnum</tt>''' (''int'') - Numero del mese (da 1 a 12).
+* '''<tt>w</tt>''' (''int'') - Settimana dell'anno (da 0 a 53). Utilizza il  [http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_week comando MySQL WEEK]. La modalità dipende dall'opzione "start_of_week" option.
+* '''<tt>day</tt>''' (''int'') - Giorno del mese (da 1 a 31).
+* '''<tt>hour</tt>''' (''int'') - Ora (da 0 a 23).
+* '''<tt>minute</tt>''' (''int'') - Minuto (da 0 a 60).
+* '''<tt>second</tt>''' (''int'') - Secondo (da 0 a 60).
+
+'''Restituisce gli articoli per la data corrente:'''
+
+ $today = getdate();
+ $query = new WP_Query( 'year=' . $today["year"] . '&monthnum=' . $today["mon"] . '&day=' . $today["mday"] );
+
+'''Restituisce gli articoli della settimana corrente:'''
+
+ $week = date('W');
+ $year = date('Y');
+ $query = new WP_Query( 'year=' . $year . '&w=' . $week );
+
+'''Restituisce gli articoli datatti 20 Dicembre:'''
+
+ $query = new WP_Query( 'monthnum=12&day=20' );
+
+'''Nota:''' Le query precedenti restituiscono articoli per una data specicifica, es. "Articli dell'anno X, mese X, giorno X". Non riescono ad estrarre articoli per un periodo di tempo relativo al presente, quindi query del tipo "Articoli degli ultimi 30 giorni" oppure "Articoli dell'ultimo anno" non sono possibili con le query di base e richiedono che gli articoli vengano filtrati per completare l'operazione ed ottenere i dati desiderati. Gli esempi precedenti utilizzano il [[Plugin_API#Filters | filtro]] posts_where e possono essere modificate per la maggior parte delle query di tipo relativo.
+
+'''Restituire gli articoli dal 1 marzo al 15 marzo 2010:'''
+<pre>
+// Crea una nuova funzione di filtraggio che aggiunga una clausola where alla query
+function filter_where( $where = '' ) {
+	// articoli dal 1 marzo al 15 marzo 2010
+	$where .= " AND post_date >= '2010-03-01' AND post_date < '2010-03-16'";
+	return $where;
+}
+
+add_filter( 'posts_where', 'filter_where' );
+$query = new WP_Query( $query_string );
+remove_filter( 'posts_where', 'filter_where' );
+</pre>
+
+'''Restituire articoli degli ultimi 30 giorni:'''
+<pre>
+// Crea una nuova funzione di filtraggio che aggiunga una clausola where alla query
+function filter_where( $where = '' ) {
+	// posts in the last 30 days
+	$where .= " AND post_date > '" . date('Y-m-d', strtotime('-30 days')) . "'";
+	return $where;
+}
+
+add_filter( 'posts_where', 'filter_where' );
+$query = new WP_Query( $query_string );
+remove_filter( 'posts_where', 'filter_where' );
+</pre>   
+
+'''Restituire gli articoli più vecchi fra i 30 ed i 60 giorni'''
+<pre>
+// Crea una nuova funzione di filtraggio che aggiunga una clausola where alla query
+function filter_where( $where = '' ) {
+	// articoli vecchi fra i 30 ed i 60 giorni
+	$where .= " AND post_date >= '" . date('Y-m-d', strtotime('-60 days')) . "'" . " AND post_date <= '" . date('Y-m-d', strtotime('-30 days')) . "'";
+	return $where;
+}
+
+add_filter( 'posts_where', 'filter_where' );
+$query = new WP_Query( $query_string );
+remove_filter( 'posts_where', 'filter_where' );
+</pre>
+
+===Parametri campi personalizzati===
+
+Mostrare articoli associati a determinati campi personalizzati.
+
+* '''<tt>meta_key</tt>''' (''stringa'') - Chiave del campo personalizzato.
+* '''<tt>meta_value</tt>''' (''stringa'') - Valore del campo personalizzato.
+* '''<tt>meta_value_num</tt>''' (''numero'') - Valore del campo personalizzato.
+* '''<tt>meta_compare</tt>''' (''stringa'') - Operatore con cui confrontare '<tt>meta_value</tt>'. I possibili valori sono '!=', '>', '>=', '<' o '<='. Il valore predefinito è '='.
+
+* '''<tt>meta_query</tt>''' (''array'') - Parametri del campo personalizzato (disponiile dalla  [[Version 3.1]]).
+** '''<tt>key</tt>''' (''string'') - Chiave del campo personalizzato.
+** '''<tt>value</tt>''' (''string''|''array'') - Valore del campo personalizzato (''Nota'': IL supporto all'array è limitato a comparare i valori con 'IN', 'NOT IN', 'BETWEEN' o 'NOT BETWEEN') (Questo valore può essere omesso quando si utilizza nella comparazione 'EXISTS' o 'NOT EXISTS' questa modalità è disponibile da WordPress 3.5)
+** '''<tt>compare</tt>''' (''string'') - Operatore di test. I valori possibili sono '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS' (solo in WP >= 3.5) e 'NOT EXISTS' (anch'esso solo in WP >= 3.5). Il valore predefinito è '='.
+** '''<tt>type</tt>''' (''stringa'') - Tipo di campo personalizzato. I possibili valori sono  'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', 'UNSIGNED'. Il valore predefinito è 'CHAR'.
+
+Il 'type' DATE opera solo con il valore di 'compare' BETWEEN se la data è memorizzata nel formato YYYYMMDD e viene verificato con questo formato.
+
+'''Una semplice query con campi personalizati:'''
+
+Visualizza gli articoli dove la chiave del campo personalizzato è 'colore' indipendentemente dal valore del campo personalizzato:
+
+ $query = new WP_Query( 'meta_key=colore' );
+
+Visualizza gli articoli dove il valore del campo personalizzato è 'blu' indipendentemente dal valore della chiave del campo personalizzato:
+
+ $query = new WP_Query( 'meta_value=blu' );
+
+Visaulizza [[Pages|Pagine]] dove il valore del campo personalizzato è 'blu' indipendentemente dal valore della chiave del campo personalizzato:
+
+ $query = new WP_Query( 'meta_value=blue&post_type=page' );
+
+Visualizza gli articoli dove la chiave del campo personalizzato è 'colore' ed il valore del campo personalizzato è 'blu':
+
+ $query = new WP_Query( array( 'meta_key' => 'colore', 'meta_value' => 'blu' ) );
+
+Visualizza gli articoli dove la chiave del campo personalizzato è 'colore' ed il valore del campo personalizzato NON &Egrave; 'blu':
+
+ $query = new WP_Query( array( 'meta_key' => 'colore', 'meta_value' => 'blu', 'meta_compare' => '!=' ) );
+
+Visualizza 'prodotti' dove la chiave del campo personalizzato è 'prezzo' ed il valore del campo personalizzato è MINORE O UGUALE A 22.<br />''Utilizzando il parametro 'meta_value' il valore di 99 verrà considerato maggiore di 100 poichè i dati sono memorizati come 'stringhe', e non 'numeri'. Per una comparazione numerica utilizare 'meta_value_num'.''
+
+ $query = new WP_Query( array( 'meta_key' => 'prezzo', 'meta_value' => '22', 'meta_compare' => '<=', 'post_type' => 'prodotto' ) );
+
+Visualizza gli articoli con un campo personalizzato di valore zero (0) idipendentemente dal valore della chiave del campo personalizzato:
+
+ $query = new WP_Query( array ( 'meta_value' => '_wp_zero_value' ) );
+
+'''Gestione di un singolo campo personalizzato:'''
+
+Visualizza gli articoli da un singolo campo personalizzato:
+
+<pre>
+$args = array(
+	'post_type' => 'prodotto',
+	'meta_query' => array(
+		array(
+			'key' => 'colore',
+			'value' => 'blu',
+			'compare' => 'NOT LIKE'
+		)
+	)
+);
+$query = new WP_Query( $args );
+</pre>
+
+(SI noti che meta_query si aspetta uan serie di array nidificati anche se si ha una singola query.)
+
+'''Gestione di campi personalizzati multipli:'''
+
+Visualizza articoli con diversi campi personalizzati:
+
+<pre>
+$args = array(
+	'post_type' => 'prodotto',
+	'meta_query' => array(
+		array(
+			'key' => 'colore',
+			'value' => 'blu',
+			'compare' => 'NOT LIKE'
+		),
+		array(
+			'key' => 'prezzo',
+			'value' => array( 20, 100 ),
+			'type' => 'numeric',
+			'compare' => 'BETWEEN'
+		)
+	)
+);
+$query = new WP_Query( $args );
+</pre>
+
+Visualizza articoli con meta key 'colore' NON UGUALE al valore 'blu' OPPURE meta key 'prezzo' con valori compresi FRA 20 e 100:
+
+<pre>
+$args = array(
+	'post_type' => 'prodotto',
+	'meta_query' => array(
+		'relation' => 'OR',
+		array(
+			'key' => 'colore',
+			'value' => 'blu',
+			'compare' => 'NOT LIKE'
+		),
+		array(
+			'key' => 'prezzo',
+			'value' => array( 20, 100 ),
+			'type' => 'numeric',
+			'compare' => 'BETWEEN'
+		)
+	)
+);
+$query = new WP_Query( $args );
+</pre>
+
+=== Parametri sui permessi===
+
+* '''<tt>perm</tt>''' (''stringa'') - Permessi utente.
+
+'''Mostra gli articoli se l'utente ha le capacità appropriate:'''
+
+Visualizza articoli pubblici e privati se l'utente dispone della capacita appropriata:
+
+ $query = new WP_Query( array( 'post_status' => array( 'publish', 'private' ), 'perm' => 'readable' ) );
+
+===Parametri di cache===
+
+Impedisce che i dati recuperati venfgano aggiunti alla cache.
+
+* '''<tt>cache_results</tt>''' (''booleano'') - Cache sulle informazioni degli articoli.
+* '''<tt>update_post_meta_cache</tt>''' (''booleano'') - Cache sulle informazioni dei metadati degli articoli.
+* '''<tt>update_post_term_cache</tt>''' (''booleano'') - Cache sulle informazioni dei termini associati agli articoli.
+
+'''Visualizza gli articoli senza aggiungere le informazioni alla cache'''
+
+Visualizza 50 articoli ma non aggiunge le informazioni sugli articoli alla cache:
+
+ $query = new WP_Query( array( 'posts_per_page' => 50, 'cache_results' => false ) );
+
+'''Visualizza gli articoli senza aggiungere i metadati degli articoli alla cache'''
+
+Visualizza 50 articoli ma non aggiunge le informazioni sui metadati degli articoli alla cache:
+
+ $query = new WP_Query( array( 'posts_per_page' => 50, 'update_post_meta_cache' => false ) );
+
+'''Visualizza gli articoli senza aggiungere le informazioni sui termini degli articoli alla cache'''
+
+Visualizza 50 articoli ma non aggiunge le informazioni sui termini degli articoli alla cache:
+
+ $query = new WP_Query( array( 'posts_per_page' => 50, 'update_post_term_cache' => false ) );
+
+In un normale utilizzo non si ha solitamente necessità di utilizzare questo parametro, aggiungere alla cache è solitamente la cosa giusta da fare, tuttavia può essere utile in determinate circostanze. Un esempio di tali circostanze potrebbe essere quando si utilizza una WP_Query per recuperare un elenco di titoli di articoli e la loro URL per visualizzarli, ma nessun'altra informazione riguardante gli articoli verrà utilizzata ed i dati sulle tassonomie e sui metadati non sono necessari. Non caricando queste informazioni si risparmia tempo per le query SQL extra assolutamente non necessarie.
+
+'''Nota''': Se viene utilizzato un sistema di backend di cache di oggetti permanente (tipo memcached) questi parametri sono impostati automaticamente a falso perchè non vi è necessità di aggiornare la cache ad ogni caricamento pagina quando è presente una cache persistente.
+
+===Parametro campi da restituire===
+
+Imposta i valori di ritorno.
+
+* '''<tt>fields</tt>''' (''stringa|array'') - Quali campi restituire. Di base ''all''.
+** '<tt>ids</tt>' - Restituisce un array di ID di articoli.
+** '<tt>id=>parent</tt>' - Restituisce un array associativo [ parent => ID, … ].
+** qualsiasi altro valore o un valore vuoto (predefinitio): restituisce un array di oggetti articolo
+
+==Filtri==
+
+* '''<tt>[[Plugin_API/Filter_Reference/posts_distinct|posts_distinct]]</tt>''' - Modifica la clausola SQL 'DISTINCTROW' nella query che restituisce l'array degli articoli.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_groupby|posts_groupby]]</tt>''' - Modifica la clausola SQL 'GROUP BY' nella query che restituisce l'array degli articoli.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_join|posts_join]]</tt>''' - Modifica la clausola SQL 'JOIN' nella query che restituisce l'array degli articoli.
+* '''<tt>[[Plugin_API/Filter_Reference/post_limits|post_limits]]</tt>''' - Modifica la clausola SQL 'LIMIT' nella query che restituisce l'array degli articoli.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_orderby|posts_orderby]]</tt>''' - Modifica la clausola SQL 'ORDER BY' nella query che restituisce l'array degli articoli.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_where|posts_where]]</tt>''' - Modifica la clausola SQL 'WHERE' nella query che restituisce l'array degli articoli.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_join_paged|posts_join_paged]]</tt>''' - Modifica la paginazione degli articoli utilizzando la clausola 'JOIN' nella query che restituisce l'array degli articoli.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_where_paged|posts_where_paged]]</tt>''' - Modifica la paginazione degli articoli utilizzando la clausola 'WHERE' nella query che restituisce l'array degli articoli.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_clauses|posts_clauses]]</tt>''' - Modifica ''tutte'' le clausole SQL precedenti in una sola volta. Fornisce un array di elementi che sono facilmente modificabili (disponibile dalla [[Version 3.1]]).
+
+Si noti che vi sono altri filtri non in elenco. Essendo complesso mantenere sempre aggiornato il codex, analizzare la funzione <code>get_posts();</code> dentro la classe WP_Query (/wp-includes/query.php) per vedere tutti i filtri disponibili.
+
+==File sorgente==
+
+<tt>WP_Query()</tt> si trova in {{Trac|wp-includes/query.php}}.
+
+==Risorse (in inglese)==
+
+* [http://ottopress.com/2010/wordpress-3-1-advanced-taxonomy-queries/ Advanced Taxonomy Queries in WordPress 3.1]
+* [http://thereforei.am/2011/10/28/advanced-taxonomy-queries-with-pretty-urls/ Advanced Taxonomy Queries with Pretty URLs]
+* [http://scribu.net/wordpress/advanced-metadata-queries.html Advanced Metadata Queries in WordPress 3.1]
+* [http://boren.nu/archives/2007/10/01/taxonomy-intersections-and-unions/ Taxonomy Intersections and Unions for WordPress 2.3]
+* [https://gist.github.com/2023628 Comprehensive Argument Reference by Mark Luetke]
+
+== Correlati ==
+
+{{it:Query_Tags}}
+
+{{Class Footer}}
+
+[[Category:Classes]]

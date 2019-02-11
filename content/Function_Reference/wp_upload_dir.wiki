@@ -1,0 +1,126 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/wp_upload_dir/}}
+
+{{Languages|
+{{en|Plugin API/Filter Reference/upload dir}}
+{{zh-cn|Plugin API/Filter Reference/upload dir}}
+}}
+== Description ==
+Returns an array of '''key => value''' pairs containing path information on the currently configured uploads directory.
+
+Checks the 'upload_path' option, which should be from the web root folder, and if it isn't empty it will be used. If it is empty, then the path will be 'WP_CONTENT_DIR/uploads'. If the 'UPLOADS' constant is defined, then it will override the 'upload_path' option and 'WP_CONTENT_DIR/uploads' path.
+
+The upload URL path is set either by the 'upload_url_path' option or by using the 'WP_CONTENT_URL' constant and appending '/uploads' to the path.
+
+If the 'uploads_use_yearmonth_folders' is set to true (checkbox if checked in the administration settings panel), then the time will be used. The format will be year first and then month.
+
+If the path couldn't be created, then an error will be returned with the key <tt>'error'</tt> containing the error message. The error suggests that the parent directory is not writable by the server.
+
+On success, the returned array will have many indices:
+ * 'path' - base directory and sub directory or full path to upload directory.
+ * 'url' - base url and sub directory or absolute URL to upload directory.
+ * 'subdir' - sub directory if uploads use year/month folders option is on.
+ * 'basedir' - path without subdir.
+ * 'baseurl' - URL path without subdir.
+ * 'error' - set to false.
+
+== Usage ==
+<pre>
+<?php $upload_dir = wp_upload_dir(); ?>
+</pre>
+
+== Parameters ==
+
+{{Parameter|$time|string|Time formatted in 'yyyy/mm'.|optional|null}}
+
+== Example ==
+Basic example to produce the upload directory URL.
+%%%<?php $upload_dir = wp_upload_dir(); ?>
+<?php echo $upload_dir['baseurl']; ?>%%%
+
+More in-depth break down of the data returned.
+%%%<?php
+$upload_dir = wp_upload_dir(); // Array of key => value pairs
+/*
+	$upload_dir now contains something like the following (if successful)
+	Array (
+		[path] => C:\path\to\wordpress\wp-content\uploads\2010\05
+		[url] => http://example.com/wp-content/uploads/2010/05
+		[subdir] => /2010/05
+		[basedir] => C:\path\to\wordpress\wp-content\uploads
+		[baseurl] => http://example.com/wp-content/uploads
+		[error] =>
+	)
+	// Descriptions
+	[path] - base directory and sub directory or full path to upload directory.
+	[url] - base url and sub directory or absolute URL to upload directory.
+	[subdir] - sub directory if uploads use year/month folders option is on.
+	[basedir] - path without subdir.
+	[baseurl] - URL path without subdir.
+	[error] - set to false.
+*/
+
+echo $upload_dir['path'] . '<br />';
+echo $upload_dir['url'] . '<br />';
+echo $upload_dir['subdir'] . '<br />';
+echo $upload_dir['basedir'] . '<br />';
+echo $upload_dir['baseurl'] . '<br />';
+echo $upload_dir['error'] . '<br />';
+
+$upload_url = ( $upload_dir['url'] );
+$upload_url_alt = ( $upload_dir['baseurl'] . $upload_dir['subdir'] );
+
+// Now echo the final result
+echo $upload_url . '<br />'; // Output - http://example.com/wp-content/uploads/2010/05
+
+// Using year and month based folders, the below will be the same as the line above.
+echo $upload_url_alt . '<br />'; // Output - http://example.com/wp-content/uploads/2010/05
+?>%%%
+
+== Important Note ==
+Note that using this function <strong>will create a subfolder in your Uploads folder</strong> corresponding to the queried month (or current month, if no <tt>$time</tt> argument is provided), if that folder is not already there. You don't have to upload anything in order for this folder to be created.
+
+For creating custom folder for users
+%%%<?php 
+global $current_user;
+get_currentuserinfo();
+
+$upload_dir = wp_upload_dir(); 
+$user_dirname = $upload_dir['basedir'].'/'.$current_user->user_login;
+if( ! file_exists( $user_dirname ) )
+	wp_mkdir_p( $user_dirname );
+?>%%%
+
+== Folder Name ==
+
+In case you want to move the <tt>/uploads</tt> folder, you'll have to use the <tt>UPLOADS</tt> constant. It normally shouldn't get used, as it only get's defined when <tt>ms_default_constants()</tt> is run (only multisite), but you can simply set 
+
+<pre>
+define( 'UPLOADS', trailingslashit( WP_CONTENT_DIR ) . 'custom_uploads_name' );
+</pre>
+
+in a single site install and it will just work, as the public directory structure function <tt>wp_upload_dir()</tt> sets it up, when it was defined: <tt>$dir = ABSPATH . UPLOADS;</tt>.
+
+''Note:'' You can extract the folder name with the following line:
+
+<pre>
+// returns `false` if the UPLOADS constant is not defined
+$upload_dir_name = false;
+if ( defined( 'UPLOADS' ) ) {
+	str_replace( trailingslashit( WP_CONTENT_DIR ), '', untrailingslashit( UPLOADS ) );
+}
+</pre>
+
+== Change Log ==
+
+Since: [[Version 2.0|2.0.0]]
+
+== Source File ==
+
+<tt>wp_upload_dir()</tt> is located in {{Trac|wp-includes/functions.php}}.
+
+== Related ==
+
+{{Directory URL Tags}}
+{{Tag Footer}}
+
+[[Category:Functions]]

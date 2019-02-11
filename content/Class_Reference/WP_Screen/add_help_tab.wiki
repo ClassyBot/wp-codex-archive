@@ -1,0 +1,157 @@
+== Description ==
+
+This function is used to add a tab to the Contextual Help menu in an admin page.
+
+<tt>add_help_tab()</tt> is a method of the [[Class_Reference/WP_Screen|WP_Screen()]] class, and can not be called directly.
+
+To use the method, fetch the <tt>$current_screen</tt> object or use [[Function_Reference/get_current_screen|get_current_screen()]] and then call the method from the object. Developers should keep in mind that you may need to filter <tt>$current_screen</tt> using an <tt>if</tt> or <tt>switch</tt> statement to prevent new help tabs from being added to ALL admin screens.
+
+== Usage ==
+
+<pre> <?php
+$screen = get_current_screen();
+$screen->add_help_tab( array( 
+   'id' => $id,            //unique id for the tab
+   'title' => $title,      //unique visible title for the tab
+   'content' => $content,  //actual help text
+   'callback' => $callback //optional function to callback
+) );
+?> </pre>
+
+== Parameters ==
+
+{{Parameter|$args|array|Contains values to be displayed by the created help tab and a callback argument}}
+
+=== Arguments ===
+
+{{Parameter|$title|string|Title for the tab.}}
+
+{{Parameter|$id|string|Tab ID. Must be HTML-safe and should be unique for this menu. It is **NOT** allowed to contain any empty spaces!}}
+
+{{Parameter|$content|string|Help tab content in plain text or HTML.|optional}}
+
+{{Parameter|$function|callback|The function to be called to output the content for this page.|optional}}
+
+
+== Example ==
+
+=== Default Usage ===
+
+This example shows how you would add contextual help to an admin page you've created with the <tt>add_options_page()</tt> function. Here, we assume that your admin page has a slug of 'my_admin_page' and exists under the Options tab.
+
+<pre>
+<?php 
+add_action('admin_menu', 'my_admin_add_page');
+function my_admin_add_page() {
+    $my_admin_page = add_options_page(__('My Admin Page', 'map'), __('My Admin Page', 'map'), 'manage_options', 'map', 'my_admin_page');
+
+    // Adds my_help_tab when my_admin_page loads
+    add_action('load-'.$my_admin_page, 'my_admin_add_help_tab');
+}
+
+function my_admin_add_help_tab () {
+    $screen = get_current_screen();
+
+    // Add my_help_tab if current screen is My Admin Page
+    $screen->add_help_tab( array(
+        'id'	=> 'my_help_tab',
+        'title'	=> __('My Help Tab'),
+        'content'	=> '<p>' . __( 'Descriptive content that will show in My Help Tab-body goes here.' ) . '</p>',
+    ) );
+}
+?>
+</pre>
+
+=== Advanced Usage (from within a class) ===
+
+<pre>
+    <?php
+/**
+ * Plugin Name: Help Tab Test Case
+ * Plugin URI:  http://unserkaiser.com
+ * Description: Add Help Tab test case
+ */
+class example_help
+{
+	public $tabs = array(
+		// The assoc key represents the ID
+		// It is NOT allowed to contain spaces
+		 'EXAMPLE' => array(
+		 	 'title'   => 'TEST ME!'
+		 	,'content' => 'FOO'
+		 )
+	);
+
+	static public function init()
+	{
+		$class = __CLASS__ ;
+		new $class;
+	}
+
+	public function __construct()
+	{
+		add_action( "load-{$GLOBALS['pagenow']}", array( $this, 'add_tabs' ), 20 );
+	}
+
+	public function add_tabs()
+	{
+		foreach ( $this->tabs as $id => $data )
+		{
+			get_current_screen()->add_help_tab( array(
+				 'id'       => $id
+				,'title'    => __( $data['title'], 'some_textdomain' )
+				// Use the content only if you want to add something
+				// static on every help tab. Example: Another title inside the tab
+				,'content'  => '<p>Some stuff that stays above every help text</p>'
+				,'callback' => array( $this, 'prepare' )
+			) );
+		}
+	}
+
+	public function prepare( $screen, $tab )
+	    {
+	    	printf( 
+			 '<p>%s</p>'
+			,__( 
+	    			 $tab['callback'][0]->tabs[ $tab['id'] ]['content']
+				,'dmb_textdomain' 
+			 )
+		);
+	}
+}
+// Always add help tabs during "load-{$GLOBALS['pagenow'}".
+// There're some edge cases, as for example on reading options screen, your
+// Help Tabs get loaded before the built in tabs. This seems to be a core error.
+add_action( 'load-post.php', array( 'example_help', 'init' ) );
+add_action( 'load-post-new.php', array( 'example_help', 'init' ) );
+</pre>
+
+[http://wordpress.stackexchange.com/questions/53595/help-tabs-with-add-help-tab-callback-how-does-the-argument-work/53598#53598 Above example came out of a WPSE question].
+
+[http://wordpress.stackexchange.com/questions/45210/positioning-screen-contextual-help-tabs You can read this WPSE question about how to fix the wrong order bug without changing core code].
+
+== Change Log ==
+
+* Since: [[Version 3.3]]
+
+== Source File ==
+
+<tt>add_help_tab()</tt> is located in {{Trac|wp-admin/includes/class-wp-screen.php}}.
+
+== Related ==
+
+=== Topics ===
+* [[Plugin_API/Admin_Screen_Reference|Admin Screen ID Reference]]
+
+=== Functions ===
+
+* [[Function Reference/add_options_page|add_options_page]]
+* [[Function Reference/add_menu_page|add_menu_page]]
+* [[Function Reference/add_submenu_page|add_submenu_page]]
+* [[Function Reference/add_theme_page|add_theme_page]]
+* [[Function Reference/get_current_screen|get_current_screen]]
+* [[Function Reference/set_help_sidebar|set_help_sidebar]]
+
+== Resources ==
+* [http://wpdevel.wordpress.com/2011/12/06/help-and-screen-api-changes-in-3-3/ Help and screen API changes in 3.3] - New Help and Screen usage example. On the official WPDevel blog, by Nacin (core team member) 
+* [http://ottopress.com/2011/new-in-wordpress-3-3-more-useful-help-screens/ New in WordPress 3.3: More Useful Help Screens] - Otto (core team member) explains the new Help Screens suing his SFC plugin as an example

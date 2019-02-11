@@ -1,0 +1,156 @@
+{{Languages|
+{{en|Template Hierarchy}}
+{{fr|Hiérarchie de modeles}}
+{{ja|テンプレート階層}}
+{{ru|Иерархия шаблонов}}
+}}
+
+{{ru:Stub}}
+
+<div style="border: 1px solid #036; background:#eee; text-align:center; margin:5px; padding:10px">'''Заметка:''' В этой статье содержится сложная тема. См. [[Основы шаблонов]] для получения базовой информации по шаблонам WordPress.</div>
+
+== Введение == 
+
+Страницы WordPress сайта собираются подобно пазлу из файлов-шаблонов. Некоторые шаблоны (например header.php и footer.php) задействованы на всех страницах, другие используются только при определенных условиях.
+
+=== О чём эта статья ===
+
+Эта статья отвечает на следующий вопрос:
+
+<blockquote>
+''Какие файлы шаблонов использует WordPress для отображения определённого типа страниц?''
+</blockquote>
+
+=== Кому это может пригодиться ===
+
+Со времен появления [[Использование тем|тем оформления]] в WordPress версии 1.5, [[Шаблоны|шаблоны]] становятся все более настраиваемы. Перед тем как [[Создание тем|создать свою тему]], вам нужно понять механизм работы шаблонов: как WordPress отбирает файлы-шаблоны для вывода разных страниц в вашем блоге. Если вы хотите что-то изменить в готовой теме, эта статья поможет вам понять, какой шаблон нужно редактировать.
+
+{| cellspacing="3"
+|- valign="top"
+|class="MainPageKnowledgeBaseBox" style="border: 1px solid #ffc9c9; padding: 1em; color: #000000; background-color: #fff3f3"|
+
+=== Использование тегов условий ===
+
+WordPress может несколькими способами подбирать шаблоны в соответствии с типом контента. Разработчики Тем для WordPress могут также использовать теги условий ([[Theme_Development#Query-based_Templates|Conditional Tags]]) для того, чтобы определенный шаблон был использован на конкретной странице блога. Некоторые Темы могут не содержать всех файлов-шаблонов, описанных в этой статье.
+В некоторых Темах использованы теги условий (conditional tags) для вызова других шаблонов.
+Читайте подробнее здесь: теги условий ([[Conditional Tags]]) и [[Theme Development#Query-based Templates|"Query Based" in Theme Development]].
+|}
+
+== Иерархия шаблонов ==
+
+=== Общая идея ===
+
+WordPress использует [[Glossary#Query_string|Строку Запроса]] &mdash; информацию, содержащуюся в каждой ссылке вашего сайта &mdash; для того, чтобы определить какой шаблон или набор шаблонов использовать для отображения страницы.
+
+Сперва WordPress находит каждую Строку Запроса по типам запросов &mdash; т.е. определяет какой тип страницы (страница поиска, страница категорий, главная страница и др.) был запрошен.
+
+После этого шаблоны выбираются и содержимое страницы генерируется в порядке, предложенном иерархией шаблонов WordPress, в зависимости от доступности шаблонов конкретной темы WordPress.
+
+WordPress ищет файлы шаблонов со специальными именами в папке текущей темы и использует ''первый подходящий'' файл шаблона указанный в соответствующем запросе. 
+
+За исключением основного шаблона <tt style="font-weight:bold; color:#036">index.php</tt>, разработчики тем могут использовать или не использовать файлы шаблонов по желанию. Если WordPress не находит шаблон с указанным именем, он переходит к следущему по иерархии шаблону. Если не один из искомых шаблонов не подходит, WordPress использует <tt style="font-weight:bold; color:#036">index.php</tt> (шаблон главной страницы Темы).
+
+=== Примеры ===
+
+Если Ваш блог находится по адресу <tt style="font-weight:bold; color:#036"><nowiki>http://domain.com/wp/</nowiki></tt> и посетитель переходит на страницу рубрики
+<tt style="font-weight:bold; color:#036"><nowiki>http://domain.com/wp/category/your-cat/</nowiki></tt>, WordPress в папке текущей Темы в первую очередь ищет шаблон, который отвечает за вывод этой рубрики. Если ID данной рубрики 4, WordPress ищет шаблон с именем <tt style="font-weight:bold; color:#036">category-4.php</tt>. Если такой шаблон не найден, WordPress ищет общий для всех рубрик шаблон <tt style="font-weight:bold; color:#036">category.php</tt>. Если и такого файла-шаблона нет, WordPress ищет шаблон для вывода архива <tt style="font-weight:bold; color:#036">archive.php</tt>. Если нет и этого файла, WordPress будет использовать основной шаблон Темы <tt style="font-weight:bold; color:#036">index.php</tt>.
+
+Если посетитель переходит на главную страницу сайта <tt style="font-weight:bold; color:#036"><nowiki>http://domain.com/wp/</nowiki></tt>, WordPress ищет шаблон <tt style="font-weight:bold; color:#036">home.php</tt> и использует его для генерации запрошенной страницы. Если файла <tt style="font-weight:bold; color:#036">home.php</tt> в папке Темы нет, WordPress использует файл <tt style="font-weight:bold; color:#036">index.php</tt> для вывода главной страницы блога.
+
+=== Наглядный обзор ===
+
+Следующая диаграмма показывает, какие файлы шаблона вызываются при создании страницы WordPress, согласно иерархии шаблонов WordPress.
+
+[[Image:Template_Hierarchy.png|600px|Graphic Example of the WordPress Template Hierarchy Structure]]
+<small>[http://codex.wordpress.org/images/1/18/Template_Hierarchy.png Full-Size Image (png)]</small>
+
+=== Подробнее о иерархии шаблонов ===
+
+Рассмотрим приоритет использования шаблонов при выводе разных типов контента в WordPress.
+
+==== Отображение главной страницы ====
+
+:
+:#<tt style="font-weight:bold; color:#036">home.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение Главной страницы ====
+:#<tt style="font-weight:bold; color:#036">front-page.php</tt> - Используется для страниц '''Ваши последние записи''' или '''Статическая страница''' как выбор в пункте меню '''Статическая главная страница''' раздела [[Administration_Panels#Reading|Внешний вид]] -> [[Settings_Reading_SubPanel|Настроить]]
+:#[[#Page display|Page display rules]] - Когда в разделе [[Administration_Panels#Reading|Внешний вид]] -> [[Settings_Reading_SubPanel|Настроить]] в пункте меню '''Статическая главная страница''' выбрана '''Статическая страница'''
+:#[[#Home Page display|Home Page display rules]] - Когда в разделе [[Administration_Panels#Reading|Внешний вид]] -> [[Settings_Reading_SubPanel|Настроить]] в пункте меню '''Статическая главная страница''' выбраны '''Ваши последние записи'''
+
+==== Отображение одиночной записи ====
+
+:#<tt style="font-weight:bold; color:#036">single-{post_type}.php</tt> - Например, если [[Post Types|тип записи]] &mdash; <tt style="font-weight:bold; color:#036">product</tt>, то WordPress обратится к файлу <tt style="font-weight:bold; color:#036">single-product.php</tt>. 
+:#<tt style="font-weight:bold; color:#036">single.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение статической страницы ====
+
+:#<tt style="font-weight:bold; color:#036">custom template</tt> - Where '''custom template''' is the [[Pages#Page_Templates|Page Template]] assigned to the Page.
+:#<tt style="font-weight:bold; color:#036">page-{slug}.php</tt> - If the page slug is '''recent-news''', WordPress will look to use <tt style="font-weight:bold; color:#036">page-recent-news.php</tt>
+:#<tt style="font-weight:bold; color:#036">page-{id}.php</tt> - Если ID страницы '''6''', WordPress попытается обратиться <tt style="font-weight:bold; color:#036">page-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">page.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение рубрики ====
+
+:[[Category Templates]]:
+:#<tt style="font-weight:bold; color:#036">category-{slug}.php</tt> - If the category's slug were <tt style="font-weight:bold; color:#036">news</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">category-news.php</tt>
+:#<tt style="font-weight:bold; color:#036">category-{id}.php</tt> - If the category's ID were <tt style="font-weight:bold; color:#036">6</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">category-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">category.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение метки ====
+
+:[[Tag Templates]]:
+:#<tt style="font-weight:bold; color:#036">tag-{slug}.php</tt> - If the tag's slug were <tt style="font-weight:bold; color:#036">sometag</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">tag-sometag.php</tt>
+:#<tt style="font-weight:bold; color:#036">tag-{id}.php</tt> - If the tag's ID were <tt style="font-weight:bold; color:#036">6</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">tag-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">tag.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение автора ====
+
+:[[Author Templates]]:
+:#<tt style="font-weight:bold; color:#036">author.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение даты ====
+
+:[[Date Templates]]:
+:#<tt style="font-weight:bold; color:#036">date.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение результатов поиска ====
+
+:[[Создание страницы поиска]]:
+:#<tt style="font-weight:bold; color:#036">search.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение ошибки 404 (Не найдено) ====
+
+:[[Создание страницы Ошибка 404]]:
+:#<tt style="font-weight:bold; color:#036">404.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Отображение приложений ====
+
+:[[Использование изображений и приложений#Inserting_Files|Шаблоны приложений]]:
+:#<tt style="font-weight:bold; color:#036">image.php</tt>, <tt style="font-weight:bold; color:#036">video.php</tt>, <tt style="font-weight:bold; color:#036">audio.php</tt>, <tt style="font-weight:bold; color:#036">application.php</tt> или любая другая первая часть [[User:Lolrus/Using_Attachments#Appendix:_Allowed_attachment_file_types|mime type]].
+:#<tt style="font-weight:bold; color:#036">application.php</tt>
+:#<tt style="font-weight:bold; color:#036">attachment.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+== Смотрите также ==
+
+Следующие ссылки имеют непосредственное отношение к теме статьи.
+
+[[Theme Development]] | [[The Loop]] | [[Conditional Tags]] | [[Template Tags]] | [[Using Permalinks]]
+
+{{ru:toclist}}
+
+[[Category:Russian Codex]]

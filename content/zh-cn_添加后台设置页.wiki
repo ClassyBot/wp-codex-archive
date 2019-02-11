@@ -1,0 +1,767 @@
+{{Languages|
+{{en|Creating Options Pages}}
+{{ja|Creating Options Pages}}
+{{ru|Создание страниц настройки}}
+{{zh-cn|添加后台设置页}}
+{{zh-tw|添加後臺設置頁}}
+}}
+
+
+<span style="color:red">This article is in transition to meet [[Settings API]], which was introduced in [[Version 2.7]]. For information prior to 2.7 see [http://codex.wordpress.org/index.php?title=Creating_Options_Pages&oldid=97268 this revision.]</span>
+
+== Introduction ==
+
+Creating <b> custom options </b> panels in WordPress is relatively easy.
+
+First, to create the menu item and the new page, see [[Adding Administration Menus]].
+
+So long as you stick to this structure, WordPress will handle all of the option creation, update, saving, and redirection for you. It will check permissions, and do all that other magic behind the scenes.
+
+Several new functions were added in WordPress 2.7. These new functions are optional in WordPress 2.7 but will be required in the future. They are required for WordPress MU 2.7. See [[Migrating Plugins and Themes to 2.7]] and [[Settings API]] for more information.
+
+This article only covers the markup of the Settings page itself. For more information regarding how to add the Settings page, refer to [[Administration Menus]]
+
+== Where to Save the Code ==
+
+You can either put the code for your options page in your plugin php file (or, for Themes, in functions.php), or you can create a second file called options.php, for example, and include it using the php include function - http://php.net/manual/en/function.include.php
+
+== Opening the Page ==
+
+如果你想让你的界面看起来和WP原有的界面风格一致的话，可以使用如下的标签结构开头：
+ &lt;div class="wrap">
+ &lt;h1>Your Plugin Page Title</h1>
+
+== 构建表单 ==
+
+Once you have your page, you need to create an HTML form. Use this code:
+ <form method="post" action="options.php"> 
+
+
+=== settings_fields Function ===
+
+The setting fields will know which settings your options page will handle.
+
+After the opening form tag, add this function
+
+ settings_fields( 'myoption-group' );
+
+where <tt>myoption-group</tt> is the same name used in the [[Function Reference/register_setting|register_setting]] function.
+
+This function '''replaces''' the '''nonce magic''', '''action field''', and '''page_options field''' required prior to Version 2.7.
+
+=== do_settings_fields Function ===
+
+After the settings_fields() call, add this function
+
+ do_settings_sections( 'myoption-group' );
+
+This function '''replaces''' the form-field markup in the form itself.
+
+== Closing Tags ==
+
+Then obviously close the form tag after your other options, and if you like, include another "Update Options" button, this is the WordPress default.
+ <?php submit_button(); ?>
+ </form>
+ </div>
+
+You can personalize the button created by [[Function_Reference/submit_button|submit_button]] function.
+
+Note the use of the _e() function to handle translation of the text, see [[Localizing WordPress]] for more info.
+
+=== Register Settings ===
+
+The [[Function Reference/register setting|register_setting]] and [[Function Reference/unregister setting|unregister_setting]] functions add and remove options from a whitelist of allowed options that the form is able to save. They can also name a sanitize callback function as a security measure to check each option's value.
+
+The register_setting function should be called in an [[Plugin API/Action Reference#Administrative Actions|admin_init]] action, which runs before every admin page and in particular, <tt>options.php</tt>, which receives this form.
+
+Your plugin probably has a section with an add_action that adds a new menu item to the administration menus. This line will be in the same section to add an action to admin_init.
+
+<pre>
+if ( is_admin() ){ // admin actions
+  add_action( 'admin_menu', 'add_mymenu' );
+  add_action( 'admin_init', 'register_mysettings' );
+} else {
+  // non-admin enqueues, actions, and filters
+}
+</pre>
+
+Then you create a new function that registers each option.
+
+<pre>
+function register_mysettings() { // whitelist options
+  register_setting( 'myoption-group', 'new_option_name' );
+  register_setting( 'myoption-group', 'some_other_option' );
+  register_setting( 'myoption-group', 'option_etc' );
+}
+</pre>
+
+The name of <tt>myoption-group</tt> doesn't matter but it has to match the name used in the settings_fields function above.
+
+
+
+=== See It All Together ===
+Please note: Some of the code in this example (particularly do_settings) is deprecated. [http://ottopress.com/2009/wordpress-settings-api-tutorial/ View Otto's tutorial here for better examples of workable code].   In addition, there's another [http://planetozh.com/blog/2009/05/handling-plugins-options-in-wordpress-28-with-register_setting/ article] available by [http://planetozh.com/blog/about/ ozh].
+
+To add icon to for your options page use the following code [this will work on version 3.4.2 and later] In following example, icon is stored in "images" folder in theme directory.
+
+<pre><?php add_menu_page('My Cool Plugin Settings', 'Cool Settings', 'administrator', __FILE__, 'my_cool_plugin_settings_page', get_stylesheet_directory_uri('stylesheet_directory')."/images/media-button-other.gif"); ?></pre>
+
+The below example uses the new Settings API to create and save your plugin options
+<pre>
+<?php
+// create custom plugin settings menu
+add_action('admin_menu', 'my_cool_plugin_create_menu');
+
+function my_cool_plugin_create_menu() {
+
+	//create new top-level menu
+	add_menu_page('My Cool Plugin Settings', 'Cool Settings', 'administrator', __FILE__, 'my_cool_plugin_settings_page' , plugins_url('/images/icon.png', __FILE__) );
+
+	//call register settings function
+	add_action( 'admin_init', 'register_my_cool_plugin_settings' );
+}
+
+
+function register_my_cool_plugin_settings() {
+	//register our settings
+	register_setting( 'my-cool-plugin-settings-group', 'new_option_name' );
+	register_setting( 'my-cool-plugin-settings-group', 'some_other_option' );
+	register_setting( 'my-cool-plugin-settings-group', 'option_etc' );
+}
+
+function my_cool_plugin_settings_page() {
+?>
+<div class="wrap">
+<h1>Your Plugin Name</h1>
+
+<form method="post" action="options.php">
+    <?php settings_fields( 'my-cool-plugin-settings-group' ); ?>
+    <?php do_settings_sections( 'my-cool-plugin-settings-group' ); ?>
+    <table class="form-table">
+        <tr valign="top">
+        <th scope="row">New Option Name</th>
+        <td><input type="text" name="new_option_name" value="<?php echo esc_attr( get_option('new_option_name') ); ?>" /></td>
+        </tr>
+         
+        <tr valign="top">
+        <th scope="row">Some Other Option</th>
+        <td><input type="text" name="some_other_option" value="<?php echo esc_attr( get_option('some_other_option') ); ?>" /></td>
+        </tr>
+        
+        <tr valign="top">
+        <th scope="row">Options, Etc.</th>
+        <td><input type="text" name="option_etc" value="<?php echo esc_attr( get_option('option_etc') ); ?>" /></td>
+        </tr>
+    </table>
+    
+    <?php submit_button(); ?>
+
+</form>
+</div>
+<?php } ?>
+</pre>
+
+==== Example #2 ====
+
+This example works on WP 3.5.1.  Much simpler and simply works.  This is an updated version of [http://ottopress.com/2009/wordpress-settings-api-tutorial/ Otto's tutorial].
+
+<pre>
+<?php
+class MySettingsPage
+{
+    /**
+     * Holds the values to be used in the fields callbacks
+     */
+    private $options;
+
+    /**
+     * Start up
+     */
+    public function __construct()
+    {
+        add_action( 'admin_menu', array( $this, 'add_plugin_page' ) );
+        add_action( 'admin_init', array( $this, 'page_init' ) );
+    }
+
+    /**
+     * Add options page
+     */
+    public function add_plugin_page()
+    {
+        // This page will be under "Settings"
+        add_options_page(
+            'Settings Admin', 
+            'My Settings', 
+            'manage_options', 
+            'my-setting-admin', 
+            array( $this, 'create_admin_page' )
+        );
+    }
+
+    /**
+     * Options page callback
+     */
+    public function create_admin_page()
+    {
+        // Set class property
+        $this->options = get_option( 'my_option_name' );
+        ?>
+        <div class="wrap">
+            <h1>My Settings</h1>
+            <form method="post" action="options.php">
+            <?php
+                // This prints out all hidden setting fields
+                settings_fields( 'my_option_group' );
+                do_settings_sections( 'my-setting-admin' );
+                submit_button();
+            ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    /**
+     * Register and add settings
+     */
+    public function page_init()
+    {        
+        register_setting(
+            'my_option_group', // Option group
+            'my_option_name', // Option name
+            array( $this, 'sanitize' ) // Sanitize
+        );
+
+        add_settings_section(
+            'setting_section_id', // ID
+            'My Custom Settings', // Title
+            array( $this, 'print_section_info' ), // Callback
+            'my-setting-admin' // Page
+        );  
+
+        add_settings_field(
+            'id_number', // ID
+            'ID Number', // Title 
+            array( $this, 'id_number_callback' ), // Callback
+            'my-setting-admin', // Page
+            'setting_section_id' // Section           
+        );      
+
+        add_settings_field(
+            'title', 
+            'Title', 
+            array( $this, 'title_callback' ), 
+            'my-setting-admin', 
+            'setting_section_id'
+        );      
+    }
+
+    /**
+     * Sanitize each setting field as needed
+     *
+     * @param array $input Contains all settings fields as array keys
+     */
+    public function sanitize( $input )
+    {
+        $new_input = array();
+        if( isset( $input['id_number'] ) )
+            $new_input['id_number'] = absint( $input['id_number'] );
+
+        if( isset( $input['title'] ) )
+            $new_input['title'] = sanitize_text_field( $input['title'] );
+
+        return $new_input;
+    }
+
+    /** 
+     * Print the Section text
+     */
+    public function print_section_info()
+    {
+        print 'Enter your settings below:';
+    }
+
+    /** 
+     * Get the settings option array and print one of its values
+     */
+    public function id_number_callback()
+    {
+        printf(
+            '<input type="text" id="id_number" name="my_option_name[id_number]" value="%s" />',
+            isset( $this->options['id_number'] ) ? esc_attr( $this->options['id_number']) : ''
+        );
+    }
+
+    /** 
+     * Get the settings option array and print one of its values
+     */
+    public function title_callback()
+    {
+        printf(
+            '<input type="text" id="title" name="my_option_name[title]" value="%s" />',
+            isset( $this->options['title'] ) ? esc_attr( $this->options['title']) : ''
+        );
+    }
+}
+
+if( is_admin() )
+    $my_settings_page = new MySettingsPage();
+</pre>
+
+This will create something like this:
+
+[[File:creating-options-pages-ex-2b.png]]
+
+
+Example 3 
+
+full example for options.php to get the values see after the code 
+
+<pre>
+<?php
+
+    $themename = "base-theme";
+    $shortname = "mnt";
+	
+	/* functions to andale the options array  */
+	
+	function mnt_get_formatted_page_array() { 
+		global $suffusion_pages_array;
+		if (isset($suffusion_pages_array) && $suffusion_pages_array != null) {
+			return $suffusion_pages_array;
+		}
+		$ret = array();
+		$pages = get_pages('sort_column=menu_order');
+		if ($pages != null) {
+			foreach ($pages as $page) {
+				if (is_null($suffusion_pages_array)) {
+					$ret[$page->ID] = array ("title" => $page->post_title, "depth" => count(get_ancestors($page->ID, 'page')));
+				}
+			}
+		}
+		if ($suffusion_pages_array == null) {
+			$suffusion_pages_array = $ret;
+			return $ret;
+		}
+		else {
+			return $suffusion_pages_array;
+		}
+	 }
+	
+	function mnt_get_category_array() { 
+		global $suffusion_category_array;
+		if (isset($suffusion_category_array) && $suffusion_category_array != null) {
+			return $suffusion_category_array;
+		}
+		$ret = array();
+		$args = array(
+	  'orderby' => 'name',
+	  'parent' => 0
+	  );
+	$categories = get_categories( $args );
+	if($categories != null){
+		foreach ($categories as $category) {
+				if (is_null($suffusion_category_array)) {
+					$ret[$category->cat_ID] = array ("name" => $category->name, "number" => $category->count);
+				}
+			}
+		}
+		
+		if ($suffusion_category_array == null) {
+			$suffusion_category_array = $ret;
+			return $ret;
+		}
+		else {
+			return $suffusion_category_array;
+		}
+	 }
+	
+	function create_opening_tag($value) { 
+		$group_class = "";
+		if (isset($value['grouping'])) {
+			$group_class = "suf-grouping-rhs";
+		}
+		echo '<div class="suf-section fix">'."\n";
+		if ($group_class != "") {
+			echo "<div class='$group_class fix'>\n";
+		}
+		if (isset($value['name'])) {
+			echo "<h3>" . $value['name'] . "</h3>\n";
+		}
+		if (isset($value['desc']) && !(isset($value['type']) && $value['type'] == 'checkbox')) {
+			echo $value['desc']."<br />";
+		}
+		if (isset($value['note'])) {
+			echo "<span class=\"note\">".$value['note']."</span><br />";
+		}
+	 }
+
+	/**
+	 * Creates the closing markup for each option.
+	 *
+	 * @param $value
+	 * @return void
+	 */
+	function create_closing_tag($value) { 
+		if (isset($value['grouping'])) {
+			echo "</div>\n";
+		}
+		//echo "</div><!-- suf-section -->\n";
+		echo "</div>\n";
+	 }
+		
+	function create_suf_header_3($value) { echo '<h3 class="suf-header-3">'.$value['name']."</h3>\n"; }
+		
+	function create_section_for_text($value) { 
+		create_opening_tag($value);
+		$text = "";
+		if (get_option($value['id']) === FALSE) {
+			$text = $value['std'];
+		}
+		else {
+			$text = get_option($value['id']);
+		}
+	 
+		echo '<input type="text" id="'.$value['id'].'" placeholder="enter your title" name="'.$value['id'].'" value="'.$text.'" />'."\n";
+		create_closing_tag($value);
+	 }
+	
+	function create_section_for_textarea($value) { 
+		create_opening_tag($value);
+		echo '<textarea name="'.$value['id'].'" type="textarea" cols="" rows="">'."\n";
+		if ( get_option( $value['id'] ) != "") {
+			echo get_option( $value['id'] );
+		}
+		else {
+			echo $value['std'];
+		}
+		echo '</textarea>';
+		create_closing_tag($value);
+	 }
+	
+	function create_section_for_color_picker($value) { 
+		create_opening_tag($value);
+		$color_value = "";
+		if (get_option($value['id']) === FALSE) {
+			$color_value = $value['std'];
+		}
+		else {
+			$color_value = get_option($value['id']);
+		}
+	 
+		echo '<div class="color-picker">'."\n";
+		echo '<input type="text" id="'.$value['id'].'" name="'.$value['id'].'" value="'.$color_value.'" class="color" />';
+		echo ' &laquo; Click to select color<br/>'."\n";
+		echo "<strong>Default: <font color='".$value['std']."'> ".$value['std']."</font></strong>";
+		echo " (You can copy and paste this into the box above)\n";
+		echo "</div>\n";
+		create_closing_tag($value);
+	 }
+	
+	function create_section_for_radio($value) { 
+		create_opening_tag($value);
+		foreach ($value['options'] as $option_value => $option_text) {
+			$checked = ' ';
+			if (get_option($value['id']) == $option_value) {
+				$checked = ' checked="checked" ';
+			}
+			else if (get_option($value['id']) === FALSE && $value['std'] == $option_value){
+				$checked = ' checked="checked" ';
+			}
+			else {
+				$checked = ' ';
+			}
+			echo '<div class="mnt-radio"><input type="radio" name="'.$value['id'].'" value="'.
+				$option_value.'" '.$checked."/>".$option_text."</div>\n";
+		}
+		create_closing_tag($value);
+	 }
+
+	function create_section_for_multi_select($value) { 
+		create_opening_tag($value);
+		echo '<ul class="mnt-checklist" id="'.$value['id'].'" >'."\n";
+		foreach ($value['options'] as $option_value => $option_list) {
+			$checked = " ";
+			if (get_option($value['id']."_".$option_value)) {
+				$checked = " checked='checked' ";
+			}
+			echo "<li>\n";
+			echo '<input type="checkbox" name="'.$value['id']."_".$option_value.'" value="true" '.$checked.' class="depth-'.($option_list['depth']+1).'" />'.$option_list['title']."\n";
+			echo "</li>\n";
+		}
+		echo "</ul>\n";
+		create_closing_tag($value);
+	 }
+	
+	function create_section_for_category_select($page_section,$value) { 
+		create_opening_tag($value);
+		$all_categoris='';
+			echo '<div class="wrap" id="'.$value['id'].'" >'."\n";
+			echo '<h1>Theme Options</h1> '."\n" .'
+				<p><strong>'.$page_section.':</strong></p>';
+				echo "<select id='".$value['id']."' class='post_form' name='".$value['id']."' value='true'>\n";
+				echo "<option id='all' value=''>All</option>";
+			foreach ($value['options'] as $option_value => $option_list) {
+				$checked = ' ';
+				echo 'value_id=' . $value['id'] .' value_id=' . get_option($value['id']) . ' options_value=' . $option_value;
+			if (get_option($value['id']) == $option_value) {
+				$checked = ' checked="checked" ';
+			}
+			else if (get_option($value['id']) === FALSE && $value['std'] == $option_value){
+				$checked = ' checked="checked" ';
+			}
+			else {
+				$checked = '';
+			}
+				echo '<option value="'.$option_list['name'].'" class="level-0" '.$checked.' number="'.($option_list['number']).'" />'.$option_list['name']."</option>\n";
+				//$all_categoris .= $option_list['name'] . ',';
+			}	
+			echo "</select>\n </div>";
+			//echo '<script>jQuery("#all").val("'.$all_categoris.'")</\script>';
+		create_closing_tag($value);
+	 }
+
+	$options = array( 
+		array("name" => "Header Customization",
+				"type" => "sub-section-3",
+				"category" => "header-styles",
+		),
+		array("name" => "Header Image",
+				"desc" => "Set the image to use for the header background. ",
+				"id" => $shortname."_header_background_image",
+				"type" => "text",
+				"parent" => "header-styles",
+				"std" => ""),
+		array("name" => "Body Background Settings",
+				"type" => "sub-section-3",
+				"category" => "body-styles",
+		),
+		array("name" => "Body Background Color",
+				"desc" => "Set the color of the background on which the page is. ",
+				"id" => $shortname."_body_background_color",
+				"type" => "color-picker",
+				"parent" => "body-styles",
+				"std" => "444444"),
+		array("name" => "Sidebar Setup",
+				"type" => "sub-section-3",
+				"category" => "sidebar-setup",
+		),
+		array("name" => "Sidebar Position",
+				"id" => $shortname."_sidebar_alignment",
+				"type" => "radio",
+				"desc" => "Which side would you like your sidebar?",
+				"options" => array("left" => "Left", "right" => "Right"),
+				"parent" => "sidebar-setup",
+				"std" => "right"),
+		array("name" => "Navigation Bar Setup",
+				"type" => "sub-section-3",
+				"category" => "nav-setup",
+		),
+		array("name" => "Pages to show in Navigation Bar",
+				"desc" => "Select the pages you want to include. All pages are excluded by default",
+				"id" => $shortname."_nav_pages",
+				"type" => "multi-select",
+				"options" => mnt_get_formatted_page_array($shortname."_nav_pages"),
+				"parent" => "nav-setup",
+				"std" => "none"
+		),
+		array("name" => "Analytics",
+				"type" => "sub-section-3",
+				"category" => "analytics-setup",
+		),
+		array("name" => "Custom Google Analytics Tracking Code",
+				"desc" => "Enter your tracking code here for Google Analytics",
+				"id" => $shortname."_custom_analytics_code",
+				"type" => "textarea",
+				"parent" => "analytics-setup",
+				"std" => ""
+		),
+		array("name" => "category posts to show on the front page",
+				"desc" => "Select the category you want to include. All pages are excluded by default",
+				"id" => $shortname."_front_page_first_section",
+				"type" => "select",
+				"options" => mnt_get_category_array($shortname."_nav_pages"),
+				"parent" => "nav-setup",
+				"std" => mnt_get_category_array($shortname."_nav_pages")
+		),
+		array("name" => "category posts to show on the front page below",
+				"desc" => "Select the category you want to include. All pages are excluded by default",
+				"id" => $shortname."_front_page_second_section",
+				"type" => "select-2",
+				"options" => mnt_get_category_array($shortname."_nav_pages"),
+				"parent" => "nav-setup",
+				"std" => mnt_get_category_array($shortname."_nav_pages")
+		),
+	 );
+	
+	function create_form($options) { 
+		echo "<form id='options_form' method='post' name='form' >\n";
+		foreach ($options as $value) {
+			switch ( $value['type'] ) {
+				case "sub-section-3":
+					create_suf_header_3($value);
+					break;
+	 
+				case "text";
+					create_section_for_text($value);
+					break;
+	 
+				case "textarea":
+					create_section_for_textarea($value);
+					break;
+	 
+				case "multi-select":
+					create_section_for_multi_select($value);
+					break;
+	 
+				case "radio":
+					create_section_for_radio($value);
+					break;
+	 
+				case "color-picker":
+					create_section_for_color_picker($value);
+					break;
+				case "select":
+					create_section_for_category_select('first section',$value);
+					break;
+				case "select-2":
+					create_section_for_category_select('second section',$value);
+					break;
+			}
+		}
+		
+		?> 
+		<input name="save" type="button" value="Save" class="button" onclick="submit_form(this, document.forms['form'])" />
+		<input name="reset_all" type="button" value="Reset to default values" class="button" onclick="submit_form(this, document.forms['form'])" />
+		<input type="hidden" name="formaction" value="default" />
+	
+     <script> function submit_form(element, form){ 
+				 form['formaction'].value = element.name;
+				 form.submit();
+			 } </script>
+    
+		</form>
+	<?php }  ?>
+	
+    		
+	
+	<?php
+   
+add_action('admin_menu', 'mynewtheme_add_admin');   
+function mynewtheme_add_admin() { 
+    global $themename, $shortname, $options, $spawned_options;
+ 
+    if ( $_GET['page'] == basename(__FILE__) ) {
+        if ( 'save' == $_REQUEST['formaction'] ) {
+            foreach ($options as $value) {
+                if( isset( $_REQUEST[ $value['id'] ] ) ) {
+                    update_option( $value['id'], $_REQUEST[ $value['id'] ]  );
+                }
+                else {
+                    delete_option( $value['id'] );
+                }
+            }
+ 
+            foreach ($spawned_options as $value) {
+                if( isset( $_REQUEST[ $value['id'] ] ) ) {
+                    update_option( $value['id'], $_REQUEST[ $value['id'] ]  );
+                }
+                else {
+                    delete_option( $value['id'] );
+                }
+            }
+			header("Location: themes.php?page=options.php&saved=true");
+            die;
+        }
+        else if('reset_all' == $_REQUEST['formaction']) {
+            foreach ($options as $value) {
+                delete_option( $value['id'] );
+            }
+ 
+            foreach ($spawned_options as $value) {
+                delete_option( $value['id'] );
+            }
+ 			header("Location: themes.php?page=options.php&".$_REQUEST['formaction']."=true");
+            die;
+        }
+  }
+
+add_theme_page($themename." Theme Options", "".$themename." Theme Options", 
+        'edit_themes', basename(__FILE__), 'mynewtheme_admin'); }
+
+function mynewtheme_admin() { 
+    global $themename, $shortname, $options, $spawned_options, $theme_name;
+ 
+    if ($_REQUEST['saved']) {
+        echo '<div id="message" class="updated fade"><p><strong>'.$themename.' settings saved for this page.</strong></p></div>';
+    }
+    if ($_REQUEST['reset_all']) {
+        echo '<div id="message" class="updated fade"><p><strong>'.$themename.' settings reset.</strong></p></div>';
+    }
+    ?>
+<div class="wrap">
+    <h1>Settings for <?php echo $themename; ?></h1>
+    <div class="mnt-options">
+<?php
+    create_form($options);
+?>
+    </div><!-- mnt-options -->
+</div><!-- wrap -->
+<?php } // end function mynewtheme_admin()
+?>
+
+</pre>
+ 
+the code will create something like this:
+
+[[File:Capture.PNG]]
+
+to get the values from the options.php after submit put this code in the page you want to get the value in the head of the page 
+
+<pre>
+<?php 
+global $options;
+foreach ($options as $value) {
+    if (get_option($value['id']) === FALSE) {
+        $$value['id'] = $value['std'];
+    }
+    else {
+        $$value['id'] = get_option( $value['id'] );
+    }
+}?>
+</pre>
+
+to get the value 
+
+<pre>
+if (trim($mnt_front_page_first_section) != "") 
+     	$first_section_category=$mnt_front_page_first_section;
+//$mnt_front_page_first_section = the element id from the $options array
+/*
+array("name" => "category posts to show on the front page",
+				"desc" => "Select the category you want to include. All pages are excluded by default",
+				"id" => $shortname."_front_page_first_section",//<- id
+				"type" => "select",
+				"options" => mnt_get_category_array($shortname."_nav_pages"),
+				"parent" => "nav-setup",
+				"std" => mnt_get_category_array($shortname."_nav_pages")
+		),
+*/
+</pre>
+
+==== Pitfalls ====
+The '''Settings''' name, the second parameter in the ''register_setting()'' function, MUST match the name of the option being updated in the database!
+<br />
+For example, say you have '''add_option( 'foo_bar', 'isfoo' )''', you MUST use '''foo_bar''' as the second parameter for the '''register_setting()''' function.  Otherwise WordPress does not know which setting it is suppose to update and it will fail to update.
+
+To show the menu in '''Multisite''' network screen, it would be a matter of doing:<br />
+<tt>add_action( is_multisite() ? 'network_admin_menu' : 'admin_menu', 'callback_function' );</tt><br />
+But the form save action leads to a 404 page: <tt>/wp-admin/network/options.php</tt>.<br />
+To solve it, use the solution in [http://wordpress.stackexchange.com/a/72503 this WordPress Answers post], or alternatively the one in [http://code.hyperspatial.com/1250/save-plugin-options-multisite-3-1/ this blog post].
+[[Category:Plugins]]
+[[Category:WordPress Development]]
+[[Category:Advanced Topics]]
+
+==External Resources==
+
+*[https://github.com/bueltge/WordPress-Admin-Style WordPress Admin Style] (19July16)
+*[https://github.com/helen/wp-style-guide WordPress Admin Pattern Library] (16July15)

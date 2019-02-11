@@ -1,0 +1,101 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Return_Values"><span class="tocnumber">4</span> <span class="toctext">Return Values</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Change_Log"><span class="tocnumber">5</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_read_image_metadata&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Get extended image metadata, exif or iptc as available.
+</p><p>Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso created_timestamp, focal_length, shutter_speed, and title.
+</p><p>The IPTC metadata that is retrieved is APP13, credit, byline, created date and time, caption, copyright, and title. Also includes FNumber, Model, DateTimeDigitized, FocalLength, ISOSpeedRatings, and ExposureTime.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_read_image_metadata&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;wp_read_image_metadata</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$file&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_read_image_metadata&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$file</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) 
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<p>Must pass in file path to image
+</p>
+<h2><span class="mw-headline" id="Return_Values">Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_read_image_metadata&amp;action=edit&amp;section=4" title="Edit section: Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt></tt> <tt style="color:gray">(<a href="https://codex.wordpress.org/Glossary#Boolean.7Carray" title="Glossary"><i>boolean&#124;array</i></a>)</tt>&#160;</dt>
+<dd> False on failure. Image metadata array on success.</dd></dl>
+<p>The elements returned in the array are:
+</p>
+<dl><dt> <tt>["aperture"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the EXIF FNumber field.</dd>
+<dt> <tt>["credit"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the first non-empty value found by looking through the following fields:</dd></dl>
+<ol><li> IPTC Credit field (2#110)</li>
+<li> IPTC Creator field (2#080)</li>
+<li> EXIF Artist field</li>
+<li> EXIF Author field</li></ol>
+<dl><dt> <tt>["camera"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the EXIF Model field.</dd>
+<dt> <tt>["caption"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to a non-empty value of one of the following fields (see source code for the precise logic involved):</dd></dl>
+<ol><li> IPTC Description field (2#120)</li>
+<li> EXIF UserComment field if ["title"] is unset AND EXIF:ImageDescription is less than 80 characters</li>
+<li> EXIF ImageDescription field if ["title"] is set OR EXIF:ImageDescription is more than 80 characters</li>
+<li> EXIF Comments field if ["title"] does not equal EXIF:Comments</li></ol>
+<dl><dt> <tt>["created_timestamp"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the first non-empty value found by looking through the following fields:</dd></dl>
+<ol><li> EXIF field DateTimeDigitized</li>
+<li> IPTC Date and Time fields (2#055 and 2#060)</li></ol>
+<dl><dt> <tt>["copyright"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the first non-empty value found by looking through the following fields:</dd></dl>
+<ol><li> IPTC Copyright field (2#116)</li>
+<li> EXIF Copyright field</li></ol>
+<dl><dt> <tt>["focal_length"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the EXIF FocalLength field.</dd>
+<dt> <tt>["iso"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the EXIF ISOSpeedRatings field.</dd>
+<dt> <tt>["shutter_speed"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the EXIF ExposureTime field.</dd>
+<dt> <tt>["title"]</tt>&#160;</dt>
+<dd> (<i>string</i>) Set to the first non-empty value found by looking through the following fields:</dd></dl>
+<ol><li> IPTC Headline field (2#105)</li>
+<li> IPTC Title field (2#005)</li>
+<li> IPTC Description field (2#120) but only if less than 80 characters</li>
+<li> EXIF Title field</li>
+<li> EXIF ImageDescription field but only if less than 80 characters</li></ol>
+<p>The (2#nnn) value shown after each IPTC field (above) is the key of the array returned by PHP's iptcparse function for that particular IPTC field.
+</p>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_read_image_metadata&amp;action=edit&amp;section=5" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_2.5" title="Version 2.5">2.5</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_read_image_metadata&amp;action=edit&amp;section=6" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>wp_read_image_metadata()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-admin/includes/image.php#L0">wp-admin/includes/image.php</a></code>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004010
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.118 seconds
+Preprocessor visited node count: 65/1000000
+Preprocessor generated node count: 313/1000000
+Post‐expand include size: 412/2097152 bytes
+Template argument size: 165/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    6.171      1 - -total
+ 46.20%    2.851      1 - Template:Trac
+ 27.64%    1.706      1 - Template:Parameter
+ 22.54%    1.391      1 - Template:Return
+ 17.89%    1.104      1 - Template:CurrentVersion
+-->

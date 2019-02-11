@@ -1,0 +1,105 @@
+{{Languages|
+{{en|Debugging a WordPress Network}}
+{{hr|Pronalaženje Grešaka WordPress Mreže}}
+{{ja|Debugging a WordPress Network}}
+{{pt-br|Depurando uma Rede WordPress}}
+{{zh-cn|调试 WordPress 站点网络}}
+}}
+== Depurar uma Rede WordPress ==
+
+Se chegou a esta página, é porque recebeu um erro na sua [[Glossary#Network|rede WordPress]]. Esta falha ocorre quando o WordPress não consegue encontrar uma ou mais das tabelas globais para a rede na [[Database Description|base de dados]].
+
+Em alguns hospedeiros da Web partilhados, o hospedeiro tem desativado a funcionalidade de execução. É sempre melhor, verificar com o seu hospedeiro da Web '''antes''' de [[Create A Network|criar uma rede]] para ter a certeza que a sua conta do hospedeiro da Web satisfaz os requisitos técnicos.
+
+
+== Se acabou de instalar a sua rede == 
+
+Verifique o seu ficheiro [[Editing wp-config.php|wp-config.php]] por:
+* detalhes da base de dados corretos
+* constante <code>SUBDOMAIN_INSTALL</code>
+* constante <code>MULTISITE</code>
+* varoável <code>$base</code>
+* prefixo da tabela
+* Não deverá ter nada depois de
+
+<pre>
+/* That's all, stop editing! Happy blogging. */
+
+/** Absolute path to the WordPress directory. */
+if ( !defined('ABSPATH') )
+	define('ABSPATH', dirname(__FILE__) . '/');
+
+/** Sets up WordPress vars and included files. */
+require_once(ABSPATH . 'wp-settings.php');
+</pre>
+
+Mova qualquer código que está depois de <pre>require_once(ABSPATH . 'wp-settings.php');</pre> para cima da linha de edição de parar.
+
+
+=== Mod_rewrite não está a funcionar===
+
+Main site works but 404 errors show up when trying to access added child subdomain sites.
+Ubuntu 10.04 LAMP apache2 install needs these steps:
+   sudo a2enmod rewrite
+   sudo nano /etc/apache2/sites-avail/default
+and change in two places the 'AllowOveride None' to 'AllowOveride all'
+   /etc/init.d/apache2 restart
+to restart apache2. Note that on more modern versions of Ubuntu the following syntax is preferred (for restarting services such as Apache - also note that in either case you may need to use prepend ''sudo''):
+   service apache2 restart
+
+
+=== Verificar a base de dados ===
+
+Assuming all that is correct, check the database itself and see if [[Database Description#Multisite Table Overview|all the extra network tables]] were created. The tables are:
+
+*wp_blogs 
+*wp_blog_versions
+*wp_registration_log 
+*wp_signups  
+*wp_site 
+*wp_sitemeta
+
+If you have these DB tables or added them manually but wp_site and/or wp_blogs is empty, you may have to run some SQL queries to insert rows for your main site. Be sure to adjust the table prefixes, domains, dates, username, and other parts of the queries below to match your install.
+
+    INSERT INTO wp_site VALUES(1,'domain.com','/'); 
+    # change domain.com to the full domain of your original site and / to the path
+    
+    INSERT INTO wp_blogs VALUES(1, 1, 'domain.com', '/', '2015-01-01', '2015-01-01', 1, 0, 0, 0, 0, 0);
+    # change domains.com and / to domain and path of your site. Change dates if you want.
+    
+    INSERT INTO wp_sitemeta VALUES('', 1, 'site_admins', 'a:1:{i:1;s:5:"admin";}');
+    # Sets the admin user as a Super Admin. Change "admin" to your user_login. 
+    # Change "s:5" to "s:#" where # is the number of characters in user_login.
+
+
+== Se o novo sítio deixou de funcionar repentinamente ==
+
+Please check your database as above. Double-check that the location of the databse server hasn't changed, or is so, that you've updated your <code>wp-config.php</code> file.
+
+
+== Outros problemas menos conhecidos == 
+
+Check that the database user has ALL permissions on the database.
+
+Also, on very few upgrades from WordPressMU to 3.0 and up, a small number of users experienced a problem with creating new sites and receiving errors. This turned out to be a database collation issue.
+
+Check that the .htaccess instructions are not throwing up errors in the Apache logs.
+
+Like this one: 
+
+ Options FollowSymLinks or SymLinksIfOwnerMatch is off which implies that RewriteRule directive is forbidden:
+
+This will result in a Network install appearing to fail and may show WP errors like
+
+ One or more database tables are unavailable. The database may need to be repaired.
+
+
+== Artigos Relacionados ==
+* [[Create A Network|Criar Uma Rede]]
+
+
+== Hiperligações Externas ==
+* [http://wordpress.org/support/forum/multisite WordPress › Support » Multisite]
+
+[[Category:Network]]
+[[Category:UI Link]]

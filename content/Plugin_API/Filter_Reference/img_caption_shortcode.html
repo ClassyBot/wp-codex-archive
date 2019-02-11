@@ -1,0 +1,90 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Parameters"><span class="tocnumber">2</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Return_value"><span class="tocnumber">3</span> <span class="toctext">Return value</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Example"><span class="tocnumber">4</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Triggers"><span class="tocnumber">5</span> <span class="toctext">Triggers</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/img_caption_shortcode&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Allows a plugin to replace the content that would otherwise be returned. The filter is 'img_caption_shortcode' and passes an empty string, the attr parameter and the content parameter values.
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/img_caption_shortcode&amp;action=edit&amp;section=2" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$empty</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) Empty string
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$attr</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>required</i>) Attributes attributed to the shortcode.
+<dl><dd> Default: The supported attributes for the shortcode are 'id', 'align', 'width', and 'caption'.</dd></dl></dd></dl>
+<dl><dt> <tt>$content</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) Shortcode content.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Return_value">Return value</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/img_caption_shortcode&amp;action=edit&amp;section=3" title="Edit section: Return value">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The filter should return a string containing the full HTML code that should be displayed. If it returns an empty string the standard WordPress functionality will be executed (see <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/trunk/src/wp-includes/media.php#L629">wp-includes/media.php</a></code> on line 629)
+</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/img_caption_shortcode&amp;action=edit&amp;section=4" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+add_filter( 'img_caption_shortcode', 'my_img_caption_shortcode', 10, 3 );
+
+function my_img_caption_shortcode( $empty, $attr, $content ){
+	$attr = shortcode_atts( array(
+		'id'      =&gt; '',
+		'align'   =&gt; 'alignnone',
+		'width'   =&gt; '',
+		'caption' =&gt; ''
+	), $attr );
+
+	if ( 1 &gt; (int) $attr['width'] || empty( $attr['caption'] ) ) {
+		return '';
+	}
+
+	if ( $attr['id'] ) {
+		$attr['id'] = 'id="' . esc_attr( $attr['id'] ) . '" ';
+	}
+
+	return '&lt;div ' . $attr['id']
+	. 'class="wp-caption ' . esc_attr( $attr['align'] ) . '" '
+	. 'style="max-width: ' . ( 10 + (int) $attr['width'] ) . 'px;"&gt;'
+	. do_shortcode( $content )
+	. '&lt;p class="wp-caption-text"&gt;' . $attr['caption'] . '&lt;/p&gt;'
+	. '&lt;/div&gt;';
+
+}
+</pre>
+<h2><span class="mw-headline" id="Triggers">Triggers</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/img_caption_shortcode&amp;action=edit&amp;section=5" title="Edit section: Triggers">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>As of <a href="https://codex.wordpress.org/Version_4.1" title="Version 4.1">WordPress 4.1</a> this hook is applied in the following location:
+</p>
+<ul><li> <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/trunk/src/wp-includes/media.php#L820">wp-includes/media.php</a></code> - on line 834</li></ul>
+<p>As of <a href="https://codex.wordpress.org/Version_4.5" title="Version 4.5">WordPress 4.5</a> this hook is applied in the following location:
+</p>
+<ul><li> <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/trunk/src/wp-includes/media.php#L1440">wp-includes/media.php</a></code> - on line 1458</li></ul>
+<p>As of <a href="https://codex.wordpress.org/Version_4.6" title="Version 4.6">WordPress 4.6</a> this hook is applied in the following location:
+</p>
+<ul><li> <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/trunk/src/wp-includes/media.php#L1487">wp-includes/media.php</a></code> - on line 1487</li></ul>
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Filter_Reference/img_caption_shortcode&amp;action=edit">expanding it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004101
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.022 seconds
+Preprocessor visited node count: 131/1000000
+Preprocessor generated node count: 521/1000000
+Post‐expand include size: 1902/2097152 bytes
+Template argument size: 665/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    9.832      1 - -total
+ 46.81%    4.602      1 - Template:Stub
+ 25.68%    2.525      3 - Template:Parameter
+ 25.37%    2.494      1 - Template:Message
+ 18.89%    1.858      4 - Template:Trac
+-->

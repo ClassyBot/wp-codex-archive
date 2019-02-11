@@ -1,0 +1,233 @@
+== Upgrading WPMU ==
+
+You should read through the comprehensive [[Upgrading_WordPress]] WP upgrade documentation site before attempting to upgrade WPMU. However, be sure you download the MU version of the software found at http://trac.mu.wordpress.org/browser/tags, not the software found linked on the "Download" tab above. In summary, we recommend you:
+
+# [[Backup WPMU]]
+# use the ABC tool to back up as per WP
+# upload fresh copies of the new files
+# click the upgrade button in the backend
+
+Remember to backup your '''database''' and ''files''. The link above has instructions to help you do this.
+
+If these instructions are out of date '''please update them'''. That's much better than just complaining on the forums.
+
+Check your Version.  You can find the version of WPMU by looking at the page source of any page.  If you are viewing the site you should see  <meta name="generator" content="WordPress 2.5.1" />, keep in mind the WPMU version was deprecated by 1 (prior to WordPress MU 2.6--see below), so 2.5.1 was really 1.5.1. 
+
+After 1.5.1, the version number jumped to 2.6 to sync with regular WordPress and avoid confusion. It will use letters to represent ''minor'' versions.
+
+The last version of WPMU was 2.9.2, and after that, all install could upgrade to WordPress with the network enabled (multisite).
+
+== What does the upgrade button do? ==
+
+Under the Site Admin menu, there is a tab or sub-menu item called Upgrade. This does not change any files. If you have not upgraded any files, clicking this will do nothing.
+
+This is the last step in the upgrade process. When you click it, it compares the  version stored in the database with the version number in the files. If they are different, it runs any needed checks against the database and makes adjustments accordingly. It will step through every blog on your system in batches of ten and display a list as it does so.
+
+If for some reason you can't make it all the way through, the same upgrade process will run in the background automatically as soon as someone signs in to the admin area of their blog.
+
+== 2.9.x to 3.0 ==
+
+With this version, WPMU is merged with WordPress core. Upgrades after this point will be the same. to move from WPMU to 3.0, you may use the internal auto-upgrade or manually overwrite files.
+
+There are two extra changes.
+#Move the blogs.php out of the /wp-content/ folder. This has been moved to wp-includes/ms-files.php.
+#Update your htaccess rules to reflect this change.
+<b> RewriteRule ^(.*/)?files/(.*) wp-content/blogs.php?file=$2 [L] </b>
+and change it to this:
+<b> RewriteRule ^(.*/)?files/(.*) wp-includes/ms-files.php?file=$2 [L] </b>
+#Add the nonce salt to wp-config.php.
+<b>define( 'NONCE_SALT', '6xF{&bvT_PAsmbnG<72.dJH>D8R8M!M{~r.U]-~j:rG!g!0(g7hvz)+/h9 IY7Ge' ); </b>
+It will give you your own salt, this is an example.
+#Login to the admin area again, and visit the Super Admin - Updates menu item. Click the button to upgrade the database records for the sub-sites.
+
+== 2.8.3 to 2.9.x ==
+Same procedure as below.
+
+== 2.7.1 to 2.8.3 ==
+This is the same procedure as many of the other version upgrades below.
+
+#[[Backup WPMU]]
+#From your /wpmu directory, KEEP the wp-config.php and .htaccess files and the wp-content directory. Remove the other root-level files as well as the wp-admin and wp-includes directories.
+#Copy over the new files and the new wp-admin and wp-includes directories.
+#Copy wp-content/index.php and blogs.php into your existing wp-content directory, replacing the existing copies.
+#Login and run '''Site Admin/ Upgrade.''' This can be a lengthy process, so be patient.
+
+== 2.6 to 2.7 ==
+Copied from the instructions for 1.5 to 2.6, cleaned up a bit, and adjusted for the changes in 2.7.
+
+# [[Backup WPMU]]
+# Download WPMU and unpack it into a scratch directory:
+#: <b>e.g. ~/wordpress-mu/</b>
+# Move your wp-config.php and .htaccess files to a temporary directory: 
+#: <b>e.g. mkdir ~/temp ; mv ~/www/.htaccess ~/www/wp-config.php ~/temp</b>
+# Remove all the files in your www directory: 
+#: <b>e.g., rm ~/www/*</b>
+# Copy the new files from your scratch wordpress-mu directory into your www directory:
+#: <b>e.g., cp ~/wordpress-mu/* ~/www</b>
+# Remove the wp-admin and wp-includes directories: 
+#: <b>e.g., rm -rf ~/www/wp-admin ; rm -rf ~/www/wp-includes</b>
+#* ''Note: Be careful when using the rm command with the -rf flag!''
+# Copy the directories from your scratch wordpress-mu directory into your www directory: 
+#: <b>e.g. cp -R ~/wordpress-mu/wp-admin ~/www ; cp -R ~/wordpress-mu/wp-includes ~/www</b>
+# Copy the files wp-content/index.php and wp-content/blogs.php from your scratch wordpress-mu  directory into your www directory: 
+#: <b>e.g. cp ~/wordpress-mu/wp-content/index.php ~/www/wp-content ; cp ~/wordpress-mu/wp-content/blogs.php ~/www/wp-content</b>
+# Copy your wp-config.php and .htaccess files back from your temporary directory into your www directory: 
+#: <b>e.g. cp ~/temp/.htaccess ~/temp/wp-config.php ~/www</b>
+# Add the following lines to your ~/www/wp-config.php file:
+#* After "$base = '/';" add:
+#*: <pre>define('DOMAIN_CURRENT_SITE', 'yourdomain.tld'); // don't include "http://www." at the beginning</pre>
+#*: <pre>define('PATH_CURRENT_SITE', '/'); // this should be the path relative to your domain. For instance, if your WPMU installation is located at 'http://www.example.com/blogs/', then the value of this constant should be set to '/blogs/' instead of just '/'</pre>
+#*: <pre>define('BLOGID_CURRENT_SITE', '1');</pre>
+#* After those lines, you now need to add these additional lines due to changes that increase the security of WordPress MU:
+#*: <pre>define('ADMIN_COOKIE_PATH', '/');</pre>
+#*: <pre>define('COOKIE_DOMAIN', '');</pre>
+#*: <pre>define('COOKIEPATH', '');</pre>
+#*: <pre>define('SITECOOKIEPATH', '');</pre>
+#* After "define('SECURE_AUTH_SALT' ...":
+#*: <pre>define('NONCE_KEY', ''); // replace '' with value from http://api.wordpress.org/secret-key/1.1/</pre>
+#*: <pre>define('AUTH_SALT', ''); // replace '' with value from http://api.wordpress.org/secret-key/1.1/</pre>
+#*: Note that the values you use just have to be unique strings.  The http://api.wordpress.org/secret-key/1.1/ site just helps generate those unique strings.  That page will not show "AUTH_SALT" but you can just copy one of the unique strings to use for AUTH_SALT.  Simply refresh the page to get new unique strings if you need to fill in more variables in your wp-config.php file.
+# Login, run site wide blog upgrades by visiting the Site Admin -> Upgrade tab. If you have a lot of blogs, it may take a while.
+# Check your file ownership, and permissions if you have image issues, or upload problems. Also check any login issues.
+
+=== WordPress MU 2.7.1 Archive Link ===
+# http://trac.mu.wordpress.org/changeset/1937/tags/2.7.1?old_path=%2F&format=zip
+
+== 1.5 to 2.6 ==
+
+The version number is being bumped to 2.6 rather than 1.6 because of version confusion. Minor MU versions will probably append a letter to the version.
+
+# Backup. Backup everything: all your files and your database.
+# Did we mention Backup your files? (webmin works great for this or follow [[Backup WPMU]]) & disable plugins
+# Remove all files in your wpmu/ directory, KEEP wp-config.php and .htaccess AS WELL AS wp-content folder!
+# copy new files over (cleaner) 
+# Remove directories wp-admin & wp-includes and copy new directories
+# Replace files in wp-content (index.php and blogs.php)
+# Copy wp-content/mu-plugins/index.php & wp-content/plugins/index.php
+# Login, run site wide blog upgrades by visiting the Site Admin -> Upgrade tab. If you have a lot of blogs, it may take a while.
+# Check your file ownership, and permissions if you have image issues, or upload problems. Also check any login issues.
+
+Notes:
+In this version, the signup page uses "blogname" instead of "blog_id" to avoid confusion with the global variable of the same name. Signup plugins will break if not updated!
+
+References
+# http://mu.wordpress.org/forums/topic.php?id=8885
+# http://ocaoimh.ie/2008/07/09/wordpress-mu-26-beta-1/
+
+=== WordPress MU 1.5.1 & 2.6.5 Archive Links ===
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.5.1?old_path=%2F&format=zip
+# http://trac.mu.wordpress.org/changeset/1611/tags/2.6.5?old_path=%2F&format=zip
+
+== 1.3.3 to 1.5.1 ==
+
+# Backup your files (webmin works great for this or follow [[Backup WPMU]]) & disable plugins
+# Remove all files in your wpmu/ directory, copy new files over (cleaner) KEEP wp-config.php and .htaccess as well as wp-content folder!
+
+# Remove directories wp-admin & wp-includes and copy new directories
+# Replace files in wp-content (index.php and blogs.php)
+# Copy wp-content/mu-plugins/index.php & wp-content/plugins/index.php
+# Login to new admin, update wp-config.php with Secret Keys
+# Login again, run site wide blog upgrades
+# Congratulations, your done, check your file ownership, and permissions if you have image issues, or upload problems.
+
+Tip: if you keep getting a redirect on login error, try calling the upgrade page directly (yourdomain.com/wp-admin/upgrade.php). If that works, click the link, then try logging in again.
+
+=== WordPress MU 1.3.3 & 1.5.1 Archive Links ===
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.3.3?old_path=%2F&format=zip
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.5.1?old_path=%2F&format=zip
+
+== 1.2 to 1.3 ==
+
+First approach (tested on WPMU 1.2.2 without subdomains):
+
+# Create a backup of all files and database
+# Disable all your plugins
+# Overwrite your WPMU files with new version files
+# Check your wp-config.php (edit by hand if needed) and your .htaccess
+# Login as admin and run Upgrade from "Site Admin -> Upgrade" (this will upgrade your database layout if needed, will take a while on big databases).
+# Check that all is working properly
+# Enable your plugins one by one
+
+# also remove from mu-plugins:
+* dashboardswitcher.php (if present)
+* delete-blog.php
+* misc.php
+* global-categories.php
+* pluggable.php
+
+
+=== Changes to Categories handling to support Tagging ===
+This upgrade introduces [http://en.blog.wordpress.com/2007/09/22/tags-and-categories/ tagging] of posts. New tables, including 3 per blog, are created for this purpose, and are synchronised, during the upgrade process. Reference 1 provides more details. In some cases, such as where the server is heavily loaded or the number of blogs is large, this process  has not completed successfully. A beta [http://trac.mu.wordpress.org/browser/trunk/wp-content/mu-plugins/sync-taxonomy.php?rev=1141 taxonomy synch script] may help in this situation.
+
+References
+# [http://boren.nu/archives/2007/08/26/wordpress-23-taxonomy-schema/ WordPress 2.3 Taxonomy Schema]
+
+=== Character set issues with early versions of WPMU ===
+WPMU 1.3 assumes your database tables use the utf8 default character set. If you started with an early version (e.g. 1.0 RC4) you may find your tables are defined to use the latin1 default character set. If so, they must be changed to use utf8 prior to the upgrade. Unless this is done, strange symbols (e.g. Â, i.e. A with circumflex) may appear in amongst blog content following the upgrade<sup>2</sup> <sup>3</sup>. The process is described in Reference 1.
+
+References
+# http://edubuzz.org/blogs/david/wordpress/changing-early-wpmu-db-to-utf8/
+# [http://mu.wordpress.org/forums/topic.php?id=7955#post-47023 WPMU Forum thread: Problems updating from pre 1.3 version]
+# [http://mu.wordpress.org/forums/topic.php?id=6737&page&replies=15#post-46837 WPMU Forum thread: Upgrade messed up with content]
+
+== Unresolved issues ==
+		 
+An attempt to use code from WPMU 1.3/WP 2.3 generated an error that 'register_sidebar_widget' was not a correct function. A quick search of the WPMU code seems to show a 'wp_register_sidebar_widget' but it appears to have different parameters. Can anyone help?
+
+(Question asked at [[http://codex.wordpress.org/index.php?title=WPMU_List_New_Blogs_Widget&diff=0&oldid=42361|page]]
+
+=== WordPress MU 1.2.5a & 1.3.3 Archive Links ===
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.2.5a?old_path=%2F&format=zip
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.3.3?old_path=%2F&format=zip
+
+== 1.1 to 1.2 ==
+
+Instructions needed 
+
+=== WordPress MU 1.1.1 & 1.2.5a Archive Links ===
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.1.1?old_path=%2F&format=zip
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.2.5a?old_path=%2F&format=zip
+
+== 1.0 to 1.1 ==
+
+Instructions needed 
+
+=== WordPress MU 1.0-rc4 & 1.1.1 Archive Links ===
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.0-rc4?old_path=%2F&format=zip
+# http://trac.mu.wordpress.org/changeset/1611/tags/1.1.1?old_path=%2F&format=zip
+
+== Pre 1.0 versions ==
+
+=== Post Version 1, RC1 ===
+ 
+
+Upgrading a recent version of WPMU from after June 22, 2006 or when Release Candidate 1 was published should be simple enough.
+
+    * Download the newest version and unzip it somewhere.
+    * Shut down the site by stopping Apache. It's easier this way. When you're comfortable with upgrading this step may be skipped.
+    * If you haven't modified any files then overwrite your current install with the files from the newer version.
+    * If you have modified files you'll have to be careful to not overwrite those files.
+    * Examine the new htaccess.dist and compare it to the old ".htaccess" file. Add any new lines and remember that "BASE/" should be replaced with the path to your web site.
+    * Restart Apache.
+    * You may need to upgrade the databases tables of each blog. This can be done by visiting "Site Admin"->Upgrade while logged in as the site admin. This may take a long time. 
+
+
+=== Pre Version 1, RC1 ===
+
+Before Version 1, RC1 was released we used a wp-inst directory to hold the core wordpress files so there is more work to do upgrading.
+
+    * Download the newest version and unzip it somewhere.
+    * Shut down your site by stopping Apache. You really should do this as there are so many files moving about.
+    * Presuming your site is installed in /home/www/htdocs/:
+          o Delete /home/www/htdocs/index.php and /home/www/htdocs/.htaccess
+          o Move /home/www/htdocs/wp-inst/* to /home/www/htdocs/
+          o If you haven't modified any files then overwrite your current install with the files from the newer version.
+          o If you have modified files you'll have to be careful to not overwrite those files.
+          o Copy the new /home/www/htdocs/htaccess.dist to /home/www/htdocs/.htaccess and edit .htacces, replacing "BASE/" with the path to your web site. In this case it would probably be "/". 
+    * Restart Apache and test, test and test things.
+    * You may need to upgrade the databases tables of each blog. This can be done by visiting "Site Admin"->Upgrade while logged in as the site admin. This may take a long time.
+    * If you used WPMU with sub-directories prior to June 2006 you will come across a particular problem when upgrading. Read [[http://trac.mu.wordpress.org/ticket/85][bug #85]] for more. 
+
+If things go wrong you can always restore things from the backup. You did backup all your files and database first? Hang your head in shame if you didn't!
+
+[[Category:WPMU]]

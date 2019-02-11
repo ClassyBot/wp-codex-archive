@@ -1,0 +1,98 @@
+{{Languages|
+{{en|Template Tags/next_posts_link}}
+{{ko|Template Tags/next_posts_link}}
+{{ja|テンプレートタグ/next_posts_link}}
+}}
+
+== Description ==
+
+Prints a link to the next set of posts within the current query.
+
+If you need the values for use in PHP, use [[Function Reference/get_next_posts_link|get_next_posts_link()]].
+
+Because post queries are usually sorted in reverse chronological order, <tt>next_posts_link()</tt> usually points to older entries (toward the end of the set) and <tt>previous_posts_link()</tt> usually points to newer entries (toward the beginning of the set).
+
+== Usage ==
+
+%%% <?php next_posts_link( $label , $max_pages ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$label|string|The link text.|optional|'Next Page &raquo;'}}
+{{Parameter|$max_pages|integer|Limit the number of pages on which the link is displayed. The default value "0" means "no limit".|optional|0}}
+
+== Examples  ==
+
+===Default Usage===
+
+ <?php next_posts_link(); ?>
+
+===Working example===
+
+ <?php next_posts_link( 'Older Entries &raquo;', 0 ); ?>
+
+=== Check if next link exists ===
+
+ <?php if( get_next_posts_link() ) :
+ 
+ next_posts_link( 'Older Entries &raquo;', 0 );
+ 
+ endif; ?>
+
+===Usage when querying the loop with WP_Query===
+Add the $max_pages parameter to the next_posts_link() function when querying the loop with [[Function_Reference/WP_Query|WP_Query]]. To get the total amount of pages you can use the 'max_num_pages' property of the custom WP_Query object.
+<pre><?php
+// set the "paged" parameter (use 'page' if the query is on a static front page)
+$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+
+// the query
+$the_query = new WP_Query( 'cat=1&paged=' . $paged ); 
+?>
+
+<?php if ( $the_query->have_posts() ) : ?>
+
+<?php
+// the loop
+while ( $the_query->have_posts() ) : $the_query->the_post(); 
+?>
+<?php the_title(); ?>
+<?php endwhile; ?>
+
+<?php
+
+// next_posts_link() usage with max_num_pages
+next_posts_link( 'Older Entries', $the_query->max_num_pages );
+previous_posts_link( 'Newer Entries' );
+?>
+
+<?php 
+// clean up after the query and pagination
+wp_reset_postdata(); 
+?>
+
+<?php else:  ?>
+<p><?php _e( 'Sorry, no posts matched your criteria.' ); ?></p>
+<?php endif; ?></pre>
+
+== Notes ==
+
+* This function will not work (fail silently) if <tt>mysql.trace_mode</tt> is enabled in your <tt>php.ini</tt>. If you can't edit that file, try adding <tt>ini_set( 'mysql.trace_mode', 0 );</tt> to your theme's <tt>functions.php</tt>.
+
+* See also: [[Template Tags/previous_posts_link|previous_posts_link()]] and [[Template Tags/next_post_link|next_post_link()]].
+
+==Resources==
+* [http://digwp.com/2009/08/wordpress-page-navigation/ Digging into Wordpress - Definitive Guide to WordPress Page Navigation]
+
+== Change Log ==
+Since: 0.71
+
+== Source File ==
+
+<tt>next_posts_link()</tt> is located in {{Trac|wp-includes/link-template.php}}.
+
+== Related ==
+{{Pagination}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

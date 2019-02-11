@@ -1,0 +1,79 @@
+== Description ==
+Check the plugins directory and retrieve all plugin files with plugin data. 
+
+WordPress only supports plugin files in the base plugins directory (wp-content/plugins) and in one directory below the plugins directory (wp-content/plugins/my-plugin). The file it looks for has the plugin data and must be found in those two locations. It is recommended that you keep your plugin files in directories. 
+
+The file with the plugin data is the file that will be included and therefore needs to have the main execution for the plugin. This does not mean everything must be contained in the file and it is recommended that the file be split for maintainability. Keep everything in one file for extreme optimization purposes.
+
+== Usage ==
+%%%<?php get_plugins( $plugin_folder ) ?>%%%
+
+== Parameters ==
+{{Parameter|$plugin_folder|string|Relative path to single plugin folder.|optional|&#39;&#39;}}
+
+== Return Values ==
+; (array) : Key is the plugin file path and the value is an array of the plugin data.
+
+== Examples ==
+
+
+=== Get All Plugins ===
+The following code snippet returns all plugins installed on your site (not just activated ones).
+
+<pre>
+<?php 
+
+// Check if get_plugins() function exists. This is required on the front end of the
+// site, since it is in a file that is normally only loaded in the admin.
+if ( ! function_exists( 'get_plugins' ) ) {
+	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+}
+
+$all_plugins = get_plugins();
+
+// Save the data to the error log so you can see what the array format is like.
+error_log( print_r( $all_plugins, true ) );
+</pre>
+
+Example output:
+
+<pre>
+Array
+(
+    [hello-dolly/hello.php] => Array
+        (
+            [Name] => Hello Dolly
+            [PluginURI] => http://wordpress.org/extend/plugins/hello-dolly/
+            [Version] => 1.6
+            [Description] => This is not just a plugin, it symbolizes the hope and enthusiasm of an entire generation summed up in two words sung most famously by Louis Armstrong: Hello, Dolly. When activated you will randomly see a lyric from <cite>Hello, Dolly</cite> in the upper right of your admin screen on every page.
+            [Author] => Matt Mullenweg
+            [AuthorURI] => http://ma.tt/
+            [TextDomain] => 
+            [DomainPath] => 
+            [Network] => 
+            [Title] => Hello Dolly
+            [AuthorName] => Matt Mullenweg
+
+)
+</pre>
+
+== Notes ==
+If you have `PHP Fatal error:  Call to undefined function get_plugins()` then you must include the file 'wp-admin/includes/plugin.php' like in example.
+
+Results are cached on the first run of the function, therefore it is recommended to call the function at least after the 'after_setup_theme' action so that plugins and themes have the ability to filter the results.
+
+== Change Log ==
+* Since: [[Version_1.5|1.5.0]]
+
+== Source File ==
+<tt>get_plugins()</tt> is located in {{Trac|/wp-admin/includes/plugin.php}}.
+
+== Related ==
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+
+[[Category:Functions]]

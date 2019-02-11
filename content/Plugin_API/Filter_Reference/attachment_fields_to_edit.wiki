@@ -1,0 +1,60 @@
+{{Stub}}
+==Description==
+The <b>"attachment_fields_to_edit"</b> filter is used to filter the array of attachment fields that are displayed when editing an attachment. WordPress does not pass standard fields through this filter, though this can still be used for adding fields.
+
+==Usage==
+
+When the 'attachment_fields_to_edit' filter is called, it is passed two arguments. The first argument is an associative array describing the fields to be displayed. The second argument is the $post object describing the attachment being edited. Functions attached to the filter can add or remove fields from the array, then return the modified array.
+
+<pre>
+function filter_function_name( $form_fields, $post ) {
+  // ...
+}
+add_filter( 'attachment_fields_to_edit', 'filter_function_name', 10, 2 );
+</pre>
+
+Where 'filter_function_name' is the function WordPress should call when the $form_fields array is being retrieved. Note that the filter function <b>must</b> return an array of fields after it is finished processing, or no fields will be displayed when editing an attachment, and other plugins also filtering the $form_fields array may generate errors.
+
+'''filter_function_name''' should be unique function name. It cannot match any other function name already declared.
+
+==Examples==
+
+===Add a Location Field===
+
+The following example adds a "Location" field for all attachments. This example also uses the "[[Plugin_API/Action_Reference/edit_attachment|edit_attachment]]" filter to save the submitted value to the attachment's post meta.
+
+<pre>
+function my_add_attachment_location_field( $form_fields, $post ) {
+    $field_value = get_post_meta( $post->ID, 'location', true );
+    $form_fields['location'] = array(
+        'value' => $field_value ? $field_value : '',
+        'label' => __( 'Location' ),
+        'helps' => __( 'Set a location for this attachment' )
+    );
+    return $form_fields;
+}
+add_filter( 'attachment_fields_to_edit', 'my_add_attachment_location_field', 10, 2 );
+
+function my_save_attachment_location( $attachment_id ) {
+    if ( isset( $_REQUEST['attachments'][$attachment_id]['location'] ) ) {
+        $location = $_REQUEST['attachments'][$attachment_id]['location'];
+        update_post_meta( $attachment_id, 'location', $location );
+    }
+}
+add_action( 'edit_attachment', 'my_save_attachment_location' );
+</pre>
+
+==Related==
+* Filter: [[Plugin_API/Filter_Reference/attachment_fields_to_edit|attachment_fields_to_edit]]
+* Filter: [[Plugin_API/Filter_Reference/attachment_fields_to_save|attachment_fields_to_save]]
+
+==External Resources==
+* [http://net.tutsplus.com/tutorials/wordpress/creating-custom-fields-for-attachments-in-wordpress/ Creating Custom Fields for Attachments] (NetTuts+)
+* [https://make.wordpress.org/core/2012/12/12/attachment-editing-now-with-full-post-edit-ui/ Attachment editing: now with full post edit UI!] (Make WordPress Core)
+
+==See Also==
+* [[Plugin_API#Create_a_Filter_Function|Creating a Filter Function]]
+* [[Function_Reference/add_filter|add_filter()]]
+
+[[Category:New page created]]
+[[Category:Filters]]

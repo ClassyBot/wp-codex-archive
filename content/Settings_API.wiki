@@ -1,0 +1,225 @@
+{{Languages|
+{{en| Settings API}}
+{{ja| Settings API}}
+{{pt-br| Configurações API}}
+{{zh-cn|设置 API}}
+}}
+
+==Overview ==
+
+The '''Settings API''', added in [[Version 2.7|WordPress 2.7]], allows admin pages containing settings forms to be managed semi-automatically. It lets you define settings pages, sections within those pages and fields within the sections.
+
+New settings pages can be registered along with sections and fields inside them. Existing settings pages can also be added to by registering new settings sections or fields inside of them.
+
+Organizing registration and validation of fields still requires some effort from developers using the Settings API, but avoids a lot of complex debugging of underlying options management. 
+
+NOTE: When using the Settings API, the form posts to wp-admin/options.php which provides fairly strict capabilities checking. Users will need 'manage_options' capability (and in MultiSite will have to be a Super Admin) to submit the form.
+
+The functions are found in {{Trac|wp-admin/includes/plugin.php}} and {{Trac|wp-admin/includes/template.php}}
+
+== Function Reference ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Setting Register/Unregister'''
+|-
+|
+* <tt>[[Function Reference/register setting | register_setting()]]</tt>
+* <tt>[[Function Reference/unregister setting | unregister_setting()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Add Field/Section'''
+|-
+|
+* <tt>[[Function Reference/add settings field | add_settings_field()]]</tt>
+* <tt>[[Function Reference/add settings section | add_settings_section()]]</tt>
+|}
+
+|}
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+|
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Options Form Rendering'''
+|-
+|
+* <tt>[[Function_Reference/settings fields | settings_fields()]]</tt>
+* <tt>[[Function Reference/do settings sections | do_settings_sections()]]</tt>
+* <tt>[[Function Reference/do settings fields | do_settings_fields()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Errors'''
+|-
+|
+* <tt>[[Function Reference/add settings error | add_settings_error()]]</tt>
+* <tt>[[Function Reference/get settings errors | get_settings_errors()]]</tt>
+* <tt>[[Function Reference/settings errors | settings_errors()]]</tt>
+|}
+
+|}
+
+==Adding Setting Fields==
+
+You can add new settings fields (basically, an option in the wp_options database table but totally managed for you) to the existing WordPress pages using this function. Your callback function just needs to output the appropriate HTML input and fill it with the old value, the saving will be done behind the scenes. 
+You can create your own sections on existing pages using <tt>add_settings_section()</tt> as described below.
+
+'''NOTE:''' You MUST register any options you use with <tt>add_settings_field()</tt> or they won't be saved and updated automatically. See below for details and an example.
+
+ add_settings_field( $id, $title, $callback, $page, $section = 'default', $args = array() )
+
+* '''$id''' - String for use in the <tt>'id'</tt> attribute of tags.
+* '''$title''' - Title of the field.
+* '''$callback''' - Function that fills the field with the desired inputs as part of the larger form. Name and id of the input should match the $id given to this function. The function should echo its output.
+* '''$page''' -  The type of settings page on which to show the field (general, reading, writing, ...).
+* '''$section''' -  The section of the settings page in which to show the box (default or a section you added with <tt>add_settings_section</tt>, look at the page in the source to see what the existing ones are.)
+* '''$args''' -  Extra arguments passed into the callback function
+
+==Adding Settings Sections==
+
+Settings Sections are the groups of settings you see on WordPress settings pages with a shared heading. In your plugin you can add new sections to existing settings pages rather than creating a whole new page. This makes your plugin simpler to maintain and creates fewer new pages for users to learn. You just tell them to change your setting on the relevant existing page. 
+
+ add_settings_section( $id, $title, $callback, $page )
+
+* '''$id''' - String for use in the 'id' attribute of tags.
+* '''$title''' -  Title of the section.
+* '''$callback''' -  Function that fills the section with the desired content. The function should echo its output.
+* '''$page''' - The type of settings page on which to show the section (general, reading, writing, media etc.)
+
+==Registering Settings==
+
+ register_setting( $option_group, $option_name, $args )
+
+ unregister_setting( $option_group, $option_name )
+
+'''NOTE:''' <tt>register_setting()</tt> as well as the above mentioned <tt>add_settings_*()</tt> functions should all be called from a <tt>'admin_init'</tt> action hook callback function. Refer to the [[#Examples|example]] below.
+
+==Options Form Rendering==
+When using the API to add settings to existing options pages, you do not need to be concerned about the form itself, as it has already been defined for the page. When you define a new page from scratch, you need to output a minimal form structure that contains a few tags that in turn output the actual sections and settings for the page.
+
+To display the hidden fields and handle security of your options form, the Settings API provides the <tt>[[Function_Reference/settings_fields|settings_fields()]]</tt> function.
+%%%settings_fields( $option_group );%%%
+{{Parameter|$option_group|string|A settings group name. This must match the group name used in [[Function_Reference/register_setting|<tt>register_setting()</tt>]], which is the page slug name on which the form is to appear.|required}}
+
+To display the sections assigned to the page and the settings contained within, the Settings API provides the <tt>[[Function_Reference/do_settings_sections|do_settings_sections()]]</tt> function.
+%%%do_settings_sections( $page );%%%
+{{Parameter|$page|string|The slug name of the page whose settings sections you want to output.  This should match the page name used in [[Function_Reference/add_settings_section|<tt>add_settings_section()</tt>]].|required}}
+
+The <tt>[[Function_Reference/do_settings_fields|do_settings_fields()]]</tt> function is provided to output the fields assigned to a particular page and section. You should not call this function directly, rather use <tt>do_settings_sections()</tt> to output the Section content as well as the associated fields.
+
+Your options form also needs a submit button. You can use the <tt>[[Function_Reference/submit_button|submit_button()]]</tt> function to do this.
+
+Finally, you need to output the HTML <tt><form></tt> tag defining the action destination of <tt>options.php</tt> and method of <tt>POST</tt>. Here is an example options form code to generate all the sections and fields added to a page who's slug name is <tt>'my-page'</tt>:
+
+<pre><form method="POST" action="options.php">
+<?php settings_fields( 'my-page' );	//pass slug name of page, also referred
+                                        //to in Settings API as option group name
+do_settings_sections( 'my-page' ); 	//pass slug name of page
+submit_button();
+?>
+</form></pre>
+
+==Examples==
+
+===Adding a settings section with a new field in it===
+
+<pre> <?php 
+ // ------------------------------------------------------------------
+ // Add all your sections, fields and settings during admin_init
+ // ------------------------------------------------------------------
+ //
+ 
+ function eg_settings_api_init() {
+ 	// Add the section to reading settings so we can add our
+ 	// fields to it
+ 	add_settings_section(
+		'eg_setting_section',
+		'Example settings section in reading',
+		'eg_setting_section_callback_function',
+		'reading'
+	);
+ 	
+ 	// Add the field with the names and function to use for our new
+ 	// settings, put it in our new section
+ 	add_settings_field(
+		'eg_setting_name',
+		'Example setting Name',
+		'eg_setting_callback_function',
+		'reading',
+		'eg_setting_section'
+	);
+ 	
+ 	// Register our setting so that $_POST handling is done for us and
+ 	// our callback function just has to echo the <input>
+ 	register_setting( 'reading', 'eg_setting_name' );
+ } // eg_settings_api_init()
+ 
+ add_action( 'admin_init', 'eg_settings_api_init' );
+ 
+  
+ // ------------------------------------------------------------------
+ // Settings section callback function
+ // ------------------------------------------------------------------
+ //
+ // This function is needed if we added a new section. This function 
+ // will be run at the start of our section
+ //
+ 
+ function eg_setting_section_callback_function() {
+ 	echo '<p>Intro text for our settings section</p>';
+ }
+ 
+ // ------------------------------------------------------------------
+ // Callback function for our example setting
+ // ------------------------------------------------------------------
+ //
+ // creates a checkbox true/false option. Other types are surely possible
+ //
+ 
+ function eg_setting_callback_function() {
+ 	echo '<input name="eg_setting_name" id="eg_setting_name" type="checkbox" value="1" class="code" ' . checked( 1, get_option( 'eg_setting_name' ), false ) . ' /> Explanation text';
+ }
+</pre>
+
+====Graphical Representation of where all those code should go:====
+
+[[File:editing-settings-api-example.png|770px|left]]
+
+== External References ==
+* [http://kovshenin.com/2012/the-wordpress-settings-api/ The WordPress Settings API] by Konstantin Kovshenin, Oct 23 2012
+* [http://www.chipbennett.net/2011/02/17/incorporating-the-settings-api-in-wordpress-themes/ Incorporating the Settings API in WordPress Themes] by Chip Bennett, Feb 2011
+* [http://www.presscoders.com/wordpress-settings-api-explained/ Settings API Explained] by David Gwyer
+* [http://ottopress.com/2009/wordpress-settings-api-tutorial/ WordPress Settings API Tutorial] by Otto
+* [http://planetozh.com/blog/2009/05/handling-plugins-options-in-wordpress-28-with-register_setting/ Handling Plugin Options with register_setting()] by Ozh
+* [http://blog.gneu.org/2010/09/intro-to-the-wordpress-settings-api/ Intro to the WordPress Settings API] by BobGneu
+* Using The Settings API: [http://wp.tutsplus.com/tutorials/using-the-settings-api-part-1-create-a-theme-options-page/ Part 1], [http://wp.tutsplus.com/tutorials/using-the-settings-api-part-2-create-a-top-level-admin-menu/ Part 2] by [https://twitter.com/srhnbr/ Sarah Neuber]
+* [https://www.yaconiello.com/blog/how-to-handle-wordpress-settings Class Based Settings with WordPress] by Francis Yaconiello
+* [http://www.mendoweb.be/blog/wordpress-settings-api-multiple-sections-on-same-page/ Adding multiple sections on a single settings screen] by Mathieu Decaffmeyer
+* [http://www.mendoweb.be/blog/wordpress-settings-api-multiple-forms-on-same-page/ Adding multiple forms on a single settings screen] by Mathieu Decaffmeyer
+* [http://wp.tutsplus.com/tutorials/the-complete-guide-to-the-wordpress-settings-api-part-1/ The Complete Guide To The WordPress Settings API] by Tom McFarlin, Jan 31st 2012
+* [http://techblog.kjodle.net/2015/07/16/wordpress-settings-api-cheat-sheet/ WordPress Settings API Cheat Sheet] by Kenneth Odle, July 16th 2015
+
+==Generators==
+* [http://wpsettingsapi.jeroensormani.com/ WordPress Settings API (options page) Generator]
+
+==PHP Class ==
+* [https://github.com/tareq1988/wordpress-settings-api-class/  WordPress settings API Class]
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]
+[[Category:UI Link]]

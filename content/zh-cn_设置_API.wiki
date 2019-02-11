@@ -1,0 +1,183 @@
+{{Languages|
+{{en| Settings API}}
+{{ja| Settings API}}
+{{pt-br| Configurações API}}
+{{zh-cn|设置 API}}
+}}
+
+== 简介 ==
+
+'''设置 API'''是在 [[zh-cn:2.7_版本|2.7 版本]]中加入的新功能。它令包含设置表单的管理页面实现“半自动工作”，允许您定义整个管理页面、选项区域，甚至具体的栏目。
+
+新的设置页面可与其中的选项区域和栏目一并注册。您也可通过注册新的选项区域或栏目的方法向现有的设置页面添加内容。
+
+组织设置栏目的注册和验证，仍需开发者在设置 API 的框架下进行一些工作，但避免付出大量精力用于调试设置选项的管理。
+
+请注意：在使用设置 API 时，表单应发送 POST 请求到 options.php。但 options.php 拥有较严格的权限管理机制，因此用户需要“manage_options”权限（相应地，在多站点的站点中，则需超级管理员权限）才可提交表单并得到处理。
+
+函数的代码位于 {{Trac|wp-admin/includes/plugin.php}} 和 {{Trac|wp-admin/includes/template.php}}。
+
+== 函数参考 ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''设置的注册和反注册'''
+|-
+|
+* <tt>[[Function Reference/register setting | register_setting()]]</tt>
+* <tt>[[Function Reference/unregister setting | unregister_setting()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''添加栏目或区域'''
+|-
+|
+* <tt>[[Function Reference/add settings field | add_settings_field()]]</tt>
+* <tt>[[Function Reference/add settings section | add_settings_section()]]</tt>
+|}
+
+|}
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+|
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''输出设置表单'''
+|-
+|
+* <tt>[[Function_Reference/settings fields | settings_fields()]]</tt>
+* <tt>[[Function Reference/do settings sections | do_settings_sections()]]</tt>
+* <tt>[[Function Reference/do settings fields | do_settings_fields()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''错误'''
+|-
+|
+* <tt>[[Function Reference/add settings error | add_settings_error()]]</tt>
+|}
+
+|}
+
+== 添加设置栏目 ==
+
+You can add new settings fields (basically, an option for wp_options database table but totally managed for you) to the existing WordPress pages using this function. Your callback function just needs to output the appropriate html input and fill it with the old value, the saving will be done behind the scenes. 
+You can create your own sections on existing pages using add_settings_section() as described below.
+
+'''NOTE:''' You MUST register any options you use with add_settings_field() or they won't be saved and updated automatically. See below for details and an example.
+
+ add_settings_field($id, $title, $callback, $page, $section = 'default', $args = array())
+
+* '''$id''' - String for use in the 'id' attribute of tags.
+* '''$title''' - Title of the field.
+* '''$callback''' - Function that fills the field with the desired inputs as part of the larger form. Name and id of the input should match the $id given to this function. The function should echo its output.
+* '''$page''' -  The type of settings page on which to show the field (general, reading, writing, ...).
+* '''$section''' -  The section of the settings page in which to show the box (default or a section you added with add_settings_section, look at the page in the source to see what the existing ones are.)
+* '''$args''' -  Additional arguments
+
+== 添加设置区域 ==
+
+Settings Sections are the groups of settings you see on WordPress settings pages with a shared heading. In your plugin you can add new sections to existing settings pages rather than creating a whole new page. This makes your plugin simpler to maintain and creates less new pages for users to learn. You just tell them to change your setting on the relevant existing page. 
+
+ add_settings_section($id, $title, $callback, $page)
+
+* '''$id''' - String for use in the 'id' attribute of tags.
+* '''$title''' -  Title of the section.
+* '''$callback''' -  Function that fills the section with the desired content. The function should echo its output.
+* '''$page''' - The type of settings page on which to show the section (general, reading, writing, media etc.)
+
+== 注册设置 ==
+
+ register_setting( $option_group, $option_name, $sanitize_callback )
+
+ unregister_setting( $option_group, $option_name, $sanitize_callback )
+
+== 输出设置表单 ==
+
+To display the hidden fields and handle security of your options form, the Settings API provides the settings_fields() function.
+
+ settings_fields($option_group)
+
+* '''$option_group''' - unique group name for option set.
+
+== 样例 ==
+
+=== 添加具有一个新的设置栏目的设置区域 ===
+
+<pre> <?php 
+ // ------------------------------------------------------------------
+ // 请在 admin_init 的过程中添加您的所有设置区域、栏目和设置
+ // ------------------------------------------------------------------
+ //
+ 
+ function eg_settings_api_init() {
+ 	// 将这个区域插入到“阅读选项”
+ 	// 以便我们插入自定义的栏目
+ 	add_settings_section('eg_setting_section',
+		'阅读选项中的示例区域',
+		'eg_setting_section_callback_function',
+		'reading');
+ 	
+ 	// 添加设置栏目，并指定它的名字以及需要调用的回调函数
+ 	// 然后将其插入到我们刚刚创建的区域中
+ 	add_settings_field('eg_setting_name',
+		'示例设置的名字',
+		'eg_setting_callback_function',
+		'reading',
+		'eg_setting_section');
+ 	
+ 	// 注册刚刚的设置，使 WordPress 为我们完成 $_POST 的处理工作
+ 	// 您的刚刚注册的回调函数则只需要完成 <input> 标签的输出工作
+ 	register_setting('reading','eg_setting_name');
+ }// eg_settings_api_init()
+ 
+ add_action('admin_init', 'eg_settings_api_init');
+ 
+  
+ // ------------------------------------------------------------------
+ // 设置区域回调函数
+ // ------------------------------------------------------------------
+ //
+ // 要添加新的区域，则需要这个函数。它将在区域开始的时候被调用。
+ //
+ 
+ function eg_setting_section_callback_function() {
+ 	echo '<p>设置区域的介绍文字</p>';
+ }
+ 
+ // ------------------------------------------------------------------
+ // 样例选项的回调函数
+ // ------------------------------------------------------------------
+ //
+ // 创建一个 checkbox 复选框 true/false 选项，当然您也可以选用其它类型
+ //
+ 
+ function eg_setting_callback_function() {
+ 	echo '<input name="eg_setting_name" id="gv_thumbnails_insert_into_excerpt" type="checkbox" value="1" class="code" ' . checked( 1, get_option('eg_setting_name'), false ) . ' /> 说明文字';
+ }
+?> </pre>
+
+== 外部资源 ==
+* [http://www.presscoders.com/wordpress-settings-api-explained/ Settings API Explained]，由 David Gwyer
+* [http://ottopress.com/2009/wordpress-settings-api-tutorial/ WordPress Settings API Tutorial]，由 Otto
+* [http://planetozh.com/blog/2009/05/handling-plugins-options-in-wordpress-28-with-register_setting/ Handling Plugin Options with register_setting()]，由 Ozh
+* [http://blog.gneu.org/2010/09/intro-to-the-wordpress-settings-api/ Intro to the WordPress Settings API]，由 BobGneu
+* [http://www.chipbennett.net/2011/02/17/incorporating-the-settings-api-in-wordpress-themes/ Incorporating the Settings API in WordPress Themes]，由 Chip Bennett
+
+[[Category:zh-cn:高级主题]]
+[[Category:zh-cn:开发 WordPress]]
+[[Category:zh-cn:API]]
+
+{{zh-cn:Stub}}

@@ -1,0 +1,127 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Descripci.C3.B3n"><span class="tocnumber">1</span> <span class="toctext">Descripción</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Uso"><span class="tocnumber">2</span> <span class="toctext">Uso</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Par.C3.A1metros"><span class="tocnumber">3</span> <span class="toctext">Parámetros</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Ejemplo"><span class="tocnumber">4</span> <span class="toctext">Ejemplo</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Descripci.C3.B3n">Descripción</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Referencia_de_Funciones/wp_parse_args&amp;action=edit&amp;section=1" title="Edit section: Descripción">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>wp_parse_args</b> es una utilidad genérica para unir un array de argumentos con un array de valores por defecto. Si se le da una cadena de interrogación URL también puede convertirla en un array (p.ej. "id=5&amp;status=draft").
+</p><p>Se utiliza en WordPress para evitar preocuparse por la lógica de los valores por defecto en las entradas, y facilita un patrón estable para pasar argumentos. Funciones como <a href="https://codex.wordpress.org/Template_Tags/query_posts" title="Template Tags/query posts" class="mw-redirect"> query_posts</a>, <a href="https://codex.wordpress.org/Template_Tags/wp_list_comments" title="Template Tags/wp list comments" class="mw-redirect"> wp_list_comments</a> y <a href="https://codex.wordpress.org/Function_Reference/get_terms" title="Function Reference/get terms"> get_terms</a> son ejemplos comunes del poder de simplificación de  wp_parse_args.
+</p><p>Las funciones que tienen un parámetro basado en <b>$args</b> son capaces de expandir infinitamente el número potencial de valores que se pueden pasar entre ellas, evitando las molestias que generan las largas llamadas de función con demasiados argumentos, muchos de los cuales con la única función  de sobreescribir valores que harían un buen valor por defecto en raras ocasiones.
+</p>
+<h2><span class="mw-headline" id="Uso">Uso</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Referencia_de_Funciones/wp_parse_args&amp;action=edit&amp;section=2" title="Edit section: Uso">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>wp_parse_args()</b> se utiliza dentro de una función definida para procesar argumentos de entrada. Debajo tenemos un ejemplo de como wp_parse_args() puede unir un array de defaults con un array de argumentos mezclados.
+</p>
+<pre>
+/**
+ * Define el array de valores por defecto
+ */ 
+$defaults = array(
+	'type' =&gt; 'post',
+	'before' =&gt; "&lt;p&gt;",
+	'after' =&gt; "&lt;/p&gt; \n",
+	'echo' =&gt; TRUE,
+);
+/**
+ *  Convierte el $args entrante en un array y lo mezcla con  $defaults
+ */ 
+$args = wp_parse_args( $args, $defaults );
+
+/**
+ * OPCIONAL: Declare cada elemento en $args como variables separadas p.ej. $type, $before.
+ */ 
+extract( $options, EXTR_SKIP );
+</pre>
+<h2><span class="mw-headline" id="Par.C3.A1metros">Parámetros</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Referencia_de_Funciones/wp_parse_args&amp;action=edit&amp;section=3" title="Edit section: Parámetros">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$args</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array.2Fstring" title="How to Pass Tag Parameters"><i>array/string</i></a>) (<i>required</i>) Cadena de consulta o array de argumentos mezclados que sustituirán los valores en $defaults. 
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<p>Puede pasarse en estilo de consulta URL
+</p>
+<pre>type=post&amp;posts_per_page=5&amp;cat=1
+</pre>
+<p>O como una definición de array
+</p>
+<pre>array('type'=&gt;'post', 'posts_per_page' =&gt; 5, 'cat' =&gt; '1')
+
+</pre>
+<dl><dt> <tt>$defaults</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>required</i>) Array de los valores por defecto que serán sustituidos por los de $args
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Ejemplo">Ejemplo</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Referencia_de_Funciones/wp_parse_args&amp;action=edit&amp;section=4" title="Edit section: Ejemplo">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Debajo tenemos un ejemplo de función que utiliza lel sistema wp_parse_args para manejar un único argumento $args, al cual se le puede dar cualquier valor que usted desee. En este caso $args almacena valores detallados para sustituir en presentaciones de información en pantalla, un patrón que se puede encontrar en muchas funciones de WordPress.
+</p>
+<pre>
+/**
+ * Define una nueva función que utiliza $args y wp_parse_args()
+ */
+function explain_parse_args( $args ) {
+	$defaults = array (
+ 		'text' =&gt; 'wp_parse_args() merges $args into $defaults',
+ 		'before' =&gt; "&lt;p&gt;",
+ 		'after' =&gt; "&lt;/p&gt; \n",
+ 		'echo' =&gt; TRUE,
+	);
+	
+	// Analiza el $args entrante y lo convierte en un array que mezclará con $defaults
+	$args = wp_parse_args( $args, $defaults );
+	
+	// OPCIONAL: Declara cada elemento de $args como una variable separada $type, $before.
+	extract( $options, EXTR_SKIP );
+
+	$output = $before . $text . $after;
+	
+	if (!$echo) 
+		return $output;
+	
+	echo $output;
+}
+
+/**
+ * Ejecuta nuestra nueva función utilizando los valores por defecto($args vacío)
+ * Esto mostrará: 
+ * 	&lt;p&gt;wp_parse_args() merges $args into $defaults&lt;/p&gt;
+ */
+explain_parse_args();
+
+/**
+ * Ejecuta nuestra función sustituyendo varias opciones con un array
+ * Esto mortrará la salida anterior con los valores modificados&#160;:
+ * 	&lt;p class='specialclass'&gt;A better explanation&lt;/p&gt;
+ */
+explain_parse_args( array (
+	'text' =&gt; "A better explanation",
+	'before' =&gt; "&lt;p class='specialclass'&gt;",
+) );
+
+/**
+ * Podemos pasar, también, una consulta de estilo URL y se convertirá 
+ * Esto establecería $args['echo'] a 1 y $args['text'] a 0	
+ */
+explain_parse_args( 'echo=1&amp;text=0' );
+
+</pre>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004257
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.012 seconds
+Preprocessor visited node count: 54/1000000
+Preprocessor generated node count: 183/1000000
+Post‐expand include size: 409/2097152 bytes
+Template argument size: 214/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    1.768      1 - -total
+ 94.85%    1.677      2 - Template:Parameter
+-->

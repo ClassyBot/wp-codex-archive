@@ -1,0 +1,140 @@
+{{Languages|
+{{en|Function Reference/get children}}
+{{it|Riferimento funzioni/get children}}
+{{ja|関数リファレンス/get children}}
+{{pt-br|Referência de Função/get children}}
+{{ru|Справочник по функциям/get children}}
+}}
+
+== Descrizione ==
+
+get_children() recupera allegati, revisioni o sottopagine, possibilmente per post genitore. Lavora in modo simile a [[Function Reference/get posts|get_posts()]].
+
+== Sinossi ==
+
+<tt>array <var>$children</var> =& get_children( mixed <var>$args</var> = "", constant <var>$output</var> = OBJECT);</tt>
+
+== Valori restituiti ==
+
+Restituisce un array associativo di post (di tipo variabile impostato dal parametro <tt>$output</tt>) con gli ID dei post come chiavi dell'array, o un array vuoto se nessun post viene trovato.
+
+Prima della [[Version 2.9|versione 2.9]], il valore restituito era <tt>false</tt> quando nessun figlio veniva trovato.
+
+== Parametri predefiniti (Version 2.7) ==
+
+<pre>$defaults = array( 
+    'post_parent' => 0,
+    'post_type'   => 'any', 
+    'numberposts' => -1,
+    'post_status' => 'any'
+);</pre>
+
+== Parametri ==
+
+Si veda [[Template Tags/get posts|get_posts()]] per una lista completa di parametri.
+
+Dalla [[Version 2.6|versione 2.6]], bisogna passare un valore non vuoto per il parametro <tt>post_type</tt> (può essere <tt>attachment</tt> o <tt>page</tt>).
+
+;	$args
+:		(mixed) Passare un array imposta parecchi parametri (si veda sotto). Passare un ID numerico o un oggetto Post recupera i figli di quel post; passare un valore vuoto recupera i figli del post o della pagina corrente.
+;	$args['numberposts']
+:		(integer) Numero di post figli da recuperare. Opzionale; default: -1 (illimitati)
+;	$args['post_parent']
+:		(integer) Passare l'ID di un post o di una pagina per ottenere i suoi figli. Passare 0 per ottenere gli allegati senza il genitore. Passare <tt>null</tt> per ottenere qualunque figlio indipendentemente dal genitore. Opzionale; default: <tt>0</tt> (nessun genitore)
+;	$args['post_type']
+:		(string) Qualunque valore della colonna post_type nella tabella dei post, come <tt>attachment</tt>, <tt>page</tt> o <tt>revision</tt>; oppure la parola chiave <tt>any</tt>. Default: <tt>any</tt>
+;	$args['post_status']
+:		(string) Qualunque valore della colonna <tt>post_status</tt> nella tabella dei post, come <tt>publish</tt>, <tt>draft</tt> o <tt>inherit</tt>; oppure la parola chiave <tt>any</tt>. Default: <tt>any</tt>
+;	$args['post_mime_type']
+:		(string) Un tipo mime completo o parziale, es. <tt>image</tt>, <tt>video</tt>, <tt>video/mp4</tt>, che viene confrontato con il campo <tt>post_mime_type</tt> di un post
+;	$output
+:		(constant) Tipo dell'array restituito da questa funzione: i valori possibili sono <tt>OBJECT</tt>, <tt>ARRAY_A</tt>, <tt>ARRAY_N</tt>. Opzionale; default: <tt>OBJECT</tt>
+
+== Esempi ==
+
+Se si vuole solo recuperare o stampare gli allegati, è probabilmente più facile usare <code>[[Template_Tags/get_posts#Show_attachments_for_the_current_post|get_posts()]]</code>.
+
+<pre>$images =& get_children( 'post_type=attachment&post_mime_type=image' );
+
+$videos =& get_children( 'post_type=attachment&post_mime_type=video/mp4' );
+
+if ( empty($images) ) {
+  // nessun allegato qui
+} else {
+  foreach ( $images as $attachment_id => $attachment ) {
+    echo wp_get_attachment_image( $attachment_id, 'full' );
+  }
+}
+
+//  Se non serve gestire un risultato vuoto:
+
+foreach ( (array) $videos as $attachment_id => $attachment ) {
+  echo wp_get_attachment_link( $attachment_id );
+}</pre>
+
+=== Mostrare la prima immagine associata al post ===
+Questa funzione recupera la prima immagine associata al post
+<pre>
+<?php
+function echo_first_image( $postID ) {
+  $args = array(
+    'numberposts' => 1,
+    'order' => 'ASC',
+    'post_mime_type' => 'image',
+    'post_parent' => $postID,
+    'post_status' => null,
+    'post_type' => 'attachment',
+  );
+
+  $attachments = get_children( $args );
+
+  if ( $attachments ) {
+    foreach ( $attachments as $attachment ) {
+      $image_attributes = wp_get_attachment_image_src( $attachment->ID, 'thumbnail' )  ? wp_get_attachment_image_src( $attachment->ID, 'thumbnail' ) : wp_get_attachment_image_src( $attachment->ID, 'full' );
+
+      echo '<img src="' . wp_get_attachment_thumb_url( $attachment->ID ) . '" class="current">';
+    }
+  }
+}
+</pre>
+
+=== Mostrare la prima immagine associata al post e cambiare la chiave dell'array ===
+Nell'esempio qui sopra, un array primario ha come chiave l'ID dell'immagine (esattamente ciò che stiamo cercando - poiché non lo conosciamo come facciamo ad accedervi?). Il codice qui sotto fornisce un metodo più facile per gestire l'informazione sull'immagine: l'array $child_image. Deve essere usato nel loop.
+ 
+<pre>
+$args = array(
+	'numberposts' => 1,
+	'order'=> 'DESC',
+	'post_mime_type' => 'image',
+	'post_parent' => $post->ID,
+	'post_type' => 'attachment'
+	);
+
+$get_children_array = get_children($args,ARRAY_A);  //restituisce Array ( [$image_ID]... 
+$rekeyed_array = array_values($get_children_array);
+$child_image = $rekeyed_array[0];  
+
+
+print_r($child_image);  	//Mostra il contenuto dell'array $child_image.
+echo $child_image['ID'];   	//Mostra l'ID di $child_image.
+</pre>
+
+
+== Log delle modifiche ==
+Da: 2.0.0
+
+== File sorgente ==
+
+<tt>get_children()</tt> si trova in {{Trac|wp-includes/post.php}}.
+
+== Correlati ==
+
+get_children() chiama [[Template Tags/get posts|get_posts()]], che chiama [[Class Reference/WP Query#Methods|$WP_Query->get_posts()]].
+
+[[it:Riferimento funzioni/wp get attachment link|wp_get_attachment_link()]],
+[[it:Riferimento funzioni/get_page_children|get_page_children()]]
+
+{{it:Tag Footer}}
+
+[[Category:Functions]]
+[[Category:Attachments]]

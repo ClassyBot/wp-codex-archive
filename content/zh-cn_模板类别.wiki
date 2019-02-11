@@ -1,0 +1,165 @@
+{{Languages|
+{{en|Category_Templates}}
+{{ja|Category_Templates}}
+{{zh-cn|模板类别}}
+}}
+
+= 简介 =
+当读者点击你网站上的一个类别链接，他/她将看到一个列表，按选定类别、从上往下、由新及旧罗列其[[zh-cn:撰写文章|文章]]。关于显示的选择有很多，包括显示整篇文章还是仅显示摘要、显示哪些附加信息（标题、作者、发布日期、最近更新日期等）。每个主题包含的选项不尽相同，也许，你想做一些改变。 
+
+本文展示了如何改变当读者访问你网站上的类别网页时所做的事，包括主题和模板文件的使用。因此，如果还不了解模板文件，你或许想先了解一下[[zh-cn:主题|主題]]和[[zh-cn:模板入门|模板入门]]。
+
+访问类别归档的永久链接由[[Using_Permalinks#Category_base_and_Tag_base|Using Permalinks]]设定项控制。
+
+== 用的是哪个模板文件？ == 
+
+改变某人访问类别网页时所做的事之第一步是找出用的是哪个模板文件来呈现文章。称为[[zh-cn:模板层次|模板层次]]. 
+
+就类别而言，层次相当简单。比如，假设类别分块(slug)是'''news'''，其类别号(ID)为'''6'''。该模板层次表明了WordPress将使用在当前主题目录里、从如下列表中找到的''第一个''模板文件：
+#<tt style="font-weight:bold; color:#036">category-slug.php</tt>
+#<tt style="font-weight:bold; color:#036">category-ID.php</tt>
+#<tt style="font-weight:bold; color:#036">category.php</tt>
+#<tt style="font-weight:bold; color:#036">archive.php</tt>
+#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+也就是说，如果没有<tt style="font-weight:bold; color:#036">category-slug.php</tt>（比如<tt style="font-weight:bold; color:#036">category-news.php</tt>），WordPress将查找<tt style="font-weight:bold; color:#036">category-ID.php</tt>（如<tt style="font-weight:bold; color:#036">category-6.php</tt>），依此类推。 
+
+因此，如果想让类别号(ID)为6的类别看起来跟现在的不同（且与其他类别不同），你需要创建<tt>category-6.php</tt>文件。若想让所有类别看起来彼此不同（比如日期和作者归档），那么你需要创建或修改<tt>category.php</tt>文件。假如想改变所有归档的视觉效果，你可以创建或修改<tt>archive.php</tt>文件。另外，如果你修改了<tt>index.php</tt>文件，影响的将是整个博客网站。
+
+如果你想新建一个文件，从类别层次里已有的下一个文件拷贝是个不错的想法。比如，你想为类别6创建一个特别的显示，先拷贝<tt>category.php</tt>文件，如果没有这个文件，用<tt>archive.php</tt>，依此类推。
+
+= 示例 =
+
+既然已经在主题目录里找到需要修改的模板文件，为了改变类别页的呈现，让我们来看几个例子。在这些例子里，当提到“编辑你的模板文件”，指的是你在上一节里选择的那个文件。
+
+== 添加文本到类别页 ==
+
+=== 文章上方的静态文本 ===
+
+假设你想要在类别页里的文章列表之前显示一些静态文本。说到“静态”，是指无论要显示的是什么文章、当前显示的是什么类别都是一样的文本。我们这样做：在模板文件里的[[zh-cn:循环|循环]]块，插入如下代码：
+<pre><nowiki>
+<p>
+This is some text that will display at the top of the Category page.
+</p></nowiki></pre>
+
+=== 在某些类别页上显示不同的文本 ===
+
+稍微复杂的情形是你希望根据读者访问的类别页显示不同的文本。为此，你在主文件<tt>category.php</tt>里添加“默认”文本，然后为每个需要特殊文本的类别新建特定的<tt>category-#.php</tt>文件（包含其自己的文本版本，参考简介部分）。 
+
+但是，这样需要在主题目录下创建许多文件。好在可以'''在循环外'''使用如下代码来避免这个问题：
+
+<pre><nowiki>
+<?php if (is_category('Category A')) : ?>
+<p>This is the text to describe category A</p>
+<?php elseif (is_category('Category B')) : ?>
+<p>This is the text to describe category B</p>
+<?php else : ?>
+<p>This is some generic text to describe all other category pages, 
+I could be left blank</p>
+<?php endif; ?>
+</nowiki></pre>
+
+这段代码做如下事情：检查是否在查找类别A，若是则显示第一部分文本；否则检查是否在查找类别B，若是则显示那部分文本；最后，若果既不是类别A也不是类别B，显示默认文本。
+
+=== 仅在归档的第一页显示的文本 ===
+
+另一个可能的情况是，当你的类别包含了超过一页的文章（根据你在管理员控制面板里设定的Blog Reading选项而定），该分类归档会被分成多个页面。而你可能只想让读者在结果的第一页上看到静态文本，或者想在其他页面上显示不同的文本。
+
+要做到这一点，你可以用PHP的<tt>if</tt>语句，它检查WordPress的<tt>$paged</tt>变量(<tt>$paged</tt>等于页面数：1是结果的第一页，2是第二页，等等）。看起来好像挺复杂，不过实际上还好。把下列代码放在[[zh-cn:循环|循环]]之前就够了：
+<pre>
+<?php if ( $paged < 2 ) : ?>
+<p>Text for first page of Category archive.</p>
+<?php else : ?>
+<p>Text for subsequent pages of Category.
+Can be left out.</p>
+<?php endif; ?>
+</pre>
+
+=== 类别名 ===
+
+另一种可能是在页面顶部放置类别名。如果你的模板还没有这一部分，可以在[[zh-cn:循环|循环]]之上这样做：
+<pre>
+<p>Category: <?php single_cat_title(); ?></p>
+</pre>
+
+== 改变文章显示方式 ==
+
+=== 摘要pk全文 ===
+
+你可能想裁减类别页面的大小。你可以通过只显示每篇文章的摘要而非全文来达到这个目的。仅需在模板的[[zh-cn:循环|循环]]里找到<tt style="font-weight:bold; color:#036">[[Template Tags/the_content|the_content()]]</tt>，改写为<tt style="font-weight:bold; color:#036">[[Template Tags/the_excerpt|the_excerpt()]]</tt>。在PHP标签里通常是这样：
+<pre>
+  <?php the_excerpt(); ?>
+and
+  <?php the_content(); ?>
+</pre>
+
+反之，如果当前主题是显示摘要而你想要全文，改写<tt>the_excerpt</tt>为<tt>the_content</tt>。
+
+=== 显示链接到全文的图片 ===
+
+另一件有趣的事是在类别归档里用一张链接到文章的图片替代文字。要做到这一点，你首先需要在文章的摘要块放置图片。对于一篇文章，这样做：
+# 在编辑界面上传一张图片。
+# 切换到“代码”编辑器，而不是“可视”编辑器。
+# 使用上传/浏览标签页将图片插入到文章中。一定要插入完整大小的图片，不带链接。
+# 拷贝插入的HTML标签<tt>img</tt>，粘贴到编辑界面的"Optional Excerpt"块。
+# 继续完成书写文章内容（你可以移除图片），然后发布。
+
+然后你需要修改模板。由于模板便签[[Template Tags/the_excerpt_rss|the_excerpt_rss()]]不会在摘要周围显示段落，我们可以耍个小花招：插入HTML标签<tt>img</tt>，并将其放在一个链接里。在模板里，找到使用 <tt>the_content</tt>的地方，放入：
+<pre>
+<a href="<?php the_permalink() ?>">
+<?php the_excerpt_rss(); ?>
+</a>
+</pre>
+
+警告：使用这种方式的摘要'''可能'''影响你的RSS feed，因为摘要里是一个img标签，而不是文本。因此，如果你决定这样做，应该考虑修改相关设置，以便RSS feeds里放的是全文，而不是摘要。
+
+=== 你向读者呈现哪些类别？ ===
+
+要选择任一页面上，如归档页，可见的类别，使用：
+<pre>
+<?php 
+$args = array ( 'category' => ID, 'posts_per_page' => 5);
+$myposts = get_posts( $args );
+foreach( $myposts as $post ) :	setup_postdata($post);
+ ?>
+//Style Posts here
+<?php endforeach; ?>
+</pre>
+
+它使用模板标签<tt>[[Template_Tags/get_posts|get_posts]]</tt>，依据你设定的条件获得一个文章数组。在这个例子中，记得把"ID"改成你想要呈现的那个。参数<tt>posts_per_page</tt>仅仅表明你希望该类别显示的文章数，此处我们设置为5。 
+
+你也可以使用[[Conditional_Tags]]，依据URL或上下文设置生成归档。例如，你想确保当读者访问<tt>http://yourblog.com/2008/02/</tt>，2008年2月份的文章会先被显示。添加如下代码到archive.php文件即可：
+<pre>
+<?php if (have_posts()) : ?>
+ <?php if (is_month()){
+$year = get_the_time('Y');
+$month = get_the_time('m');
+$the_query = new WP_Query( 'monthnum=$month&year=$year&$cat=5' );
+// The Loop
+while ( $the_query->have_posts() ) :
+	$the_query->the_post();
+	echo '<li>' . get_the_title() . '</li>';
+endwhile;
+
+/* Restore original Post Data 
+ * NB: Because we are using new WP_Query we aren't stomping on the 
+ * original $wp_query and it does not need to be reset.
+*/
+wp_reset_postdata();
+ ?>
+</pre>
+
+= 扩展阅读 =
+
+* [http://wordpress.org/support/topic/38046 Support Forum discussion of Category-based theme] - 如何制作一个在主页按类别而不是日期组织文章的主题
+* [[Templates]] - 与主题和模板相关的资源列表
+
+= Related =
+
+{{Theme Templates}}
+{{Tag Footer}}
+
+[[Category:WordPress Lessons]]
+[[Category:Design and Layout]]
+[[Category:Advanced Topics]]
+[[Category:Templates]]

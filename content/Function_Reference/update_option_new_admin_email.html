@@ -1,0 +1,96 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Returns_Values"><span class="tocnumber">4</span> <span class="toctext">Returns Values</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Examples"><span class="tocnumber">5</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Notes"><span class="tocnumber">6</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Change_Log"><span class="tocnumber">7</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Source_File"><span class="tocnumber">8</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Related"><span class="tocnumber">9</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This function intercepts changes to the administrator's email address. It keeps the address from being updated and instead sends the user a confirmation email, with a link to confirm the change.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;update_option_new_admin_email</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$old_value</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$value&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p><b>Note:</b> This function is <i>not</i> intended to be called directly! See <a href="#Examples"> below</a>.
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$old_value</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The administrator's old email address.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$value</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The new email address.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Returns_Values">Returns Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=4" title="Edit section: Returns Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This function does not return a value.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=5" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This function is hooked to the <tt><a href="/index.php?title=Plugin_API/Action_Reference/update_option_(option)&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/update option (option) (page does not exist)"> 'update_option_new_admin_email'</a></tt> and <tt><a href="/index.php?title=Plugin_API/Action_Reference/add_option_(option)&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/add option (option) (page does not exist)"> 'add_option_new_admin_email'</a></tt> <tt><a href="https://codex.wordpress.org/Function_Reference/do_action" title="Function Reference/do action"> actions</a></tt> by default. If for some reason you would like to disable it and allow administrators to change their email address without confirmation, you can do this:
+</p>
+<pre>
+&lt;?php
+
+remove_action( 'add_option_new_admin_email', 'update_option_new_admin_email' );
+remove_action( 'update_option_new_admin_email', 'update_option_new_admin_email' );
+
+/**
+ * Disable the confirmation notices when an administrator
+ * changes their email address.
+ *
+ * @see http://codex.wordpress.com/Function_Reference/update_option_new_admin_email
+ */
+function wpdocs_update_option_new_admin_email( $old_value, $value ) {
+
+    update_option( 'admin_email', $value );
+}
+add_action( 'add_option_new_admin_email', 'wpdocs_update_option_new_admin_email', 10, 2 );
+add_action( 'update_option_new_admin_email', 'wpdocs_update_option_new_admin_email', 10, 2 );
+
+?&gt;
+</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=6" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Uses: <tt><a href="https://codex.wordpress.org/Function_Reference/apply_filters" title="Function Reference/apply filters"> apply_filters()</a></tt> - Calls <tt><a href="/index.php?title=Plugin_API/Filter_Reference/new_admin_email_content&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/new admin email content (page does not exist)"> 'new_admin_email_content'</a></tt> with the template for the confirmation email message.</li>
+<li> Uses: <tt><a href="https://codex.wordpress.org/Function_Reference/wp_mail" title="Function Reference/wp mail"> wp_mail()</a></tt> - To send the confirmation email.</li></ul>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=7" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_3.0" title="Version 3.0"> 3.0.0</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=8" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>update_option_new_admin_email()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-admin/includes/ms.php#L0">wp-admin/includes/ms.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit&amp;section=9" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Function_Reference/update_option_new_admin_email&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003944
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.024 seconds
+Preprocessor visited node count: 129/1000000
+Preprocessor generated node count: 408/1000000
+Post‐expand include size: 1955/2097152 bytes
+Template argument size: 534/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    9.316      1 - -total
+ 25.27%    2.354      1 - Template:Tag_Footer
+ 24.97%    2.326      1 - Template:Copyedit
+ 23.62%    2.200      1 - Template:Trac
+ 20.63%    1.922      2 - Template:Parameter
+ 19.45%    1.812      2 - Template:Message
+  9.15%    0.853      1 - Template:CurrentVersion
+-->

@@ -1,0 +1,248 @@
+<div class="redirectMsg"><p>Redirect to:</p><ul class="redirectText"><li><a href="https://codex.wordpress.org/Main_Page" title="Main Page">Main Page</a></li></ul></div><div style="background-color:#FFFFFF; border:1px solid #FFFFFF; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;"><span style="float:left; margin:4px"><div class="floatleft"><a href="https://codex.wordpress.org/File:wp-alert.png" class="image"><img alt="wp-alert.png" src="/images/9/9c/wp-alert.png" width="58" height="69" /></a></div></span><b>This article, written to accord with WordPress 1.5, is now obsolete. Please take caution when following its contents, as many things may have changed.</b></div>
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Dynamic">Menu Highlighting 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+Dynamic menu highlighting is a way to give users a reference point in the navigation. It is like the dot on the map that says "you are here". WordPress.org has utilized dynamic menu highlighting.<div style="border:1px solid blue; width: 90%; margin: 20px; padding:20px">
+<div class="center"><div class="floatnone"><a href="https://codex.wordpress.org/File:Dynamic_menu_highlighting-00.jpg" class="image" title="This image illustrates that the user is currently looking at a page from the menu called &quot;DOCS&quot;."><img alt="This image illustrates that the user is currently looking at a page from the menu called &quot;DOCS&quot;." src="/images/c/c7/Dynamic_menu_highlighting-00.jpg" width="553" height="81" /></a></div></div><pre>This image illustrates that the user is currently looking
+at a page under the menu "DOCS".</pre></div>
+<p>By looking at the menu list you can, due to the use of the dark thick line easily ascertain that you are currently on a page within the "DOCS" or documentation section of the site.
+</p><p>This article will explain how to make a navigation menu that dynamically highlights the currently displayed page. There also are <a href="https://codex.wordpress.org/Dynamic_Menu_Highlighting#Plugins" title="Dynamic Menu Highlighting" class="mw-redirect"> plugins</a> available that can do most of the work for you. 
+</p><p>Also note that if you use the Pages sidebar widget (that comes with WordPress) to display your menu, it already has a CSS class current_page_item, which you can use to achieve the same effect. You can access it like this in your CSS:
+</p>
+<pre>.widget_pages li.current_page_item a{
+   background-image:url(images/activelink.gif);
+}
+</pre>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Overview"><span class="tocnumber">1</span> <span class="toctext">Overview</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Basic_Navigation_Lists"><span class="tocnumber">2</span> <span class="toctext">Basic Navigation Lists</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Making_the_Code_Dynamic"><span class="tocnumber">3</span> <span class="toctext">Making the Code Dynamic</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Method_One:_With_CSS_on_Each_Page"><span class="tocnumber">4</span> <span class="toctext">Method One: With CSS on Each Page</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Method_Two:_With_CSS_in_One_Document"><span class="tocnumber">5</span> <span class="toctext">Method Two: With CSS in One Document</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Examples"><span class="tocnumber">6</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Resources"><span class="tocnumber">7</span> <span class="toctext">Resources</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Plugins"><span class="tocnumber">8</span> <span class="toctext">Plugins</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Overview">Overview</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit&amp;section=1" title="Edit section: Overview">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>There are several components that make dynamically highlighted navigation work. These include&#160;:
+</p>
+<ol><li>highlighting your current location or navigation position between page loads</li>
+<li>highlighting other navigation points on mouse-over</li>
+<li>showing submenus of navigation, leaving a breadcrumb trail (not in the scope of this article)</li></ol>
+<p>There are also many different possible approaches to achieve dynamically-highlighted navigation. These include for example Javascript, Flash, HTML and <a href="https://codex.wordpress.org/CSS" title="CSS">CSS</a> in conjunction with <a href="/index.php?title=PHP&amp;action=edit&amp;redlink=1" class="new" title="PHP (page does not exist)">PHP</a>. This article covers the <a href="https://codex.wordpress.org/CSS" title="CSS">CSS</a>/<a href="/index.php?title=PHP&amp;action=edit&amp;redlink=1" class="new" title="PHP (page does not exist)">PHP</a> method.
+</p><p><br />
+</p>
+<h2><span class="mw-headline" id="Basic_Navigation_Lists">Basic Navigation Lists</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit&amp;section=2" title="Edit section: Basic Navigation Lists">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The basic navigation list might look something like this:
+</p>
+<pre>
+&lt;ul id="navigation"&gt;
+&lt;li&gt;&lt;a href="#"&gt;Page One&lt;/a&gt;&lt;/li&gt;
+&lt;li id="current"&gt;&lt;a href="#"&gt;Page Two&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#"&gt;Page Three&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#"&gt;Page Four&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</pre>
+<p>And there would likely be some bit of <a href="https://codex.wordpress.org/CSS" title="CSS">CSS</a> in the page's stylesheet that would specifically style list items with the "current" ID differently from other list items.
+</p><p>This works fine with static HTML pages, but when dealing with dynamic pages, things become a little more complicated.  Perhaps this menu is supposed to be in a site's sidebar and the sidebar is contained in a single file that is called from multiple places.  Obviously, as written, only one item would ever be highlighted, no matter what page is actually being viewed.  That is not what we want at all!
+</p>
+<h2><span class="mw-headline" id="Making_the_Code_Dynamic">Making the Code Dynamic</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit&amp;section=3" title="Edit section: Making the Code Dynamic">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>PHP allows us to add the desired highlighting effect that reacts to whatever page is being viewed.  Coupled with WordPress Conditional Tag <a href="https://codex.wordpress.org/Conditional_Tags" title="Conditional Tags">is_</a> function, we can dynamically test what page is being viewed and then rewrite the code based on the results of that test.
+</p><p>There are two method to go about this. The first method requires us to create a variable (<tt>$current</tt>) that will always equal the page number we're on. It also requires us to put some CSS on each page instead of keeping it all in the main CSS document. The second method requires a little bit more of PHP coding, but we can keep all of our styling in a single CSS document.
+</p>
+<h2><span class="mw-headline" id="Method_One:_With_CSS_on_Each_Page">Method One: With CSS on Each Page</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit&amp;section=4" title="Edit section: Method One: With CSS on Each Page">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The first step in this method is to remove the piece of code <tt>id="current"</tt> from the list and then add a unique <tt>id</tt> attribute to each list item.
+</p>
+<pre>
+&lt;ul id="navigation"&gt;
+&lt;li id="one"&gt;&lt;a href="#"&gt;Page One&lt;/a&gt;&lt;/li&gt;
+&lt;li id="two"&gt;&lt;a href="#"&gt;Page Two&lt;/a&gt;&lt;/li&gt;
+&lt;li id="three"&gt;&lt;a href="#"&gt;Page Three&lt;/a&gt;&lt;/li&gt;
+&lt;li id="four"&gt;&lt;a href="#"&gt;Page Four&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</pre>
+<p>The next step is where PHP comes in. 
+</p><p>We need to write a conditional statement that will test what page is being viewed and define a variable based on the results of that test.
+</p>
+<pre>
+&lt;?php
+if ( is_page('Page One') ) { $current = 'one'; }
+elseif ( is_page('Page Two') ) { $current = 'two'; }
+elseif ( is_page('Page Three') ) { $current = 'three'; }
+elseif ( is_page('Page Four') ) { $current = 'four'; }
+?&gt;
+</pre>
+<p>This piece of code uses the <tt>is_page()</tt> function to check the title of the current page.  If the title is "Page One", value "one" is assigned to variable <tt>$current</tt>. If it is "Page Two" <tt>$current</tt> becomes "two" etc.  In a WordPress template, this would go in the <tt>header.php</tt> file between the <tt>&lt;head&gt;&lt;/head&gt;</tt> tags.
+</p><p>Now, we need to write some CSS that will respond to this and highlight the appropriate list item based on what value variable<tt>$current</tt> holds.  We can't do this in a CSS file because we can't put dynamic content in a CSS file.  So we need to move the CSS that highlights the list item out of the CSS file and put it into our page, where the dynamic content will work.
+</p><p>So, let's say we just want to do a simple highlight by changing the background color of the highlighted item to yellow.  Our CSS might look like this:
+</p>
+<pre>
+#current {
+background-color: yellow;
+}
+&lt;/style&gt;
+</pre>
+<p>We'll move that out of the CSS file into an inline CSS block in the header of our page.
+</p>
+<pre>
+&lt;style type="text/css"&gt;
+#current {
+background-color: yellow;
+}
+&lt;/style&gt;
+</pre>
+<p>Using a WordPress template, this would go in the <tt>header.php</tt> file, between the <tt>&lt;head&gt;&lt;/head&gt;</tt> tags.
+</p><p>Now we need to make it dynamic.  So we will replace the <tt>#current</tt> selector with a bit of PHP:
+</p>
+<pre>
+&lt;style type="text/css"&gt;
+#&lt;?php echo $current;&#160;?&gt; {
+background-color: yellow;
+}
+&lt;/style&gt;
+</pre>
+<p>This will print the value of <tt>$current</tt>, thus completing the CSS and successfully highlighting the appropriate item.
+</p>
+<h2><span class="mw-headline" id="Method_Two:_With_CSS_in_One_Document">Method Two: With CSS in One Document</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit&amp;section=5" title="Edit section: Method Two: With CSS in One Document">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>With this method, we will also need to remove the piece of code <tt>id="current"</tt> from the list, but we won't need to add a unique <tt>id</tt> attribute to each list item. We will let PHP do two things to make life easier: 
+</p>
+<ul><li>decide which page is our current page</li>
+<li>display an ID of "current" to make that navigation item stand out.</li></ul>
+<p>Let's give it a shot. Here is our list of navigation at the outset:
+</p>
+<pre>
+&lt;ul id="navigation"&gt;
+&lt;li&gt;&lt;a href="#"&gt;Page One&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#"&gt;Page Two&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#"&gt;Page Three&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#"&gt;Page Four&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</pre>
+<p>Nice and simple. We'll only be editing the beginning of each line, those opening <tt>&lt;li&gt;</tt> tags. We can leave rest of the list alone (for now).
+</p><p>We'll put in a few <tt>if</tt> statements. This will let PHP determine which page is being displayed and allow it to put "current" in the right spot. Here is how one of those <tt>&lt;li&gt;</tt> elements from above will look:
+</p>
+<pre>
+&lt;li&lt;?php 
+if (is_home())
+{ 
+echo " id=\"current\"";
+}
+?&gt;&gt;&lt;a href="#"&gt;Page One&lt;/a&gt;&lt;/li&gt;
+</pre>
+<p>The pair of adjacent greater-than signs in line 6 is there on purpose. The <tt>if</tt> statement interrupted our beginning <tt>&lt;li&gt;</tt> tag and that second caret in line 6 will close the tag we opened in line 1.
+</p><p>Remember, this is just one item in the list. You will need to do something similar for every item in your navigation. The good news is that if you are using templates, you will only need to do this once - in your <tt>header.php</tt> template.
+</p><p>As a result, if user is on the home page, WordPress will generate the HTML code. For this, menu item it would look like this:
+</p>
+<pre>
+&lt;li id="current"&gt;&lt;a href="#"&gt;Page One&lt;/a&gt;&lt;/li&gt;
+</pre>
+<p>On any other page, it would look like this:
+</p>
+<pre>
+&lt;li&gt;&lt;a href="#"&gt;Page One&lt;/a&gt;&lt;/li&gt;
+</pre>
+<p>Now we can style that link, so when user is displaying the home page, the navigation item makes it very clear.
+</p><p>Here is an idea of how navigation could look in your <tt>header.php</tt> document that would allow users to see where they are:
+</p>
+<pre>
+&lt;ul id="menu"&gt;
+
+        &lt;!-- To show "current" on the home page --&gt;
+        &lt;li&lt;?php 
+                if (is_home()) 
+                {
+                echo " id=\"current\"";
+                }?&gt;&gt;
+                &lt;a href="&lt;?php bloginfo('url')&#160;?&gt;"&gt;Home&lt;/a&gt;
+        &lt;/li&gt;
+
+        &lt;!-- To show "current" on the Archive Page (a listing of all months and categories), individual posts, but NOT individual posts in category 10 --&gt;
+        &lt;li&lt;?php 
+                if (is_page('Archive') || is_single() &amp;&amp;&#160;!in_category('10'))  
+                { 
+                echo " id=\"current\"";
+                }?&gt;&gt;
+                &lt;a href="&lt;?php bloginfo('url')&#160;?&gt;/archive"&gt;Archive&lt;/a&gt;
+        &lt;/li&gt;
+
+        &lt;!-- To show "current" on any posts in category 10, called Design --&gt;
+        &lt;li&lt;?php
+                if (is_category('Design') || in_category('10') &amp;&amp;&#160;!is_single())
+                {
+                echo " id=\"current\""; 
+                }?&gt;&gt;
+                &lt;a href="&lt;?php bloginfo('url')&#160;?&gt;/category/design"&gt;Design&lt;/a&gt;
+        &lt;/li&gt;
+
+        &lt;!-- To show "current" on the About Page --&gt;
+        &lt;li&lt;?php 
+                if (is_page('About')) 
+                { 
+                echo " id=\"current\"";
+                }?&gt;&gt;
+                &lt;a href="&lt;?php bloginfo('url')&#160;?&gt;/about"&gt;About&lt;/a&gt;
+        &lt;/li&gt;
+&lt;/ul&gt;
+</pre>
+<p>With some well-placed IDs around our site, users will be sure to know exactly where they are at all times, even when they come to our site from search results.
+</p><p>Using some <a href="https://codex.wordpress.org/Conditional_Tags" title="Conditional Tags">is_</a> functions, we can work to determine the identity of any page within WordPress and set our code to show "current" for any of our navigation elements.
+</p><p>As previously mentioned, the CSS declarations would need to be set up to do something to the current menu item:
+</p>
+<pre>
+#current
+{
+background-color: #336699;
+}
+</pre>
+<p>Now that navigation item is going to stand out for sure. 
+</p><p>Using this method, all our CSS stays in our main CSS document. We don't have to track down color changes in different templates when we decide to change things around sometime in the future. That was really what made us all fall in love with CSS in the first place, right?
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit&amp;section=6" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The method here will only work with <a href="https://codex.wordpress.org/Pages" title="Pages">Pages</a> created by the new Page feature in WordPress v1.5+.  It could be easily expanded to test for other conditions by using different <tt>is_</tt> functions.  Ryan Boren has a good <a rel="nofollow" class="external text" href="http://boren.nu/archives/2004/10/16/templates-and-the-is-functions/">summary</a> of the different <tt>is_</tt> functions and what they test for.  You can also check the onsite summary, <a href="https://codex.wordpress.org/Conditional_Tags" title="Conditional Tags">Conditional Tags</a>.
+</p><p>You can see this method in action at <a rel="nofollow" class="external text" href="http://css.maxdesign.com.au/listamatic/horizontal06.htm">Simple Bits Tabbed Navbar</a> from <a rel="nofollow" class="external text" href="http://css.maxdesign.com.au/listamatic/">Listamatic</a>.
+</p>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit&amp;section=7" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>These links have some information that you might find useful in your customization of this method and in the creation of menus and navigation lists in general.
+</p>
+<ul><li><a href="https://codex.wordpress.org/Conditional_Tags" title="Conditional Tags">Conditional Tags</a></li>
+<li><a href="https://codex.wordpress.org/Creating_Horizontal_Menus" title="Creating Horizontal Menus">Creating Horizontal Menus</a></li>
+<li><a href="https://codex.wordpress.org/Styling_Lists_with_CSS" title="Styling Lists with CSS">Styling Lists with CSS</a></li>
+<li><a rel="nofollow" class="external text" href="http://css.maxdesign.com.au/listamatic/">Listamatic</a></li>
+<li><a rel="nofollow" class="external text" href="http://boren.nu/archives/2004/10/16/templates-and-the-is-functions/">Ryan Boren and the is_ functions</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.gudstoff.com/2006/03/dynamic_menu/">Dynamic menu highlight including home</a></li></ul>
+<h2><span class="mw-headline" id="Plugins">Plugins</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit&amp;section=8" title="Edit section: Plugins">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>These plugins take care of the complicated PHP coding for you, leaving you to set up just the CSS.
+</p>
+<ul><li><a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/wp-menu/">WP-Menu</a> - Customizable hook to pull Page Navigation into a theme. Page Exclusion, Inclusion, Site Map, Top Level, Secondary menus and more</li></ul>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Dynamic_Menu_Highlighting&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003748
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.028 seconds
+Real time usage: 0.036 seconds
+Preprocessor visited node count: 214/1000000
+Preprocessor generated node count: 606/1000000
+Post‐expand include size: 2222/2097152 bytes
+Template argument size: 644/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    9.585      1 - -total
+ 42.27%    4.052      1 - Template:Languages
+ 26.87%    2.575      1 - Template:Oldpage
+ 18.87%    1.809      2 - Template:Message
+ 18.28%    1.752      1 - Template:Copyedit
+ 14.56%    1.396      1 - Template:ja
+ 10.81%    1.036      1 - Template:en
+-->

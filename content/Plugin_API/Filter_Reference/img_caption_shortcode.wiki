@@ -1,0 +1,58 @@
+==Description==
+Allows a plugin to replace the content that would otherwise be returned. The filter is 'img_caption_shortcode' and passes an empty string, the attr parameter and the content parameter values.
+
+== Parameters ==
+
+{{Parameter|$empty|string|Empty string}}
+{{Parameter|$attr|array|Attributes attributed to the shortcode.|required|The supported attributes for the shortcode are 'id', 'align', 'width', and 'caption'.}}
+{{Parameter|$content|string|Shortcode content.}}
+
+== Return value ==
+The filter should return a string containing the full HTML code that should be displayed. If it returns an empty string the standard WordPress functionality will be executed (see {{Trac|wp-includes/media.php|trunk|629}} on line 629)
+
+== Example ==
+<pre>
+add_filter( 'img_caption_shortcode', 'my_img_caption_shortcode', 10, 3 );
+
+function my_img_caption_shortcode( $empty, $attr, $content ){
+	$attr = shortcode_atts( array(
+		'id'      => '',
+		'align'   => 'alignnone',
+		'width'   => '',
+		'caption' => ''
+	), $attr );
+
+	if ( 1 > (int) $attr['width'] || empty( $attr['caption'] ) ) {
+		return '';
+	}
+
+	if ( $attr['id'] ) {
+		$attr['id'] = 'id="' . esc_attr( $attr['id'] ) . '" ';
+	}
+
+	return '<div ' . $attr['id']
+	. 'class="wp-caption ' . esc_attr( $attr['align'] ) . '" '
+	. 'style="max-width: ' . ( 10 + (int) $attr['width'] ) . 'px;">'
+	. do_shortcode( $content )
+	. '<p class="wp-caption-text">' . $attr['caption'] . '</p>'
+	. '</div>';
+
+}
+</pre>
+
+== Triggers == 
+
+As of [[Version 4.1|WordPress 4.1]] this hook is applied in the following location:
+
+* {{Trac|wp-includes/media.php|trunk|820}} - on line 834
+
+As of [[Version 4.5|WordPress 4.5]] this hook is applied in the following location:
+
+* {{Trac|wp-includes/media.php|trunk|1440}} - on line 1458
+
+As of [[Version 4.6|WordPress 4.6]] this hook is applied in the following location:
+
+* {{Trac|wp-includes/media.php|trunk|1487}} - on line 1487
+
+[[Category:Filters]]
+{{Stub}}

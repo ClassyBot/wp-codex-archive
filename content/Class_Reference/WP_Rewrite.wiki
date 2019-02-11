@@ -1,0 +1,183 @@
+This document assumes familiarity with [http://httpd.apache.org Apache]'s [http://httpd.apache.org/docs/2.0/mod/mod_rewrite.html mod_rewrite]. If you've never heard of this before, try reading Sitepoint's [http://www.sitepoint.com/article/guide-url-rewriting Beginner's Guide to URL Rewriting].  Also see Otto's explanation of [http://lists.automattic.com/pipermail/wp-testers/2009-January/011110.html hierarchy of rewrite rules] in the wp-hackers email list.
+
+==Role of WP_Rewrite==
+<tt>WP_Rewrite</tt> is WordPress' class for managing the rewrite rules that allow you to use [[Introduction_to_Blogging#Pretty_Permalinks|Pretty Permalinks]] feature. It has several methods that generate the rewrite rules from values in the database. It is used internally when updating the rewrite rules, and also to find the URL of a specific post, Page, category archive, etc.. It's defined in <tt>wp-includes/rewrite.php</tt> as a single instance global variable, <tt>$wp_rewrite</tt>, is initialised in <tt>wp-settings.php</tt>.
+
+==Methods and Properties==
+This is the formal documentation of <tt>WP_Rewrite</tt>. Try not to access or set the properties directly, instead use the methods to interact with the <tt>$wp_rewrite</tt> object.  See also [[Rewrite_API]].
+
+===Properties===
+; <tt>$permalink_structure</tt> : The permalink structure as in the database. This is what you set on the Permalink Options page, and includes 'tags' like %year%, %month% and %post_id%.
+; <tt>$category_base</tt> : Anything to be inserted before category archive URLs. Defaults to 'category/'.
+; <tt>$category_structure</tt> : Structure for category archive URLs. This is just the <tt>$category_base</tt> plus '%category%'.
+; <tt>$author_base</tt> : Anything to be inserted before author archive URLs. Defaults to 'author/'.
+; <tt>$author_structure</tt> : Structure for author archive URLs. This is just the <tt>$author_base</tt> plus '%author%'.
+; <tt>$pagination_base</tt> : Anything to be inserted before pagination indices. Defaults to 'page/'.
+; <tt>$feeds</tt> : Supported feeds names (rdf, rss, atom) Use [[Rewrite API/add feed|add_feed]] to override or add.
+; <tt>$feed_base</tt> : Anything to be inserted before feed URLs. Defaults to 'feed/'.
+; <tt>$feed_structure</tt> : Structure for feed URLs. This is just the <tt>$feed_base</tt> plus '%feed%'.
+; <tt>$search_base</tt> : Anything to be inserted before searches. Defaults to 'search/'.
+; <tt>$search_structure</tt> : Structure for search URLs. This is just the <tt>$search_base</tt> plus '%search%'.
+; <tt>$comments_base</tt> : Anything to be inserted just before the <tt>$feed_structure</tt> to get the latest comments feed. Defaults to 'comments'.
+; <tt>$comments_feed_structure</tt> : The structure for the latest comments feed. This is just <tt>$comments_base</tt> plus <tt>$feed_base</tt> plus '%feed%'.
+; <tt>$date_structure</tt> : Structure for dated archive URLs. Tries to be '%year%/%monthnum%/%day%', '%day%/%monthnum%/%year%' or '%monthnum%/%day%/%year%', but if none of these are detected in your <tt>$permalink_structure</tt>, defaults to '%year%/%monthnum%/%day%'. Various functions use this structure to obtain less specific structures: for example, <tt>get_year_permastruct()</tt> simply removes the '%monthnum%' and '%day%' tags from <tt>$date_structure</tt>.
+; <tt>$page_structure</tt> : Structure for Pages. Just '%pagename%'.
+; <tt>$front</tt> : Anything up to the start of the first tag in your <tt>$permalink_structure</tt>.
+; <tt>$root</tt> : The root of your WordPress install. Prepended to all structures.
+; <tt>$matches</tt> : Used internally when calculating back references for the redirect part of the rewrite rules.
+; <tt>$rules</tt> : The rewrite rules. Set when <tt>rewrite_rules()</tt> is called.
+; <tt>$non_wp_rules</tt> : Associative array of "rules that don't redirect to WP's index.php (and thus shouldn't be handled by WP at all)" roughly in the form <code>'Pattern' => 'Substitution'</code> (see [[Function_Reference/WP_Rewrite#Non-WordPress_rewrite_rules|below]]).
+; <tt>$rewritecode</tt> : An array of all the tags available for the permalink structure. See [[Using_Permalinks#Structure_Tags|Using Permalinks]] for a list.
+; <tt>$rewritereplace</tt> : What each tag will be replaced with for the regex part of the rewrite rule. The first element in <tt>$rewritereplace</tt> is the regex for the first element in <tt>$rewritecode</tt>, the second corresponds to the second, and so on.
+; <tt>$queryreplace</tt> : What each tag will be replaced with in the rewrite part of the rewrite rule. The same correspondance applies here as with <tt>$rewritereplace</tt>.
+
+===Methods===
+; <tt>add_rewrite_tag(<var>$tag</var>, <var>$pattern</var>, <var>$query</var>)</tt> : Add an element to the <var>$rewritecode</var>, <var>$rewritereplace</var> and <var>$queryreplace</var> arrays using each parameter respectively. If <var>$tag</var> already exists in <var>$rewritecode</var>, the existing value will be overwritten. <br>See also: [[Rewrite_API/add_rewrite_tag|<tt>add_rewrite_tag(<var>$tagname</var>, <var>$regex</var>)</tt>]]
+; <tt>[[Rewrite API/add feed|add_feed]](<var>$feedname</var>, <var>$function</var></tt>) : Add a new feed type like /atom1/ .  Requires one-time use of [[Rewrite_API/flush_rules|flush_rules()]] to take effect.
+; <tt>[[Rewrite_API/flush_rules|flush_rules()]]</tt> : Regenerate the rewrite rules and save them to the database
+; <tt>generate_rewrite_rule(<var>$permalink_structure</var>, <var>$walk_dirs</var> = false)</tt> : Generates a no-frills rewrite rule from the permalink structure. No rules for extra pages or feeds will be created.
+; <tt>generate_rewrite_rules(<var>$permalink_structure</var>, <var>$ep_mask = EP_NONE</var>, <var>$page</var> = true, <var>$feed</var> = true, <var>$forcomments</var> = false, <var>$walk_dirs</var> = true)</tt> : A large function that generates the rewrite rules for a given structure, <var>$permalink_structure</var>. If <var>$page</var> is true, an extra rewrite rule will be generated for accessing different pages (e.g. /category/tech/page/2 points to the second page of the 'tech' category archive). If <var>$feed</var> is true, extra rewrite rules will be generated for obtaining a feed of the current page, and if <var>$forcomments</var> is true, this will be a comment feed. If <var>$walk_dirs</var> is true, then a rewrite rule will be generated for each directory of the structure provided, e.g. if you provide it with '/%year%/%month%/%day/', rewrite rules will be generated for '/%year%/', /%year%/%month%/' and '/%year%/%month%/%day%/'. This returns an associative array using the regex part of the rewrite rule as the keys and redirect part of the rewrite rule as the value.
+; <tt>get_date_permastruct()</tt>, <tt>get_category_permastruct()</tt>, <tt>get_date_permastruct()</tt> etc. : Populates the corresponding property (e.g., <var>$date_structure</var> for <tt>get_date_permastruct()</tt>) if it's not already set and returns it. The functions <tt>get_month_permastruct()</tt> and <tt>get_year_permastruct()</tt> don't have a corresponding property: they work out the structure by taking the <var>$date_structure</var> and removing tags that are more specific than they need (i.e., <tt>get_month_permastruct()</tt> removes the '%day%' tag, as it only needs to specify the year and month).
+; <tt>init()</tt> : Set up the object, set <var>$permalink_structure</var> and <var>$category_base</var> from the database. Set <var>$root</var> to <var>$index</var> plus '/'. Set <var>$front</var> to everything up to the start of the first tag in the permalink structure. Unset all other properties.
+; <tt>mod_rewrite_rules()</tt> : returns a string (not an array) of all the rules. They are wrapped in an Apache <tt>[http://httpd.apache.org/docs/2.0/mod/core.html#ifmodule &lt;IfModule&gt;]</tt> block, to ensure mod_rewrite is enabled.
+; <tt>page_rewrite_rules()</tt> : Returns the set of rules for any Pages you have created.
+; <tt>rewrite_rules()</tt> : populate and return the <var>$rules</var> variable with an associative array as in <tt>generate_rewrite_rules()</tt>. This is generated from the post, date, comment, search, category, authors and page structures.
+; <tt>set_category_base(<var>$category_base</var>)</tt> : Change the category base.
+; <tt>set_permalink_structure(<var>$permalink_structure</var>)</tt> : Change the permalink structure.
+; <tt>using_index_permalinks()</tt> : Returns <tt>true</tt> if your blog is using PATHINFO permalinks.
+; <tt>using_mod_rewrite_permalinks</tt> : Returns <tt>true</tt> your blog is using "pretty" permalinks via mod_rewrite.
+; <tt>using_permalinks()</tt> : Returns <tt>true</tt> if your blog is using any permalink structure (i.e. not the default query URIs <tt>?p=n</tt>, <tt>?cat=n</tt>).
+; <tt>WP_Rewrite</tt> (constructor) : Calls <tt>init()</tt>.
+; <tt>wp_rewrite_rules()</tt> : returns the array of rewrite rules as in <tt>rewrite_rules()</tt>, but using <tt><var>$matches</var>[xxx]</tt> in the (where xxx is a number) instead of the normal mod_rewrite backreferences, <var>$xxx</var> (where xxx is a number). This is useful when you're going to be using the rules inside PHP, rather than writing them out to a .htaccess file.
+
+==Plugin Hooks==
+As the rewrite rules are a crucial part of your website's functionality, WordPress allows plugins to hook into the generation process at several points. <tt>rewrite_rules()</tt>, specifically, contains nine filters and one hook for really precise control over the rewrite rules process. Here's what you can filter in <tt>rewrite_rules()</tt>:
+
+* <tt>[[Plugin_API/Filter_Reference/post_rewrite_rules|post_rewrite_rules]]</tt> - Used to [[Plugin_API/Filter_Reference|filter]] the rewrite rules generated for permalink URLs.
+* <tt>[[Plugin_API/Filter_Reference/date_rewrite_rules|date_rewrite_rules]]</tt> - Used to [[Plugin_API/Filter_Reference|filter]] the rewrite rules generated for dated archive URLs.
+* <tt>[[Plugin_API/Filter_Reference/$permastruct_rewrite_rules|{$permastruct}_rewrite_rules]]</tt> - Can be used to filter permastructs like 'category' or other taxonomies.
+* <tt>[[Plugin_API/Filter_Reference/search_rewrite_rules|search_rewrite_rules]]</tt> - Used to [[Plugin_API/Filter_Reference|filter]] the rewrite rules generated for search URLs.
+* <tt>[[Plugin_API/Filter_Reference/comments_rewrite_rules|comments_rewrite_rules]]</tt> - Used to [[Plugin_API/Filter_Reference|filter]] the rewrite rules generated for the latest comment feed URLs.
+* <tt>[[Plugin_API/Filter_Reference/author_rewrite_rules|author_rewrite_rules]]</tt> - Used to [[Plugin_API/Filter_Reference|filter]] the rewrite rules generated for author archive URLs.
+* <tt>[[Plugin_API/Filter_Reference/page_rewrite_rules|page_rewrite_rules]]</tt> - Used to [[Plugin_API/Filter_Reference|filter]] the rewrite rules generated for your Pages.
+* <tt>[[Plugin_API/Filter_Reference/root_rewrite_rules|root_rewrite_rules]]</tt> - Used to [[Plugin_API/Filter_Reference|filter]] the rewrite rules generated for the root of your weblog.
+* <tt>[[Plugin_API/Filter_Reference/rewrite_rules_array|rewrite_rules_array]]</tt> - Use to [[Plugin_API/Filter_Reference|filter]] ''all'' the rewrite rules at once.
+* <tt>[[Plugin_API/Action_Reference/generate_rewrite_rules|generate_rewrite_rules]]</tt> - This [[Plugin_API/Action Reference|action]] hook runs <strong>after</strong> all the rules have been created. If your function takes a  parameter, it will be passed a [http://www.php.net/manual/en/language.references.php reference] to the entire <tt>$wp_rewrite</tt> object.
+
+<tt>mod_rewrite_rules()</tt> is the function that takes the array generated by <tt>rewrite_rules()</tt> and actually turns it into a set of rewrite rules for the .htaccess file. This function also has a filter, <tt>mod_rewrite_rules</tt>, which will pass functions the string of all the rules to be written out to .htaccess, including the <tt>&lt;IfModule&gt;</tt> surrounding section. (Note: you may also see plugins using the <tt>rewrite_rules</tt> hook, but this is [[Glossary#Deprecated|deprecated]]).
+
+===Examples===
+
+(See also: [[Custom_Queries#Permalinks_for_Custom_Archives|Permalinks for Custom Archives]])
+The most obvious thing a plugin would do with the <tt>$wp_rewrite</tt> object is add its own rewrite rules. This is remarkably simple. Filter the generic <tt>rewrite_rules_array</tt>.
+
+A Quick and dirty example for rewriting http://mysite/project/1 into http://mysite/index.php?pagename=project&id=1:
+
+<pre>
+add_filter( 'rewrite_rules_array','my_insert_rewrite_rules' );
+add_filter( 'query_vars','my_insert_query_vars' );
+add_action( 'wp_loaded','my_flush_rules' );
+
+// flush_rules() if our rules are not yet included
+function my_flush_rules(){
+	$rules = get_option( 'rewrite_rules' );
+
+	if ( ! isset( $rules['(project)/(\d*)$'] ) ) {
+		global $wp_rewrite;
+	   	$wp_rewrite->flush_rules();
+	}
+}
+
+// Adding a new rule
+function my_insert_rewrite_rules( $rules )
+{
+	$newrules = array();
+	$newrules['(project)/(\d*)$'] = 'index.php?pagename=$matches[1]&id=$matches[2]';
+	return $newrules + $rules;
+}
+
+// Adding the id var so that WP recognizes it
+function my_insert_query_vars( $vars )
+{
+    array_push($vars, 'id');
+    return $vars;
+}
+</pre>
+
+Keep in mind that the <tt>flush_rules</tt> function is quite slow, so in practice you never want to call it from the <tt>wp_loaded</tt> action that gets executed on each page load. Instead, call this function only when the rewrite rules change. If the rules get set up and then never change, it is enough to flush in <tt>register_activation_hook</tt> of your plugin.
+
+The [http://vapourtrails.ca/wp-keywords Jerome's Keywords] plugin does this to enable URLs like <tt><nowiki>http://example.com/tag/sausages</nowiki></tt>.
+
+<pre>
+function keywords_create_rewrite_rules( $rewrite ) {
+	global $wp_rewrite;
+	
+	// add rewrite tokens
+	$keytag_token = '%tag%';
+	$wp_rewrite->add_rewrite_tag( $keytag_token, '(.+)', 'tag=' );
+	
+	$keywords_structure = $wp_rewrite->root . "tag/$keytag_token";
+	$keywords_rewrite = $wp_rewrite->generate_rewrite_rules( $keywords_structure );
+	
+	return ( $rewrite + $keywords_rewrite );
+}
+</pre>
+
+Instead of inserting the rewrite rules into the <tt>$rewrite</tt> array itself, Jerome chose to create a second array, <tt>$keywords_rewrite</tt>, using the <tt>WP_Rewrite</tt> function <tt>generate_rewrite_rules()</tt>. Using that function means that the plugin doesn't have to create rewrite rules for extra pages (like <tt>page/2</tt>), or feeds (like <tt>feed/atom</tt>), etc. This array is then appended onto the <tt>$rewrite</tt> array and returned.
+
+A simpler example of this is Ryan Boren's [http://boren.nu/archives/2005/03/29/feed-director-plugin/ Feed Director] plugin. This simply redirects URLs like http://example.com/feed.xml to http://example.com/feed/rss2:
+
+<pre>
+function feed_dir_rewrite( $wp_rewrite ) {
+    $feed_rules = array(
+        'index.rdf' => 'index.php?feed=rdf',
+        'index.xml' => 'index.php?feed=rss2',
+        '(.+).xml' => 'index.php?feed=' . $wp_rewrite->preg_index(1)
+    );
+
+    $wp_rewrite->rules = $feed_rules + $wp_rewrite->rules;
+    return $wp_rewrite->rules;
+}
+
+// Hook in.
+add_filter( 'generate_rewrite_rules', 'feed_dir_rewrite' );
+</pre>
+
+As the array is so simple here, there is no need to call <tt>generate_rewrite_rules()</tt>. Again, the plugin's rules are added to WordPress'. Notice that as this function filters <tt>generate_rewrite_rules</tt>, it accepts a reference to the entire <tt>$wp_rewrite</tt> object as a parameter, not just the rewrite rules.
+
+Of course, as you're adding your rewrite rules to the array before WordPress does anything with them, your plugins rewrite rules will be included in anything WordPress does with the rewrite rules, like write them to the .htaccess file.
+
+== Non-WordPress rewrite rules  ==
+
+%%% <?php
+	$wp_rewrite->non_wp_rules = array( 'Pattern' => 'Substitution' );
+	print_r($wp_rewrite->mod_rewrite_rules());
+?> %%%
+
+prints
+
+  <IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase <var>/wp_home/</var>
+  RewriteRule ^Pattern <var>/wp_home/</var>Substitution [QSA,L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /<var>wp_home</var>/index.php [L]
+  </IfModule>
+	
+where <var>/wp_home/</var> is WordPress' home directory (or the root URL <tt>/</tt> if WordPress is installed in your web root.)
+
+== Source File ==
+
+<tt>WP_Rewrite()</tt> is located in {{Trac|wp-includes/class-wp-rewrite.php}}
+
+==Related==
+
+{{Rewrite_API}}
+
+== Further Reading ==
+* [[User:Amereservant/Editing_and_Customizing_htaccess_Indirectly|Editing and Customizing .htaccess Indirectly]] - An in-depth explanation on adding .htaccess file contents and non-WordPress rewrite rules.
+
+{{Class Footer}}
+
+[[Category:Classes]]

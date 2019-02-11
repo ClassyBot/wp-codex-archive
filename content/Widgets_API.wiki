@@ -1,0 +1,276 @@
+{{Languages|
+{{en|Widgets API}}
+{{es|API de Widget}}
+{{ja|Widgets_API}}
+{{zh-cn|小工具接口}}
+}}
+
+{{copyedit}}
+
+==Widgets API==
+This page contains the technical documentation for the WordPress Widgets API and is written for developers. If you're not a developer you may want to review the [[WordPress_Widgets | Widgets]] page.
+
+In technical terms: a WordPress Widget is a [http://php.net/manual/en/language.oop5.php PHP object] that echoes string data to [http://en.wikipedia.org/wiki/Stdout#Standard_output_.28stdout.29 STDOUT] when its <tt>widget()</tt> method is called. It's located in {{Trac|wp-includes/widgets.php}}.
+
+== Function Reference ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Widget Functions'''
+|-
+|
+* <tt>[[Function Reference/is_active_widget | is_active_widget()]]</tt>
+* <tt>[[Function Reference/the_widget | the_widget()]]</tt>
+* <tt>[[Function Reference/register_widget | register_widget()]]</tt>
+* <tt>[[Function Reference/unregister_widget | unregister_widget()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''internal Functions'''
+|-
+|
+* <tt>[[Function Reference/wp_register_widget_control | wp_register_widget_control()]]</tt>
+* <tt>[[Function Reference/wp_unregister_widget_control | wp_unregister_widget_control()]]</tt>
+* <tt>[[Function Reference/wp_convert_widget_settings | wp_convert_widget_settings()]]</tt>
+* <tt>[[Function Reference/wp_get_widget_defaults | wp_get_widget_defaults()]]</tt>
+* <tt>[[Function Reference/wp_widget_description | wp_widget_description()]]</tt>
+|}
+
+|}
+
+== Developing Widgets ==
+
+To create a widget, you only need to extend the standard <tt>WP_Widget</tt> class and some of its functions.
+
+That base class also contains information about the functions that must be extended to get a working widget.
+
+The <tt>WP_Widget</tt> class is located in {{Trac|wp-includes/class-wp-widget.php}}.
+
+=== Default Usage ===
+<pre>
+class My_Widget extends WP_Widget {
+
+	/**
+	 * Sets up the widgets name etc
+	 */
+	public function __construct() {
+		$widget_ops = array( 
+			'classname' => 'my_widget',
+			'description' => 'My Widget is awesome',
+		);
+		parent::__construct( 'my_widget', 'My Widget', $widget_ops );
+	}
+
+	/**
+	 * Outputs the content of the widget
+	 *
+	 * @param array $args
+	 * @param array $instance
+	 */
+	public function widget( $args, $instance ) {
+		// outputs the content of the widget
+	}
+
+	/**
+	 * Outputs the options form on admin
+	 *
+	 * @param array $instance The widget options
+	 */
+	public function form( $instance ) {
+		// outputs the options form on admin
+	}
+
+	/**
+	 * Processing widget options on save
+	 *
+	 * @param array $new_instance The new options
+	 * @param array $old_instance The previous options
+	 *
+	 * @return array
+	 */
+	public function update( $new_instance, $old_instance ) {
+		// processes widget options to be saved
+	}
+}
+</pre>
+The widget can then be registered using the <code>widgets_init</code> hook:
+
+PHP 5.3+ only:
+<pre>
+add_action( 'widgets_init', function(){
+	register_widget( 'My_Widget' );
+});
+</pre>
+PHP 5.2+:
+<pre>
+add_action('widgets_init',
+	create_function('', 'return register_widget("My_Widget");')
+);
+</pre>
+
+=== Example ===
+
+This sample code creates a Widget named <tt>''Foo_Widget''</tt> that has a settings form to change the display title.
+
+<pre>
+/**
+ * Adds Foo_Widget widget.
+ */
+class Foo_Widget extends WP_Widget {
+
+	/**
+	 * Register widget with WordPress.
+	 */
+	function __construct() {
+		parent::__construct(
+			'foo_widget', // Base ID
+			esc_html__( 'Widget Title', 'text_domain' ), // Name
+			array( 'description' => esc_html__( 'A Foo Widget', 'text_domain' ), ) // Args
+		);
+	}
+
+	/**
+	 * Front-end display of widget.
+	 *
+	 * @see WP_Widget::widget()
+	 *
+	 * @param array $args     Widget arguments.
+	 * @param array $instance Saved values from database.
+	 */
+	public function widget( $args, $instance ) {
+		echo $args['before_widget'];
+		if ( ! empty( $instance['title'] ) ) {
+			echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
+		}
+		echo esc_html__( 'Hello, World!', 'text_domain' );
+		echo $args['after_widget'];
+	}
+
+	/**
+	 * Back-end widget form.
+	 *
+	 * @see WP_Widget::form()
+	 *
+	 * @param array $instance Previously saved values from database.
+	 */
+	public function form( $instance ) {
+		$title = ! empty( $instance['title'] ) ? $instance['title'] : esc_html__( 'New title', 'text_domain' );
+		?>
+		<p>
+		<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php esc_attr_e( 'Title:', 'text_domain' ); ?></label> 
+		<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>">
+		</p>
+		<?php 
+	}
+
+	/**
+	 * Sanitize widget form values as they are saved.
+	 *
+	 * @see WP_Widget::update()
+	 *
+	 * @param array $new_instance Values just sent to be saved.
+	 * @param array $old_instance Previously saved values from database.
+	 *
+	 * @return array Updated safe values to be saved.
+	 */
+	public function update( $new_instance, $old_instance ) {
+		$instance = array();
+		$instance['title'] = ( ! empty( $new_instance['title'] ) ) ? sanitize_text_field( $new_instance['title'] ) : '';
+
+		return $instance;
+	}
+
+} // class Foo_Widget
+</pre>
+
+This sample widget can then be registered in the <tt>'widgets_init'</tt> hook:
+
+<pre>
+// register Foo_Widget widget
+function register_foo_widget() {
+    register_widget( 'Foo_Widget' );
+}
+add_action( 'widgets_init', 'register_foo_widget' );
+</pre>
+
+Note : You must use <tt>[[Function_Reference/get_field_name|get_field_name()]]</tt> and <tt>get_field_id()</tt> function to generate form element name and id.
+
+=== Example With Namespaces ===
+
+If you use PHP 5.3. with namespaces you should call the constructor directly as in the following example:
+
+<pre>
+namespace a\b\c;
+
+class My_Widget_Class extends \WP_Widget {
+	function __construct() {
+       	    parent::__construct( 'baseID', 'name' );
+        }
+        // ... rest of functions
+}
+</pre>
+
+and call the <tt>register_widget()</tt> with:
+
+<pre>
+add_action( 'widgets_init', function(){
+     register_widget( 'a\b\c\My_Widget_Class' );
+});
+</pre>
+
+(see: http://stackoverflow.com/questions/5247302/php-namespace-5-3-and-wordpress-widget/5247436#5247436)
+
+That's all. You will automatically get a multi-widget. No special tweaks needed any longer for that.
+
+More information is available in the [[Version 2.8#New_Widgets_API|version 2.8 information]].
+
+== Displaying Widgets and Widget Areas ==
+There are at least 3 ways that Widgets can be displayed:
+
+=== Widget Areas ===
+The first, and most common, is by adding the desired [[Glossary#Widget | Widget]] to a [[Widgetizing_Themes#How_to_Register_a_Widget_Area | Widget Area]] via the [[Appearance_Widgets_Screen | Appearance -> Widgets menu]] in the Administration Screens.
+
+WordPress comes with some predefined Widget Areas that each have unique identifiers (view the source of the Widgets page to see them) that you'll need to know in order to display the Widget Area. If the predefined Widget Areas are insufficient for your needs you may [[Glossary#register | register]] a [[Widgetizing_Themes#How_to_Register_a_Widget_Area | custom Widget Areas]].
+
+When you're ready you can display that Widget Area by inserting the following code into whichever Theme file you desire:
+
+<pre id="how-to-display-a-widget-area"><?php if ( dynamic_sidebar('example_widget_area_name') ) : else : endif; ?></pre>
+
+That code displays all of the Widgets added to that Widget Area.
+
+== Display Widget Area Only If Active ==
+
+Here's the code used in the sidebar.php file of the [[Twenty Fourteen]] Theme.
+<pre>
+<?php if ( is_active_sidebar( 'sidebar-1' ) ) : ?>
+	<div id="primary-sidebar" class="primary-sidebar widget-area" role="complementary">
+		<?php dynamic_sidebar( 'sidebar-1' ); ?>
+	</div><!-- #primary-sidebar -->
+<?php endif; ?>
+</pre>
+This code checks to see if the new widget area is populated otherwise doesn't execute.
+
+=== Independent Widgets ===
+The second, and more technical, is via <tt>[[Function Reference/the_widget | the_widget()]]</tt> method.
+
+<small><i>Tags: how do i display widgets, how do i display widget areas</i></small>
+
+== Resources ==
+* [https://make.wordpress.org/core/2015/07/02/deprecating-php4-style-constructors-in-wordpress-4-3/ Deprecating PHP4 style constructors in WordPress 4.3.]
+* [https://w3guy.com/fix-notice-called-constructor-method-wp_widget-deprecated/ How to Fix – Notice: The called constructor method for WP_Widget is deprecated]
+* [http://generatewp.com/sidebar/ WordPress Sidebar Generator]
+
+== Related ==
+{{Theme Support}}
+
+[[Category:Widgets|*]]
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]

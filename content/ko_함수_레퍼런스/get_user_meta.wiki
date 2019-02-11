@@ -1,0 +1,93 @@
+{{Languages|
+{{en|Function Reference/get_user_meta}}
+{{ko|함수 레퍼런스/get_user_meta}}
+}}
+== 설명 ==
+단일 메타 필드 혹은 주어진 유저에 대한 user_meta 데이터 필드의 전부를 반환합니다. [[Function Reference/get_metadata|get_metadata()]]를 사용하세요. 이 함수는 비추천되는 [[Function Reference/get_usermeta|get_usermeta()]] 함수를 대체시킵니다.
+
+== 사용법 ==
+%%%<?php get_user_meta($user_id, $key, $single);  ?>%%%
+
+== 파라메터 ==
+{{Parameter|$user_id|integer|반환되어져야만 할 데이터를 소유한 유저의 아이디입니다.}}
+{{Parameter|$key|string|'''meta_value'''가 리턴되어져야만 할 [[Database_Description#Table:_wp_usermeta|wp_usermeta table]] 안에서의 '''meta_key''' 입니다. 만약 비어져있다만, 아마도 주어진 유저에 대한 '''모든''' user_meta 필드들을 반환시킬 것입니다.|optional|(empty string)}}
+{{Parameter|$single|boolean|만약 true 라면, 메타 데이터 필드의 값을 리턴시킬 것입니다. 만약 false 로 설정되어있다면 배열을 리턴시킵니다. 이 파라메터는 <tt>$key</tt> 가 공백이라면 아무런 영향을 미치지 않습니다.|optional|false}}
+
+== 리턴 값 ==
+; (mixed) :  만약 명시되어져있지 않거나 $single 이 flase 라면, 배열일 것입니다. 만약 $single 이 true 라면 meta_value 필드 값이 될 것입니다.
+
+; 알림: 만약 meta value 가 존재하지 않고 $single 이 true 라면 이 함수는 비어있는 string 을 리턴할 것입니다. 만약 $single 이 false 라면 빈 배열이 리턴되어질 것입니다.
+
+== 예제 ==
+이 예제는 user id 9 에 대해서 last name 을 리턴하고 보여줄 것입니다.
+<pre>
+<?php 
+  $user_id = 9;
+  $key = 'last_name';
+  $single = true;
+  $user_last = get_user_meta( $user_id, $key, $single ); 
+  echo '<p>The '. $key . ' value for user id ' . $user_id . ' is: ' . $user_last . '</p>'; 
+?>
+</pre>
+
+<div style="border:1px solid blue; width:50%; padding:10px">The last_name value for user id 9 is Franklin<br />
+</div>
+
+
+
+===모든 메타데이터 얻어오기===
+주어진 유저에 대해서 모든 메타 데이터 필드를 리턴하기 위해서, 이 예제는 <tt>$key</tt> argument blank가 남아있는 것을 증명할 것입니다. (예를들면, <tt>user_id</tt> = 9):
+<pre>
+<?php
+  $all_meta_for_user = get_user_meta( 9 );
+  print_r( $all_meta_for_user );
+?>
+</pre>
+결과:
+<pre>
+Array ( [first_name] => Array ( [0] => Tom ) [last_name] => Array ( [0] => Auger) [nickname] => Array ( [0] => tomauger ) [description] => etc.... )
+</pre>
+'''알림:''' 이 예제안에서 데이터에 접근하기 위해서, 이와 같이, 각각의 키들이 데해서 리턴되어질 배열에 대해서 역참조해야만 합니다.: 
+
+<pre>
+$last_name = $all_meta_for_user['last_name'][0];
+</pre>
+이 상황을 피하기 위해서, 당신은 아마도 <tt>get_user_meta()</tt> 의 결과들 안에서 각각의 결과의 첫번째 인덱스만을 가져가기 위해서 간단한 <tt>array_map()</tt> 을 실행하기를 원할겁니다. (<tt>$key</tt>가 제공되어질 때, <tt>$single</tt> 인자가 하는 것을 에물레이팅 하는 각각의 결과):
+<pre>
+  $all_meta_for_user = array_map( function( $a ){ return $a[0]; }, get_user_meta( $user_id ) );
+
+  print_r( $all_meta_for_user );
+</pre>
+결과:
+<pre>
+Array ( [first_name] => Tom [last_name] => Auger [nickname] => tomauger [description] => etc.... )
+</pre>
+추가적으로, 만약 당신이 특정한 유저에 대해서 모든 메타를 리턴시키길 원하고 빈 값들을 걸러내길 원한다면, 당신은 위의 <tt>array_map()</tt>의 결과안에서 <tt>array_filter()</tt>를 가동시킬 수 있습니다.:
+<pre>
+// $user_id에 대해서 모든 유저 메타데이터를 가져옵니다
+$meta = get_user_meta( $user_id );
+
+// 비어진 메타데이터를 걸러냅니다
+$meta = array_filter( array_map( function( $a ) {
+	return $a[0];
+}, $meta ) );
+</pre>
+
+== 알림 ==
+메타 값이 존재하지만 비어있다면 빈 string 혹은 배열이 마치 메타값이 존재하지 않는것처럼 리턴될 것이라는 것을 알아둬야만 합니다. 이것은 아마도 당신이 그 user meta 를 지울때, 당신의 코드안에서 예상치 못한 행동을 야기시킬 것입니다. 당신의 코드는 해당 유저가 생성된 메타를 가지지 않았다는 것을 사고하는 update_user_meta를 대신하여 add_user_meta 를 사용하는 것을 시도할 수 있습니다. 
+
+=== Filters ===
+
+== Change Log ==
+Since: [[Version 3.0|3.0]]
+
+== Source File ==
+<tt>get_user_meta()</tt> 는 {{Trac|wp-includes/user.php}} 안에 위치되어져 있습니다.
+
+== Related ==
+{{User Meta Tags}}
+{{Tag Footer}}
+
+[[Category:Functions]]
+
+(이 문서는 한국인 워드프레스 유저 Remoted 에 의하여 번역되었습니다. 번역에 대한 문의사항이나 추가적인 번역이 필요한 경우 35mwlee@naver.com 혹은 http://35mwlee.blog.me 로 연락주세요.)

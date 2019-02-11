@@ -1,0 +1,91 @@
+
+__TOC__
+By default, WordPress organizes and displays posts in descending chronological order. However, there are different WordPress templates you can use to list posts in alphabetical order. 
+
+==Category Template==
+For example, you may want posts to display in alphabetical order if you have a category named "Glossary", where each post is a definition of a specific term and each term is used as the post title. Edit your theme's <tt>[[Category_Templates|category.php]]</tt> file, and make the following changes, just before your main [[The Loop|Loop]]:
+
+<pre>
+&lt;?php
+get_header();
+?&gt;
+
+&lt;div id="content"&gt;
+<ul>
+&lt;?php
+// we add this, to show all posts in our
+// Glossary sorted alphabetically
+if (is_category('Glossary')) 
+{
+$args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC' );
+$glossaryposts = get_posts( $args ); 
+}
+foreach( $glossaryposts as $post ) :	setup_postdata($post); 
+ ?>
+<li><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></li>
+<?php endforeach; ?>
+</ul>
+</pre>
+
+Note: <tt>'posts_per_page' => -1</tt> indicates that all posts in this category will be shown at once. You can change this number to any positive integer to limit the number of posts displayed in this array.
+
+===Specific Category Template===
+If you want your "Glossary" category to have a different style from the rest of your site, you could create a custom category template file.  First, find the category ID of your "Glossary" category, listed in the left-most column of your [[Administration_Panels#Manage_-_Change_your_content|Manage]] &gt; [[Administration_Panels#Categories|Categories]] administration panel.  For this example, we'll assume that the "Glossary" category has a category ID of 13.
+
+Copy your theme's <tt>index.php</tt> or <tt>category.php</tt> file (or create a brand new file, if necessary) named <strong><tt>category-13.php</tt></strong> and insert your code:
+
+<pre>
+&lt;?php
+get_header();
+?&gt;
+
+&lt;div id="content"&gt;
+<ul>
+&lt;?php
+// we add this, to show all posts in our 
+// Glossary sorted alphabetically
+$args = array( 'posts_per_page' => -1, 'orderby'=> 'title', 'order' => 'ASC' );
+$glossaryposts = get_posts( $args ); 
+// here comes The Loop!
+foreach( $glossaryposts as $post ) :	setup_postdata($post);  ?>
+<li><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></li>
+<?php endforeach; ?>
+</ul>
+</pre>
+
+Using a separate category template file for your "Glossary" category means that you do not clutter up your main <tt>category.php</tt> file with a bunch of conditional template tags.
+
+==Main Page==
+
+Maybe you want to list <em>all</em> your posts alphabetically by title on the main page. This means you will want to edit the main query of WordPress using <tt>[[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]]</tt> and <tt>[[Function_Reference/is_main_query|is_main_query]]</tt>. In your <strong><tt>functions.php</tt></strong> file, or in a separate plugin, insert:
+
+<pre>
+function foo_modify_query_order( $query ) {
+    if ( $query->is_home() && $query->is_main_query() ) {
+        $query->set( 'orderby', 'title' );
+        $query->set( 'order', 'ASC' );
+    }
+}
+add_action( 'pre_get_posts', 'foo_modify_query_order' );
+</pre>
+
+This will edit the main query before it is executed, and ensure that anywhere the main query is called (in <strong><tt>index.php</tt></strong> for instance), posts are sorted alphabetically by title.
+<!--   commenting out as the parameters shown for wp_get archives are wrong 
+=Archives List=
+To display a list of links to your posts, sorted in alphabetical order, use the following:
+
+<pre>
+&lt;?php
+wp_get_archives('type=postbypost&sort=post_title&order=ASC'); 
+?&gt;
+</pre>
+
+-->
+
+==References==
+* [[Category Templates|Customizing Category Templates]]
+* [[The Loop in Action]]
+* [http://wordpress.org/support/topic/22801#post-149393 WordPress Support Forum Thread on Sorting Posts and Categories Alphabetically]
+
+[[Category:WordPress Lessons]]
+[[Category:Advanced Topics]]

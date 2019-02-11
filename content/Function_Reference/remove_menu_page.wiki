@@ -1,0 +1,67 @@
+{{Languages|
+{{en|Function Reference/remove_menu_page}}
+{{ja|関数リファレンス/remove_menu_page}}
+}}
+
+== Description ==
+Remove a top level admin menu.
+
+Please be aware that this would not prevent a user from accessing these screens directly. Removing a menu does not replace the need to filter a user's permissions as appropriate.
+
+== Usage ==
+
+This function should be called on the [[Plugin_API/Action_Reference/admin_menu|admin_menu]] action hook. Calling it elsewhere could cause issues : either the function is not defined or the global <code>$menu</code> variable used but this function is not yet declared.
+%%%<?php 
+function custom_menu_page_removing() {
+	remove_menu_page( $menu_slug );
+}
+add_action( 'admin_menu', 'custom_menu_page_removing' );
+?>%%%
+
+== Parameters ==
+{{Parameter|$menu_slug|string|The slug of the menu (typically the name of the PHP script for the built in menu items; example: edit-comments.php)}}
+
+== Return Values ==
+; (array&#124;boolean) : The removed menu on success, <tt>false</tt> if not found.
+
+== Examples ==
+Removes every menu for all users.  To remove only certain menu items include only those you want to hide within the function.  To remove menus for only certain users you may want to utilize <tt>[[Function_Reference/current_user_can | current_user_can()]]</tt>.
+<pre>
+<?php
+function remove_menus() {
+	remove_menu_page( 'index.php' );                  //Dashboard
+	remove_menu_page( 'jetpack' );                    //Jetpack* 
+	remove_menu_page( 'edit.php' );                   //Posts
+	remove_menu_page( 'upload.php' );                 //Media
+	remove_menu_page( 'edit.php?post_type=page' );    //Pages
+	remove_menu_page( 'edit-comments.php' );          //Comments
+	remove_menu_page( 'themes.php' );                 //Appearance
+	remove_menu_page( 'plugins.php' );                //Plugins
+	remove_menu_page( 'users.php' );                  //Users
+	remove_menu_page( 'tools.php' );                  //Tools
+	remove_menu_page( 'options-general.php' );        //Settings
+}
+add_action( 'admin_menu', 'remove_menus' );
+?>
+</pre>
+
+(*) Better to add this priority if dealing with jetpack menu: ''add_action( 'admin_menu', 'remove_menus', 999 );''
+
+== Notes ==
+* Uses global: (<tt>unknown type</tt>) <tt>$menu</tt>
+* To remove '''submenu items''' in the admin, use [[remove_submenu_page]]. Using remove_menu_page() will not work for submenu items.
+* Don't use this with the admin_init hook, or $menu will not be set and the foreach() will generate many warnings during each heartbeat: "Invalid argument supplied for foreach() in wp-admin/includes/plugin.php on line 1422". Use admin_menu instead. https://core.trac.wordpress.org/ticket/17585
+
+== Change Log ==
+Since: 3.1.0
+
+== Source File ==
+<tt>remove_menu_page()</tt> is located in {{Trac|/wp-admin/includes/plugin.php}}.
+
+== Related ==
+
+{{Admin Menu Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

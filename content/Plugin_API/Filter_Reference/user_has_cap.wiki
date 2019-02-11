@@ -1,0 +1,86 @@
+== Description ==
+
+This hook is applied to a user's capabilities list in the <tt>[[Class_Reference/WP_User#has_cap.28.24cap.29 | WP_User->has_cap]]</tt> function (which is called by the <tt>[[Function_Reference/current_user_can | current_user_can()]]</tt> function). Filter function arguments are the capabilities list to be filtered, the capability being questioned, and the argument list (which has things such as the post ID if the capability is to edit posts, etc.). Changing a user's capabilities can, for example, enable or restrict access to specific administration panels.
+
+== Usage ==
+
+<pre>
+function give_permissions( $allcaps, $cap, $args ) {
+	// give author some permissions
+}
+add_filter( 'user_has_cap', 'give_permissions', 10, 3 );
+</pre>
+
+A Full Example:
+<pre>
+/**
+ * author_cap_filter()
+ *
+ * Filter on the current_user_can() function.
+ * This function is used to explicitly allow authors to edit contributors and other
+ * authors posts if they are published or pending.
+ *
+ * @param array $allcaps All the capabilities of the user
+ * @param array $cap     [0] Required capability
+ * @param array $args    [0] Requested capability
+ *                       [1] User ID
+ *                       [2] Associated object ID
+ */
+function author_cap_filter( $allcaps, $cap, $args ) {
+
+	// Bail out if we're not asking about a post:
+	if ( 'edit_post' != $args[0] )
+		return $allcaps;
+
+	// Bail out for users who can already edit others posts:
+	if ( $allcaps['edit_others_posts'] )
+		return $allcaps;
+
+	// Bail out for users who can't publish posts:
+	if ( !isset( $allcaps['publish_posts'] ) or !$allcaps['publish_posts'] )
+		return $allcaps;
+
+	// Load the post data:
+	$post = get_post( $args[2] );
+
+	// Bail out if the user is the post author:
+	if ( $args[1] == $post->post_author )
+		return $allcaps;
+
+	// Bail out if the post isn't pending or published:
+	if ( ( 'pending' != $post->post_status ) and ( 'publish' != $post->post_status ) )
+		return $allcaps;
+
+	// Load the author data:
+	$author = new WP_User( $post->post_author );
+
+	// Bail out if post author can edit others posts:
+	if ( $author->has_cap( 'edit_others_posts' ) )
+		return $allcaps;
+
+	$allcaps[$cap[0]] = true;
+
+	return $allcaps;
+
+}
+add_filter( 'user_has_cap', 'author_cap_filter', 10, 3 );
+</pre>
+
+== Notes ==
+
+Passing in a numeric value to <tt>[[Class_Reference/WP_User#has_cap.28.24cap.29 | has_cap]]</tt> on <tt>WP_User</tt> objects has been deprecated.  Passing a numeric value will generate a deprecated option warning if [[Debugging_in_WordPress | debugging mode]] is enabled via [[Editing_wp-config.php | wp_config.php]]:
+
+<pre>Usage of user levels by plugins and themes is deprecated. Use roles and capabilities instead.</pre>
+
+This will occur if a plugin or a theme calls <tt>has_cap</tt> directly. The plugin or theme needs to be updated to use the new roles and capabilities classes.
+
+<em>It is important to note that many built-in functions will use the <tt>has_cap</tt> functionality within their implementation.</em>  For example <tt>[[Function_Reference/add_options_page | add_options_page()]]</tt> calls <tt>has_cap</tt> on the 3rd parameter.  If this is called with the [[Version 2.0]] [[Roles_and_Capabilities#User_Levels | user level syntax]] by passing in a numeric value you will see the warning as noted above.
+
+== Related ==
+* Article: [[Roles and Capabilities]]
+* Function: <tt>[[Class_Reference/WP_User#has_cap.28.24cap.29 | WP_User->has_cap()]]</tt>
+* Function: <tt>[[Function_Reference/current_user_can | current_user_can()]]</tt>
+
+Return to [[Plugin API/Filter Reference]]
+
+[[Category:Filters]]

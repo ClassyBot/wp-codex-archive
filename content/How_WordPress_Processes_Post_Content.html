@@ -1,0 +1,101 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/How">WordPress Processes Post Content 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>WordPress processes text entered in the <a href="https://codex.wordpress.org/Administration_Panels#Write_Post" title="Administration Panels" class="mw-redirect">Write Post Panel</a> multiple times before the text is finally displayed on a web page within your WordPress blog.  The processing of the text filters out the unwanted code and conforms the text to a form that the browser can interpret. Without attention to detail and familiarity with WordPress's post content filtering, this can cause unwanted changes.
+</p><p>The majority of the conversion and filters are found in the <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/formatting.php#L0">wp-includes/formatting.php</a></code> file.
+</p><p>Some typical problems some users have with these filtering and processing functions are:
+</p>
+<ol><li> Empty paragraphs, closing span tags, and line break (BR) elements are removed upon saving.</li>
+<li> Classes are removed from elements.</li>
+<li> DIV elements are converted to P elements.</li>
+<li> Javascripts and code are converted to displayable code rather than actionable code. See <a href="https://codex.wordpress.org/Using_Javascript" title="Using Javascript">Using Javascript</a> for information on how to incorporate Javascript into a blog post.</li></ol>
+<p>The following is step-by-step list of how WordPress processes post content text before the final version is displayed.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#TinyMCE"><span class="tocnumber">1</span> <span class="toctext">TinyMCE</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#wpautop.28.29_WordPress_Function"><span class="tocnumber">2</span> <span class="toctext">wpautop() WordPress Function</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Texturize"><span class="tocnumber">3</span> <span class="toctext">Texturize</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Convert_Smilies"><span class="tocnumber">4</span> <span class="toctext">Convert Smilies</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Convert_Characters"><span class="tocnumber">5</span> <span class="toctext">Convert Characters</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Methods_to_Prevent_Processing"><span class="tocnumber">6</span> <span class="toctext">Methods to Prevent Processing</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#More_Information"><span class="tocnumber">7</span> <span class="toctext">More Information</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="TinyMCE">TinyMCE</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_WordPress_Processes_Post_Content&amp;action=edit&amp;section=1" title="Edit section: TinyMCE">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/TinyMCE" title="TinyMCE">TinyMCE</a> is the editor used by WordPress, known as the Rich Text Editor. Not all WordPress bloggers use it, but if you do, it will change various codes upon saving an entry to prepare it for publishing.
+</p>
+<h2><span class="mw-headline" id="wpautop.28.29_WordPress_Function">wpautop() WordPress Function</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_WordPress_Processes_Post_Content&amp;action=edit&amp;section=2" title="Edit section: wpautop() WordPress Function">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/Function_Reference/wpautop" title="Function Reference/wpautop"><code>wpautop()</code></a> is a core WordPress <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">function</a> that automatically processes, fixes, and modifies the text of a post.
+</p><p>It puts in line breaks, paragraph tags, opens and closes tags that aren't opened and closed, and cleans up duplicate HTML tags.
+</p>
+<h2><span class="mw-headline" id="Texturize">Texturize</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_WordPress_Processes_Post_Content&amp;action=edit&amp;section=3" title="Edit section: Texturize">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Texturize (<a href="https://codex.wordpress.org/Function_Reference/wptexturize" title="Function Reference/wptexturize">wptexturize()</a>) is a text filter enabled by default that modifies posted text or comments to present a more readable and visually attractive output. 
+</p><p>While it creates aesthetically pleasant text, it might create difficulties when posting code examples in a programming language. In such situations modification of the text is not desirable because it might create syntactically incorrect code.
+</p><p>A few examples include: 
+</p>
+<pre>
+"quoted text" becomes &#8220;quoted text&#8221;
+'quoted text' becomes &#8216;quoted text&#8217;
+          --- becomes &#8212;
+           -- becomes &#8211;
+          ... becomes &#8230;
+          (c) becomes &#169;
+          (r) becomes &#174;
+         (tm) becomes &#8482;
+           '' becomes &#8221;
+           `` becomes &#8220;
+  president's becomes president&#8217;s
+  presidents' becomes presidents&#8217;
+          12' becomes 12&#8242;
+          12" becomes 12&#8243;
+          2x4 becomes 2&#215;4
+</pre>
+<h2><span class="mw-headline" id="Convert_Smilies">Convert Smilies</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_WordPress_Processes_Post_Content&amp;action=edit&amp;section=4" title="Edit section: Convert Smilies">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <code>convert_smilies()</code> function converts combinations of characters into <a href="https://codex.wordpress.org/Using_Smilies" title="Using Smilies">smilies or emoticons</a> within the post, page, and comment text. For example, if smilies are enabled, WordPress will recognize&#160;:D and turn it into a smiling face.
+</p><p>The key to making smilies work is to put a space before and after the keystroke combination. If placed up against the text, it will not convert.
+</p><p>If conversion of smilies is not desired, turn it off through the <b>Settings &gt; Writing</b> panel.
+</p>
+<h2><span class="mw-headline" id="Convert_Characters">Convert Characters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_WordPress_Processes_Post_Content&amp;action=edit&amp;section=5" title="Edit section: Convert Characters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <code>formatting.php</code> code file contains numerous functions which help publish character entities, accents, and non-English characters to a form recognizable by the web browser. 
+</p><p>Generally, these work excellently, however, your browser may not recognize various language characters unless that language is activated in your web browser. See your browser's documentation for more information on adding language character recognition to your browser.
+</p>
+<h2><span class="mw-headline" id="Methods_to_Prevent_Processing">Methods to Prevent Processing</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_WordPress_Processes_Post_Content&amp;action=edit&amp;section=6" title="Edit section: Methods to Prevent Processing">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>There are a variety of Plugins to change the filtering process WordPress uses by default. It is highly recommended that you do not change the core programming but use WordPress Plugins to change all or some of the content processing. See the <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/">WordPress Plugins Directory</a> for various Plugins that change the post content filtering process.
+</p>
+<h2><span class="mw-headline" id="More_Information">More Information</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=How_WordPress_Processes_Post_Content&amp;action=edit&amp;section=7" title="Edit section: More Information">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Writing_Posts" title="Writing Posts">Writing_Posts</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/support/topic/102799forum">WordPress Support Forum discussion on post filtering</a></li>
+<li> WordPress Ideas for improving post filtering:
+<ul><li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/ideas/topic.php?id=55">Choose a better WYSIWYG editor</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/ideas/topic.php?id=437">Trust me when I edit HTML</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/ideas/topic.php?id=11">Let us force a line break</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/ideas/topic.php?id=107">Access to TinyMCE Plugins and Options</a></li></ul></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004028
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.019 seconds
+Preprocessor visited node count: 66/1000000
+Preprocessor generated node count: 247/1000000
+Post‐expand include size: 684/2097152 bytes
+Template argument size: 252/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    6.213      1 - -total
+ 59.02%    3.667      1 - Template:Languages
+ 39.58%    2.459      1 - Template:Trac
+ 19.07%    1.185      1 - Template:ja
+ 16.80%    1.044      1 - Template:en
+ 16.42%    1.020      1 - Template:CurrentVersion
+-->

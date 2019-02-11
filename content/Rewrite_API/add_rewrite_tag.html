@@ -1,0 +1,113 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Arguments"><span class="tocnumber">3</span> <span class="toctext">Arguments</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#What_it_does"><span class="tocnumber">4</span> <span class="toctext">What it does</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Example"><span class="tocnumber">5</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Retrieving_the_Value_of_a_Rewritten_URL"><span class="tocnumber">6</span> <span class="toctext">Retrieving the Value of a Rewritten URL</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">7</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Articles"><span class="tocnumber">8.1</span> <span class="toctext">Articles</span></a></li>
+<li class="toclevel-2"><a href="#Hooks"><span class="tocnumber">8.2</span> <span class="toctext">Hooks</span></a></li>
+<li class="toclevel-2"><a href="#Functions"><span class="tocnumber">8.3</span> <span class="toctext">Functions</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-9"><a href="#External_Resources"><span class="tocnumber">9</span> <span class="toctext">External Resources</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This function can be used to make WordPress aware of custom querystring variables. Generally, it's used in combination with <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_rule" title="Rewrite API/add rewrite rule">add_rewrite_rule()</a> to create rewrite rules for pages with custom templates.
+</p><p>If you use this function to declare a rewrite tag that already exists, the existing tag will be <i>overwritten</i>.
+</p><p>This function <i>must</i> be called on <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/init" title="Plugin API/Action Reference/init">init</a> or earlier.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;add_rewrite_tag</span><span style="color: #007700">(</span><span style="color: #0000BB">$tag</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$regex</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Arguments">Arguments</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=3" title="Edit section: Arguments">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$tag</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The tag name you want to use, with a leading and trailing <b>%</b>.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$regex</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) Specify a regex to validate the value of the tag.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$query</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) Append query to queryreplace property array.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="What_it_does">What it does</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=4" title="Edit section: What it does">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Gets a query var name by stripping the&#160;% signs from the name of the tag: trim($tag, '%')</li>
+<li> Calls <tt>$wp_rewrite-&gt;add_rewrite_tag()</tt> with the name, generated QV name and regex.</li>
+<li> Adds the QV as a query var (again, this could be done by filtering query_vars but it might be nicer to add a function to the WP class that stores 'extra' QVs like above)</li></ul>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=5" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following will register a tag called 'film_title':
+</p><p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&#160;&#160;&#160;&#160;</span><span style="color: #007700">function&#160;</span><span style="color: #0000BB">custom_rewrite_tag</span><span style="color: #007700">()&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">add_rewrite_tag</span><span style="color: #007700">(</span><span style="color: #DD0000">'%film_title%'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'([^&amp;]+)'</span><span style="color: #007700">);<br />&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">add_action</span><span style="color: #007700">(</span><span style="color: #DD0000">'init'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'custom_rewrite_tag'</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">10</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">0</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p>This is particularly important when you are using rewrites with custom page templates.
+</p>
+<h2><span class="mw-headline" id="Retrieving_the_Value_of_a_Rewritten_URL">Retrieving the Value of a Rewritten URL</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=6" title="Edit section: Retrieving the Value of a Rewritten URL">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>With a rewrite tag defined, you can now retrieve the value of your rewritten querystring variables using WordPress's <tt>$wp_query</tt> variable. To get the value of the above tag out of a rewrite, you could use the following in your page template:
+</p>
+<pre>$wp_query-&gt;query_vars['film_title']
+</pre>
+<p>Note that using $_GET on a rewritten URL <i>will not work</i>, even if the rewrite includes the querystring variables. You must use <tt>$wp_query</tt>.
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>add_rewrite_tag()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/rewrite.php#L0">wp-includes/rewrite.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h4><span class="mw-headline" id="Articles">Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-1" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Lesson: <a href="https://codex.wordpress.org/Rewrite_API" title="Rewrite API"> Rewrite API Overview</a></li>
+<li> Class: <tt><a href="https://codex.wordpress.org/Class_Reference/WP_Rewrite" title="Class Reference/WP Rewrite">WP_Rewrite()</a></tt> - An overview of WordPress's built-in URL rewrite class.</li></ul>
+<h4><span class="mw-headline" id="Hooks">Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-2" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/root_rewrite_rules" title="Plugin API/Filter Reference/root rewrite rules">root_rewrite_rules</a></tt> - Filters the rewrite rules generated for the root of your weblog.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/post_rewrite_rules" title="Plugin API/Filter Reference/post rewrite rules">post_rewrite_rules</a></tt> - Filters the rewrite rules generated for permalink URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/page_rewrite_rules" title="Plugin API/Filter Reference/page rewrite rules">page_rewrite_rules</a></tt> - Filters the rewrite rules generated for your Pages.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/date_rewrite_rules" title="Plugin API/Filter Reference/date rewrite rules">date_rewrite_rules</a></tt> - Filters the rewrite rules generated for dated archive URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/search_rewrite_rules" title="Plugin API/Filter Reference/search rewrite rules">search_rewrite_rules</a></tt> - Filters the rewrite rules generated for search URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/comments_rewrite_rules" title="Plugin API/Filter Reference/comments rewrite rules">comments_rewrite_rules</a></tt> - Filters the rewrite rules generated for the latest comment feed URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/author_rewrite_rules" title="Plugin API/Filter Reference/author rewrite rules">author_rewrite_rules</a></tt> - Filters the rewrite rules generated for author archive URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/rewrite_rules_array" title="Plugin API/Filter Reference/rewrite rules array">rewrite_rules_array</a></tt> - Filters <i>all</i> the rewrite rules at once.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/$permastruct_rewrite_rules" title="Plugin API/Filter Reference/$permastruct rewrite rules">{$permastruct}_rewrite_rules</a></tt> - Can be used to create or modify rewrite rules for any custom permastructs, such as taxonomies or custom post types.</li>
+<li> Action: <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/generate_rewrite_rules" title="Plugin API/Action Reference/generate rewrite rules">generate_rewrite_rules</a></tt> - Runs <strong>after</strong> all the rules have been created.</li></ul>
+<h4><span class="mw-headline" id="Functions">Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-3" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> <strong class="selflink"> add_rewrite_tag()</strong> - Can be used to allow WordPress to recognize custom variables (particularly custom querystring variables).</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_rule" title="Rewrite API/add rewrite rule"> add_rewrite_rule()</a> - Allows you to specify new, custom rewrite rules.</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_endpoint" title="Rewrite API/add rewrite endpoint"> add_rewrite_endpoint()</a> - Add a new endpoint like /trackback/</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/flush_rules" title="Rewrite API/flush rules"> flush_rules()</a> - Regenerate the rewrite rules and save them to the database.</li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/flush_rewrite_rules" title="Function Reference/flush rewrite rules"> flush_rewrite_rules()</a> - Remove rewrite rules and then recreate rewrite rules.</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/generate_rewrite_rules" title="Rewrite API/generate rewrite rules"> generate_rewrite_rules()</a> - Generates rewrite rules from a permalink structure</li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/add_permastruct" title="Function Reference/add permastruct"> add_permastruct()</a> - Add a new permastruct</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_feed" title="Rewrite API/add feed"> add_feed()</a>- Add a new feed type like /atom1/</li></ul>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Rewrite_API/add_rewrite_tag&amp;action=edit&amp;section=9" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://www.viper007bond.com/2011/10/07/code-snippet-helper-class-to-add-custom-taxonomy-to-post-permalinks/">Viper007Bond.com: Code Snippet: Helper Class To Add Custom Taxonomy To Post Permalinks</a>, a real world usage example of how to use this function by Alex Mills (Viper007Bond)</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004114
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.022 seconds
+Preprocessor visited node count: 134/1000000
+Preprocessor generated node count: 379/1000000
+Post‐expand include size: 3384/2097152 bytes
+Template argument size: 281/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    5.671      1 - -total
+ 36.68%    2.080      1 - Template:Trac
+ 33.06%    1.875      3 - Template:Parameter
+ 23.49%    1.332      1 - Template:Rewrite_API
+ 14.41%    0.817      1 - Template:CurrentVersion
+-->

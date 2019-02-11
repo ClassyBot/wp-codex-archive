@@ -1,0 +1,910 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<a href="https://codex.wordpress.org/Function_Reference/wp_register_script" title="Function Reference/wp register script">English</a> • 
+<strong class="selflink">Português do Brasil</strong> • 
+
+<a href="https://codex.wordpress.org/ko:Function_Reference/wp_register_script" title="ko:Function Reference/wp register script">한국어</a> • 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Descri.C3.A7.C3.A3o"><span class="tocnumber">1</span> <span class="toctext">Descrição</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Uso"><span class="tocnumber">2</span> <span class="toctext">Uso</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Par.C3.A2metros"><span class="tocnumber">3</span> <span class="toctext">Parâmetros</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Return_Values"><span class="tocnumber">4</span> <span class="toctext">Return Values</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Examples"><span class="tocnumber">5</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Handles_and_Their_Script_Paths_Registered_by_WordPress"><span class="tocnumber">6</span> <span class="toctext">Handles and Their Script Paths Registered by WordPress</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Notes"><span class="tocnumber">7</span> <span class="toctext">Notes</span></a>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#Usage_Rationale"><span class="tocnumber">7.1</span> <span class="toctext">Usage Rationale</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Example_of_Automatic_Dependency_Loading"><span class="tocnumber">7.2</span> <span class="toctext">Example of Automatic Dependency Loading</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-10"><a href="#Change_Log"><span class="tocnumber">8</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-11"><a href="#Source_File"><span class="tocnumber">9</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-12"><a href="#Resources"><span class="tocnumber">10</span> <span class="toctext">Resources</span></a></li>
+<li class="toclevel-1 tocsection-13"><a href="#Related"><span class="tocnumber">11</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Descri.C3.A7.C3.A3o">Descrição</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=1" title="Edit section: Descrição">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Resgistrar um arquivo de script no WordPress para ser adicionado em uma página mais tarde usando a função <tt><a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script" title="Function Reference/wp enqueue script">wp_enqueue_script()</a></tt>, que lida com a segurança e dependência dos scripts.
+</p><p>Scripts que tenham sido pre-registrados usando <tt>wp_register_script()</tt> <b>não</b> precisam ser enfileirados manualmente usando <tt>wp_enqueue_script()</tt> se eles são listados como uma dependência de outro script que já foi enfileirado. WordPress irá automaticamente incluir o script registrado como dependência antes dele ser incluir o script enfileirado. Veja as notas para obter mais informação.
+</p>
+<h2><span class="mw-headline" id="Uso">Uso</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=2" title="Edit section: Uso">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;wp_register_script</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$handle</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$src</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$deps</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$ver</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$in_footer&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+Veja <a href="#Notes">Notes</a> para informações sobre qual action <a href="https://codex.wordpress.org/Glossary#Hook" title="Glossary">hooks</a> deva ser usada para chamar a função, bem como algumas idéias sobre a razão de usar esta função.
+</p>
+<h2><span class="mw-headline" id="Par.C3.A2metros">Parâmetros</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=3" title="Edit section: Parâmetros">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$handle</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>)  Nome do script. Deve ser único, uma vez que é usado como indentificador para ser usado posteriormente pela função <tt><a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script" title="Function Reference/wp enqueue script">wp_enqueue_script()</a></tt>.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$src</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) URL para o script, exemplo. <i>http://example.com/wp-content/themes/my-theme/my-theme-script.js</i>. Você nunca deve codificar URLs para scripts locais. Para obter uma URL de um script local, use <tt><a href="https://codex.wordpress.org/Function_Reference/plugins_url" title="Function Reference/plugins url">plugins_url()</a></tt> para <a href="https://codex.wordpress.org/Glossary#Plugin" title="Glossary">plugins</a> e <tt><a href="https://codex.wordpress.org/Function_Reference/get_template_directory_uri" title="Function Reference/get template directory uri">get_template_directory_uri()</a></tt> para <a href="https://codex.wordpress.org/Glossary#Themes" title="Glossary">themes</a>. Scripts Remotos podem ser especificados com um protocolo de URL agnostica, exemplo. <i>//otherdomain.com/js/their-script.js</i>.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$deps</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Array" title="How to Pass Tag Parameters"><i>array</i></a>) (<i>optional</i>) Array of the handles of all the registered scripts that this script depends on, that is, the scripts that must be loaded before this script. These scripts will automatically be enqueued when this script is enqueued with <tt><a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script" title="Function Reference/wp enqueue script">wp_enqueue_script()</a></tt>. Set <i>false</i> if there are no dependencies.
+<dl><dd> Default: array()</dd></dl></dd></dl>
+<dl><dt> <tt>$ver</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>optional</i>) String specifying the script version number, if it has one, which is concatenated to the end of the path as a query string. If no version is specified or set to <i>false</i>, then WordPress automatically adds a version number equal to the current version of WordPress you are running. If set to <i>null</i> no version is added. This parameter is used to ensure that the correct version is sent to the client regardless of caching, and so should be included if a version number is available and makes sense for the script.
+<dl><dd> Default: false</dd></dl></dd></dl>
+<dl><dt> <tt>$in_footer</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Normally scripts are placed in the <tt>&lt;head&gt;</tt> section. If this parameter is true the script is placed at the bottom of the <tt>&lt;body&gt;</tt>. This requires the theme to have the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_footer" title="Plugin API/Action Reference/wp footer">wp_footer()</a> hook in the appropriate place. Note that you have to enqueue your script before <code>wp_head</code> is run, even if it will be placed in the footer. (New in WordPress 2.8) 
+<dl><dd> Default: false</dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Return_Values">Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=4" title="Edit section: Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt></tt> <tt style="color:gray">(<a href="https://codex.wordpress.org/Glossary#Void" title="Glossary"><i>void</i></a>)</tt>&#160;</dt>
+<dd> This function does not return a value.</dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=5" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>See <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script#Link_Scripts_Only_on_a_Plugin_Administration_Screen" title="Function Reference/wp enqueue script">Examples on <tt>wp_enqueue_script()</a></tt>.
+</p>
+<h2><span class="mw-headline" id="Handles_and_Their_Script_Paths_Registered_by_WordPress">Handles and Their Script Paths Registered by WordPress</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=6" title="Edit section: Handles and Their Script Paths Registered by WordPress">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>By default, WordPress installation includes many popular scripts commonly used by web developers besides the scripts used by WordPress itself. Below is a list of the handles and paths of these scripts. "This list has been updated for 3.8." Source: <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/script-loader.php#L0">wp-includes/script-loader.php</a></code>.
+</p>
+<table class="wikitable" style="width:100%;">
+
+<tr>
+<th width="26%"> <b>Handle</b>
+</th>
+<th width="64%"> <b>Path in WordPress</b>
+</th></tr>
+<tr>
+<td> utils
+</td>
+<td> <i>/wp-includes/js/utils.js</i>
+</td></tr>
+<tr>
+<td> common
+</td>
+<td> <i>/wp-admin/js/common.js</i>
+</td></tr>
+<tr>
+<td> sack
+</td>
+<td> <i>/wp-includes/js/tw-sack.js</i>
+</td></tr>
+<tr>
+<td> quicktags
+</td>
+<td> <i>/wp-includes/js/quicktags.js</i>
+</td></tr>
+<tr>
+<td> colorpicker
+</td>
+<td> <i>/wp-includes/js/colorpicker.js</i>
+</td></tr>
+<tr>
+<td> editor
+</td>
+<td> <i>/wp-admin/js/editor.js</i>
+</td></tr>
+<tr>
+<td> wp-fullscreen
+</td>
+<td> <i>/wp-admin/js/wp-fullscreen.js</i>
+</td></tr>
+<tr>
+<td> wp-ajax-response
+</td>
+<td> <i>/wp-includes/js/wp-ajax-response.js</i>
+</td></tr>
+<tr>
+<td> wp-pointer
+</td>
+<td> <i>/wp-includes/js/wp-pointer.js</i>
+</td></tr>
+<tr>
+<td> autosave
+</td>
+<td> <i>/wp-includes/js/autosave.js</i>
+</td></tr>
+<tr>
+<td> heartbeat
+</td>
+<td> <i>/wp-includes/js/heartbeat.js</i>
+</td></tr>
+<tr>
+<td> wp-auth-check
+</td>
+<td> <i>/wp-includes/js/wp-auth-check.js</i>
+</td></tr>
+<tr>
+<td> wp-lists
+</td>
+<td> <i>/wp-includes/js</i>/wp-lists.js
+</td></tr>
+<tr>
+<td colspan="2"> &#160;
+</td></tr>
+<tr>
+<td> prototype
+</td>
+<td> external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js
+</td></tr>
+<tr>
+<td> scriptaculous-root
+</td>
+<td> external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js
+</td></tr>
+<tr>
+<td> scriptaculous-builder
+</td>
+<td> external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/builder.js
+</td></tr>
+<tr>
+<td> scriptaculous-dragdrop
+</td>
+<td> external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/dragdrop.js
+</td></tr>
+<tr>
+<td> scriptaculous-effects
+</td>
+<td> external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/effects.js
+</td></tr>
+<tr>
+<td> scriptaculous-slider
+</td>
+<td> external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/slider.js
+</td></tr>
+<tr>
+<td> scriptaculous-sound
+</td>
+<td> external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/sound.js
+</td></tr>
+<tr>
+<td> scriptaculous-controls
+</td>
+<td> external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/controls.js
+</td></tr>
+<tr>
+<td> scriptaculous
+</td>
+<td>  scriptaculous-dragdrop, scriptaculous-slider, scriptaculous-controls
+</td></tr>
+<tr>
+<td> cropper
+</td>
+<td> <i>/wp-includes/js/crop/cropper.js</i>
+</td></tr>
+<tr>
+<td colspan="2"> &#160;
+</td></tr>
+<tr>
+<td> jquery (v1.10.2 as of WP 3.8)
+</td>
+<td> jquery-core, jquery-migrate
+</td></tr>
+<tr>
+<td> jquery-core
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.js</i>
+</td></tr>
+<tr>
+<td> jquery-migrate
+</td>
+<td> <i>/wp-includes/js/jquery/jquery-migrate.js</i> (v1.10.2 as of WP 3.8)
+</td></tr>
+<tr>
+<td> jquery-ui-core
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.core.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-core
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-blind
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-blind.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-bounce
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-bounce.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-clip
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-clip.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-drop
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-drop.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-explode
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-explode.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-fade
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-fade.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-fold
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-fold.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-highlight
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-highlight.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-pulsate
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-pulsate.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-scale
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-scale.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-shake
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-shake.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-slide
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-slide.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-effects-transfer
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.effect-transfer.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-accordion
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.accordion.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-autocomplete
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.autocomplete.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-button
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.button.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-datepicker
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.datepicker.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-dialog
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.dialog.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-draggable
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.draggable.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-droppable
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.droppable.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-menu
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.menu.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-mouse
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.mouse.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-position
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.position.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-progressbar
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.progressbar.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-resizable
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.resizable.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-selectable
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.selectable.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-slider
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.slider.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-sortable
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.sortable.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-spinner
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.spinner.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-tabs
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.tabs.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-tooltip
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.tooltip.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-ui-widget
+</td>
+<td> <i>/wp-includes/js/jquery/ui/jquery.ui.widget.min.js</i>
+</td></tr>
+<tr>
+<td> jquery-form
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.form.js</i>
+</td></tr>
+<tr>
+<td> jquery-color
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.color.min.js</i>
+</td></tr>
+<tr>
+<td> suggest
+</td>
+<td> <i>/wp-includes/js/jquery/suggest.js</i>
+</td></tr>
+<tr>
+<td> schedule
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.schedule.js</i>
+</td></tr>
+<tr>
+<td> jquery-query
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.query.js</i>
+</td></tr>
+<tr>
+<td> jquery-serialize-object
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.serialize-object.js</i>
+</td></tr>
+<tr>
+<td> jquery-hotkeys
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.hotkeys.js</i>
+</td></tr>
+<tr>
+<td> jquery-table-hotkeys
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.table-hotkeys.js</i>
+</td></tr>
+<tr>
+<td> jquery-touch-punch
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.ui.touch-punch.js</i>
+</td></tr>
+<tr>
+<td> jquery-masonry
+</td>
+<td> <i>/wp-includes/js/jquery/jquery.masonry.min.js</i>
+</td></tr>
+<tr>
+<td colspan="2"> &#160;
+</td></tr>
+<tr>
+<td> thickbox
+</td>
+<td> <i>/wp-includes/js/thickbox/thickbox.js</i>
+</td></tr>
+<tr>
+<td> jcrop
+</td>
+<td> <i>/wp-includes/js/jcrop/jquery.Jcrop.js</i>
+</td></tr>
+<tr>
+<td> swfobject
+</td>
+<td> <i>/wp-includes/js/swfobject.js</i>
+</td></tr>
+<tr>
+<td> plupload
+</td>
+<td> <i>/wp-includes/js/plupload/plupload.js</i>
+</td></tr>
+<tr>
+<td> plupload-html5
+</td>
+<td> wp-includes/js/plupload/plupload.html5.js
+</td></tr>
+<tr>
+<td> plupload-flash
+</td>
+<td> <i>/wp-includes/js/plupload/plupload.flash.js</i>"
+</td></tr>
+<tr>
+<td> plupload-silverlight
+</td>
+<td> <i>/wp-includes/js/plupload/plupload.silverlight.js</i>
+</td></tr>
+<tr>
+<td> plupload-html4
+</td>
+<td> <i>/wp-includes/js/plupload/plupload.html4.js</i>
+</td></tr>
+<tr>
+<td> plupload-all
+</td>
+<td> plupload, plupload-html5, plupload-flash, plupload-silverlight, plupload-html4
+</td></tr>
+<tr>
+<td> plupload-handlers
+</td>
+<td> <i>/wp-includes/js/plupload/handlers.js</i>
+</td></tr>
+<tr>
+<td> wp-plupload
+</td>
+<td> <i>/wp-includes/js/plupload/wp-plupload.js</i>
+</td></tr>
+<tr>
+<td> swfupload
+</td>
+<td> <i>/wp-includes/js/swfupload/swfupload.js</i>
+</td></tr>
+<tr>
+<td> swfupload-swfobject
+</td>
+<td> <i>/wp-includes/js/swfupload/plugins/swfupload.swfobject.js</i>
+</td></tr>
+<tr>
+<td> swfupload-queue
+</td>
+<td> <i>/wp-includes/js/swfupload/plugins/swfupload.queue.js</i>
+</td></tr>
+<tr>
+<td> swfupload-speed
+</td>
+<td> <i>/wp-includes/js/swfupload/plugins/swfupload.speed.js</i>
+</td></tr>
+<tr>
+<td> swfupload-all
+</td>
+<td> <i>/wp-includes/js/swfupload/swfupload-all.js</i>
+</td></tr>
+<tr>
+<td> swfupload-handlers
+</td>
+<td> <i>/wp-includes/js/swfupload/handlers.js</i>
+</td></tr>
+<tr>
+<td> comment-reply
+</td>
+<td> <i>/wp-includes/js/comment-reply.js</i>
+</td></tr>
+<tr>
+<td> json2
+</td>
+<td> <i>/wp-includes/js/json2.js</i>
+</td></tr>
+<tr>
+<td> underscore
+</td>
+<td> <i>/wp-includes/js/underscore.min.js</i>
+</td></tr>
+<tr>
+<td> backbone
+</td>
+<td> <i>/wp-includes/js/backbone.min.js</i>
+</td></tr>
+<tr>
+<td> wp-util
+</td>
+<td> <i>/wp-includes/js/wp-util.js</i>
+</td></tr>
+<tr>
+<td> wp-backbone
+</td>
+<td> <i>/wp-includes/js/wp-backbone.js</i>
+</td></tr>
+<tr>
+<td> revisions
+</td>
+<td> <i>/wp-admin/js/revisions.js</i>
+</td></tr>
+<tr>
+<td> imgareaselect
+</td>
+<td> <i>/wp-includes/js/imgareaselect/jquery.imgareaselect.js</i>
+</td></tr>
+<tr>
+<td> mediaelement
+</td>
+<td> /wp-includes/js/mediaelement/mediaelement-and-player.min.js
+</td></tr>
+<tr>
+<td> wp-mediaelement
+</td>
+<td> /wp-includes/js/mediaelement/wp-mediaelement.js
+</td></tr>
+<tr>
+<td> zxcvbn-async
+</td>
+<td> /wp-includes/js/zxcvbn-async.js
+</td></tr>
+<tr>
+<td> password-strength-meter
+</td>
+<td> <i>/wp-admin/js/password-strength-meter.js</i>
+</td></tr>
+<tr>
+<td> user-profile
+</td>
+<td> <i>/wp-admin/js/user-profile.js</i>
+</td></tr>
+<tr>
+<td> user-suggest
+</td>
+<td> <i>/wp-admin/js/user-suggest.js</i>
+</td></tr>
+<tr>
+<td> admin-bar
+</td>
+<td> <i>/wp-includes/js/admin-bar.js</i>
+</td></tr>
+<tr>
+<td> wplink
+</td>
+<td> <i>/wp-includes/js/wplink.js</i>
+</td></tr>
+<tr>
+<td> wpdialogs
+</td>
+<td> <i>/wp-includes/js/tinymce/plugins/wpdialogs/js/wpdialog.js</i>
+</td></tr>
+<tr>
+<td> wpdialogs-popup
+</td>
+<td> <i>/wp-includes/js/tinymce/plugins/wpdialogs/js/popup.js</i>
+</td></tr>
+<tr>
+<td> word-count
+</td>
+<td> <i>/wp-admin/js/word-count.js</i>
+</td></tr>
+<tr>
+<td> media-upload
+</td>
+<td> <i>/wp-admin/js/media-upload.js</i>
+</td></tr>
+<tr>
+<td> hoverIntent
+</td>
+<td> <i>/wp-includes/js/hoverIntent.js</i>
+</td></tr>
+<tr>
+<td> customize-base
+</td>
+<td> <i>/wp-includes/js/customize-base.js</i>
+</td></tr>
+<tr>
+<td> customize-loader
+</td>
+<td>
+</td></tr>
+<tr>
+<td> customize-preview
+</td>
+<td>
+</td></tr>
+<tr>
+<td> customize-controls
+</td>
+<td>
+</td></tr>
+<tr>
+<td> accordion
+</td>
+<td>
+</td></tr>
+<tr>
+<td> shortcode
+</td>
+<td>
+</td></tr>
+<tr>
+<td> media-models
+</td>
+<td>
+</td></tr>
+<tr>
+<td> media-views
+</td>
+<td>
+</td></tr>
+<tr>
+<td> media-editor
+</td>
+<td>
+</td></tr>
+<tr>
+<td> mce-view
+</td>
+<td>
+</td></tr>
+<tr>
+<td> admin-tags
+</td>
+<td>
+</td></tr>
+<tr>
+<td> admin-comments
+</td>
+<td>
+</td></tr>
+<tr>
+<td> xfn
+</td>
+<td>
+</td></tr>
+<tr>
+<td> postbox
+</td>
+<td>
+</td></tr>
+<tr>
+<td> post
+</td>
+<td>
+</td></tr>
+<tr>
+<td> link
+</td>
+<td>
+</td></tr>
+<tr>
+<td> comment
+</td>
+<td>
+</td></tr>
+<tr>
+<td> admin-gallery
+</td>
+<td>
+</td></tr>
+<tr>
+<td> admin-widgets
+</td>
+<td>
+</td></tr>
+<tr>
+<td> theme
+</td>
+<td>
+</td></tr>
+<tr>
+<td> theme-install
+</td>
+<td>
+</td></tr>
+<tr>
+<td> inline-edit-post
+</td>
+<td>
+</td></tr>
+<tr>
+<td> inline-edit-tax
+</td>
+<td>
+</td></tr>
+<tr>
+<td> plugin-install
+</td>
+<td>
+</td></tr>
+<tr>
+<td> farbtastic
+</td>
+<td>
+</td></tr>
+<tr>
+<td> iris
+</td>
+<td>
+</td></tr>
+<tr>
+<td> wp-color-picker
+</td>
+<td>
+</td></tr>
+<tr>
+<td> dashboard
+</td>
+<td>
+</td></tr>
+<tr>
+<td> list-revisions
+</td>
+<td>
+</td></tr>
+<tr>
+<td> media
+</td>
+<td>
+</td></tr>
+<tr>
+<td> image-edit
+</td>
+<td>
+</td></tr>
+<tr>
+<td> set-post-thumbnail
+</td>
+<td>
+</td></tr>
+<tr>
+<td> nav-menu
+</td>
+<td>
+</td></tr>
+<tr>
+<td> custom-header
+</td>
+<td>
+</td></tr>
+<tr>
+<td> custom-background
+</td>
+<td>
+</td></tr>
+<tr>
+<td> media-gallery
+</td>
+<td>
+</td></tr>
+<tr>
+<td> svg-painter
+</td>
+<td>
+</td></tr>
+</table>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=7" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> The function should be called using the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_enqueue_scripts" title="Plugin API/Action Reference/wp enqueue scripts">wp_enqueue_scripts</a> action <a href="https://codex.wordpress.org/Glossary#Hook" title="Glossary">hook</a> if you want to call it on the front-end of the site. To call it on the <a href="https://codex.wordpress.org/Administration_Screens" title="Administration Screens">administration screens</a>, use the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts" title="Plugin API/Action Reference/admin enqueue scripts">admin_enqueue_scripts</a> action hook. For the <a href="https://codex.wordpress.org/Login_Screen" title="Login Screen">login screen</a>, use the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/login_enqueue_scripts" title="Plugin API/Action Reference/login enqueue scripts">login_enqueue_scripts</a> action hook. Calling it outside of an action hook can lead to problems, see the <a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/ticket/11526">ticket #11526</a> for details. Also see <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script#Notes" title="Function Reference/wp enqueue script">Notes on <tt>wp_enqueue_script()</tt></a> for more details about the proper hooks.</li>
+<li> If you try to register or enqueue an already registered handle with different parameters, the new parameters will be ignored. Instead, use <tt><a href="https://codex.wordpress.org/Function_Reference/wp_deregister_script" title="Function Reference/wp deregister script">wp_deregister_script()</a></tt> and register the script again with the new parameters.</li>
+<li> jQuery UI Effects is <b>not</b> included with the <i>jquery-ui-core</i> handle.</li>
+<li> Uses: <tt>WP_Scripts::add()</tt> and <tt>WP_Scripts::add_data()</tt>.</li>
+<li> Uses global: (<tt>unknown type</tt>) <tt>$wp_scripts</tt>.</li></ul>
+<h4><span class="mw-headline" id="Usage_Rationale">Usage Rationale</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=8" title="Edit section: Usage Rationale">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li>Technically, you never have to register anything if you don't want to. The register functions are there and can be valuable if you want a central location that defines scripts and styles that will be used in your plugin/theme. You can then simply use the enqueue functions while referring to just the handle in order to enqueue the script or style for inclusion in the head.</li>
+<li>If the handle of a registered script is listed in the <tt>$deps</tt> array of dependencies of another script that is enqueued with <tt>wp_enqueue_script()</tt>, that script will be <b>automatically loaded</b> prior to loading the enqueued script. This greatly simplifies the process of ensuring that a script has all the dependencies it needs. See below for a simple example.</li>
+<li>So, the main purpose of the register functions is to allow you to simplify your code by removing the need to duplicate code if you enqueue the same script or style in more than one section of code. The benefits of this are many and probably don't need to be listed here.</li></ul>
+<h4><span class="mw-headline" id="Example_of_Automatic_Dependency_Loading">Example of Automatic Dependency Loading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=9" title="Edit section: Example of Automatic Dependency Loading">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>This example demonstrates how a registered script is automatically loaded when listed as the dependency of an enqueued script:
+</p>
+<pre>
+// Always use wp_enqueue_scripts action hook to both enqueue and register scripts
+add_action( 'wp_enqueue_scripts', 'enqueue_and_register_my_scripts' );
+
+function enqueue_and_register_my_scripts(){
+
+    // Use `get_stylesheet_directoy_uri() if your script is inside your theme or child theme.
+    wp_register_script( 'my-script', get_stylesheet_directory_uri() . '/js/my-script.js' );
+
+    // Let's enqueue a script only to be used on a specific page of the site
+    if ( is_page( 'careers' ) ){
+
+        // Enqueue a script that has both jQuery (automatically registered by WordPress)
+        // and my-script (registered earlier) as dependencies.
+        wp_enqueue_script( 'my-careers-script', get_stylesheet_directory_uri() . '/js/my-careers-script.js', array( 'jquery', 'my-script' ) );
+    }
+}
+</pre>
+<p>Note how, in the example above, `my-script.js` does not actually have to be enqueued. It is automatically loaded before `my-careers-script.js` by virtue of the fact that it was registered.
+</p><p>It's also interesting to note that, given how the `wp_enqueue_scripts` action works, the order in which scripts are enqueued or registered is quite inconsequential. Really.
+</p>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=10" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Since: <a href="https://codex.wordpress.org/Version_2.6" title="Version 2.6">2.6</a> (BackPress version: r16)</li></ul>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=11" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>wp_register_script()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/functions.wp-scripts.php#L0">wp-includes/functions.wp-scripts.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=12" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://generatewp.com/register_script/">WordPress Script Registration Generator</a></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit&amp;section=13" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>Enqueue Styles</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/wp_register_style" title="Function Reference/wp register style">wp_register_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_deregister_style" title="Function Reference/wp deregister style">wp_deregister_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_style" title="Function Reference/wp enqueue style">wp_enqueue_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_dequeue_style" title="Function Reference/wp dequeue style">wp_dequeue_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_add_inline_style" title="Function Reference/wp add inline style">wp_add_inline_style()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_style_is" title="Function Reference/wp style is">wp_style_is()</a></li></ul>
+<p><b>Enqueue Scripts</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Function_Reference/wp_register_script" title="Function Reference/wp register script">wp_register_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_deregister_script" title="Function Reference/wp deregister script">wp_deregister_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script" title="Function Reference/wp enqueue script">wp_enqueue_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_dequeue_script" title="Function Reference/wp dequeue script">wp_dequeue_script()</a></li>
+<li> <a rel="nofollow" class="external text" href="https://developer.wordpress.org/reference/functions/wp_add_inline_script/">wp_add_inline_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_script_is" title="Function Reference/wp script is">wp_script_is()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_localize_script" title="Function Reference/wp localize script">wp_localize_script()</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_media" title="Function Reference/wp enqueue media">wp_enqueue_media()</a></li></ul>
+<p><b>Front-End Hooks</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_enqueue_scripts" title="Plugin API/Action Reference/wp enqueue scripts">wp_enqueue_scripts</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_print_scripts" title="Plugin API/Action Reference/wp print scripts">wp_print_scripts</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_print_styles" title="Plugin API/Action Reference/wp print styles">wp_print_styles</a></li></ul>
+<p><b>Admin Hooks</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts" title="Plugin API/Action Reference/admin enqueue scripts">admin_enqueue_scripts</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_print_scripts" title="Plugin API/Action Reference/admin print scripts">admin_print_scripts</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/admin_print_styles" title="Plugin API/Action Reference/admin print styles">admin_print_styles</a></li></ul>
+<p><b>Login Hooks</b>
+</p>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/login_enqueue_scripts" title="Plugin API/Action Reference/login enqueue scripts">login_enqueue_scripts</a></li></ul>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=pt-br:Function_Reference/wp_register_script&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004427
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.040 seconds
+Real time usage: 0.052 seconds
+Preprocessor visited node count: 259/1000000
+Preprocessor generated node count: 972/1000000
+Post‐expand include size: 8211/2097152 bytes
+Template argument size: 3004/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   19.912      1 - -total
+ 23.26%    4.631      1 - Template:Languages
+ 16.42%    3.270      1 - Template:Enqueue_Functions_Related
+ 12.70%    2.529      2 - Template:Trac
+ 11.87%    2.364      5 - Template:Parameter
+ 11.22%    2.235      1 - Template:Copyedit
+ 10.34%    2.059      1 - Template:Tag_Footer
+  8.21%    1.634      1 - Template:Return
+  8.08%    1.609      2 - Template:Message
+  5.78%    1.150      1 - Template:en
+-->

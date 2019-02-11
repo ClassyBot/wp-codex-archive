@@ -1,0 +1,69 @@
+{{Languages|
+{{en|Function Reference/wp revisions enabled}}
+{{ja|Function Reference/wp revisions enabled}}
+{{ko|함수 레퍼런스/wp revisions enabled}}
+}}
+==설명==
+주어진 포스트에 대하여 리비젼이 허용되어졌는지에 대하여 결정합니다.
+
+==파라메터==
+{{Parameter|$post|object|해당 포스트 개체입니다.}}
+
+== Return ==
+{{Return||boolean|지속되고 있는 다수의 리비젼들의 갯수가 0이 아니라면, True 입니다. 이와 반대라면 false 입니다.}}
+
+== 사용법 ==
+%%% <?php  ?> %%%
+
+==예제==
+해당 포스트에 대해서 리비젼의 갯수가 존재한다면, 첫번째 포스트가 아니므로 return 시킵니다.
+<pre>
+function required_title_set($post_id){
+
+	$post = get_post($post_id);
+	$post_type = $post->post_type;
+
+	if ($post_type == 'djmix')
+	{	
+		
+			if ( !wp_revisions_enabled( $post ))
+				return;
+
+			// unhook this function so it doesn't loop infinitely
+			remove_action('save_post', 'required_title_set', 10, 1);
+			//if(get_post_meta( $post_id, 'djmix_company_name_count', true) != 1 ){
+			
+				$my_post = array(
+					'ID'           => $post_id,
+					'post_title'   => '['.get_post_meta( $post_id, 'djmix_company_name', true ).'] '.$post->post_title,
+				);
+
+				wp_update_post( $my_post );
+			//}
+
+			// update the post, which calls save_post again
+		
+			// re-hook this function
+			add_action('save_post', 'required_title_set', 10, 1);
+	}
+}
+add_action('save_post', 'required_title_set',10,1);
+
+</pre>
+
+==Change Log==
+* Since: [[Version 3.6|3.6.0]]
+
+== Source File ==
+<!-- Need links to current source code files -->
+<tt>wp_revisions_enabled()</tt> 는 {{Trac|wp-includes/revision.php}} 안에 위치되어져 있습니다.
+
+==Related==
+Function ref links
+
+[[Category:Functions]]
+
+{{Copyedit}}
+{{Stub}}
+
+(이 문서는 한국인 워드프레스 유저 Remoted 에 의하여 번역되었습니다. 추가적인 문의사항이 발생할 경우, 35mwlee@naver.com 혹은 http://35mwlee.blog.me 로 문의주세요)

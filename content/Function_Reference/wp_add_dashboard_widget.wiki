@@ -1,0 +1,160 @@
+== Description ==
+
+This function adds a new widget to the [[Dashboard SubPanel | administration dashboard]], using the WordPress [[Dashboard Widgets API]].
+
+== Usage ==
+
+<pre>
+wp_add_dashboard_widget($widget_id, $widget_name, $callback, $control_callback, $callback_args );
+</pre>
+
+== Parameters ==
+
+{{Parameter|$widget_id|string|an identifying slug for your widget. This will be used as the dashboard widget's id attribute, and its key in the array of widgets.}}
+
+{{Parameter|$widget_name|string|this is the name your widget will display in its heading.}}
+
+{{Parameter|$callback|string|array|The name of a function you create that will display the actual contents of your widget.}}
+
+{{Parameter|$control_callback|string|The name of a function you create that will handle submission of widget options (configuration) forms, and will also display the form elements.|optional|}}
+
+{{Parameter|$callback_args|array|Arguments to pass into your callback function. The callback will receive the $post object and whatever parameters are passed through this variable.|optional|}}
+
+== Examples ==
+
+=== Adding Dashboard Widgets ===
+
+Here is a simple dashboard widget: 
+
+ // Function that outputs the contents of the dashboard widget
+ function dashboard_widget_function( $post, $callback_args ) {
+ 	echo "Hello World, this is my first Dashboard Widget!";
+ }
+ 
+ // Function used in the action hook
+ function add_dashboard_widgets() {
+ 	wp_add_dashboard_widget('dashboard_widget', 'Example Dashboard Widget', 'dashboard_widget_function');
+ }
+ 
+ // Register the new dashboard widget with the 'wp_dashboard_setup' action
+ add_action('wp_dashboard_setup', 'add_dashboard_widgets' );
+
+=== Running Dashboard Widgets ===
+
+To run the function use this code:
+
+ do_action( 'wp_dashboard_setup' );
+
+===Adding Widgets onto the side===
+The function doesn't allow you to choose where you want your widget to go and will automatically add it to the "core" which is the left side. However you are able to get it on the right side very easily. 
+
+You can use the <tt>[[Function Reference/add_meta_box|add_meta_box()]]</tt> function instead of <code>wp_add_dashboard_widget</code>. Simply specify <tt>'dashboard'</tt> in place of the <tt>$post_type</tt>. For example:
+
+<pre>
+add_meta_box('id', 'Dashboard Widget Title', 'dash_widget', 'dashboard', 'side', 'high');
+</pre>
+
+===Using the Control Callback ===
+With the control callback function we can create configurations just like the default feed widgets, WordPress Blog and Other WordPress News. 
+ 
+'''1)''' A default message appears asking for the configuration
+[[Image:wp_add_dashboard_widget-control_callback-1.png|left|'''1)''' A default message appears asking for the configuration]]  
+
+[[Image:wp_add_dashboard_widget-control_callback-2.png|left|thumbnail|'''2)''' We select a page in the configuration screen]]
+
+[[Image:wp_add_dashboard_widget-control_callback-3.png|left|thumbnail|'''3)''' The page title and content are shown in the widget]]
+
+
+<pre>
+add_action( 'wp_dashboard_setup', 'prefix_add_dashboard_widget' );
+
+function prefix_add_dashboard_widget() {
+    wp_add_dashboard_widget(
+        'my_dashboard_widget', 
+        'Featured Dashboard Page', 
+        'prefix_dashboard_widget', 
+        'prefix_dashboard_widget_handle'
+    );
+}
+
+function prefix_dashboard_widget() {
+    # get saved data
+    if( !$widget_options = get_option( 'my_dashboard_widget_options' ) )
+        $widget_options = array( );
+
+    # default output
+    $output = sprintf(
+        '<h2 style="text-align:right">%s</h2>',
+        __( 'Please, configure the widget &#x261D;' )
+    );
+    
+    # check if saved data contains content
+    $saved_feature_post = isset( $widget_options['feature_post'] ) 
+        ? $widget_options['feature_post'] : false;
+
+    # custom content saved by control callback, modify output
+    if( $saved_feature_post ) {
+        $post = get_post( $saved_feature_post );
+        if( $post ) {
+            $content = do_shortcode( html_entity_decode( $post->post_content ) );
+            $output = "<h2>{$post->post_title}</h2><p>{$content}</p>";
+        }
+    }
+    echo "<div class='feature_post_class_wrap'>
+        <label style='background:#ccc;'>$output</label>
+    </div>
+    ";
+}
+
+function prefix_dashboard_widget_handle()
+{
+    # get saved data
+    if( !$widget_options = get_option( 'my_dashboard_widget_options' ) )
+        $widget_options = array( );
+
+    # process update
+    if( 'POST' == $_SERVER['REQUEST_METHOD'] && isset( $_POST['my_dashboard_widget_options'] ) ) {
+        # minor validation
+        $widget_options['feature_post'] = absint( $_POST['my_dashboard_widget_options']['feature_post'] );
+        # save update
+        update_option( 'my_dashboard_widget_options', $widget_options );
+    }
+
+    # set defaults  
+    if( !isset( $widget_options['feature_post'] ) )
+        $widget_options['feature_post'] = '';
+
+
+    echo "<p><strong>Available Pages</strong></p>
+    <div class='feature_post_class_wrap'>
+        <label>Title</label>";
+    wp_dropdown_pages( array(
+        'post_type'        => 'page',
+        'selected'         => $widget_options['feature_post'],
+        'name'             => 'my_dashboard_widget_options[feature_post]',
+        'id'               => 'feature_post',
+        'show_option_none' => '- Select -'
+    ) );
+    echo "</div>";
+}
+</pre>
+
+== Change Log  ==
+
+Since: 2.7.0
+
+== Source File ==
+
+<tt>wp_add_dashboard_widget()</tt> is located in {{Trac|/wp-admin/includes/dashboard.php}}.
+
+==Related==
+* [[Dashboard Widgets API]]
+* Function: [[Function_Reference/wp_add_dashboard_widget|wp_add_dashboard_widget()]]
+* Function: [[Function_Reference/remove_meta_box|remove_meta_box()]]
+
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:Plugins]]
+[[Category:Widgets]]

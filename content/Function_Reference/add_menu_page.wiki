@@ -1,0 +1,145 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/add_menu_page/}}
+
+{{Languages|
+{{en|Function Reference/add_menu_page}}
+{{ja|関数リファレンス/add_menu_page}}
+}}
+
+== Description ==
+
+Add a top level menu page.
+
+Specifically, creates a new top level menu section in the admin menu sidebar and registers a hook to callback your function for outputting the page content when the linked menu page is requested. Returns the <tt>$hookname</tt>.
+
+== Usage ==
+
+%%%<?php
+add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $position );
+?>%%%
+
+== Parameters ==
+
+{{Parameter|$page_title|string|The text to be displayed in the title tags of the page when the menu is selected}}
+
+{{Parameter|$menu_title|string|The on-screen name text for the menu}}
+
+{{Parameter|$capability|string|The [[Roles and Capabilities|capability]] required for this menu to be displayed to the user.  [[User Levels|User levels]] are deprecated and should not be used here!}}
+
+{{Parameter|$menu_slug|string|The slug name to refer to this menu by (should be unique for this menu). Prior to [[Version 3.0]] this was called the file (or handle) parameter.  If the function parameter is omitted, the menu_slug should be the PHP file that handles the display of the menu page content.}}
+
+{{Parameter|$function|string|The function that displays the page content for the menu page.|optional|''None''.}} Technically, the ''function'' parameter is optional, but if it is not supplied, then WordPress will assume that including the PHP file will generate the administration screen, without calling a function. Most plugin authors choose to put the page-generating code in a function within their main plugin file. In the event that the ''function'' parameter is specified, it is possible to use any string for the ''menu_slug'' parameter. This allows usage of pages such as ''?page=my_super_plugin_page'' instead of ''?page=my-super-plugin/admin-options.php''.
+:The function must be referenced in one of two ways:
+:# if the function is a member of a class within the plugin it should be referenced as <tt>array( $this, 'function_name' )</tt>
+:# in all other cases, using the function name itself is sufficient
+
+{{Parameter|$icon_url|string|The icon for this menu.|optional|empty string}}
+:* If you have a custom image file, you can use the <tt>plugin_dir_url( __FILE__ )</tt> function to get the URL of your plugin directory and then add the image filename to it. Icons should be 20 x 20 pixels or smaller.
+:* (WP 3.8+) If 'dashicons-...', a [[Dashicon]] is shown from the collection at https://developer.wordpress.org/resource/dashicons/. For example, the default "gear" symbol could be explicitly specified with 'dashicons-admin-generic'.
+:* (WP 3.8+) If 'data:image/svg+xml;base64...', the specified SVG data image is used as a CSS background.
+:* If 'none' (previously 'div'), the icon is replaced with an empty div you can style with CSS.
+:* If <nowiki>''</nowiki> (default), the "gear" [[Dashicon]] is shown (and <tt>menu-icon-generic</tt> is added to the CSS classes of the link).
+
+{{Parameter|$position|integer|The position in the menu order this menu should appear.  By default, if this parameter is omitted, the menu will appear at the bottom of the menu structure. The higher the number, the lower its position in the menu.
+
+WARNING: If two menu items use the same position, only one of them will be displayed. In most cases, it's better to use [[add_object_page]], which will automatically position the new page alongside other custom post types, avoiding any conflicts. Risk of conflict can also be reduced by using strings values instead of integers, e.g. '63.3' (string) instead of 63 (integer). |optional|bottom of menu structure}}
+
+:* 2  - Dashboard
+:* 4  - Separator
+:* 5  - Posts
+:* 10 - Media
+:* 15 - Links
+:* 20 - Pages
+:* 25 - Comments
+:* 59 - Separator
+:* 60 - Appearance
+:* 65 - Plugins
+:* 70 - Users
+:* 75 - Tools
+:* 80 - Settings
+:* 99 - Separator
+
+For the Network Admin menu, the values are different:
+:* 2 - Dashboard
+:* 4 - Separator
+:* 5 - Sites
+:* 10 - Users
+:* 15 - Themes
+:* 20 - Plugins
+:* 25 - Settings
+:* 30 - Updates
+:* 99 - Separator
+
+==Return Values==
+; <tt>string</tt> : $hookname used internally to track menu page callbacks for outputting the page inside the global <tt>$menu</tt> array
+
+== Examples ==
+Add a custom menu item to the WordPress admin menu, for a user with administrator capability:
+
+Method 1:
+<pre>
+add_action( 'admin_menu', 'register_my_custom_menu_page' );
+
+function register_my_custom_menu_page() {
+
+	add_menu_page( 'custom menu title', 'custom menu', 'manage_options', 'myplugin/myplugin-admin.php', '', plugins_url( 'myplugin/images/icon.png' ), 6 );
+
+}
+</pre>
+With this method the page-generating code should be located in myplugin/myplugin-admin.php:
+<pre>
+<?php echo "Admin Page Test"; ?>
+</pre>
+
+Method 2:
+<pre>
+add_action( 'admin_menu', 'register_my_custom_menu_page' );
+
+function register_my_custom_menu_page(){
+	add_menu_page( 'custom menu title', 'custom menu', 'manage_options', 'custompage', 'my_custom_menu_page', plugins_url( 'myplugin/images/icon.png' ), 6 ); 
+}
+
+function my_custom_menu_page(){
+	echo "Admin Page Test";	
+}
+</pre>
+
+== Notes ==
+
+* If you're running into the "You do not have sufficient permissions to access this page" error, then you've hooked too early. The hook you should use is <tt>admin_menu</tt>.
+
+* If you only want to move existing admin menu items to different positions, you can use the <tt>admin_menu</tt> hook to unset menu items from their current positions in the global <tt>$menu</tt> and <tt>$submenu</tt> variables (which are arrays), and reset them elsewhere in the array.
+
+* This function takes a 'capability' (see [[Roles and Capabilities]]) which will be used to determine whether or not a page is included in the menu. The function which is hooked in to handle the output of the page must check that the user has the required 'capability' as well.
+
+* If you are using the [[Settings API]] to save data, and need the user to be other than the administrator, will need to modify the permissions via the hook <tt>option_page_capability_{$option_group}</tt>, where <tt>$option_group</tt> is the same as  <tt>option_group</tt> in <tt>[[Function_Reference/register_setting()|register_setting()]] </tt>. Check out the [[Settings API]]. 
+
+Example allowing an editor to save data:
+
+<pre>
+// Register settings using the Settings API 
+function register_my_setting() {
+	register_setting( 'my-options-group', 'my-option-name', 'intval' ); 
+} 
+add_action( 'admin_init', 'register_my_setting' );
+
+// Modify capability
+function my_page_capability( $capability ) {
+	return 'edit_others_posts';
+}
+add_filter( 'option_page_capability_my-options-group', 'my_page_capability' );
+</pre>
+
+== Change Log ==
+
+
+== Source File ==
+
+<tt>add_menu_page()</tt> is located in {{Trac|wp-admin/includes/plugin.php}}.
+
+== Related ==
+
+{{Admin Menu Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

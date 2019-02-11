@@ -1,0 +1,76 @@
+{{Languages|
+{{en|Function Reference/wp_die}}
+{{ja|関数リファレンス/wp_die}}
+}}
+
+== Description ==
+Kill WordPress execution and conditionally display [[wikipedia:HTML|HTML]] message with error message. 
+
+A call to this function complements the [http://php.net/manual/en/function.die.php <tt>die()</tt>] PHP function. The difference is that HTML will be displayed to the user in the case of a typical web request. It is recommended to use this function only when the execution should not continue any further. It is not recommended to call this function very often and try to handle as many errors as possible silently.
+
+If you really want to stop execution and exit the PHP script without outputting anything (and let the response time out) use <code>exit()</code> or <code>die()</code>. The function <code>wp_die()</code> is designed to give output just before it dies to avoid empty or time-outing responses.
+
+== Usage ==
+%%%<?php wp_die( $message, $title, $args ) ?>%%%
+
+== Parameters ==
+{{Parameter|$message|mixed|Error message or a complete <tt>[[Class_Reference/WP_Error | WP_Error]]</tt> object.|optional}}
+{{Parameter|$title|string&#124;int|Error title, If you use a <tt>WP_Error</tt> object, the title will be by default the one you added in <tt>$data['title']</tt> (ignored when DOING_AJAX is true). If you pass an <tt>int</tt>, it is used as the response code (since 4.1).|optional|&#39;&#39;}}
+{{Parameter|$args|string&#124;array&#124;int|Optional arguments to control behavior (ignored when DOING_AJAX is true). If you pass an <tt>int</tt>, it is used as the response code (since 4.1)|optional}}
+
+=== Arguments ===
+{{Parameter|response|integer|HTML status code returned.|optional|500}}
+{{Parameter|back_link|boolean|Whether to display a back link in the returned page.|optional|<tt>false</tt>}}
+{{Parameter|text_direction|string|Whether to set ltr or rtl as the text direction|optional|'ltr'}}
+
+== Return Values ==
+; (void) : This function does not return a value.
+
+== Examples ==
+<!-- Need creative examples. Feel free to link to external examples. -->
+Test to see what is in the <tt>$post</tt> variable in a filter:
+<pre>
+add_filter( 'body_class', 'add_body_class_cb' );
+/**
+ * Add new body class.
+ *
+ * Testing what is in the $post variable.
+ */
+function add_body_class_cb( $classes ) {
+    global $post;
+
+    wp_die( '&lt;pre>' . var_export( $post, true ) . '&lt;/pre>' );
+}
+</pre>
+
+<!-- Example of using a new WP_Error object needed -->
+
+== Notes ==
+* Uses: <tt>[[Function_Reference/apply_filters | apply_filters()]]</tt> - To filter the name of the die handler function:
+** Calls <tt>[[Plugin_API/Filter_Reference/wp_die_ajax_handler | 'wp_die_ajax_handler']]</tt> with the default AJAX die handler function (<tt>'_ajax_wp_die_handler'</tt>) if the <tt>DOING_AJAX</tt> constant is set to <tt>true</tt>.
+** Calls <tt>[[Plugin_API/Filter_Reference/wp_die_xmlrpc_handler | 'wp_die_xmlrpc_handler']]</tt> with the default XML-RPC die handler function (<tt>'_xmlrpc_wp_die_handler'</tt>) if the <tt>XMLRPC_REQUEST</tt> constant is set to <tt>true</tt>.
+** Calls <tt>[[Plugin_API/Filter_Reference/wp_die_handler | 'wp_die_handler']]</tt> in every other case, with the default die handler function (<tt>'_default_wp_die_handler'</tt>).
+
+* You can add a <tt>[[Class_Reference/WP_Error | WP_Error]]</tt> object. If you've done so, you can add <tt>$data['title']</tt> to the error object and it will automatically be taken as (default/overwriteable) title for the die page.<br /><br />[example missing here]
+
+== Change Log ==
+* Since: [[Version_2.0.4 | 2.0.4]]
+
+== Source File ==
+
+<tt>wp_die()</tt> is located in {{Trac|wp-includes/functions.php}}.
+
+== Related ==
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]
+
+{{Copyedit}}

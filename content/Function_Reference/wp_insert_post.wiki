@@ -1,0 +1,154 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/wp_insert_post/}}
+
+{{Languages|
+{{en|Function_Reference/wp_insert_post}}
+{{ru|Справочник по функциям/wp insert post}}
+{{ja|関数リファレンス/wp insert post}}
+{{tr|Fonksiyon Listesi/wp insert post}}
+{{zh-cn|函数参考/wp_insert_post}}
+}}
+==Description==
+This function inserts posts (and pages) in the database. It sanitizes variables, does some checks, fills in missing variables like date/time, etc. It takes an array as its argument and returns the post ID of the created post (or <tt>0</tt> if there is an error).
+
+== Usage ==
+
+%%% <?php wp_insert_post( $post, $wp_error ); ?> %%%
+
+==Parameters==
+{{Parameter|$post|array|An array representing the elements that make up a post. There is a one-to-one relationship between these elements and the names of columns in the wp_posts table in the database.}}
+
+ '''IMPORTANT''': Setting a value for $post['ID'] WILL NOT create a post with that ID number. Setting this value will cause the function to update the post with that ID number with the other values specified in $post. In short, to insert a new post, $post['ID'] must be blank or not set at all. 
+
+ The contents of the post array can depend on how much (or little) you want to trust the defaults. Here is a list with a short description of all the keys you can set for a post:
+
+<pre>
+$post = array(
+  'ID'             => [ <post id> ] // Are you updating an existing post?
+  'post_content'   => [ <string> ] // The full text of the post.
+  'post_name'      => [ <string> ] // The name (slug) for your post
+  'post_title'     => [ <string> ] // The title of your post.
+  'post_status'    => [ 'draft' | 'publish' | 'pending'| 'future' | 'private' | custom registered status ] // Default 'draft'.
+  'post_type'      => [ 'post' | 'page' | 'link' | 'nav_menu_item' | custom post type ] // Default 'post'.
+  'post_author'    => [ <user ID> ] // The user ID number of the author. Default is the current user ID.
+  'ping_status'    => [ 'closed' | 'open' ] // Pingbacks or trackbacks allowed. Default is the option 'default_ping_status'.
+  'post_parent'    => [ <post ID> ] // Sets the parent of the new post, if any. Default 0.
+  'menu_order'     => [ <order> ] // If new post is a page, sets the order in which it should appear in supported menus. Default 0.
+  'to_ping'        => // Space or carriage return-separated list of URLs to ping. Default empty string.
+  'pinged'         => // Space or carriage return-separated list of URLs that have been pinged. Default empty string.
+  'post_password'  => [ <string> ] // Password for post, if any. Default empty string.
+  'guid'           => // Skip this and let Wordpress handle it, usually.
+  'post_content_filtered' => // Skip this and let Wordpress handle it, usually.
+  'post_excerpt'   => [ <string> ] // For all your post excerpt needs.
+  'post_date'      => [ Y-m-d H:i:s ] // The time post was made.
+  'post_date_gmt'  => [ Y-m-d H:i:s ] // The time post was made, in GMT.
+  'comment_status' => [ 'closed' | 'open' ] // Default is the option 'default_comment_status', or 'closed'.
+  'post_category'  => [ array(<category id>, ...) ] // Default empty.
+  'tags_input'     => [ '<tag>, <tag>, ...' | array ] // Default empty.
+  'tax_input'      => [ array( <taxonomy> => <array | string>, <taxonomy_other> => <array | string> ) ] // For custom taxonomies. Default empty.
+  'page_template'  => [ <string> ] // Requires name of template file, eg template.php. Default empty.
+);  
+</pre>
+
+'''Notes'''
+* <tt>post_title</tt> and <tt>post_content</tt> are required
+* <tt>post_status</tt>: If providing a post_status of 'future' you must specify the post_date in order for WordPress to know when to publish your post. See also [[Post Status Transitions]].
+* <tt>post_category</tt>: Equivalent to calling [[Function Reference/wp_set_post_categories|wp_set_post_categories()]].
+* <tt>tags_input</tt>: Equivalent to calling [[Function Reference/wp_set_post_tags|wp_set_post_tags()]].
+* <tt>tax_input</tt>: Equivalent to calling [[Function Reference/wp_set_post_terms|wp_set_post_terms()]] for each custom taxonomy in the array. If the current user doesn't have the capability to work with a taxonomy, then you must use [[Function Reference/wp_set_object_terms|wp_set_object_terms()]] instead.
+* <tt>page_template</tt>: If post_type is 'page', will attempt to set the [[Page_Templates|page template]]. On failure, the function will return either a WP_Error or 0, and stop before the final actions are called. If the post_type is not 'page', the parameter is ignored.  You can set the page template for a non-page by calling [[Function Reference/update_post_meta|update_post_meta()]] with a key of '_wp_page_template'.
+
+{{Parameter|$wp_error|bool|Allow return of [[Class Reference/WP_Error|WP_Error]] object on failure|optional|false}}
+
+==Return==
+The ID of the post if the post is successfully added to the database. On failure, it returns <tt>0</tt> if $wp_error is set to false, or a [[Class Reference/WP_Error|WP_Error]] object if $wp_error is set to true.
+
+==Example==
+Before calling wp_insert_post() it is necessary to create an array to pass the necessary elements that make up a post. The wp_insert_post() will fill out a default list of these but the user is required to provide the title and content otherwise the database write will fail.
+
+The next example shows the post title, content, status, author, and post categories being set.  You can add further key-value pairs, making sure the keys match the names of the columns in the wp_posts table in the database.
+<pre>
+// Create post object
+$my_post = array(
+  'post_title'    => 'My post',
+  'post_content'  => 'This is my post.',
+  'post_status'   => 'publish',
+  'post_author'   => 1,
+  'post_category' => array(8,39)
+);
+
+// Insert the post into the database
+wp_insert_post( $my_post );
+</pre>
+
+Insert a new post and return the new post id.
+<pre>
+$post_id = wp_insert_post( $post, $wp_error );
+//now you can use $post_id within add_post_meta or update_post_meta
+</pre>
+
+The default list referred to above is defined in the function body. It is as follows:
+<pre>
+$defaults = array(
+  'post_status'           => 'draft', 
+  'post_type'             => 'post',
+  'post_author'           => $user_ID,
+  'ping_status'           => get_option('default_ping_status'), 
+  'post_parent'           => 0,
+  'menu_order'            => 0,
+  'to_ping'               =>  '',
+  'pinged'                => '',
+  'post_password'         => '',
+  'guid'                  => '',
+  'post_content_filtered' => '',
+  'post_excerpt'          => '',
+  'import_id'             => 0
+);
+</pre>
+
+===Categories===
+Categories need to be passed as an array of integers that match the category IDs in the database. This is the case even where only one category is assigned to the post.
+
+See also: [[Function_Reference/wp_set_post_terms|wp_set_post_terms()]]
+
+==Security==
+
+<tt>wp_insert_post()</tt> passes data through sanitize_post(), which itself handles all necessary sanitization and validation (kses, etc.).
+
+As such, you don't need to worry about that.
+
+You may wish, however, to remove HTML, JavaScript, and PHP tags from the post_title and any other fields. Surprisingly, WordPress does not do this automatically. This can be easily done by using the wp_strip_all_tags() function (as of 2.9) and is especially useful when building front-end post submission forms.
+
+<pre>
+// Create post object
+$my_post = array(
+  'post_title'    => wp_strip_all_tags( $_POST['post_title'] ),
+  'post_content'  => $_POST['post_content'],
+  'post_status'   => 'publish',
+  'post_author'   => 1,
+  'post_category' => array( 8,39 )
+);
+
+// Insert the post into the database
+wp_insert_post( $my_post );
+</pre>
+==Change Log==
+* Since: [[Version 1.0|1.0]]
+
+== Source File ==
+<!-- Need links to current source code files -->
+<tt>wp_insert_post()</tt> is located in {{Trac|wp-includes/post.php}}.
+
+==Related==
+[[Function Reference/wp update post|wp_update_post()]], 
+[[Function Reference/wp delete post|wp_delete_post()]], 
+[[Function Reference/wp publish post|wp_publish_post()]], 
+[[Function Reference/wp delete attachment|wp_delete_attachment()]],
+[[Function Reference/wp get attachment url|wp_get_attachment_url()]],
+[[Function Reference/wp insert attachment|wp_insert_attachment()]],
+[[Plugin API/Filter Reference/wp insert post data|wp_insert_post_data()]]
+
+{{Tag Footer}}
+{{Copyedit}}
+
+[[Category:Functions]]
+[[Category:New page created]]

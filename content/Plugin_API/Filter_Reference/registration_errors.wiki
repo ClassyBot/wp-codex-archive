@@ -1,0 +1,75 @@
+==Description==
+The ''registration_errors'' [[Plugin_API/Filter_Reference|filter hook]] filters the errors encountered when a new user is being registered.
+
+The filtered WP_Error object may, for example, contain errors for an invalid or existing username or email address. A WP_Error object should always returned, but may or may not contain errors.
+
+If any errors are present in $errors, this will abort the user's registration.
+
+This filter can be used to create custom validation rules on user registration. This fires when the form is submitted but before user information is saved to the database.
+
+When used with other hooks, this filter can be used to create custom registration processes.
+
+==Parameters==
+
+{{Parameter|$errors|WP_Error|A WP_Error object containing any errors encountered during registration.|required}}
+{{Parameter|$sanitized_user_login|string|User's username after it has been sanitized.|optional}}
+{{Parameter|$user_email|string|User's email.|optional}}
+
+==Examples==
+
+===Returning an Error===
+
+This example shows how to return an error.
+
+<pre>
+function myplugin_check_fields( $errors, $sanitized_user_login, $user_email ) {
+
+    $errors->add( 'demo_error', __( '<strong>ERROR</strong>: This is a demo error.', 'my_textdomain' ) );
+    return $errors;
+}
+
+add_filter( 'registration_errors', 'myplugin_check_fields', 10, 3 );
+</pre>
+
+===Validating a Custom Field===
+
+Assuming you wanted to validate a postal code field that you have already created using the [[Plugin_API/Action_Reference/register_form|register_form]] hook, you might validate the field like so:
+
+<pre>
+function myplugin_check_fields( $errors, $sanitized_user_login, $user_email ) {
+
+    if ( ! preg_match('/[0-9]{5}/', $_POST['zipcode'] ) ) {
+        $errors->add( 'zipcode_error', __( '<strong>ERROR</strong>: Invalid Zip.', 'my_textdomain' ) );
+    }
+
+    return $errors;
+}
+
+add_filter( 'registration_errors', 'myplugin_check_fields', 10, 3 );
+</pre>
+
+== Notes ==
+
+The form will not create a new user if any errors are returned. 
+Notice: The function must return the variable $errors in any case (even when there is no error in your logic), otherwise the function may cause this problem: ''<tt>Fatal error: Call to a member function get_error_code() on a non-object</tt>''.
+
+== Change Log ==
+
+Since: [[Version 2.1]]
+
+== Source File ==
+The <tt>registration_errors</tt> hook is located in {{Trac|wp-includes/user.php}}
+
+==Related==
+===Tutorials===
+* [[Customizing the Registration Form]]
+===Action Hooks===
+* [[Plugin_API/Action_Reference/register_form|register_form]]
+* [[Plugin_API/Action_Reference/register_post|register_post]]
+* [[Plugin_API/Action_Reference/user_register|user_register]]
+===Filter Hooks===
+* [[Plugin_API/Filter_Reference/registration_errors|registration_errors]]
+
+Return to [[Plugin API/Filter Reference]]
+
+[[Category:Filters]]

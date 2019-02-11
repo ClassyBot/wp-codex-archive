@@ -1,0 +1,124 @@
+Adding support for language written in a [[Glossary#RTL|Right-To-Left (RTL)]] direction is easy.
+
+There are two ways to do that:
+* By creating a fully mirror of your style.css file named '''style-rtl.css'''
+* By overwriting all the horizontal positioning attributes of your CSS stylesheet in a separate stylesheet file named '''rtl.css'''.
+
+= Method 1: style-rtl.css =
+* Use an automated RTL css creator such as [http://rtlcss.com RTLCSS] or [https://cssjanus.github.io/ CSSJanus] to create an rtl version of your '''style.css''' file. Save the result as '''style-rtl.css''' and place in the same location.
+* Use <tt>[[wp_enqueue_style]]</tt> to enqueue your style.css file in the theme. This won't work if the file is simply embedded in the header file
+* Use <tt>[[wp_style_add_data]]</tt> to set the <tt>rtl</tt> property to <tt>replace</tt> for your stylesheet.
+Example:
+<pre>
+wp_enqueue_style( 'themeslug-style', get_stylesheet_uri() );
+wp_style_add_data( 'themeslug-style', 'rtl', 'replace' );
+</pre>
+
+== Notes ==
+* Both of the tools mentioned have developer friendly tools to automate the creation of RTL stylesheets. 
+
+= Method 2: rtl.css =
+
+* Start with your main theme stylesheet (usually '''style.css''').
+* Save this file as '''rtl.css'''
+* Add the following attributes to the body selector:
+<pre>
+  direction: rtl;
+  unicode-bidi: embed;
+</pre>
+*One by one, go over the CSS selectors and do the following: Remove any irrelevant attributes such as font styling attributes, colors, vertical positioning, width and height etc. Change the value (from right to left and vice-versa) of the following attributes:
+** text-direction
+** float
+** clear
+<pre>
+   text-align: left;
+   float: right;
+   clear: left;
+</pre>
+becomes
+<pre>
+  text-align: right;
+  float: left;
+  clear: right;
+</pre>
+* Add RTL versions of relevant images.
+Some images are clearly suited only for one direction (arrows for example). Create a horizontally flipped version of those images.
+* Mirror the following attributes, and zero the original 
+** margin
+** padding
+** borders
+** background-position
+** right/left positioning
+<pre>
+.commentslink{
+	background:url("./images/comments.gif") no-repeat 0 3px;
+	padding-left:15px;
+        margin: 2px 4px 0px 12px;
+        left: 10px;
+}
+</pre>
+becomes
+<pre>
+.commentslink{
+	background:url("./images/comments-rtl.gif") no-repeat 100% 3px;
+	padding-left:0;
+        padding-right:15px;
+        margin: 2px 12px 0px 4px;
+        left:auto;
+        right:10px;
+}
+</pre>
+For buttons that have hidden text using text-indent, you need to change its value from negative to positive:
+<pre>
+.image-button{
+	text-indent:-99999px;
+}
+</pre>
+becomes
+<pre>
+.image-button{
+	text-indent:99999px;
+}
+</pre>
+
+=Tools=
+
+The RTL Tester plugin allows you to easily switch the text direction of the site: http://wordpress.org/extend/plugins/rtl-tester/
+
+P.S. This plugin allows to VIEW ONLY RTL. i.e. How would your site look like when its Text Direction is changed & this change isn't viewed by the viewers, (unless the whole CSS is changed).
+
+=Special Cases=
+* You'll need to manually adjust pixel positioned backgrounds. If the original value is '0' you can change it to 100%
+* Positioning: remember to assign the 'auto' value to the original selector
+* Some fields should be Left To Right direction in both LTR and RTL languages, For example : email, telephones, zip codes, codes, URLs and any input contains English letters and numbers, So it is better to assign a unique id or class to each input fields, which you will be able to make them LTR direction in CSS files
+Example:
+<pre>
+<input type="text" class="email-address1 email" id="email-address1" />
+<input type="text" class="tel-number1 tel" id="tel-number1" />
+<input type="text" class="zip1 zip" id="zip1" />
+<input type="text" class="url-address1 url" id="url-address1" />
+</pre>
+Using class:
+<pre>
+/* These fields should be LTR in a RTL language direction */
+.email-address1,
+.email,
+.tel-number1,
+.tel,
+.zip1,
+.url-address1,
+.url,
+...
+{
+     direction: ltr;
+}
+</pre>
+
+=Writing a Post in RTL Language=
+WordPress default visual text editor doesn't support writing in RTL languages like Hebrew, Persian and Arabic. Therefore, if you're willing to write a post in one of those languages, you should either :
+*Reinstall / Change your WordPress version to be in that language, which fixes this issue with allowing you as a default to write in RTL.
+*Use this plugin: http://wordpress.org/plugins/wp-rtl/ which adds two buttons to the TinyMCE editor (if you have it) to enable changing text direction from  Left to Right (LTR) and Right to Left (RTL). 
+
+[[Category:Translating WordPress]]   
+[[Category:Advanced Topics]]
+[[Category:UI Link]]

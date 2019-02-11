@@ -1,0 +1,57 @@
+== Description ==
+A filter-hook that is applied to the comment data prior to any other processing of the comment's information when saving a comment data to the database.
+
+== Usage ==
+%%%<?php
+function preprocess_comment_handler( $commentdata ) {
+    //some code
+    return $commentdata;
+}
+add_filter( 'preprocess_comment' , 'preprocess_comment_handler' );
+?>%%%
+
+== Parameters ==
+{{Parameter|$commentdata|array|Comment data array (see below)}}
+
+The $commentdata array contains the following indices:
+    'comment_post_ID'      - The post to which the comment will apply
+    'comment_author'       - (may be empty)
+    'comment_author_email' - (may be empty)
+    'comment_author_url'   - (may be empty)
+    'comment_content'      - The text of the proposed comment
+    'comment_type'         - 'pingback', 'trackback', or empty for regular comments
+    'user_ID'              - (empty if not logged in)
+
+== Return Values ==
+; <tt>$commentdata (i.e. 'array')</tt> : the $commentdata array which may have been manipulated during the execution of the handler.
+
+== Examples ==
+%%%<?php
+function preprocess_comment_remove_url( $commentdata ) {
+  // Always remove the URL from the comment author's comment
+  unset( $commentdata['comment_author_url'] );
+
+  // If the user is speaking in all caps, lowercase the comment
+  if( $commentdata['comment_content'] == strtoupper( $commentdata['comment_content'] )) {
+    $commentdata['comment_content'] = strtolower( $commentdata['comment_content'] );
+  }
+
+  return $commentdata;
+}
+add_filter( 'preprocess_comment' , 'preprocess_comment_remove_url' ); 
+?>%%%
+
+== Change Log ==
+(pre_process_comment) Since: 1.5.2
+
+Prior to WP 2.0, the hook was located in wp-includes/function-post.php
+Prior to WP 2.1, the hook was located in wp-includes/comment-functions.php
+
+== Source File ==
+The <tt>preprocess_comment</tt> comment is located in {{Trac|wp-includes/comment.php}}.
+
+== See Also ==
+[[Plugin_API/Filter_Reference]]
+
+[[Category:Filters]]
+[[Category:New_page_created]]

@@ -1,0 +1,210 @@
+You can fairly easily import data from [http://roller.apache.org/ Apache Roller] using the MovableType import script. 
+
+# Export your blog from the Roller database for importing into WordPress. 
+# Copy photographs, images, graphics, video, and all content files to the appropriate directories in your WordPress site server.
+# Modify the <code>$user</code>, <code>$oldresources</code>, <code>$newresources</code>, and <code>$connection</code> variables in the beginning of the script below script and place it on your server where PHP execution is allowed.
+# Execute the script. This will create a "dump" of your Roller blog content into a MovableType Import format. 
+# Use <code>wget</code> to store it into file.
+
+Then follow the instructions for [[Importing_from_Movable_Type_to_WordPress|Importing from Movable Type to WordPress]].
+
+The following scripts should work for Roller pre-2.0 release. After Version 2.0, the comment table is changed to <code>roller_comment</code>. Change the select statement to <code>roller_comment</code>.
+
+==Exporting Roller Database from postgresql==
+
+For Roller using the postgresql database, copy the following script carefully and place it in a [[Editing_Files|text editor]] and save it with an appropriate name as a PHP file. Upload it per the instructions above to your Roller server.
+
+<pre>
+<html>
+<head>
+<title>Roller export</title>
+</head>   
+<body>
+<?
+// assumes that Roller is running on postgresql
+// it also assumes that there is only one blog for user
+// the character set used by Roller is utf8, but this seems to suit at least
+// WordPress just fine, so no conversions done
+// just modify the script, store it somewhere where php execution is allowed
+// and wget the url
+//
+// provided by Madis Kaal 
+//
+$user = "bloguser";
+// in entry body, all occurrencies of $oldresources are 
+// replaced with $newresources
+$oldresources = "/resources/bloguser/";
+$newresources = "http://somesite/wp-content/";
+// define your database connection here
+// dbname is name of database
+// usually, it is on localhost
+// password is for accessing the db
+// and user is username for it
+$connection = pg_connect("dbname=dbname host=localhost password=dbpassword user=dbuser");
+
+// -- this is it, no changes should be needed below -------------------------------
+// get ID for user
+$result = pg_Exec($connection, "select id from rolleruser where username='".$user."'");
+$uid=pg_result($result,0,0);
+// get ID for site
+$result = pg_Exec($connection,"select id from website where userid='".$uid."'");
+$siteid=pg_result($result,0,0);
+// get all entries for this site
+$entries= pg_Exec($connection,"select id,title,text,pubtime,categoryid,allowcomments,publishentry from weblogentry where websiteid='".$siteid."' order by pubtime");
+// dump all entries
+echo "--------\n";
+for($i=0; $i<(pg_numrows($entries)); $i++)
+{
+  // turn the category ID into category name, I know SQL-heads would just
+  // do it in query, but I'm a complete C-head
+  $resultRow = pg_fetch_array($entries, $i);
+  $c=$resultRow["categoryid"];
+  $cat=pg_result(pg_Exec($connection,"select name from weblogcategory where id='".$c."'"),0,0);
+  // dump metadata first  
+  echo "PRIMARY CATEGORY: ".$cat."\n";
+  echo "AUTHOR: ".$user."\n";
+  echo "TITLE: ".$resultRow["title"]."\n";
+  $c=$resultRow["pubtime"];
+  // convert YYYY-MM-DD hh:mm:ss.ms to MM/DD/YYYY hh:mm:ss
+  echo "DATE: ".substr($c,5,2)."/".substr($c,8,2)."/".substr($c,0,4).substr($c,10,9)."\n";
+  $c=$resultRow["publishentry"];
+  if ($c=="t") { $c="1"; } else { $c="0"; };
+  echo "STATUS: ".$c."\n";
+  $c=$resultRow["allowcomments"];
+  if ($c=="t") { $c="1"; } else { $c="0"; };
+  echo "ALLOW COMMENTS: ".$c."\n";
+  echo "-----\n";
+  // done with metadata, multiline entries follow 
+  echo "BODY:\n";
+  $c=str_replace($oldresources,$newresources,$resultRow["text"]);
+  echo $c."\n";
+  // find comments for the entry
+  $comments=pg_Exec("select name,email,url,posttime,remotehost,content from comment where entryid='".$resultRow["id"]."'");
+  for ($j=0; $j<(pg_numrows($comments)); $j++)
+  {
+    $c=pg_fetch_array($comments,$j);
+    // discard all comments containing url. this gets rid of spam, and also
+    // some legimate comments as well
+    if (strpos($c["content"],"http://")===false)
+    {
+      echo "-----\n";
+      echo "COMMENT:\n";
+      echo "AUTHOR: ".$c["name"]."\n";
+      echo "EMAIL: ".$c["email"]."\n";
+      echo "URL: ".$c["url"]."\n";
+      echo "IP: ".$c["remotehost"]."\n";
+      $d=$c["posttime"];
+      echo "DATE: ".substr($d,5,2)."/".substr($d,8,2)."/".substr($d,0,4).substr($d,10,9)."\n";
+      echo $c["content"]."\n";
+    }
+  }
+  echo "--------\n";    
+}
+pg_close($connection);
+?>
+</body>
+</html>
+</pre>
+
+==Exporting Roller Database from MySQL==
+
+For MySQL databases, copy the following script carefully and place it in a [[Editing_Files|text editor]] and save it with an appropriate name as a PHP file. Upload it per the instructions above to your Roller server.
+
+<pre>
+<html>
+<head>
+<title>Roller export</title>
+</head>   
+<body>
+<?
+// assumes that Roller is running on MySQL
+// it also assumes that there is only one blog for user
+// the character set used by Roller is utf8, but this seems to suit at least
+// WordPress just fine, so no conversions done
+// just modify the script, store it somewhere where php execution is allowed
+// and wget the url
+//
+// provided by Madis Kaal <mast@nomad.ee>
+//
+$user = "yourusernameonroller";
+// in entry body, all occurrencies of $oldresources are 
+// replaced with $newresources
+$oldresources = "/roller/page/username/";
+$newresources = "/roller/page/username/";
+// define your database connection here
+// dbname is name of database
+// usually, it is on localhost
+// password is for accessing the db
+// and user is username for it
+$username = "dbusername";
+$password = "dbpassword";
+$hostname = "localhost";
+$dbname = "roller";
+$dbh = mysql_connect($hostname, $username, $password);
+$connection = mysql_select_db($dbname,$dbh);
+
+// -- this is it, no changes should be needed below -------------------------------
+// get ID for user
+$result = mysql_query("select id from rolleruser where username='".$user."'");
+$uid=mysql_result($result,0,0);
+// get ID for site
+$result = mysql_query("select id from website where userid='".$uid."'");
+$siteid=mysql_result($result,0,0);
+// get all entries for this site
+$entries= mysql_query("select id,title,text,pubtime,categoryid,allowcomments,publishentry from weblogentry where websiteid='".$siteid."' order by pubtime");
+// dump all entries
+echo "--------\n";
+for($i=0; $i<(mysql_num_rows($entries)); $i++)
+{
+  // turn the category ID into category name, I know SQL-heads would just
+  // do it in query, but I'm a complete C-head
+  $resultRow = mysql_fetch_array($entries);
+  $c=$resultRow["categoryid"];
+  $cat=mysql_result(mysql_query("select name from weblogcategory where id='".$c."'"),0,0);
+  // dump metadata first  
+  echo "PRIMARY CATEGORY: ".$cat."\n";
+  echo "AUTHOR: ".$user."\n";
+  echo "TITLE: ".$resultRow["title"]."\n";
+  $c=$resultRow["pubtime"];
+  // convert YYYY-MM-DD hh:mm:ss.ms to MM/DD/YYYY hh:mm:ss
+  echo "DATE: ".substr($c,5,2)."/".substr($c,8,2)."/".substr($c,0,4).substr($c,10,9)."\n";
+  $c=$resultRow["publishentry"];
+  if ($c=="t") { $c="1"; } else { $c="0"; };
+  echo "STATUS: ".$c."\n";
+  $c=$resultRow["allowcomments"];
+  if ($c=="t") { $c="1"; } else { $c="0"; };
+  echo "ALLOW COMMENTS: ".$c."\n";
+  echo "-----\n";
+  // done with metadata, multiline entries follow 
+  echo "BODY:\n";
+  $c=str_replace($oldresources,$newresources,$resultRow["text"]);
+  echo $c."\n";
+  // find comments for the entry
+  $comments=mysql_query("select name,email,url,posttime,remotehost,content from comment where entryid='".$resultRow["id"]."'");
+  for ($j=0; $j<(mysql_num_rows($comments)); $j++)
+  {
+    $c=mysql_fetch_array($comments);
+    // discard all comments containing url. this gets rid of spam, and also
+    // some legimate comments as well
+    if (strpos($c["content"],"http://")===false)
+    {
+      echo "-----\n";
+      echo "COMMENT:\n";
+      echo "AUTHOR: ".$c["name"]."\n";
+      echo "EMAIL: ".$c["email"]."\n";
+      echo "URL: ".$c["url"]."\n";
+      echo "IP: ".$c["remotehost"]."\n";
+      $d=$c["posttime"];
+      echo "DATE: ".substr($d,5,2)."/".substr($d,8,2)."/".substr($d,0,4).substr($d,10,9)."\n";
+      echo $c["content"]."\n";
+    }
+  }
+  echo "--------\n";    
+}
+mysql_close();
+?>
+</body>
+</html>
+</pre>
+
+[[Category:Installation]]

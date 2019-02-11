@@ -1,0 +1,99 @@
+<p>Like the rest of WordPress, the XML-RPC API contains numerous hooks to customize or extend its behavior.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Actions"><span class="tocnumber">1</span> <span class="toctext">Actions</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#xmlrpc_methods_Filter"><span class="tocnumber">2</span> <span class="toctext">xmlrpc_methods Filter</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Add_Simple_Method"><span class="tocnumber">2.1</span> <span class="toctext">Add Simple Method</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Add_Authenticated_Method"><span class="tocnumber">2.2</span> <span class="toctext">Add Authenticated Method</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Remove_a_method"><span class="tocnumber">2.3</span> <span class="toctext">Remove a method</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#wp_xmlrpc_server_class_Filter"><span class="tocnumber">3</span> <span class="toctext">wp_xmlrpc_server_class Filter</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Actions">Actions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC_Extending&amp;action=edit&amp;section=1" title="Edit section: Actions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>All built-in XML-RPC methods use the action <tt>xmlrpc_call</tt>, with a parameter equal to the method's name (e.g., <tt>wp.newPost</tt>). The action is performed after the user has been authenticated but before the rest of the method logic begins.
+</p>
+<h2><span class="mw-headline" id="xmlrpc_methods_Filter"><tt>xmlrpc_methods</tt> Filter</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC_Extending&amp;action=edit&amp;section=2" title="Edit section: xmlrpc methods Filter">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <tt>xmlrpc_methods</tt> filter allows for customization of the methods exposed by the XML-RPC server. It can be used to both add new methods and remove built-in methods.
+</p>
+<h3><span class="mw-headline" id="Add_Simple_Method">Add Simple Method</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC_Extending&amp;action=edit&amp;section=3" title="Edit section: Add Simple Method">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Here is an example of adding a simple method that does not require user authentication or input sanitation:
+</p>
+<pre>
+function mynamespace_subtractTwoNumbers( $args ) {
+    $number1 = (int) $args[0];
+    $number2 = (int) $args[1];
+    return $number1 - $number2;
+}
+
+function mynamespace_new_xmlrpc_methods( $methods ) {
+    $methods['mynamespace.subtractTwoNumbers'] = 'mynamespace_subtractTwoNumbers';
+    return $methods;   
+}
+add_filter( 'xmlrpc_methods', 'mynamespace_new_xmlrpc_methods');
+</pre>
+<p><i><b>Note:</b></i> Passing a single argument to a XML-RPC call will not result in an array. You then can request the value by just using $args.
+</p>
+<h3><span class="mw-headline" id="Add_Authenticated_Method">Add Authenticated Method</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC_Extending&amp;action=edit&amp;section=4" title="Edit section: Add Authenticated Method">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Here is an example which authenticates the user:
+</p>
+<pre>
+function mynamespace_getUserID( $args ) {
+    global $wp_xmlrpc_server;
+    $wp_xmlrpc_server-&gt;escape( $args );
+
+    $blog_id  = $args[0];
+    $username = $args[1];
+    $password = $args[2];
+
+    if (&#160;! $user = $wp_xmlrpc_server-&gt;login( $username, $password ) )
+        return $wp_xmlrpc_server-&gt;error;
+
+    return $user-&gt;ID;    
+}
+
+function mynamespace_new_xmlrpc_methods( $methods ) {
+    $methods['mynamespace.getUserID'] = 'mynamespace_getUserID';
+    return $methods;   
+}
+add_filter( 'xmlrpc_methods', 'mynamespace_new_xmlrpc_methods');
+</pre>
+<p>Note that the method uses the <tt>escape</tt> method on the server class to sanitize the input values. It is best practice to always escape the input, especially if your method accesses the database.
+</p>
+<h3><span class="mw-headline" id="Remove_a_method">Remove a method</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC_Extending&amp;action=edit&amp;section=5" title="Edit section: Remove a method">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Here is an example of removing the built-in <tt>demo.addTwoNumbers</tt> method:
+</p>
+<pre>
+function mynamespace_remove_xmlrpc_methods( $methods ) {
+    unset( $methods['demo.addTwoNumbers'] );
+    return $methods;   
+}
+add_filter( 'xmlrpc_methods', 'mynamespace_remove_xmlrpc_methods');
+</pre>
+<h2><span class="mw-headline" id="wp_xmlrpc_server_class_Filter"><tt>wp_xmlrpc_server_class</tt> Filter</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=XML-RPC_Extending&amp;action=edit&amp;section=6" title="Edit section: wp xmlrpc server class Filter">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In extremely rare cases, it may be necessary for a plugin to entirely replace the standard XML-RPC server implementation (which lives in <tt>wp-includes/class-wp-xmlrpc-server.php</tt>).
+</p><p>In such cases, the <tt>wp_xmlrpc_server_class</tt> filter can be used to change the name of the class instantiated to serve XML-RPC requests. The new class must have a <tt>serve_request</tt> method.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004232
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.004 seconds
+Real time usage: 0.009 seconds
+Preprocessor visited node count: 50/1000000
+Preprocessor generated node count: 88/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

@@ -1,0 +1,188 @@
+{{Languages|
+{{en|Author_Templates}}
+{{tr|Yazar_Şablonları}}
+{{ja|Author_Templates}}
+}}
+==Introduction==
+
+Thanks to WordPress [[Using Themes|Themes]], changing the look and feel of your WordPress site is fairly straightforward. For instance, when a viewer clicks on a link to a post author, by default he or she is taken to a page listing the posts from that particular author in chronological order, from newest posts at the top to oldest at the bottom. There are many display choices, including whether to display the complete post or post excerpts, and what additional information to display (title, category, publish date, last modified time, etc.). Each theme makes different choices, and you might want to change them. 
+
+This article explains how to change what happens when the blog viewer is visiting one of your site's author pages. This involves the use of Themes and Template files, so if you are new to template files, you might want to read [[Using Themes]] and [[Stepping Into Templates]] first.
+
+There are many ways that you can modify the look of your author pages. Some are not really specific to author pages, such as adding text to the top of the page; you can read about such simple modifications in the [[Category Templates]] article. This article will concentrate on modifications that are specific to author template files.
+
+== The Basics ==
+
+=== Linking to Author Pages from Posts ===
+If you are going to use author pages, you will probably want to make sure that when a post is displayed, it comes with a link to the author page. You can generate this link, within [[The Loop]], by using the [[Template_Tags/the_author_posts_link|the_author_posts_link]] Template Tag. For example:
+<pre>
+<p>Written by: 
+<?php the_author_posts_link(); ?></p>
+</pre>
+
+=== List of Authors with Links ===
+Another way to generate links to author pages is to make an author list in your sidebar (or elsewhere in your Theme). The [[Template_Tags/wp_list_authors|wp_list_authors]] Template Tag does that. Just place the following in your sidebar Template file:
+<pre>
+<h2>List of authors:</h2>
+<ul>
+<?php wp_list_authors(); ?>
+</ul>
+</pre>
+
+You may want to change the way the list of authors appears by using the arguments in [[Template Tags/wp_list_authors|wp_list_authors()]]. For example, the administrator account (Username "admin") is excluded by default, but you can force [[Template Tags/wp_list_authors|wp_list_authors()]] to include the admin account this way: 
+
+<pre>
+<ul>
+<?php wp_list_authors('exclude_admin=0'); ?>
+</ul>
+</pre>
+
+You can also combine arguments. By default, authors without posts are ignored, but in this example, all authors (users), including the administrator, are displayed.
+
+<pre>
+<ul>
+<?php wp_list_authors('exclude_admin=0&hide_empty=0'); ?>
+</ul>
+</pre>
+
+There are also other options -- check out the [[Template Tags/wp_list_authors|wp_list_authors()]] page.
+
+=== Which Template File is Used? ===
+Now that you have links to author pages, the next step in modifying what they look like is to figure out which of your theme's files is going to be used to display the posts. This is known as the [[Template Hierarchy]]. 
+
+In the case of authors, the hierarchy is fairly simple. The Template Hierarchy specifies that WordPress uses the ''first'' Template file it finds in your current Theme's directory from the following list:
+#<tt style="font-weight:bold; color:#036">author-{nicename}.php</tt> - If the author's nice name were <tt style="font-weight:bold; color:#036">rami</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">author-rami.php</tt>.
+#<tt style="font-weight:bold; color:#036">author-{id}.php</tt> - If the author's ID were <tt style="font-weight:bold; color:#036">6</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">author-6.php</tt>.
+#<tt style="font-weight:bold; color:#036">author.php</tt>
+#<tt style="font-weight:bold; color:#036">archive.php</tt>
+#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+That is, if you do not have an <tt style="font-weight:bold; color:#036">author.php</tt> file, WordPress will check for <tt style="font-weight:bold; color:#036">archive.php</tt>, and so on. 
+
+So, if you want to change the look of your author pages, you need to create an <tt>author.php</tt> file if it doesn't exist, by copying <tt>archive.php</tt> if that file exists, or <tt>index.php</tt> if it doesn't. The rest of the article assumes you are editing <tt>author.php</tt>.
+
+== Custom Author Information ==
+This section explores how to add information about the author, such as name, bio, and contact information, to an author page.
+
+=== Setting Up for Author Information ===
+The first thing you will need to do, in order to display author information on your author page, is edit your author template file(<tt>author.php</tt>, see above) so that it figures out which author is being viewed, and retrieves all the information about the author from the database (i.e. the information entered in the User administration screen of WordPress). 
+
+This is done by setting up a variable called <tt>$curauth</tt> (Current Author). The usual way to do this is to put the following lines before [[The Loop]] in your template file:
+<pre><?php 
+$curauth = (isset($_GET['author_name'])) ? get_user_by('slug', $author_name) : get_userdata(intval($author));
+?></pre>
+
+There are other ways to receive the query and assign the value of <tt>$curauth</tt>, if the above does not work for you.  For example try this code which should work in WordPress Version 2.8 and higher.
+<pre>
+<?php
+$curauth = (isset($_GET['author_name'])) ? get_user_by('slug', $_GET['author_name']) : get_userdata($_GET['author']);
+?>
+</pre>
+
+Or this example that only works in WordPress Version 2.8 and higher:
+<pre>
+<?php
+$curauth = (get_query_var('author_name')) ? get_user_by('slug', get_query_var('author_name')) : get_userdata(get_query_var('author'));
+?>
+</pre>
+
+If the above fails to work for you, another option for WordPress 1.5 or above is the following:
+
+<pre>
+<?php
+global $wp_query;
+$curauth = $wp_query->get_queried_object();
+?>
+</pre>
+
+=== Using Author Information ===
+Now that you have the <tt>$curauth</tt> variable set up, you can use it to display all kinds of information about the author whose page is being displayed. For example, to display the author's nickname, in a format like "This is Joe's page", you could use: 
+<pre>
+<p>This is <?php echo $curauth->nickname; ?>'s page</p>
+</pre>
+
+Note that this must be placed ''after'' defining <tt>$curauth</tt> as in the previous section, and ''before'' [[The Loop]] in your Template file.
+
+There are many other pieces of information you can display, besides the author's nickname. All of these come from the WordPress user editing screen:
+
+* <tt>$curauth->aim;</tt>
+* <tt>$curauth->description;</tt>
+* <tt>$curauth->display_name;</tt>
+* <tt>$curauth->first_name;</tt>
+* <tt>$curauth->ID;</tt>
+* <tt>$curauth->jabber;</tt>
+* <tt>$curauth->last_name;</tt>
+* <tt>$curauth->nickname;</tt>
+* <tt>$curauth->user_email;</tt>
+* <tt>$curauth->user_login;</tt>
+* <tt>$curauth->user_nicename;</tt>
+* <tt>$curauth->user_registered;</tt>
+* <tt>$curauth->user_url;</tt>
+* <tt>$curauth->yim;</tt>
+
+These work the same way as the nickname example above. For instance, to display the author's displayed name and description (i.e. "About Yourself" text):
+<pre>
+<p><?php echo $curauth->display_name; ?><br />
+<?php echo $curauth->description; ?></p>
+</pre>
+
+=== Sample Template File ===
+Here is a complete sample <tt>author.php</tt> file, which you can use as an example:
+
+<pre>
+<?php get_header(); ?>
+
+<div id="content" class="narrowcolumn">
+
+<!-- This sets the $curauth variable -->
+
+    <?php
+    $curauth = (isset($_GET['author_name'])) ? get_user_by('slug', $author_name) : get_userdata(intval($author));
+    ?>
+
+    <h2>About: <?php echo $curauth->nickname; ?></h2>
+    <dl>
+        <dt>Website</dt>
+        <dd><a href="<?php echo $curauth->user_url; ?>"><?php echo $curauth->user_url; ?></a></dd>
+        <dt>Profile</dt>
+        <dd><?php echo $curauth->user_description; ?></dd>
+    </dl>
+
+    <h2>Posts by <?php echo $curauth->nickname; ?>:</h2>
+
+    <ul>
+<!-- The Loop -->
+
+    <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+        <li>
+            <a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link: <?php the_title(); ?>">
+            <?php the_title(); ?></a>,
+            <?php the_time('d M Y'); ?> in <?php the_category('&');?>
+        </li>
+
+    <?php endwhile; else: ?>
+        <p><?php _e('No posts by this author.'); ?></p>
+
+    <?php endif; ?>
+
+<!-- End Loop -->
+
+    </ul>
+</div>
+<?php get_sidebar(); ?>
+<?php get_footer(); ?>
+</pre>
+
+== Further Reading ==
+* [[Templates]] - Complete reference list for creating themes and template files
+* [http://wordpress.org/support/topic/27554#post-154787 WordPress Support Forum Thread on Author Templates]
+* [http://wordpress.org/support/topic/33064 Another WordPress Support Forum Thread on Author Templates]
+
+== Related ==
+
+{{Theme Templates}}
+{{Tag Footer}}
+
+[[Category:Design and Layout]]
+[[Category:WordPress Lessons]]
+[[Category:Templates]]

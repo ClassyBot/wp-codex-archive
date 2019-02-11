@@ -1,0 +1,140 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/関数リファレンス/flush">rewrite rules 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Examples"><span class="tocnumber">4</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Change_Log"><span class="tocnumber">5</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Source_File"><span class="tocnumber">6</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Related"><span class="tocnumber">7</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Articles"><span class="tocnumber">7.1</span> <span class="toctext">Articles</span></a></li>
+<li class="toclevel-2"><a href="#Hooks"><span class="tocnumber">7.2</span> <span class="toctext">Hooks</span></a></li>
+<li class="toclevel-2"><a href="#Functions"><span class="tocnumber">7.3</span> <span class="toctext">Functions</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/flush_rewrite_rules&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Remove rewrite rules and then recreate rewrite rules.
+</p><p>This function is useful when used with custom post types as it allows for automatic flushing of the WordPress rewrite rules (usually needs to be done manually for new custom post types). However, <b>this is an expensive operation</b> so it should only be used when absolutely necessary. See <a rel="nofollow" class="external text" href="http://codex.wordpress.org/Function_Reference/flush_rewrite_rules#Usage">Usage</a> section for more details.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/flush_rewrite_rules&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>Important:</b>
+</p>
+<ul><li> Flushing the rewrite rules is an expensive operation, there are tutorials and examples that suggest executing it on the <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/init" title="Plugin API/Action Reference/init">'init'</a></tt> hook. <b>This is bad practice.</b> It should be executed either on the <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/shutdown" title="Plugin API/Action Reference/shutdown">'shutdown'</a></tt> hook, or on plugin/theme (de)activation.</li>
+<li> Flush rules once (it's better to store the state in option, instead of `activation` or `deactivation`, because on MultiSite they are useless), or when you know that the rewrite rules need to be changed. <b>Don't do it on any hook that will triggered on a routine basis</b>. More detail information in the comments on WP Engineer's post: <a rel="nofollow" class="external text" href="http://wpengineer.com/2044/custom-post-type-and-permalink/">Custom Post Type and Permalink</a></li>
+<li> Make sure custom post types and taxonomies are <b>properly registered before</b> flushing rewrite rules, especially during plugin activation.</li></ul>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;flush_rewrite_rules</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$hard&#160;</span><span style="color: #007700">);&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/flush_rewrite_rules&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>$hard</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Boolean" title="How to Pass Tag Parameters"><i>boolean</i></a>) (<i>optional</i>) Whether to update <a href="https://codex.wordpress.org/htaccess" title="htaccess">.htaccess</a> (hard flush) or just update <tt>rewrite_rules</tt> transient (soft flush).
+<dl><dd> Default: <tt>true</tt> (hard flush)</dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/flush_rewrite_rules&amp;action=edit&amp;section=4" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This is how you would flush rewrite rules when a plugin is activated or deactivated:
+</p>
+<pre>
+register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
+register_activation_hook( __FILE__, 'myplugin_flush_rewrites' );
+function myplugin_flush_rewrites() {
+	// call your CPT registration function here (it should also be hooked into 'init')
+	myplugin_custom_post_types_registration();
+	flush_rewrite_rules();
+}
+
+</pre>
+<p>This is how you would flush rules on theme activation:
+</p>
+<pre>/* Flush rewrite rules for custom post types. */
+add_action( 'after_switch_theme', 'flush_rewrite_rules' );
+</pre>
+<p>If you're developing a theme, while building it you can use this snippet of code that will flush rewrite rules when the file containing it is changed, or every 48 hours:
+</p>
+<pre>
+// do not use on live/production servers
+add_action( 'init','maybe_rewrite_rules' );
+function maybe_rewrite_rules() {
+
+	$ver = filemtime( __FILE__ ); // Get the file time for this file as the version number
+	$defaults = array( 'version' =&gt; 0, 'time' =&gt; time() );
+	$r = wp_parse_args( get_option( __CLASS__ . '_flush', array() ), $defaults );
+
+	if ( $r['version']&#160;!= $ver || $r['time'] + 172800 &lt; time() ) { // Flush if ver changes or if 48hrs has passed.
+		flush_rewrite_rules();
+		// trace( 'flushed' );
+		$args = array( 'version' =&gt; $ver, 'time' =&gt; time() );
+		if (&#160;! update_option( __CLASS__ . '_flush', $args ) )
+			add_option( __CLASS__ . '_flush', $args );
+	}
+
+}</pre>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/flush_rewrite_rules&amp;action=edit&amp;section=5" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since: <a href="https://codex.wordpress.org/Version_3.0" title="Version 3.0">3.0</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/flush_rewrite_rules&amp;action=edit&amp;section=6" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>flush_rewrite_rules()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/rewrite.php#L0">wp-includes/rewrite.php</a></code>
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/flush_rewrite_rules&amp;action=edit&amp;section=7" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h4><span class="mw-headline" id="Articles">Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-1" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Lesson: <a href="https://codex.wordpress.org/Rewrite_API" title="Rewrite API"> Rewrite API Overview</a></li>
+<li> Class: <tt><a href="https://codex.wordpress.org/Class_Reference/WP_Rewrite" title="Class Reference/WP Rewrite">WP_Rewrite()</a></tt> - An overview of WordPress's built-in URL rewrite class.</li></ul>
+<h4><span class="mw-headline" id="Hooks">Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-2" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/root_rewrite_rules" title="Plugin API/Filter Reference/root rewrite rules">root_rewrite_rules</a></tt> - Filters the rewrite rules generated for the root of your weblog.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/post_rewrite_rules" title="Plugin API/Filter Reference/post rewrite rules">post_rewrite_rules</a></tt> - Filters the rewrite rules generated for permalink URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/page_rewrite_rules" title="Plugin API/Filter Reference/page rewrite rules">page_rewrite_rules</a></tt> - Filters the rewrite rules generated for your Pages.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/date_rewrite_rules" title="Plugin API/Filter Reference/date rewrite rules">date_rewrite_rules</a></tt> - Filters the rewrite rules generated for dated archive URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/search_rewrite_rules" title="Plugin API/Filter Reference/search rewrite rules">search_rewrite_rules</a></tt> - Filters the rewrite rules generated for search URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/comments_rewrite_rules" title="Plugin API/Filter Reference/comments rewrite rules">comments_rewrite_rules</a></tt> - Filters the rewrite rules generated for the latest comment feed URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/author_rewrite_rules" title="Plugin API/Filter Reference/author rewrite rules">author_rewrite_rules</a></tt> - Filters the rewrite rules generated for author archive URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/rewrite_rules_array" title="Plugin API/Filter Reference/rewrite rules array">rewrite_rules_array</a></tt> - Filters <i>all</i> the rewrite rules at once.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/$permastruct_rewrite_rules" title="Plugin API/Filter Reference/$permastruct rewrite rules">{$permastruct}_rewrite_rules</a></tt> - Can be used to create or modify rewrite rules for any custom permastructs, such as taxonomies or custom post types.</li>
+<li> Action: <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/generate_rewrite_rules" title="Plugin API/Action Reference/generate rewrite rules">generate_rewrite_rules</a></tt> - Runs <strong>after</strong> all the rules have been created.</li></ul>
+<h4><span class="mw-headline" id="Functions">Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-3" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_tag" title="Rewrite API/add rewrite tag"> add_rewrite_tag()</a> - Can be used to allow WordPress to recognize custom variables (particularly custom querystring variables).</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_rule" title="Rewrite API/add rewrite rule"> add_rewrite_rule()</a> - Allows you to specify new, custom rewrite rules.</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_endpoint" title="Rewrite API/add rewrite endpoint"> add_rewrite_endpoint()</a> - Add a new endpoint like /trackback/</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/flush_rules" title="Rewrite API/flush rules"> flush_rules()</a> - Regenerate the rewrite rules and save them to the database.</li>
+<li> <strong class="selflink"> flush_rewrite_rules()</strong> - Remove rewrite rules and then recreate rewrite rules.</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/generate_rewrite_rules" title="Rewrite API/generate rewrite rules"> generate_rewrite_rules()</a> - Generates rewrite rules from a permalink structure</li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/add_permastruct" title="Function Reference/add permastruct"> add_permastruct()</a> - Add a new permastruct</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_feed" title="Rewrite API/add feed"> add_feed()</a>- Add a new feed type like /atom1/</li></ul>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Function_Reference/flush_rewrite_rules&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003817
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.176 seconds
+Preprocessor visited node count: 133/1000000
+Preprocessor generated node count: 526/1000000
+Post‐expand include size: 4658/2097152 bytes
+Template argument size: 684/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   56.603      1 - -total
+ 38.90%   22.016      1 - Template:Languages
+ 26.04%   14.742      1 - Template:Rewrite_API
+ 23.75%   13.445      1 - Template:en
+ 18.19%   10.295      1 - Template:Copyedit
+ 12.77%    7.229      1 - Template:Trac
+ 12.38%    7.008      1 - Template:ja
+ 10.22%    5.787      1 - Template:CurrentVersion
+  2.90%    1.641      1 - Template:Message
+  2.84%    1.606      1 - Template:Parameter
+-->

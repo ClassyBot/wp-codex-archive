@@ -1,0 +1,106 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/the_content/}}
+
+{{Languages|
+{{en|Template Tags/the_content}}
+{{ja|テンプレートタグ/the_content}}
+}}
+
+== Description ==
+
+Displays the contents of the current post. This template tag must be within [[The_Loop]].
+
+If the quicktag [[Writing Posts#Visual Versus HTML Editor|<tt><nowiki><!--more--></nowiki></tt>]] is used in a post to designate the "cut-off" point for the post to be excerpted, the_content() tag will only show the excerpt up to the <tt><nowiki><!--more--></nowiki></tt> quicktag point on non-single/non-[[Glossary#Permalink|permalink]] post pages.  By design, <tt>the_content()</tt> tag includes a parameter for formatting the <tt><nowiki><!--more--></nowiki></tt> content and look, which creates a link to "continue reading" the full post.
+
+:'''Note about <tt><nowiki><!--more--></nowiki></tt>''' :
+:* No whitespaces are allowed '''before''' the "more" in the <tt><nowiki><!--more--></nowiki></tt> quicktag. In other words <tt><nowiki><!-- more --></nowiki></tt> will ''not'' work!
+:* ''The <tt><nowiki><!--more--></nowiki></tt> quicktag will not operate and is ignored in [[Templates]] where just one post is displayed, such as '''single.php'''.''
+:* Read [[Customizing the Read More]] for more details.
+
+== Usage ==
+
+%%%<?php the_content( $more_link_text, $stripteaser ); ?>%%%
+
+[[Template Tags/How to Pass Tag Parameters#Tags with PHP function-style parameters|How to pass parameters to tags with PHP function-style parameters]]
+
+== Parameters ==
+
+{{Parameter|$more_link_text|string|The link text to display for the "more" link.|optional|'(more...)'}}
+{{Parameter|$stripteaser|boolean|Strip teaser content before the more text.|optional|false}}
+
+== Examples ==
+
+=== Designating the "More" Text ===
+
+Displays the content of the post and uses "Read more..." for the more link text when the <tt><nowiki><!--more--></nowiki></tt> Quicktag is used.
+
+ <?php the_content('Read more...'); ?>
+
+=== Include Title in "More" ===
+
+Similar to the above example, but thanks to [[Template Tags/the title|the_title()]] tag and the ''display'' parameter, it can show "Continue reading ''ACTUAL POST TITLE''" when the <tt><nowiki><!--more--></nowiki></tt> Quicktag is used.
+
+ <?php the_content("Continue reading " . get_the_title()); ?>
+
+=== Overriding Archive/Single Page Behavior ===
+
+If the_content() isn't working as you desire (displaying the entire story when you only want the content above the <tt><nowiki><!--more--></nowiki></tt> Quicktag, for example) you can override the behavior with global $more.
+
+ <?php 
+ global $more;    // Declare global $more (before the loop).
+ $more = 0;       // Set (inside the loop) to display content above the more tag.
+ the_content("More...");
+ ?>
+
+if you need to display all of the content:
+
+ <?php 
+ global $more;    // Declare global $more (before the loop).
+ $more = 1;       // Set (inside the loop) to display all content, including text below more.
+ the_content();
+ ?>
+
+==Ignore the "More" on a Sticky Post==
+This will ignore the more tag in a sticky post--meaning it will display the full content even if there is a <tt><nowiki><!--more--></nowiki></tt> in the content, but for all other posts it will display a more link.
+  
+<pre>
+<?php
+if (is_sticky()) {
+  global $more;    // Declare global $more (before the loop).
+  $more = 1;       // Set (inside the loop) to display all content, including text below more.
+  the_content();
+} else {
+  global $more;
+  $more = 0;
+  the_content('Read the rest of this entry <nowiki>&raquo;</nowiki>');
+}
+?>
+</pre>
+
+== Alternative Usage ==
+
+You may use [[Function Reference/get_the_content|get_the_content()]] to return the content value instead of outputting it directly.  Example:
+
+ <?php $content = get_the_content(); ?>
+
+'''Please note!''' [[Function Reference/get_the_content|get_the_content]] will return the unfiltered content. If you want to achieve the same output that [[Template Tags/the_content|the_content()]] returns, use the following code:
+
+ <?php
+ $content = apply_filters( 'the_content', get_the_content() );
+ $content = str_replace( ']]>', ']]&amp;gt;', $content );
+ ?>
+
+== Changelog ==
+
+Since: 0.71
+
+==Source File==
+
+<tt>the_content()</tt> is located in {{Trac|wp-includes/post-template.php}}.
+
+== Related ==
+
+{{Tag Post Tags}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

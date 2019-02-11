@@ -1,0 +1,98 @@
+{{Languages|
+{{en|Function Reference/add_post_meta}}
+{{zh-hans|函数参考/add_post_meta}}
+{{ru|Справочник_по_функциям/add_post_meta}}
+{{es|Referencia de Funciones/add_post_meta}}
+{{ja|関数リファレンス/add_post_meta}}
+{{pt-br|Funções e Referências/add_post_meta}}
+{{ko|함수 레퍼런스/add_post_meta}}
+}}
+==Description==
+
+Adds a [[Custom Fields|custom field]] (also called ''meta-data'') to a specified post which could be of any [[Post Types|post type]]. A custom field is effectively a key–value pair.
+
+Note that if the given key already exists among custom fields of the specified post, another custom field with the same key is added unless the  <tt>$unique</tt> argument is set to <tt>true</tt>, in which case, no changes are made. If you want to update the value of an existing key, use the <tt>[[Function Reference/update_post_meta|update_post_meta()]]</tt> function instead.
+
+==Usage==
+
+%%% <?php add_post_meta($post_id, $meta_key, $meta_value, $unique); ?> %%%
+
+==Parameters==
+
+{{Parameter|$post_id|integer|The ID of the post to which a custom field should be added.}}
+{{Parameter|$meta_key|string|The key of the custom field which should be added.}}
+{{Parameter|$meta_value|mixed|The value of the custom field which should be added. If an array is given, it will be serialized into a string.}}
+{{Parameter|$unique|boolean|Whether or not you want the key to stay unique. When set to <tt>true</tt>, the custom field will not be added if the given key already exists among custom fields of the specified post.|optional|false}}
+
+==Return==
+
+{{Return||boolean&#124;integer|On success, returns the ID of the inserted row, which validates to  <tt>true</tt>. If the <tt>$unique</tt> argument was set to <tt>true</tt> and a custom field with the given key already exists, <tt>false</tt> is returned.}}
+
+==Examples==
+
+===Default Usage===
+
+ <?php add_post_meta( 68, 'my_key', 47 ); ?>
+
+===Adding or Updating a Unique Custom Field===
+
+Add a new custom field if the key does not already exist, or updates the value of the custom field with that key otherwise.
+
+<pre>
+<?php
+if ( ! add_post_meta( 7, 'fruit', 'banana', true ) ) { 
+   update_post_meta( 7, 'fruit', 'banana' );
+}
+</pre>
+
+===Other Examples===
+
+Adds a new custom field only if a custom field with the given key does not already exist:
+ <?php add_post_meta( 68, 'my_key', '47', true ); ?>
+
+Adds several custom fields with different values but with the same key <tt>'my_key'</tt>:
+<pre>
+<?php add_post_meta( 68, 'my_key', '47' ); ?>
+<?php add_post_meta( 68, 'my_key', '682' ); ?>
+<?php add_post_meta( 68, 'my_key', 'The quick, brown fox jumped over the lazy dog.' ); ?>
+...</pre>
+For a more detailed example, see the [[Function Reference/post_meta Function Examples|post_meta Functions Examples]] page.
+
+=== Hidden Custom Fields ===
+
+If you are a plugin or theme developer and you are planning to use custom fields to store parameters related to your plugin or template, it is interesting to note that WordPress will not show custom fields which have keys starting with an <tt>"_"</tt> (underscore) in the custom fields list on the [[Writing Posts | post edit]] screen or when using the <tt>[[Function Reference/the_meta | the_meta()]]</tt> template function. This can be for example used to show these custom fields in an unusual way by using the <tt>[[Function Reference/add_meta_box | add_meta_box()]]</tt> function.
+
+The following example:
+ <?php add_post_meta( 68, '_color', 'red', true ); ?>
+will add a unique custom field with the key name <tt>'_color'</tt> and the value <tt>'red'</tt> but this custom field will not display in the post edit screen.
+
+==== Hidden Arrays ====
+
+In addition, if the <tt>$meta_value</tt> argument is an array, it will <strong>not</strong> be displayed on the page edit screen, even if you don't prefix the key name with an underscore.
+
+==== Protected Custom Fields ====
+
+An alternative to the use of an <tt>"_"</tt> (underscore) is to use the filter <tt>[https://developer.wordpress.org/reference/hooks/is_protected_meta/ is_protected_meta]</tt>.
+
+== Notes ==
+* Uses <tt>[[Function_Reference/add_metadata | add_metadata()]]</tt>.
+
+=== Character Escaping ===
+
+Because meta values are passed through the <tt>[http://php.net/stripslashes stripslashes()]</tt> function, you need to be careful about content escaped with <tt>\</tt> characters. You can read more about the behavior, and a workaround example, in the <tt>[[Function_Reference/update_post_meta#Character_Escaping | update_post_meta()]]</tt> documentation.
+
+== Source Code ==
+
+<tt>add_post_meta()</tt> is located in {{Trac|wp-includes/post.php}}
+
+== Change Log ==
+
+Since [[Version 1.5|1.5.0]]
+
+==Related==
+
+{{Post Meta Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

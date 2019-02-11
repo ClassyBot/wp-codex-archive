@@ -1,0 +1,103 @@
+==Description==
+This article explains how to use WordPress's <tt>offset</tt> value in your queries without breaking WordPress's built-in pagination.
+
+Specifying hard-coded offsets in queries can '''and will''' break pagination since <tt>offset</tt> is used by WordPress internally to calculate and handle pagination. 
+
+To get around this limitation, you will need to write some additional code to manually handle pagination; you need to detect whether a [[The Loop|loop]] has additional pages and then dynamically calculate the appropriate ''offset'' for the current page. Finally, you also need to adjust WordPress's pagination calculation to exclude the number of posts you have offset/skipped (which can be done by using the [[Plugin_API/Filter_Reference/found_posts|found_posts]] filter and subtracting your offset).
+
+==Prerequisites & Assumptions==
+This article assumes that you are already very familiar with WordPress's [[Plugin API]]. You should also be familiar with WordPress's [[Class Reference/wpdb|$wpdb class object]] and it's various methods.
+
+==The Problem==
+Offsets are useful because they can allow a developer to skip a certain number of WordPress posts before starting output.
+
+Unfortunately, many developers find out that hard way that setting an <tt>offset</tt> value in their custom WordPress queries has the nasty and potentially serious side-effect of ''breaking pagination''.
+
+There is a very good reason for this however... the <tt>offset</tt> argument is actually the value WordPress uses to handle pagination itself. If a developer sets a manual offset value, pagination will not function because that value will ''override'' WordPress's automatic adjustment of the offset for a given page.
+
+==The Solution==
+In order to use an offset  in WordPress queries without losing WordPress's pagination features, you will need to '''manually handle some basic pagination calculations'''. This can accomplished with the following two hooks:
+
+* <tt>[[Plugin API/Action Reference/pre_get_posts|pre_get_posts]]</tt> - This hook allows tweaking of queries before they are run. Here we need to ensure that our offset is applied only to the first page.
+* <tt>[[Plugin API/Filter Reference/found_posts|found_posts]]</tt> - Allows correction of WordPress's query result count. This allows us to ensure WordPress takes our offset into account for pages other than the first page.
+
+==Offset Using pre_get_posts==
+<pre>
+function wpsites_exclude_latest_post( $query ) {
+	if ( $query->is_home() && $query->is_main_query() ) {
+		$query->set( 'offset', '1' );
+	}
+}
+
+add_action( 'pre_get_posts', 'wpsites_exclude_latest_post', 1 );
+</pre>
+
+The above code excludes the latest post from displaying on your home page loop.
+
+===Offset & Manual Pagination===
+The first step is to use the <tt>pre_get_posts</tt> hook to both add your offset, and handle pagination. This hook passes the $query object to your function by reference, allowing you to easily use and manipulate the object without returning anything.
+
+To make sure we are modifying the correct query, we perform a little check at the top. In the case of this example, we want the site's main blog archive (aka 'home') to skip the first 10 posts; we do this by checking any properties of the query object that may be relevant to us.
+
+<pre data-syntax="php">
+add_action('pre_get_posts', 'myprefix_query_offset', 1 );
+function myprefix_query_offset(&$query) {
+
+    //Before anything else, make sure this is the right query...
+    if ( ! $query->is_home() ) {
+        return;
+    }
+
+    //First, define your desired offset...
+    $offset = 10;
+    
+    //Next, determine how many posts per page you want (we'll use WordPress's settings)
+    $ppp = get_option('posts_per_page');
+
+    //Next, detect and handle pagination...
+    if ( $query->is_paged ) {
+
+        //Manually determine page query offset (offset + current page (minus one) x posts per page)
+        $page_offset = $offset + ( ($query->query_vars['paged']-1) * $ppp );
+
+        //Apply adjust page offset
+        $query->set('offset', $page_offset );
+
+    }
+    else {
+
+        //This is the first page. Just use the offset...
+        $query->set('offset',$offset);
+
+    }
+}
+</pre>
+
+There is one more problem to address, however. WordPress will *not* take the <tt>offset</tt> into account when it checks for the number of posts. This creates a problem... internally, WordPress makes a simple check to see if the number of pages outnumbers that query's <tt>posts_per_page</tt> property. However, while <tt>offset</tt> will skip posts in the loop, those skipped posts will still be counted when WordPress decides if there are more pages. Whoops!
+
+This little miscalculation means that WordPress will sometimes assume there is another page even if another page does not exist. For example, if you have 15 posts, an offset of 10, and a <code>posts_per_page</code> limit of 25, WordPress will assume that there is a second page even though the first page will only contain 5 posts (which falls short of our 25 posts_per_page limit). That mysterious second page will return a 404 error.
+
+This last little pagination problem is easily corrected by using the <tt>found_posts</tt> filter hook, like so...
+
+<pre data-syntax="php">
+add_filter('found_posts', 'myprefix_adjust_offset_pagination', 1, 2 );
+function myprefix_adjust_offset_pagination($found_posts, $query) {
+
+    //Define our offset again...
+    $offset = 10;
+
+    //Ensure we're modifying the right query object...
+    if ( $query->is_home() ) {
+        //Reduce WordPress's found_posts count by the offset... 
+        return $found_posts - $offset;
+    }
+    return $found_posts;
+}
+</pre>
+
+And now you're done. Pagination should now work correctly along with your own, custom offset.
+
+==Related==
+{{Query Tags}}
+
+[[Category:Advanced Topics]]

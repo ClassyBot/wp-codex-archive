@@ -1,0 +1,60 @@
+<p>This filter is applied to the query variables that are passed to the default main SQL query that drives your page's content. It is applied after additional private query variables have been added in, and is one of the places you can hook into to modify the query that will generate your list of posts (or pages) before the main query is executed and the database is actually accessed.
+</p><p>Use this hook within <tt>functions.php</tt> as an alternative way to alter the posts returned in your Main Loop (as an alternate to <a href="https://codex.wordpress.org/Function_Reference/query_posts" title="Function Reference/query posts">query_posts()</a>). The advantage of using this filter is that it alters the SQL query before it is executed, reducing the number of database calls.
+</p><p>Here's an example usage by scribu (reproduced with permission from <a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/questions/21341/alternative-to-query-posts-for-main-loop/21378#21378">wordpress.stackexchange.com</a>):
+</p>
+<pre>
+function alter_the_query( $request ) {
+    $dummy_query = new WP_Query();  // the query isn't run if we don't pass any query vars
+    $dummy_query-&gt;parse_query( $request );
+
+    // this is the actual manipulation; do whatever you need here
+    if ( $dummy_query-&gt;is_home() )
+        $request['category_name'] = 'news';
+
+    return $request;
+}
+add_filter( 'request', 'alter_the_query' );
+</pre>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Usage_Note"><span class="tocnumber">1</span> <span class="toctext">Usage Note</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Advisory"><span class="tocnumber">1.1</span> <span class="toctext">Advisory</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Resources"><span class="tocnumber">1.2</span> <span class="toctext">Resources</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Related"><span class="tocnumber">1.3</span> <span class="toctext">Related</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Usage_Note">Usage Note</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/request&amp;action=edit&amp;section=1" title="Edit section: Usage Note">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>While it probably goes without saying, attempts to use this hook from within a template php page will not do anything, as the main query will have already executed at that point.
+</p>
+<h3><span class="mw-headline" id="Advisory">Advisory</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/request&amp;action=edit&amp;section=2" title="Edit section: Advisory">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>As Rarst <a rel="nofollow" class="external text" href="http://wordpress.stackexchange.com/questions/21341/alternative-to-query-posts-for-main-loop/21342#21342">mentions</a>, this filter affects all default queries, including calls to the admin Dashboard. You must be extremely careful and test thoroughly to ensure that no other parts of the site break when you modify the query string.
+</p>
+<h3><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/request&amp;action=edit&amp;section=3" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>For more in-depth discussion of how WordPress generates and handles its queries, review these articles: <a href="https://codex.wordpress.org/Query_Overview" title="Query Overview">Query Overview</a> and <a href="https://codex.wordpress.org/Custom_Queries" title="Custom Queries">Custom Queries</a>
+</p>
+<h3><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/request&amp;action=edit&amp;section=4" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Also, see the 'parse_query' and 'pre_get_posts'
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004105
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.009 seconds
+Preprocessor visited node count: 24/1000000
+Preprocessor generated node count: 40/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

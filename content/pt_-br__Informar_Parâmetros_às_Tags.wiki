@@ -1,0 +1,157 @@
+{{Languages|
+{{en|Template Tags/How to Pass Tag Parameters}}
+{{ja|テンプレートタグ/タグパラメータの渡し方}}
+{{pt|Template Tags/Como Passar os Parâmetros das Tags}}
+}}
+
+== Introdução ==
+
+Tags de modelo são funções PHP que podem ser incorporadas a modelos de páginas do WordPress para proporcionar conteúdo dinâmico do blog. Assim como as funções PHP, muitas tags de modelo aceitam argumentos ou parâmetros. Os parâmetros das tags de modelo são variáveis utilizadas para alterar o resultado da tag ou modificar sua ação de alguma forma. Pense nos parâmetros como opções ou configurações do usuário que permitem personalizar o modo como a tag de modelo funciona.
+
+Existem três “sabores” de parâmetros de tags de modelo do WordPress. Eles são descritos adiante.
+
+* Tags sem parâmetros
+* Tags com parâmetros no estilo de função PHP
+* Tags com parâmetros no estilo de string de consulta
+
+== Tags sem parâmetros ==
+
+Algumas tags de modelo não oferecem opções e, portanto, não existem parâmetros a serem passados.
+
+A tag de modelo the_author_firstname() é uma das que não aceitam parâmetros. Ela exibe apenas o primeiro nome do autor de um post. Nas tags sem parâmetros, não deve haver nada entre os parênteses de abertura e fechamento da função:
+
+<?php the_author_firstname(); ?>
+
+
+== Tags com parâmetros no estilo de função PHP ==
+
+No caso de tags que aceitam parâmetros, algumas delas devem ser utilizadas no estilo PHP padrão. Para passar parâmetros às funções dessas tags, colocamos um ou mais valores entre os parênteses da função.
+
+A tag bloginfo() aceita apenas um parâmetro (denominado parâmetro '''show''') que indica qual informação do blog será exibida:
+
+ <?php bloginfo('name'); ?>
+
+A tag wp_title() aceita dois parâmetros: o primeiro é o parâmetro '''sep''' ou separador; o segundo é o parâmetro '''echo''' ou exibir:
+
+ <?php wp_title(' - ', TRUE); ?>
+
+O primeiro parâmetro fica entre aspas simples, mas o segundo não, porque o primeiro é uma string e o segundo é um parâmetro booleano. (Consulte Tipos de parâmetros para obter informações sobre os tipos dos parâmetros e como utilizá-los.)
+
+Pontos importantes sobre parâmetros no estilo de função PHP:
+
+* Algumas funções permitem vários parâmetros.
+* Parâmetros diferentes são separados por vírgulas.
+* '''A ordem dos parâmetros é importantíssima.'''
+
+
+Ao passar parâmetros para a função de uma tag de modelo, especifique valores ''para todos os parâmetros até o último que você deseja modificar''. Sem isso, a tag poderá não funcionar da maneira esperada. Por exemplo, a tag de modelo get_archives() possui seis parâmetros:
+
+ <?php get_archives('type', 'limit', 'format', 'before',
+                   'after', show_post_count); ?>
+
+Digamos que, para exibir a lista de arquivos do jeito como você quer, seja necessário modificar apenas o terceiro ('''format''') e o quinto ('''after''') parâmetros. Para isso, será preciso especificar também os valores padrão do primeiro, segundo e quarto parâmetros:
+
+ <?php get_archives(
+ , , 'custom', , '<br />');
+ ?>
+
+
+Observe o uso de aspas simples para indicar valores de parâmetros ''vazios'', que neste caso forçam o uso dos valores padrão desses parâmetros específicos. Lembre-se de que os padrões poderão ser substituídos se forem passados parâmetros vazios, como no caso de parâmetro que especifica uma string de texto. Também não é possível passar um valor booleano vazio. Portanto, verifique o padrão do parâmetro na documentação e, ao especificar um deles, use-o como valor do parâmetro (para obter informações sobre os tipos dos parâmetros, consulte também [[Tipos de parâmetros]]). O sexto parâmetro foi omitido, porque o WordPress usa o padrão para todos os parâmetros restantes não especificados.
+
+Siga a documentação da tag de modelo com muita atenção e coloque os parâmetros na ordem esperada pela função do modelo. Por fim, para usar o padrão em todos os parâmetros de uma tag de modelo, use a tag sem especificar valores de parâmetros:
+
+
+<?php get_archives(); ?>
+
+
+== Tags com parâmetros no estilo de string de consulta ==
+
+O último tipo de tag de modelo usa o que é denominado estilo de strings de consultas para passar parâmetros à tag. É um 'envoltório' prático para tags que usam o estilo de parâmetros de funções PHP com um número relativamente grande de parâmetros. Por exemplo, a tag de modelo wp_list_cats() é um envoltório para list_cats(), uma tag com dezoito parâmetros!
+
+Para definir o parâmetro '''exclude''' em list_cats() (o décimo sétimo na lista de parâmetros) e manter o padrão nos demais parâmetros, podemos fazer o seguinte:
+
+<?php list_cats(TRUE, 'All', 'ID', 'asc', '', TRUE, FALSE, FALSE,
+TRUE, TRUE, FALSE, '', '', FALSE, '', '', '10,11,12'); ?>
+
+''Ou'' podemos usar wp_list_cats():
+
+<?php wp_list_cats('exclude=10,11,12'); ?>
+
+Portanto, as tags no estilo de string de consulta são úteis, porque permitem alterar os valores apenas dos parâmetros desejados, sem ser necessário fornecer valores para todos ou quase todos os parâmetros. Porém, nem todas as tags de modelo no estilo de função PHP têm uma tag equivalente no estilo de string de consulta. (Os nomes das tags que aceitam parâmetros no estilo de string de consulta costumam começar com o prefixo 'wp_', como em wp_list_cats(), mas consulte a documentação da tag para verificar o método que ela utiliza para aceitar parâmetros, se houver.)
+
+A tag wp_list_authors() possui seis parâmetros. Três deles estão definidos em:
+
+<?php wp_list_authors('show_fullname=1&feed=rss&optioncount=1'); ?>
+
+Primeiro, os parâmetros ficam todos juntos entre aspas simples ou duplas. Cada parâmetro é especificado no formato ''parâmetro=valor'', separado dos demais pelo E comercial (&). Decomposta, a tag mostrada acima significa:
+
+* Parâmetro '''show_fullname''' (parâmetro do tipo ''booleano'') é igual a 1 (verdadeiro).
+*: AND (operador ''booleano'')
+* Parâmetro '''feed''' (parâmetro do tipo ''string'') é igual a rss.
+*: AND (operador ''booleano'')
+* Parâmetro '''optioncount''' (parâmetro do tipo ''booleano'') é igual a 1 (verdadeiro).
+
+(Consulte [[Tipos de parâmetros]] para obter informações sobre os tipos dos parâmetros e como utilizá-los.)
+
+Parâmetros no estilo de string de consulta não precisam ser inseridos em uma ordem específica. A única preocupação importante é assegurar a grafia correta dos nomes dos parâmetros. Se a facilidade de leitura for um problema, separe os parâmetros com espaços:
+
+<?php wp_list_authors('show_fullname=1 & feed=rss & optioncount=1'); ?>
+
+A string de consulta também pode ser distribuída em várias linhas (observe o formato específico de cada par parâmetro/valor colocado entre aspas simples e o ponto no início de cada nova linha):
+
+<?php wp_list_authors(
+                      'show_fullname=1'
+                      .'&feed=rss'
+                      .'&optioncount=1'
+                      ); ?>
+
+Existem algumas limitações no uso de tags no estilo de string de consulta. Uma delas é não poder passar certos caracteres como E comercial ou aspas (simples ou duplas). Nesses casos, use um array associativo:
+
+<?php $params = array( 'type'   => 'postbypost',
+                       'limit'  => 5,
+                       'format' => 'custom',
+                       'before' => '<l i>& bull;& nbsp;',
+                       'after'  => '</li>' );
+wp_get_archives($params); ?>
+
+
+== Tipos de parâmetros ==
+
+Existem três tipos de parâmetros que você deve conhecer para usar tags de modelo do WordPress: string, inteiro e booleano. Cada tipo é manipulado de forma um pouco diferente, conforme é descrito adiante.
+
+=== String ===
+
+A string é uma linha de texto e normalmente pode ser um único caractere ou várias palavras. O parâmetro string costuma ser uma seleção de duas ou mais opções válidas, como o parâmetro '''show''' em bloginfo(). A string também pode ser um texto a ser exibido, como o parâmetro '''sep''' em wp_title().
+
+Nas tags que usam o estilo de parâmetro de função PHP, os valores da string devem ser colocados entre aspas simples (') ou duplas ("). Se for necessário usar aspas simples ou duplas na string, combine-as (com aspas duplas para delimitar o parâmetro, caso haja aspas simples no valor do parâmetro) ou use o caractere de escape PHP (uma barra invertida: \), conforme é mostrado a seguir, para atribuir aspas simples aos parâmetros before e after em the_title():
+
+<?php the_title('\'', '\''); ?>
+
+=== Inteiro ===
+
+É um número inteiro (…, -2, -1, 0, 1, 2,…). Parâmetros inteiros costumam ser utilizados para informações baseadas em datas e arquivos, como os parâmetros year e '''month''' da tag get_month_link() ou para especificar o valor numérico de alguma coisa no blog, como no caso do parâmetro id em get_permalink().
+
+Quando passados a uma tag no estilo de parâmetro de função PHP, valores inteiros dentro ou fora de aspas são manipulados corretamente. Portanto, estes dois exemplos são válidos:
+
+<?php get_permalink('100'); ?>
+<?php get_permalink('100'); ?>
+
+=== Booleano ===
+
+Parâmetros booleanos proporcionam uma avaliação simples de verdadeiro/falso.
+
+Por exemplo, a tag the_date() possui o parâmetro '''echo''' que recebe <tt>TRUE</tt> ou <tt>FALSE</tt> como valor. Definir o parâmetro como <tt>TRUE</tt> exibe a data na página. <tt>FALSE</tt> faz a tag "retornar" a data como um valor a ser utilizado em outro código PHP.
+
+
+O parâmetro booleano pode ser especificado como um valor numérico: 1 para <tt>TRUE</tt>, 0 para <tt>FALSE</tt>. Para um valor booleano em tags no estilo de parâmetro de função PHP, são equivalentes:
+
+* <tt>1 = TRUE = true</tt>
+* <tt>0 = FALSE = false</tt>
+
+Porém, '''NÃO''' coloque valores booleanos entre aspas. Em tags no estilo de string de consulta, use somente os valores booleanos numéricos (1 ou 0).
+
+Ir para índice de [[Tags de modelo]]
+
+
+
+Categorias: [[Tags de modelo]] | [[Tópicos avançados]]

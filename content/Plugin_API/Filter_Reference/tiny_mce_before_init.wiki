@@ -1,0 +1,44 @@
+== Description ==
+This filter grants developers access to the TinyMCE settings array.
+
+It passes 2 arguments: an array of editor settings and the editor id
+
+== Example ==
+The following example adds custom style options to an existing '''Style''' dropdown. 
+
+Note that, by default, the '''Style''' dropdown is hidden in WordPress. To show this option, you will need to add it using the <tt>[[Plugin_API/Filter_Reference/mce_buttons, mce_buttons_2, mce_buttons_3, mce_buttons_4|mce_buttons_2]]</tt> filter <em>and</em> load the CSS using the <tt>[[Plugin_API/Filter_Reference/mce_css|mce_css]]</tt> hook.
+<pre>
+function mytheme_tinymce_settings( $settings ) {
+	//First, we define the styles we want to add in format 'Style Name' => 'css classes'
+	$classes = array(
+		__('Test style 1', 'mytheme') => 'teststyle1',
+		__('Test style 2', 'mytheme') => 'teststyle2',
+		__('Test style 3', 'mytheme') => 'teststyle3',
+	);
+
+	//Delimit styles by semicolon in format 'Title=classes;' so TinyMCE can use it
+	if ( ! empty( $settings['theme_advanced_styles'] ) ) {
+		$settings['theme_advanced_styles'] .= ';';
+	} else {
+		//If there's nothing defined yet, define it
+		$settings['theme_advanced_styles'] = '';
+	}
+
+	//Loop through our newly defined classes and add them to TinyMCE
+	$class_settings = '';
+	foreach ( $classes as $name => $value ) {
+		$class_settings .= "{$name}={$value};";
+	}
+
+	//Add our new class settings to the TinyMCE $settings array
+	$settings['theme_advanced_styles'] .= trim( $class_settings, '; ' );
+
+	return $settings;
+}
+add_filter( 'tiny_mce_before_init', 'mytheme_tinymce_settings' );
+</pre>
+
+== Related ==
+{{TinyMCE API}}
+
+[[Category:Filters]]

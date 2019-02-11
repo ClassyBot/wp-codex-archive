@@ -1,0 +1,748 @@
+{{Languages|
+{{en|Plugin API/Action Reference}}
+{{ru|API плагина/Справка по Action}}
+{{ja|プラグイン API/アクションフック一覧}}
+{{ko|플러그인 API 작성/액션 참조}}
+{{pt-br|Plugin API/Referencia das Acoes}}
+}}
+
+WordPress 버전 2.1 이상에서 사용할 수 있는 액션 훅 종합 목록입니다.
+
+* 필터 및 액션 훅에 대한 자세한 내용은 [[Plugin API]]을 보십시요.
+* 플러그인 작성에 대한 일반적인 내용은 [[Writing a Plugin]]을 보십시요.
+* 필터 훅의 참조 목록은 [[Plugin API/Filter Reference]]을 보십시요.
+* 이전 버전의 WordPress에서 필터 및 액션 훅에 대한 자세한 내용은 [[Plugin API/Hooks 2.0.x]]을 보십시요.
+
+<em>(If you want to add to or clarify this documentation, please follow the style of the existing entries. Describe when the action runs, and if the action function takes arguments, describe the arguments.)</em>
+<em>(이 문서를 추가하거나 명확하게 하려면 기존 항목의 스타일을 따르십시오. 액션이 실행되는시기를 설명하고, 액션 함수가 인수를 취하는 경우 인수를 설명하십시오.)</em>
+
+== 일반 요청 중 실행되는 액션 ==
+
+These actions are called when a logged-in user opens the home page in [[Version 3.3.1]]. This list may show only the first time each action is called, and in many cases no function is hooked to the action. Themes and plugins can cause actions to be called multiple times and at differing times during a request. As proof of this, you can see action calls specific to the [http://wordpress.org/extend/themes/twentyeleven Twenty Eleven] theme on this list. Cron tasks may also fire when a user visits the site, adding additional action calls. This list should be viewed as a guide line or approximation of WordPress action execution order, and not a concrete specification.
+
+이 액션은 버전 3.3.1에서 로그인 한 유저가 홈 페이지를 열 때 호출됩니다. 이 목록은 각각의 액션이 처음 호출 될 때만 표시 될 수 있으며 대부분의 경우 액션에 함수가 hook되지 않습니다. 테마와 플러그인의 요청으로 액션이 여러번 혹은 다른 시점에 호출될 수 있습니다. 이것을 증명하는 것으로, 이 목록에 있는 Twenty Eleven 테마에 해당하는 액션 콜을 볼 수 있습니다. 사용자가 사이트를 방문할 때 Cron 작업이 실행되어 추가 작업 호출이 추가 될 수 있습니다. 이 목록은 구체적인 명세가 아닌 WordPress 작업 실행 순서의 지침 또는 접근법으로 검토되어야 합니다.
+
+Actions are called with the function <tt>[[Function_Reference/do_action|do_action()]]</tt>, except those marked (ref array), which are called with the function <tt>[[Function_Reference/do_action_ref_array|do_action_ref_array()]]</tt>.
+
+액션은 <tt>[[Function_Reference/do_action|do_action()]]</tt> 함수에 의하여 호출됩니다. 일부 (ref array)로 표시된 것은 <tt>[[Function_Reference/do_action_ref_array|do_action_ref_array()]]</tt> 함수에 의해 호출됩니다.
+
+{| class="widefat" style="border-spacing: 2em 0; vertical-align: top !important;"
+|-
+||[[Plugin_API/Action_Reference/muplugins_loaded|muplugins_loaded]]||must-use plugins이 로드된 후
+|-
+||[[Plugin_API/Action_Reference/registered_taxonomy|registered_taxonomy]]||For category, post_tag, ''etc.''
+|-
+||[[Plugin_API/Action_Reference/registered_post_type|registered_post_type]]||For post, page, ''etc.''
+|-
+||[[Plugin_API/Action_Reference/plugins_loaded|plugins_loaded]]||active plugins, pluggable 함수들이 로드된 후
+|-
+||[[Plugin_API/Action_Reference/sanitize_comment_cookies|sanitize_comment_cookies]]||
+|-
+||[[Plugin_API/Action_Reference/setup_theme|setup_theme]]||
+|-
+||[[Plugin_API/Action_Reference/load_textdomain|load_textdomain]]||For the <tt>default</tt> domain
+|-
+||[[Plugin_API/Action_Reference/after_setup_theme|after_setup_theme]]||Generally used to initialize theme settings/options. This is the <strong>first action hook available to themes</strong>, triggered immediately after the active theme's ''functions.php'' file is loaded. <tt>add_theme_support()</tt> should be called here, since the <tt>init</tt> action hook is too late to add some features. At this stage, the current user is not yet authenticated.
+|-
+||[[Plugin_API/Action_Reference/auth_cookie_malformed|auth_cookie_malformed]]||
+|-
+||[[Plugin_API/Action_Reference/auth_cookie_valid|auth_cookie_valid]]||
+|-
+||[[Plugin_API/Action_Reference/set_current_user|set_current_user]]||
+|-
+||[[Plugin_API/Action_Reference/init|init]]||Typically used by plugins to initialize. The current user is already authenticated by this time.
+|-
+||└─ [[Plugin_API/Action_Reference/widgets_init|widgets_init]]||Used to register sidebars. Fired at 'init' priority 1 (and so before 'init' actions with priority ≥ 1!)
+|-
+||[[Plugin_API/Action_Reference/register_sidebar|register_sidebar]]||For each sidebar and footer area
+|-
+||[[Plugin_API/Action_Reference/wp_register_sidebar_widget|wp_register_sidebar_widget]]||For each widget
+|-
+||[[Plugin_API/Action_Reference/wp_default_scripts|wp_default_scripts]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/wp_default_styles|wp_default_styles]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/admin_bar_init|admin_bar_init]]||
+|-
+||[[Plugin_API/Action_Reference/add_admin_bar_menus|add_admin_bar_menus]]||
+|-
+||[[Plugin_API/Action_Reference/wp_loaded|wp_loaded]]||After WordPress is fully loaded
+|-
+||[[Plugin_API/Action_Reference/parse_request|parse_request]]||Allows manipulation of HTTP request handling (ref array)
+|-
+||[[Plugin_API/Action_Reference/send_headers|send_headers]]||Allows customization of HTTP headers (ref array)
+|-
+||[[Plugin_API/Action_Reference/parse_query|parse_query]]||After query variables are set (ref array)
+|-
+||[[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]]||Exposes the query-variables object before a query is executed. (ref array)
+|-
+||[[Plugin_API/Action_Reference/posts_selection|posts_selection]]||
+|-
+||[[Plugin_API/Action_Reference/wp|wp]]||After WP object is set up (ref array)
+|-
+||[[Plugin_API/Action_Reference/template_redirect|template_redirect]]||
+|-
+||[[Plugin_API/Action_Reference/get_header|get_header]]||
+|-
+||[[Plugin_API/Action_Reference/wp_enqueue_scripts|wp_enqueue_scripts]]||
+|-
+|colspan="2"|twentyeleven_enqueue_color_scheme (Specific to Twenty Eleven)
+|-
+||[[Plugin_API/Action_Reference/wp_head|wp_head]]||
+|-
+||[[Plugin_API/Action_Reference/wp_print_styles|wp_print_styles]]||
+|-
+||[[Plugin_API/Action_Reference/wp_print_scripts|wp_print_scripts]]||
+|-
+||[[Plugin_API/Action_Reference/get_search_form|get_search_form]]||
+|-
+||[[Plugin_API/Action_Reference/loop_start|loop_start]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/the_post|the_post]]||(ref array) Allows modification of the post object immediately after query
+|-
+||[[Plugin_API/Action_Reference/get_template_part|get_template_part_content]]||Template part for the content
+|-
+||[[Plugin_API/Action_Reference/loop_end|loop_end]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/get_sidebar|get_sidebar]]||
+|-
+||[[Plugin_API/Action_Reference/dynamic_sidebar|dynamic_sidebar]]||
+|-
+||[[Plugin_API/Action_Reference/get_search_form|get_search_form]]||
+|-
+||[[Plugin_API/Action_Reference/pre_get_comments|pre_get_comments]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/wp_meta|wp_meta]]||
+|-
+||[[Plugin_API/Action_Reference/get_footer|get_footer]]||
+|-
+||[[Plugin_API/Action_Reference/get_sidebar|get_sidebar]]||This 'sidebar' is a footer area
+|-
+||twentyeleven_credits||(Specific to Twenty Eleven)
+|-
+||[[Plugin_API/Action_Reference/wp_footer|wp_footer]]||
+|-
+||[[Plugin_API/Action_Reference/wp_print_footer_scripts|wp_print_footer_scripts]]||
+|-
+||[[Plugin_API/Action_Reference/admin_bar_menu|admin_bar_menu]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/wp_before_admin_bar_render|wp_before_admin_bar_render]]||
+|-
+||[[Plugin_API/Action_Reference/wp_after_admin_bar_render|wp_after_admin_bar_render]]||
+|-
+||[[Plugin_API/Action_Reference/shutdown|shutdown]]||PHP execution is about to end
+|}
+
+== 어드민 페이지 요청 중 실행되는 액션 ==
+
+These actions are run when a logged-in user opens the [[Posts Screen|Posts]] page in [[Version 3.3.1]]. This list shows only the first time an action is called, and in many cases no function is hooked to the action. Each admin page has a different list of actions depending upon the purpose of the page and the plugins installed. This list should be viewed as a guide line or approximation, and not a concrete specification.
+
+이 액션은 버전 3.3.1에서 로그인 한 유저가 Posts 페이지를 열 때 호출됩니다. 이 목록은 각각의 액션이 처음 호출 될 때만 표시 될 수 있으며 대부분의 경우 액션에 함수가 hook되어 있지 않습니다. 각각의 어드민 페이지는 페이지의 목적 및 설치된 플러그인에 따라 다른 액션 항목을 가집니다. 이 목록은 구체적인 명세가 아닌 지침 또는 접근법으로 검토되어야 합니다. 
+
+In these actions, <tt>(hookname)</tt> depends on the page. For the Posts page it is ''edit.php'', or for a theme's Background page it is <tt>appearance_page_custom-background</tt>.
+
+이 액션(hookname)는 페이지에 따릅니다. Posts 페이지인 경우 edit.php이고 테마 백그라운드 페이지인 경우 appearance_page_custom-background 입니다.
+
+Actions are called with the function <tt>[[Function_Reference/do_action|do_action()]]</tt>, except those marked (ref array), which are called with the function <tt>[[Function_Reference/do_action_ref_array|do_action_ref_array()]]</tt>.
+
+액션은 <tt>[[Function_Reference/do_action|do_action()]]</tt> 함수에 의하여 호출됩니다. 일부 (ref array)로 표시된 것은 <tt>[[Function_Reference/do_action_ref_array|do_action_ref_array()]]</tt> 함수에 의해 호출됩니다.
+
+
+{|style="border-spacing: 2em 0;"
+|-
+||[[Plugin_API/Action_Reference/muplugins_loaded|muplugins_loaded]]||After must-use plugins are loaded
+|-
+||[[Plugin_API/Action_Reference/registered_taxonomy|registered_taxonomy]]||For category, post_tag, ''etc.''
+|-
+||[[Plugin_API/Action_Reference/registered_post_type|registered_post_type]]||For post, page, ''etc.''
+|-
+|valign="top"|[[Plugin_API/Action_Reference/plugins_loaded|plugins_loaded]]||After active plugins and pluggable functions are loaded
+|-
+||[[Plugin_API/Action_Reference/sanitize_comment_cookies|sanitize_comment_cookies]]
+|-
+||[[Plugin_API/Action_Reference/setup_theme|setup_theme]]
+|-
+||[[Plugin_API/Action_Reference/load_textdomain|load_textdomain]]||For domain <tt>default</tt>
+|-
+||[[Plugin_API/Action_Reference/after_setup_theme|after_setup_theme]]||At this stage, the current user is not yet authenticated.
+|-
+||[[Plugin_API/Action_Reference/load_textdomain|load_textdomain]]||For domain <tt>twentyeleven</tt>
+|-
+||[[Plugin_API/Action_Reference/auth_cookie_valid|auth_cookie_valid]]
+|-
+||[[Plugin_API/Action_Reference/set_current_user|set_current_user]] 
+|-
+||[[Plugin_API/Action_Reference/init|init]]||Typically used by plugins to initialize. The current user is already authenticated by this time.
+|-
+||└─ [[Plugin_API/Action_Reference/widgets_init|widgets_init]]||Used to register sidebars. This is fired at 'init', with a priority of 1.
+|-
+||[[Plugin_API/Action_Reference/register_sidebar|register_sidebar]]||For each sidebar
+|-
+||[[Plugin_API/Action_Reference/wp_register_sidebar_widget|wp_register_sidebar_widget]]||For each widget
+|-
+||[[Plugin_API/Action_Reference/wp_default_scripts|wp_default_scripts]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/wp_default_styles|wp_default_styles]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/admin_bar_init|admin_bar_init]]
+|-
+||[[Plugin_API/Action_Reference/add_admin_bar_menus|add_admin_bar_menus]]
+|-
+||[[Plugin_API/Action_Reference/wp_loaded|wp_loaded]]||After WordPress is fully loaded
+|-
+||[[Plugin_API/Action_Reference/auth_cookie_valid|auth_cookie_valid]]
+|-
+||[[Plugin_API/Action_Reference/auth_redirect|auth_redirect]]
+|-
+||[[Plugin_API/Action_Reference/_admin_menu|_admin_menu]]||See also: [[Plugin_API/Action_Reference/_user_admin_menu|_user_admin_menu]], [[Plugin_API/Action_Reference/_network_admin_menu|_network_admin_menu]]
+|-
+||[[Plugin_API/Action_Reference/admin_menu|admin_menu]]||See also: [[Plugin_API/Action_Reference/user_admin_menu|user_admin_menu]], [[Plugin_API/Action_Reference/network_admin_menu|network_admin_menu]]
+|-
+||[[Plugin_API/Action_Reference/admin_init|admin_init]]
+|-
+||[[Plugin_API/Action_Reference/current_screen|current_screen]]
+|-
+||[[Plugin_API/Action_Reference/load-(page)|load-(page)]]
+|-
+||[[Plugin_API/Action_Reference/send_headers|send_headers]]||Where custom HTTP headers can be added
+|-
+||[[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]]||Exposes the query-variables object before a query is executed. (ref array)
+|-
+||[[Plugin_API/Action_Reference/posts_selection|posts_selection]]
+|-
+||[[Plugin_API/Action_Reference/wp|wp]]||After WP object is set up (ref array)
+|-
+||[[Plugin_API/Action_Reference/admin_xml_ns|admin_xml_ns]]
+|-
+||[[Plugin_API/Action_Reference/admin_xml_ns|admin_xml_ns]]
+|-
+||[[Plugin_API/Action_Reference/admin_enqueue_scripts|admin_enqueue_scripts]]
+|-
+||[[Plugin_API/Action_Reference/admin_print_styles-(hookname)|admin_print_styles-(hookname)]]
+|-
+||[[Plugin_API/Action_Reference/admin_print_styles|admin_print_styles]]
+|-
+||[[Plugin_API/Action_Reference/admin_print_scripts-(hookname)|admin_print_scripts-(hookname)]]
+|-
+||[[Plugin_API/Action_Reference/admin_print_scripts|admin_print_scripts]]
+|-
+||[[Plugin_API/Action_Reference/wp_print_scripts|wp_print_scripts]]
+|-
+||[[Plugin_API/Action_Reference/admin_head-(hookname)|admin_head-(hookname)]]
+|-
+||[[Plugin_API/Action_Reference/admin_head|admin_head]]
+|-
+||[[Plugin_API/Action_Reference/adminmenu|adminmenu]]
+|-
+||[[Plugin_API/Action_Reference/in_admin_header|in_admin_header]]
+|-
+||[[Plugin_API/Action_Reference/admin_notices|admin_notices]]
+|-
+||[[Plugin_API/Action_Reference/all_admin_notices|all_admin_notices]]
+|-
+||[[Plugin_API/Action_Reference/(hookname)|(hookname)]]
+|-
+||[[Plugin_API/Action_Reference/restrict_manage_posts|restrict_manage_posts]]
+|-
+||[[Plugin_API/Action_Reference/the_post|the_post]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/pre_user_query|pre_user_query]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/in_admin_footer|in_admin_footer]]
+|-
+||[[Plugin_API/Action_Reference/admin_footer|admin_footer]]
+|-
+||[[Plugin_API/Action_Reference/admin_bar_menu|admin_bar_menu]]||(ref array)
+|-
+||[[Plugin_API/Action_Reference/wp_before_admin_bar_render|wp_before_admin_bar_render]]
+|-
+||[[Plugin_API/Action_Reference/wp_after_admin_bar_render|wp_after_admin_bar_render]]
+|-
+||[[Plugin_API/Action_Reference/admin_print_footer_scripts|admin_print_footer_scripts]]
+|-
+||[[Plugin_API/Action_Reference/admin_footer-(hookname)|admin_footer-(hookname)]]||Admin page footer
+|-
+||[[Plugin_API/Action_Reference/shutdown|shutdown]]||PHP execution is about to end
+|-
+||[[Plugin_API/Action_Reference/wp_dashboard_setup|wp_dashboard_setup]]||Allows customization of admin Dashboard
+|}
+
+== Post, Page, Attachment, and Category Actions (Admin) ==
+
+;[[Plugin_API/Action_Reference/post_submitbox_misc_actions|post_submitbox_misc_actions]] : Runs when an editing page gets generated to add some content (eg. fields) to the submit box (where the publish button is shown). No function arguments.
+
+;[[Plugin_API/Action_Reference/add_attachment|add_attachment]] : Runs when an attached file is first added to the database. Action function arguments: attachment ID.
+
+;[[Plugin_API/Action_Reference/add_category|add_category]] : Same as <tt>create_category</tt>.
+
+;[[Plugin_API/Action_Reference/category_add_form_fields|category_add_form_fields]] : Runs when category add form is cerated in admin. Useful to add a field in this form before the submit button
+
+;[[Plugin_API/Action_Reference/category_edit_form|category_edit_form]] : Runs when category edit form is created in admin. Useful to add a new field to this form
+
+;[[Plugin_API/Action_Reference/clean_post_cache|clean_post_cache]] : Runs when post cache is cleaned. Action function arguments: post ID. See [[Function_Reference/clean_post_cache|<tt>clean_post_cache()</tt>]].
+
+;[[Plugin_API/Action_Reference/create_category|create_category]] : Runs when a new category is created. Action function arguments: category ID.
+
+;[[Plugin_API/Action_Reference/delete_attachment|delete_attachment]] : Runs just before an attached file is deleted from the database. Action function arguments: attachment ID. ''(Prior to version 2.8 this hook was triggered after attachment was deleted.)
+
+;[[Plugin_API/Action_Reference/delete_category|delete_category]] : Runs just after a category is deleted from the database and its corresponding links/posts are updated to remove the category. Action function arguments: category ID.
+
+;[[Plugin_API/Action_Reference/trash_post|wp_trash_post]] : Runs when a post or page is about to be trashed. Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/trashed_post|trashed_post]] : Runs just after a post or page is trashed. Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/untrash_post|untrash_post]] : Runs just before undeletion, when a post or page is restored. Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/untrashed_post|untrashed_post]] : Runs just after undeletion, when a post or page is restored. Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/before_delete_post|before_delete_post]] : Runs when a post or page is about to be deleted. Comments, attachments and metadata are still available. Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/delete_post|delete_post]] : Runs when a post or page is about to be deleted. Comments, attachments and metadata are already deleted. Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/deleted_post|deleted_post]] : Runs just after a post or page is deleted. Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/edit_attachment|edit_attachment]] : Runs when an attached file is edited/updated to the database. Action function arguments: attachment ID.
+
+;[[Plugin_API/Action_Reference/edit_category|edit_category]] : Runs when a category is updated/edited, including when a post or blogroll link is added/deleted or its categories are updated (which causes the count for the category to update). Action function arguments: category ID.
+
+;[[Plugin_API/Action_Reference/edit_post|edit_post]] : Runs when a post or page is updated/edited, including when a comment is added or updated (which causes the comment count for the post to update). Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/pre_post_update|pre_post_update]] : Runs just before a post or page is updated. Action function arguments: post or page ID.
+
+;[[Plugin_API/Action_Reference/post_updated|post_updated]] : Runs after a post or page is updated. Action function arguments: post or page ID, [[Class_Reference/WP_Post|WP_Post]] object of the post before the update and after the update.
+
+;[[Plugin API/Action Reference/transition_post_status|transition_post_status ]] : Runs when any post status transition occurs. Action function arguments: <tt>$new_status</tt>, <tt>$old_status</tt>, <tt>$post</tt> object. (See also [[Post Status Transitions]].)
+
+;[[Plugin_API/Action_Reference/(old_status)_to_(new_status)|(old status)_to_(new status)]] : Runs when a post changes status from <tt>$old_status</tt> to <tt>$new_status</tt>. Action function arguments: <tt>$post</tt> object. (See also [[Post Status Transitions]].)
+
+;[[Plugin_API/Action_Reference/(status)_(post_type)|(status)_(post_type)]] : Runs when a post of type <tt>$post_type</tt> is transitioned to <tt>$status</tt> from any other status. Action function arguments: post ID, <tt>$post object</tt>. (See also [[Post Status Transitions]].)
+
+;[[Plugin_API/Action_Reference/publish_post|publish_post]] (not deprecated) : Runs when a post is published, or if it is edited and its status is changed to "published". This action hook conforms to the [[Plugin_API/Action_Reference/(status)_(post_type)|(status)_(post_type)]] action hook type. Action function arguments: post ID, <tt>$post object</tt>. (See also [[Post Status Transitions]].)
+
+;[[Plugin_API/Action_Reference/publish_page|publish_page]] : Runs when a page is published, or if it is edited and its status is changed to "published". This action hook conforms to the [[Plugin_API/Action_Reference/(status)_(post_type)|(status)_(post_type)]] action hook type. Action function arguments: post ID, <tt>$post object</tt>. (See also [[Post Status Transitions]].)
+
+;[[Plugin_API/Action_Reference/publish_phone|publish_phone]] : Runs just after a post is added via email. Action function argument: post ID.
+
+;[[Plugin_API/Action_Reference/publish_future_post|publish_future_post]] : Runs when a future post or page is published. Action function arguments: post ID.
+
+;[[Plugin_API/Action_Reference/save_post|save_post]] : Runs whenever a post or page is created or updated, which could be from an import, post/page edit form, xmlrpc, or post by email. Action function arguments: post ID and post object. Runs after the data is saved to the database. Note that post ID may reference a post revision and not the last saved post. Use <tt>[[Function Reference/wp_is_post_revision|wp_is_post_revision()]]</tt> to get the ID of the real post.
+
+;[[Plugin_API/Action_Reference/updated_postmeta|updated_postmeta]] : Runs when a metadata has been updated.
+
+;[[Plugin_API/Action_Reference/wp_insert_post|wp_insert_post]] : Same as <tt>save_post</tt>, runs immediately afterwards.
+
+;[[Plugin_API/Action_Reference/xmlrpc_publish_post|xmlrpc_publish_post]] : Runs when a post is published via XMLRPC request, or if it is edited via XMLRPC and its status is "published". Action function arguments: post ID.
+
+=== Taxonomy and Terms ===
+
+;[[Plugin_API/Action_Reference/create_term|create_term]] : Runs after a new term is created, before the term cache is cleaned.
+
+;[[Plugin_API/Action_Reference/created_term|created_term]] : Runs after a new term is created, and after the term cache has been cleaned.
+
+;[[Plugin_API/Action_Reference/create_$taxonomy|create_$taxonomy]] : Runs after a new term is created for a specific taxonomy.
+
+;[[Plugin_API/Action_Reference/created_$taxonomy|created_$taxonomy]] : Runs after a new term in a specific taxonomy is created, and after the term cache has been cleaned.
+
+;[[Plugin_API/Action_Reference/add_term_relationship|add_term_relationship]] (Since version 2.9.0) : Runs before an object-term relationship is added.
+
+;[[Plugin_API/Action_Reference/added_term_relationship|added_term_relationship]] (Since version 2.9.0) : Runs after an object-term relationship is added.
+
+;[[Plugin_API/Action_Reference/set_object_terms|set_object_terms]] (Since version 2.8.0) : Runs after an object's terms have been set.
+
+;[[Plugin_API/Action_Reference/edit_terms|edit_terms]] (Since version 2.9.0) : Runs before the given terms are edited.
+
+;[[Plugin_API/Action_Reference/edited_terms|edited_terms]] : Runs after saving taxonomy/category change in the database.
+
+;[[Plugin_API/Action_Reference/edit_term_taxonomy|edit_term_taxonomy]] : Runs before a term-taxonomy relationship is updated.
+
+;[[Plugin_API/Action_Reference/edited_term_taxonomy|edited_term_taxonomy]] : Runs after a term-taxonomy relationship is updated.
+
+;[[Plugin_API/Action_Reference/edit_term_taxonomies|edit_term_taxonomies]] (Since version 2.9.0) : Runs before a term to delete's children are reassigned a parent.
+
+;[[Plugin_API/Action_Reference/edited_term_taxonomies|edited_term_taxonomies]] (Since version 2.9.0) : Runs after a term to delete's children are reassigned a parent.
+
+;[[Plugin_API/Action_Reference/edited_$taxonomy|edited_$taxonomy]] : Runs after saving specific taxonomy change in the database.
+
+;[[Plugin_API/Action_Reference/pre_delete_term|pre_delete_term]] (Since version 4.1.0) : Runs before any modifications are made to posts or terms.
+
+;[[Plugin_API/Action_Reference/delete_term_taxonomy|delete_term_taxonomy]] (Since version 2.9.0) : Runs before a term taxonomy ID is deleted from database (after having change chidren's term).
+
+;[[Plugin_API/Action_Reference/deleted_term_taxonomy|deleted_term_taxonomy]] (Since version 2.9.0) : Runs after a term taxonomy ID is deleted.
+
+;[[Plugin_API/Action_Reference/delete_term|delete_term]] (Since version 2.5.0) : Runs after a term is deleted from the database and the cache is cleaned. (Paramètres : $Term_ID, $Term_taxonomy_ID, $Taxonomy_slug, $already_deleted_term)
+
+;[[Plugin_API/Action_Reference/delete_$taxonomy|delete_$taxonomy]] (Since version 2.3.0) : Runs after a term in a specific taxonomy is deleted. (Paramètres : $Term_ID, $Term_taxonomy_ID, $already_deleted_term)
+
+;[[Plugin_API/Action_Reference/delete_term_relationships|delete_term_relationships]] (Since version 2.9.0) : Runs before an object-term relationship is deleted.
+
+;[[Plugin_API/Action_Reference/deleted_term_relationships|deleted_term_relationships]] (Since version 2.9.0) : Runs after an object-term relationship is deleted.
+
+;[[Plugin_API/Action_Reference/clean_object_term_cache|clean_object_term_cache]] (Since version 2.5.0) : Runs after the object term cache has been cleaned.
+
+;[[Plugin_API/Action_Reference/clean_term_cache|clean_term_cache]] (Since version 2.5.0) : Runs after each taxonomy's term cache has been cleaned.
+
+;[[Plugin_API/Action_Reference/split_shared_term|split_shared_term]] (Since version 4.2.0) : Runs after a previously shared taxonomy term is split into two separate terms.
+
+== Comment, Ping, and Trackback Actions ==
+
+;[[Plugin_API/Action_Reference/comment_closed|comment_closed]] : Runs when the post is marked as not allowing comments while trying to display comment entry form. Action function argument: post ID.
+
+;[[Plugin_API/Action_Reference/comment_id_not_found|comment_id_not_found]] : Runs when the post ID is not found while trying to display comments or comment entry form. Action function argument: post ID.
+
+;[[Plugin_API/Action_Reference/comment_flood_trigger|comment_flood_trigger]] : Runs when a comment flood is detected, just before <tt>wp_die</tt> is called to stop the comment from being accepted. Action function arguments: time of previous comment, time of current comment.
+
+;[[Plugin_API/Action_Reference/comment_(old status)_to_(new status)|comment_(old status)_to_(new status)]] : Runs when a comment status transition occurs. Action function arguments: Comment object.
+
+;[[Plugin_API/Action_Reference/comment_on_draft|comment_on_draft]] : Runs when the post is a draft while trying to display a comment entry form or comments. Action function argument: post ID.
+
+;[[Plugin_API/Action_Reference/comment_post|comment_post]] : Runs just after a comment is saved in the database. Action function arguments: comment ID, approval status ("spam", or 0/1 for disapproved/approved).
+
+;[[Plugin_API/Action_Reference/edit_comment|edit_comment]] : Runs after a comment is updated/edited in the database. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/delete_comment|delete_comment]] : Fires immediately before a comment is deleted from the database. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/deleted_comment|deleted_comment]] : Fires immediately after a comment is deleted from the database. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/trash_comment|trash_comment]] : Fires immediately before a comment is sent to the Trash. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/trashed_comment|trashed_comment]] : Fires immediately after a comment is sent to Trash. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/untrash_comment|untrash_comment]] : Fires immediately before a comment is restored from the Trash. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/untrashed_comment|untrashed_comment]] : Fires immediately after a comment is restored from the Trash. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/spam_comment|spam_comment]] : Fires immediately before a comment is marked as Spam. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/spammed_comment|spammed_comment]] : Fires immediately after a comment is marked as Spam. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/unspam_comment|unspam_comment]] : Fires immediately before a comment is unmarked as Spam. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/unspammed_comment|unspammed_comment]] : Fires immediately after a comment is unmarked as Spam. Action function arguments: comment ID.
+
+;[[Plugin_API/Action_Reference/pingback_post|pingback_post]] : Runs when a ping is added to a post. Action function argument: comment ID.
+
+;[[Plugin_API/Action_Reference/pre_ping|pre_ping]] : Runs before a ping is fully processed. Action function arguments: array of the post links to be processed, and the "pung" setting for the post.
+
+;[[Plugin_API/Action_Reference/trackback_post|trackback_post]] : Runs when a trackback is added to a post. Action function argument: comment ID.
+
+;[[Plugin_API/Action_Reference/wp_blacklist_check|wp_blacklist_check]] : Runs to check whether a comment should be blacklisted. Action function arguments: author name, author email, author URL, comment text, author IP address, author's user agent (browser). Your function can execute a <tt>wp_die</tt> to reject the comment, or perhaps modify one of the input arguments so that it will contain one of the blacklist keywords set in the WordPress options.
+
+;[[Plugin_API/Action_Reference/wp_insert_comment|wp_insert_comment]] : Runs whenever a comment is created.
+
+;[[Plugin_API/Action_Reference/wp_set_comment_status|wp_set_comment_status]] : Runs when the status of a comment changes. Action function arguments: comment ID, status string indicating the new status ("delete", "approve", "spam", "hold").
+
+== Blogroll Actions ==
+
+;[[Plugin_API/Action_Reference/add_link|add_link]] : Runs when a new blogroll link is first added to the database.  Action function arguments: link ID.
+
+;[[Plugin_API/Action_Reference/delete_link|delete_link]] : Runs when a blogroll link is deleted. Action function arguments: link ID.
+
+;[[Plugin_API/Action_Reference/edit_link|edit_link]] : Runs when a blogroll link is edited. Action function arguments: link ID.
+
+== Feed Actions ==
+
+;[[Plugin_API/Action_Reference/atom_entry|atom_entry]] : Runs just after the entry information has been printed (but before closing the entry tag) for each blog entry in an atom feed.
+
+;[[Plugin_API/Action_Reference/atom_head|atom_head]] : Runs just after the blog information has been printed in an atom feed, just before the first entry.
+
+;[[Plugin_API/Action_Reference/atom_ns|atom_ns]] : Runs inside the root XML element for an atom feed (to add namespaces).
+
+;[[Plugin_API/Action_Reference/commentrss2_item|commentrss2_item]] : Runs just after a single comment's information has been printed in a comment feed (but before closing the item tag). Action function arguments: comment ID, post ID.
+
+;[[Plugin_API/Action_Reference/do_feed_(feed)| do_feed_<var>(feed)</var>]] : Runs when a feed is generated, where <var>feed</var> is the type of feed (<tt>rss2, atom, rdf</tt>, etc.). Use <var>priority</var> less than 10 to run <strong>before</strong> printing the feed. Action function argument: <var>true</var> (the feed is for comments) or <var>false</var> (it is for posts).
+
+;[[Plugin_API/Action_Reference/rdf_header|rdf_header]] : Runs just after the blog information has been printed in an RDF feed, just before the first entry.
+
+;[[Plugin_API/Action_Reference/rdf_item|rdf_item]] : Runs just after the entry information has been printed (but before closing the item tag) for each blog entry in an RDF feed.
+
+;[[Plugin_API/Action_Reference/rdf_ns|rdf_ns]] : Runs inside the root XML element in an RDF feed (to add namespaces).
+
+;[[Plugin_API/Action_Reference/rss_head|rss_head]] : Runs just after the blog information has been printed in an RSS feed, just before the first entry.
+
+;[[Plugin_API/Action_Reference/rss_item|rss_item]] : Runs just after the entry information has been printed (but before closing the item tag) for each blog entry in an RSS feed.
+
+;[[Plugin_API/Action_Reference/rss2_head|rss2_head]] : Runs just after the blog information has been printed in an RSS 2 feed, just before the first entry.
+
+;[[Plugin_API/Action_Reference/rss2_item|rss2_item]] : Runs just after the entry information has been printed (but before closing the item tag) for each blog entry in an RSS 2 feed.
+
+;[[Plugin_API/Action_Reference/rss2_ns|rss2_ns]] : Runs inside the root XML element in an RSS 2 feed (to add namespaces).
+
+== Template Actions ==
+
+;[[Plugin_API/Action_Reference/after_setup_theme|after_setup_theme]] : Runs during a themes initialization. Is generally used to perform basic setup, registration, and init actions for a theme.
+
+;[[Plugin_API/Action_Reference/comment_form|comment_form]] : Runs at the bottom of a comment form rendered by [[Function_Reference/comment_form|comment_form()]], right before the closing <tt>&lt;/form&gt;</tt>. Action function argument: the post ID.
+
+;[[Plugin_API/Action_Reference/comment_form_after|comment_form_after]] : Runs after the comment form is rendered by [[Function_Reference/comment_form|comment_form()]], right after the closing <tt>&lt;/div&gt;</tt>.
+
+;[[Plugin_API/Action_Reference/do_robots|do_robots]] : Runs when the template file chooser determines that it is a robots.txt request.
+
+;[[Plugin_API/Action_Reference/do_robotstxt|do_robotstxt]] : Runs in the <tt>do_robots()</tt> function before it prints out the Disallow lists for the robots.txt file.
+
+;[[Plugin_API/Action_Reference/get_footer|get_footer]] : Runs when the template calls the <tt>get_footer()</tt> function, just before the <tt>footer.php</tt> template file is loaded. 
+
+;[[Plugin_API/Action_Reference/get_header|get_header]] : Runs when the template calls the <tt>get_header()</tt> function, just before the <tt>header.php</tt> template file is loaded.
+
+;[[Plugin_API/Action_Reference/switch_theme|switch_theme]] : Runs when the blog's theme is changed. Action function argument: name of the new theme. If used in a theme, it only works if the theme that adds action is the one being disabled.
+
+;[[Plugin_API/Action_Reference/after_switch_theme|after_switch_theme]] : Runs when the blog's theme is changed. Action function argument: name of the new theme. If used in a theme, it only works if the theme that adds action is the one being enabled. Can be used to run certain code when enabling a theme.
+
+;[[Plugin_API/Action_Reference/load-themes.php|load-themes.php]] : Runs when the theme is activate or deactivate (replace by an other).
+
+;[[Plugin_API/Action_Reference/template_redirect|template_redirect]] :  Runs before the determination of the template file to be used to display the requested page.
+
+;[[Plugin_API/Action_Reference/wp_footer|wp_footer]] : Runs when the template calls the <tt>wp_footer()</tt> function, generally near the bottom of the blog page.
+
+;[[Plugin_API/Action_Reference/wp_head|wp_head]] : Runs when the template calls the <tt>wp_head()</tt> function. This hook is generally placed near the top of a page template between <tt><head></tt> and <tt></head></tt>. This hook does not take any parameters.
+
+;[[Plugin_API/Action_Reference/wp_meta|wp_meta]] : Runs when the ''sidebar.php'' template file calls the <tt>wp_meta()</tt> function, to allow the plugin to insert content into the sidebar.
+
+;[[Plugin_API/Action_Reference/wp_print_scripts|wp_print_scripts]] : Runs just before WordPress prints registered JavaScript scripts into the page header.
+
+== Administrative Actions ==
+
+;[[Plugin_API/Action_Reference/activate_(plugin_file_name)|activate_(plugin file name)]] : Runs when the plugin is first activated. See [[Function_Reference/register_activation_hook]].
+
+;[[Plugin_API/Action_Reference/activity_box_end|activity_box_end]] : Runs at the end of the activity box on the admin Dashboard screen.
+
+;[[Plugin_API/Action_Reference/add_category_form_pre|add_category_form_pre]] : Runs before the add category form is put on the screen in the admin menus.
+
+;[[Plugin_API/Action_Reference/add_option_(option_name)|add_option_(option_name)]] : Runs after a WordPress option has been added by the [[Function_Reference/add_option|add_option()]] function. Action function arguments: option name, option value. You must add an action for the specific options that you want to respond to, such as 'add_option_foo' to respond when option "foo" has been added.
+
+;[[Plugin_API/Action_Reference/add_option|add_option]] : Runs before an option gets added to the database.
+
+;[[Plugin_API/Action_Reference/added_option|added_option]] : Runs after an an option has been added.
+
+;[[Plugin_API/Action_Reference/admin_head|admin_head]] :Runs in the HTML <tt><head></tt> section of the admin panel.
+
+;[[Plugin_API/Action_Reference/admin_head-(page_hook)|admin_head-(page_hook)]] or [[Plugin_API/Action_Reference/admin_head-(plugin_page)|admin_head-(plugin_page)]] : Runs in the HTML <tt><head></tt> section of a specific admin page '''or''' the admin panel of a plugin-generated page.
+
+;[[Plugin_API/Action_Reference/admin_init|admin_init]] :  Runs at the beginning of every admin page before the page is rendered. See ''wp-admin/admin.php'', ''wp-admin/admin-post.php'', and ''wp-admin/admin-ajax.php''.
+
+;[[Plugin_API/Action_Reference/admin_footer-(plugin_page)|admin_footer-(plugin_page)]] : Runs at the end of the <tt><body></tt> section of the admin panel of a plugin-generated page.
+
+;[[Plugin_API/Action_Reference/admin_post_(action)|admin_post_(action)]] : also: <tt>admin_post_nopriv_(action)</tt> - Runs a handler for an unspecified GET or POST request.
+
+;[[Plugin_API/Action_Reference/admin_footer|admin_footer]] :  Runs at the end of the admin panel inside the body tag
+
+;[[Plugin_API/Action_Reference/admin_enqueue_scripts|admin_enqueue_scripts]] : Runs in the HTML header so a plugin or theme can enqueue JavaScript and CSS to all admin pages.
+
+;[[Plugin_API/Action_Reference/admin_print_scripts|admin_print_scripts]] : Runs in the HTML header so a plugin can add JavaScript scripts to all admin pages.
+
+;[[Plugin_API/Action_Reference/admin_print_scripts-(page_hook) or admin_print_scripts-(plugin_page)|admin_print_scripts-(page_hook) or admin_print_scripts-(plugin_page)]] : Runs to print JavaScript scripts in the HTML head section of a specific plugin-generated admin page. The (page_hook) is returned when using any of the functions that add plugin menu items to the admin menu: add_management_page(), add_options_page(), etc. Example:
+ function myplugin_menu() {
+   if ( function_exists('add_management_page') ) {
+     $page = add_management_page( 'myplugin', 'myplugin', 'manage_options', 'myplugin_slug', 'myplugin_admin_page' );
+     add_action( "admin_print_scripts-$page", 'myplugin_admin_head' );
+   }
+ } 
+
+;[[Plugin_API/Action_Reference/admin_print_styles|admin_print_styles]] : Runs in the HTML header so a plugin can add CSS/Stylesheets to all admin pages.
+
+;[[Plugin_API/Action_Reference/admin_print_styles-(page_hook) or admin_print_style-(plugin_page)|admin_print_styles-(page_hook) or admin_print_style-(plugin_page)]] : Runs when styles should be enqueued with <tt>[[Function_Reference/wp_enqueue_style|wp_enqueue_style()]]</tt> for a particular admin page. Use the return value of a function such as <tt>[[Function_Reference/add_submenu_page|add_submenu_page()]]</tt> to determine the value of ''(page_hook)''.
+
+;[[Plugin_API/Action_Reference/check_passwords|check_passwords]] : Runs to validate the double-entry of password when creating a new user. Action function arguments: array of login name, first password, second password.
+
+;[[Plugin_API/Action_Reference/dbx_page_advanced|dbx_page_advanced]] : Runs at the bottom of the "advanced" section on the page editing screen in the admin menus.
+
+;[[Plugin_API/Action_Reference/dbx_page_sidebar|dbx_page_sidebar]] : Runs at the bottom of the sidebar on the page editing screen in the admin menus.
+
+;[[Plugin_API/Action_Reference/dbx_post_advanced|dbx_post_advanced]] : Runs at the bottom of the "advanced" section on the post editing screen in the admin menus.
+
+;[[Plugin_API/Action_Reference/dbx_post_sidebar|dbx_post_sidebar]] : Runs at the bottom of the sidebar on the post editing screen in the admin menus. Use <tt>[[Function_Reference/add_meta_box|add_meta_box()]]</tt> in Wordpress 2.5 and higher.
+
+;[[Plugin_API/Action_Reference/deactivate_(plugin file name)|deactivate_(plugin file name)]] : Runs when a plugin is deactivated.
+
+;[[Plugin_API/Action_Reference/delete_option_(option_name)|delete_option_(option_name)]] : Runs after a WordPress option has been deleted by the [[Function_Reference/delete_option|delete_option()]] function. Action function arguments: option name. You must add an action for the specific options that you want to respond to, such as 'delete_option_foo' to respond when option "foo" has been deleted.
+
+;[[Plugin_API/Action_Reference/delete_option|delete_option]] : Runs before an option gets deleted from the database.
+
+;[[Plugin_API/Action_Reference/deleted_option|deleted_option]] : Runs after an an option has been deleted.
+
+;[[Plugin_API/Action_Reference/delete_user|delete_user]] : Runs when a user is deleted. Action function arguments: user ID.
+
+;[[Plugin_API/Action_Reference/edit_category_form|edit_category_form]] : Runs after the add/edit category form is put on the screen (but before the end of the HTML form tag). 
+
+;[[Plugin_API/Action_Reference/edit_category_form_pre|edit_category_form_pre]] : Runs before the edit category form is put on the screen in the admin menus.
+
+;[[Plugin_API/Action_Reference/edit_tag_form|edit_tag_form]] : Runs after the add/edit tag form is put on the screen (but before the end of the HTML form tag). 
+
+;[[Plugin_API/Action_Reference/edit_tag_form_pre|edit_tag_form_pre]] : Runs before the edit tag form is put on the screen in the admin menus.
+
+;[[Plugin_API/Action_Reference/edit_form_top|edit_form_top]] : Runs inside the form before the title on WordPress post edit screen (and Custom Post Types), but after the inital hidden fields (user_ID, action, etc.).
+
+;[[Plugin_API/Action_Reference/edit_form_after_title|edit_form_after_title]] : Runs after the title on WordPress post edit screen (and Custom Post Types) but before the built in WordPress content area.
+
+;[[Plugin_API/Action_Reference/edit_form_after_editor|edit_form_after_editor]] : Runs just after the WordPress post editor but before all other meta boxes. also available in Custom Post Types.
+
+;[[Plugin_API/Action_Reference/edit_form_advanced|edit_form_advanced]] : Runs just before the "advanced" section of the post editing form in the admin menus.
+
+;[[Plugin_API/Action_Reference/edit_page_form|edit_page_form]] : Runs just before the "advanced" section of the page editing form in the admin menus.
+
+;[[Plugin_API/Action_Reference/edit_user_profile|edit_user_profile]] : Runs near the end of the user profile editing screen in the admin menus.
+
+;[[Plugin_API/Action_Reference/load-(page)|load-(page)]] : Runs when an administration menu page is loaded. This action is not usually added directly -- see [[Adding Administration Menus]] for more details of how to add admin menus. If you do want to use it directly, the return value from <tt>add_options_page()</tt> and similar functions gives you the "(page)" part of the action name.
+
+;[[Plugin_API/Action_Reference/login_form|login_form]] : Runs just before the end of the login form.
+
+;[[Plugin_API/Action_Reference/login_head|login_head]] : Runs just before the end of the HTML head section of the login page.
+
+;[[Plugin_API/Action_Reference/lost_password|lost_password]] : Runs before the "retrieve your password by email" form is printed on the login screen.
+
+;[[Plugin_API/Action_Reference/lostpassword_form|lostpassword_form]] : Runs at the end of the form used to retrieve a user's password by email, to allow a plugin to supply extra fields.
+
+;[[Plugin_API/Action_Reference/lostpassword_post|lostpassword_post]] : runs when the user has requested an email message to retrieve their password, to allow a plugin to modify the PHP <tt>$_POST</tt> variable before processing.
+
+;[[Plugin_API/Action_Reference/manage_link_custom_column|manage_link_custom_column]] : Runs when there is an unknown column name for the blogroll managing admin screen. Action function arguments: column name, link ID. See also filter [[Plugin API/Filter Reference/manage_link_columns|manage_link_columns]] in the [[Plugin API/Filter Reference]], which adds custom columns.
+
+;[[Plugin_API/Action_Reference/manage_posts_custom_column|manage_posts_custom_column]] : Runs when there is an unknown column name for the managing posts admin screen. Action function arguments: column name, post ID. See also filter [[Plugin API/Filter Reference/manage_posts_columns|manage_posts_columns]] in the [[Plugin API/Filter Reference]], which adds custom columns. (see [http://scompt.com/archives/2007/10/20/adding-custom-columns-to-the-wordpress-manage-posts-screen Scompt's tutorial] for examples and use.)
+
+;[[Plugin_API/Action_Reference/manage_pages_custom_column|manage_pages_custom_column]] : Runs when there is an unknown column name for the managing pages admin screen. Action function arguments: column name, page ID. See also filter [[Plugin API/Filter Reference/manage_pages_columns|manage_pages_columns]] in the [[Plugin API/Filter Reference]], which adds custom columns.
+
+;[[Plugin_API/Action_Reference/manage_media_custom_column|manage_media_custom_column]] : Runs when there is an unknown column name for the managing media admin screen. Action function arguments: column name, page ID. See also filter [[Plugin API/Filter Reference/manage_media_columns|manage_media_columns]] in the [[Plugin API/Filter Reference]], which adds custom columns.
+
+;[[Plugin_API/Action_Reference/manage_$post_type_posts_custom_column|manage_{$post_type}_posts_custom_column]] : Runs when there is an unknown column name for the managing custom post type admin screen. Action function arguments: column name, post ID. See also filter [[Plugin API/Filter Reference/manage_$post_type_posts_columns|manage_${post_type}_posts_columns]] in the [[Plugin API/Filter Reference]], which adds custom columns for custom post types.
+
+;[[Plugin_API/Action_Reference/password_reset|password_reset]] : Runs before the user's password is reset to a random new password.
+
+;[[Plugin_API/Action_Reference/personal_options_update|personal_options_update]] : Runs when a user updates personal options from the admin screen.
+
+;[[Plugin_API/Action_Reference/plugins_loaded|plugins_loaded]] : Runs after all plugins have been loaded.
+
+;[[Plugin_API/Action_Reference/profile_personal_options|profile_personal_options]] : Runs at the end of the Personal Options section of the user profile editing screen.
+
+;[[Plugin_API/Action_Reference/profile_update|profile_update]] : Runs when a user's profile is updated. Action function argument: user ID.
+
+;[[Plugin_API/Action_Reference/quick_edit_custom_box|quick_edit_custom_box]] : Runs when there is an unknown column name when creating the quick editor.
+
+;[[Plugin_API/Action_Reference/register_form|register_form]] : Runs just before the end of the new user registration form.
+
+;[[Plugin_API/Action_Reference/register_post|register_post]] : Runs before a new user registration request is processed.
+
+;[[Plugin_API/Action_Reference/restrict_manage_posts|restrict_manage_posts]] : Runs before the list of posts to edit is put on the screen in the admin menus.
+
+;[[Plugin_API/Action_Reference/retrieve_password|retrieve_password]] : Runs when a user's password is retrieved, to send them a reminder email. Action function argument: login name.
+
+;[[Plugin_API/Action_Reference/set_current_user|set_current_user]] : Runs after the user has been changed by the default <tt>wp_set_current_user()</tt> function. Note that <tt>wp_set_current_user()</tt> is also a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Action_Reference/show_user_profile|show_user_profile]] : Runs near the end of the user profile editing screen.
+
+;[[Plugin_API/Action_Reference/sidebar_admin_page|sidebar_admin_page]] : Runs after the main content on the widgets admin page.
+
+;[[Plugin_API/Action_Reference/sidebar_admin_setup|sidebar_admin_setup]] : Runs early when editing the widgets displayed in sidebars.
+
+;[[Plugin_API/Action_Reference/simple_edit_form|simple_edit_form]] : Runs at the end of the "simple" post editing form in the admin menus (by default the simple form is used only for bookmarklets -- it doesn't have the "advanced" sections).
+
+;[[Plugin_API/Action_Reference/update_option_(option_name)|update_option_(option_name)]] : Runs after a WordPress option has been updated by the <tt>update_option()</tt> function. Action function arguments: old option value, new option value. You must add an action for the specific options that you want to respond to, such as 'update_option_foo' to respond when option "foo" has been updated.
+
+;[[Plugin_API/Action_Reference/update_option|update_option]] : Runs before an option gets updated to the database.
+
+;[[Plugin_API/Action_Reference/updated_option|updated_option]] : Runs after an option has been updated.
+
+;[[Plugin_API/Action_Reference/upload_files_(tab)|upload_files_(tab)]] : Runs to print a screen on the upload files admin screen; "tab" is the name of the custom action tab. Define custom tabs using the [[Plugin API/Filter Reference/wp_upload_tabs|wp_upload_tabs ]] filter (see [[Plugin API/Filter Reference]]).
+
+;[[Plugin_API/Action_Reference/user_new_form|user_new_form]] : Runs near the end of the "Add New" user screen. Action function argument: Passes the string "add-existing-user" on multisite or "add-new-user" on single site and for network admins.
+
+;[[Plugin_API/Action_Reference/user_profile_update_errors|user_profile_update_errors]] : Runs just before updated user details are committed to the database.
+
+;[[Plugin_API/Action_Reference/wpmu_new_user|wpmu_new_user]] : Runs when a user's profile is first created in a Multisite environment. Action function argument: user ID. If not in Multisite then use user_register.
+
+;[[Plugin_API/Action_Reference/user_register|user_register]] : Runs when a user's profile is first created. Action function argument: user ID.
+
+;[[Plugin_API/Action_Reference/welcome_panel|welcome_panel]] : Allows you to hide the Welcome Panel in the Dashboard. This is also a smart filter, which hides the related Screen Option.
+
+;[[Plugin_API/Action_Reference/wp_ajax_(action)|wp_ajax_(action)]] : also: wp_ajax_nopriv_(action) - Runs to do an unknown type of AJAX request handler.
+
+;[[Plugin_API/Action_Reference/wp_authenticate|wp_authenticate]] : Runs to authenticate a user when they log in. Action function arguments: array with user name and password.
+
+;[[Plugin_API/Action_Reference/wp_login|wp_login]] : Runs when a user logs in.
+
+;[[Plugin_API/Action_Reference/wp_logout|wp_logout]] : Runs when a user logs out.
+
+=== Dashboard "Right Now" Widget Actions ===
+
+;[[Plugin_API/Action_Reference/right_now_content_table_end|right_now_content_table_end]] : Adds table rows at the bottom the content column of the Right Now Dashboard widget.
+
+;[[Plugin_API/Action_Reference/right_now_table_end|right_now_table_end]] : Called after displaying the number of Spam comments in the Discussion column of the Right Now Dashboard widget.
+
+;[[Plugin_API/Action_Reference/right_now_discussion_table_end|right_now_discussion_table_end]] : Called after displaying the number of Spam comments and after the [[Plugin_API/Action_Reference/right_now_table_end|right_now_table_end]] action in the Discussion column of the Right Now Dashboard widget.
+
+;[[Plugin_API/Action_Reference/right_now_end|right_now_end]] : Called after the current version information is displayed on the Right Now Dashboardwidget. (Note: In v3.4, this is actually rightnow_end. See ticket [http://core.trac.wordpress.org/ticket/21046 #21046].)
+
+;[[Plugin_API/Action_Reference/activity_box_end|activity_box_end]] : Last action called on the Right Now Dashboard widget.
+
+== Advanced Actions ==
+
+This section contains actions related to the queries WordPress uses to figure out what posts to display, the WordPress loop, activating plugins, and other fundamental-level WordPress code.
+
+;[[Plugin_API/Action_Reference/activated_plugin|activated_plugin]] : Runs any time any plugin is successfully activated
+
+;[[Plugin_API/Action_Reference/add_meta_boxes|add_meta_boxes]] : Runs when "edit post" page loads. ('''3.0+''')
+
+;[[Plugin_API/Action_Reference/admin_menu|admin_menu]] : Runs after the basic admin panel menu structure is in place.
+
+;[[Plugin_API/Action_Reference/network_admin_notices|network_admin_notices]] : Runs after the admin menu is printed to network admin screens.
+
+;[[Plugin_API/Action_Reference/user_admin_notices|user_admin_notices]] : Runs after the admin menu is printed to user admin screens.
+
+;[[Plugin_API/Action_Reference/admin_notices|admin_notices]] : Runs after the admin menu is printed to screens that aren't network- or user-admin screens.
+
+;[[Plugin_API/Action_Reference/all_admin_notices|all_admin_notices]] : Runs after the admin menu is printed to all screens.
+
+;[[Plugin_API/Action_Reference/blog_privacy_selector|blog_privacy_selector]] : Runs after the default blog privacy options are printed on the screen.
+
+;[[Plugin_API/Action_Reference/check_admin_referer|check_admin_referer]] : Runs in the default <tt>check_admin_referrer()</tt> function after the nonce has been checked for security purposes, to allow a plugin to force WordPress to die for extra security reasons. Note that <tt>check_admin_referrer</tt> is also a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Action_Reference/check_ajax_referer|check_ajax_referer]] : Runs in the default <tt>check_ajax_referer()</tt> function (which is called when an AJAX request goes to the <tt>wp-admin/admin-ajax.php</tt> script) after the user's login and password have been successfully validated from cookies, to allow a plugin to force WordPress to die for extra security reasons. Note that <tt>check_ajax_referer</tt> is also a "pluggable" function, meaning that plugins can override it; see [[Plugin API]]).
+
+;[[Plugin_API/Action_Reference/customize_controls_enqueue_scripts|customize_controls_enqueue_scripts]] : triggered after the WP Theme Customizer after customize_controls_init was called, its actions/callbacks executed, and its own styles and scripts enqueued, so you can use this hook to register your own scripts and styles for WP Theme Customizer.  For use with the [[Theme Customization API]] (as of [[Version 3.4]]).
+
+;[[Plugin_API/Action_Reference/customize_register|customize_register]] : Runs on every request, allowing developers to register new theme options and controls for use with the [[Theme Customization API]] (as of [[Version 3.4]]).
+
+;[[Plugin_API/Action_Reference/customize_preview_init|customize_preview_init]] : Allows you to enqueue assets (such as javascript files) directly in the Theme Customizer only.  For use with the [[Theme Customization API]] (as of [[Version 3.4]]).
+
+;[[Plugin_API/Action_Reference/deactivated_plugin|deactivated_plugin]] : Runs any time any plugin is successfully de-activated
+
+;[[Plugin_API/Action_Reference/generate_rewrite_rules|generate_rewrite_rules]] : Runs after the rewrite rules are generated. Action function arguments: <tt>WP_Rewrite</tt> object (<tt>$wp_rewrite</tt>) by reference. Note that it is easier to use the <tt>rewrite_rules_array</tt> filter instead of this action, to modify the rewrite rules.
+
+;[[Plugin_API/Action_Reference/init|init]] : Runs after WordPress has finished loading but before any headers are sent. Useful for intercepting $_GET or $_POST triggers.
+
+;[[Plugin_API/Action_Reference/loop_end|loop_end]] : Runs after the last post of the WordPress loop is processed.
+
+;[[Plugin_API/Action_Reference/loop_start|loop_start]] : Runs before the first post of the WordPress loop is processed.
+
+;[[Plugin_API/Action_Reference/network_admin_menu|network_admin_menu]] : Runs when the basic menu structure is prepared for the [[Create_A_Network|Network]] administration page. ([[Administration Menus]])
+
+;[[Plugin_API/Action_Reference/parse_query|parse_query]] : Runs at the end of query parsing in [[Query_Overview|the main query]] or any instance of [[Function_Reference|WP_Query]], such as [[Template_Tags/query_posts|query_posts]], [[Template_Tags/get_posts|get_posts]], or [[Function_Reference/get_children|get_children]]. Action function arguments: <tt>WP_Query</tt> object by reference.
+
+;[[Plugin_API/Action_Reference/parse_request|parse_request]] : Runs after the query request is parsed inside the main WordPress function <tt>wp</tt>. Action function argument: <tt>WP</tt> object ($wp) by reference.
+
+;[[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]] : Runs before a query is executed in [[Query_Overview|the main query]] or any instance of <tt>[[Function_Reference|WP_Query]]</tt>, such as <tt>[[Template_Tags/query_posts|query_posts()]]</tt>, <tt>[[Template_Tags/get_posts|get_posts()]]</tt>, or <tt>[[Function_Reference/get_children|get_children()]]</tt>. This hook is called after the query variable object is created, but before the query is actually run, and can be used to to alter the primary query before it is run. Also see <tt>[[Function_Reference/is_main_query|is_main_query()]]</tt>. Action function arguments: <tt>WP_Query</tt> object by reference.
+
+;[[Plugin_API/Action_Reference/sanitize_comment_cookies|sanitize_comment_cookies]] : Runs after cookies have been read from the HTTP request.
+
+;[[Plugin_API/Action_Reference/send_headers|send_headers]] : Runs after the basic HTTP headers are sent inside the main WordPress function <tt>wp()</tt>. Action function argument: <tt>WP</tt> object ($wp) by reference.
+
+;[[Plugin_API/Action_Reference/shutdown|shutdown]] : Runs when the page output is complete.
+
+;[[Plugin_API/Action_Reference/update_(meta_type)_meta|update_(meta_type)_meta]] : Runs when a metadata gets saved.
+
+;[[Plugin_API/Action_Reference/updated_(meta_type)_meta|updated_(meta_type)_meta]] : Runs when a metadata has been updated.
+
+;[[Plugin_API/Action_Reference/upgrader_process_complete|upgrader_process_complete]] : Runs when the plugin downloader/upgrader class finishes running
+
+;[[Plugin_API/Action_Reference/wp_loaded|wp_loaded]] : This hook is fired once WP, all plugins, and the theme are fully loaded and instantiated.
+
+;[[Plugin_API/Action_Reference/wp|wp]] : Executes after the query has been parsed and post(s) loaded, but before any template execution, inside the main WordPress function <tt>wp()</tt>. Useful if you need to have access to post data but can't use templates for output. Action function argument: <tt>WP</tt> object (<tt>$wp</tt>) by reference.
+
+== Further Reading ==
+
+* [[Writing a Plugin]] - description of how to write a plugin
+* [[Plugin API]] - article on how to use filters and actions
+* [[Plugin API/Filter Reference]] - reference list for filter hooks
+* [[Plugin Resources]] - comprehensive list of plugin-related resources
+* [https://developer.wordpress.org/reference/hooks/ Hooks Database] - documentation for all hooks in the official WordPress Code Reference.
+* [http://adambrown.info/p/wp_hooks WordPress Hooks Database], a database of all WordPress' hooks, showing which version they come from, and linking to the source code spots that use them
+
+[[Category:Actions|*]]
+[[Category:Plugins]]

@@ -1,0 +1,160 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Intro"><span class="tocnumber">1</span> <span class="toctext">Intro</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Enabling_styleselect"><span class="tocnumber">2</span> <span class="toctext">Enabling styleselect</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Registering_Custom_Styles"><span class="tocnumber">3</span> <span class="toctext">Registering Custom Styles</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Using_style_formats"><span class="tocnumber">3.1</span> <span class="toctext">Using style_formats</span></a>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Style_Format_Arguments"><span class="tocnumber">3.1.1</span> <span class="toctext">Style Format Arguments</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-6"><a href="#Using_theme_advanced_styles"><span class="tocnumber">3.2</span> <span class="toctext">Using theme_advanced_styles</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Making_Visual_Editor_display_styles"><span class="tocnumber">4</span> <span class="toctext">Making Visual Editor display styles</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Further_Reading"><span class="tocnumber">5</span> <span class="toctext">Further Reading</span></a>
+<ul>
+<li class="toclevel-2 tocsection-9"><a href="#Additional_help:"><span class="tocnumber">5.1</span> <span class="toctext">Additional help:</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-10"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Intro">Intro</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=1" title="Edit section: Intro">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>TinyMCE is the name of the visual editor that comes with WordPress, which can be used to edit post and page content. It comes with a variety of buttons for standard HTML tags like Strong, Emphasis, Blockquote and Lists. In addition to these defaults, TinyMCE has an API that can be used to define custom styles that can be inserted into post content from the Visual editor. 
+</p><p>The process involves activating a built-in but hidden "button" in TinyMCE called <b>styleselect</b>, then defining each style that you want to show in the Styleselect pulldown menu. This article assumes that you are already familiar with the basics of <a href="https://codex.wordpress.org/Writing_a_Plugin" title="Writing a Plugin">Writing a Plugin</a> and the <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">Plugin API</a> of hooks and filters. 
+</p><p>Note that the process for adding custom styles is separate from <a href="https://codex.wordpress.org/TinyMCE_Custom_Buttons" title="TinyMCE Custom Buttons"> creating custom TinyMCE buttons</a> and that this process will not make the Visual editor display post content with your custom styles, for that you must use <a href="https://codex.wordpress.org/Function_Reference/add_editor_style" title="Function Reference/add editor style"><tt>add_editor_style()</tt></a>.
+</p><p>Also note that the instructions below apply only to the Visual editor. To add buttons to the Text editor as well you must use the <a href="https://codex.wordpress.org/Quicktags_API" title="Quicktags API">Quicktags API</a>.
+</p><p>Whenever possible, style related code should be in the theme in which the styles are implemented. The most natural location is the [<a rel="nofollow" class="external text" href="http://codex.wordpress.org/Theme_Development#Functions_File">functions.php</a>] file, though of course the filters could also be added in a plugin if desired.
+</p>
+<h2><span class="mw-headline" id="Enabling_styleselect">Enabling styleselect</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=2" title="Edit section: Enabling styleselect">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Before any registered formats/styles will show, we need to activate the styleselect pulldown menu in the Visual editor. We do this by filtering the array of buttons loaded by TinyMCE. We use the <b>mce_buttons_2</b> filter because that is the second row and it looks good there. You could instead use <b>mce_buttons_3</b> which would add it to an empty third row.
+</p>
+<pre>
+// Callback function to insert 'styleselect' into the $buttons array
+function my_mce_buttons_2( $buttons ) {
+	array_unshift( $buttons, 'styleselect' );
+	return $buttons;
+}
+// Register our callback to the appropriate filter
+add_filter( 'mce_buttons_2', 'my_mce_buttons_2' );
+</pre>
+<h2><span class="mw-headline" id="Registering_Custom_Styles">Registering Custom Styles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=3" title="Edit section: Registering Custom Styles">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Once <b>styleselect</b> is in place we can register our actual styles in two different ways. Both involve using the <b>tiny_mce_before_init</b> filter, which receives the full configuration parameters of TinyMCE and into which we'll inject our custom styles.  
+</p>
+<h3><span class="mw-headline" id="Using_style_formats">Using style_formats</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=4" title="Edit section: Using style formats">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The more robust solution is to use the <b>style_formats</b> array within the TinyMCE configuration array. It allows you to register each format along with several configuration settings that define how the format will behave, for example whether it is a block or inline style, and whether it should change the outer block element or not. 
+</p>
+<pre>
+// Callback function to filter the MCE settings
+function my_mce_before_init_insert_formats( $init_array ) {  
+	// Define the style_formats array
+	$style_formats = array(  
+		// Each array child is a format with it's own settings
+		array(  
+			'title' =&gt; '.translation',  
+			'block' =&gt; 'blockquote',  
+			'classes' =&gt; 'translation',
+			'wrapper' =&gt; true,
+			
+		),  
+		array(  
+			'title' =&gt; '⇠.rtl',  
+			'block' =&gt; 'blockquote',  
+			'classes' =&gt; 'rtl',
+			'wrapper' =&gt; true,
+		),
+		array(  
+			'title' =&gt; '.ltr⇢',  
+			'block' =&gt; 'blockquote',  
+			'classes' =&gt; 'ltr',
+			'wrapper' =&gt; true,
+		),
+	);  
+	// Insert the array, JSON ENCODED, into 'style_formats'
+	$init_array['style_formats'] = json_encode( $style_formats );  
+	
+	return $init_array;  
+  
+} 
+// Attach callback to 'tiny_mce_before_init' 
+add_filter( 'tiny_mce_before_init', 'my_mce_before_init_insert_formats' );  
+</pre>
+<h4><span class="mw-headline" id="Style_Format_Arguments">Style Format Arguments</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=5" title="Edit section: Style Format Arguments">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>More information about the format options is available on the <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/Configuration:formats">TinyMCE formats documentation</a>.
+</p>
+<ul><li> <tt>inline</tt> – Name of the inline element to produce for example “span”. The current text selection will be wrapped in this inline element.</li>
+<li> <tt>block</tt> – Name of the block element to produce for example “h1″. Existing block elements within the selection gets replaced with the new block element.</li>
+<li> <tt>selector</tt> – CSS 3 selector pattern to find elements within the selection by. This can be used to apply classes to specific elements or complex things like odd rows in a table. Note that if you combine both <tt>selector</tt> and <tt>block</tt> then you can get more nuanced behavior where the button changes the class of the <i>selected</i> tag by default, but adds the <i>block</i> tag around the cursor if the <i>selected</i> tag isn't found. </li>
+<li> <tt>classes</tt> – Space separated list of classes to apply to the selected elements or the new inline/block element.</li>
+<li> <tt>styles</tt> – Name/value object with CSS style items to apply such as color etc.</li>
+<li> <tt>attributes</tt> – Name/value object with attributes to apply to the selected elements or the new inline/block element.</li>
+<li> <tt>exact</tt> – Disables the merge similar styles feature when used. This is needed for some CSS inheritance issues such as text-decoration for underline/strikethrough.</li>
+<li> <tt>wrapper</tt> – State that tells that the current format is a container format for block elements. For example a div wrapper or blockquote.</li></ul>
+<p><b>Note</b>: The visual editor's behavior when using custom styles, especially depending on the settings outlined above, can be surprising and seemingly random. Please test carefully how the buttons work with your configuration and ensure your users understand what to expect.
+</p>
+<h3><span class="mw-headline" id="Using_theme_advanced_styles">Using theme_advanced_styles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=6" title="Edit section: Using theme advanced styles">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The simplest possible way to add formats is to insert a string containing your styles in a special format to the <b>theme_advanced_styles</b> section of the TinyMCE configuration array. The format is <b>$label=$cssclassname;</b> so in the following example we'd be adding .translation, .contributors and .notes to <b>styleselect</b>:
+</p>
+<pre>Translation Class=translation;Contributors=contributors;Extra Notes=notes
+</pre>
+<p>Unlike the <b>style_formats</b> solution, this one does not allow you to set configuration options, so it should only be used for inline styles (the default).
+</p><p>Filter usage is very similar to above:
+</p>
+<pre>
+function my_mce_before_init( $init_array ) {
+	$init_array['theme_advanced_styles'] =
+            '.translation=translation;.contributors=contributors;.notes=notes;';
+
+	return $init_array;
+}
+add_filter( 'tiny_mce_before_init', 'my_mce_before_init' );
+</pre>
+<h2><span class="mw-headline" id="Making_Visual_Editor_display_styles">Making Visual Editor display styles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=7" title="Edit section: Making Visual Editor display styles">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The code above will only enable the styleselect dropdown menu and add your styles inside it. By default the Visual editor won't know how to <i>display</i> your styles as a preview. Luckily you can provide a custom CSS stylesheet for the editor that includes your styles. 
+</p><p><b>If you are adding custom styles to TinyMCE, always ensure they are accounted for in the editor CSS!</b> See <a href="https://codex.wordpress.org/Function_Reference/add_editor_style" title="Function Reference/add editor style"><tt>add_editor_style()</tt></a> for instructions on registering an editor CSS file. 
+</p>
+<h2><span class="mw-headline" id="Further_Reading">Further Reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=8" title="Edit section: Further Reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Help for writing TinyMCE plugins can be found on TinyMCE's documentation site:
+</p>
+<ul><li> <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/Configuration:formats">TinyMCE documentation for the "formats" dropdown (custom styles)</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/TinyMCE3x:Buttons/controls">TinyMCE documentation for buttons</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/API3:tinymce.api.3.x">TinyMCE General API Documentation</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/TinyMCE">TinyMCE Intro</a></li></ul>
+<h3><span class="mw-headline" id="Additional_help:">Additional help:</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=9" title="Edit section: Additional help:">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a rel="nofollow" class="external text" href="http://wp.tutsplus.com/tutorials/theme-development/adding-custom-styles-in-wordpress-tinymce-editor/">Nettuts tutorial about custom styles in WP TinyMCE</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.wpexplorer.com/wordpress-tinymce-tweaks/">WordPress 3.9+ TinyMCE 4 Tweaks: Adding Styles, Buttons, Fonts, Drop-downs &amp; Pop-Ups</a></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Styles&amp;action=edit&amp;section=10" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Intro: <a href="https://codex.wordpress.org/TinyMCE" title="TinyMCE">TinyMCE</a></li>
+<li> Tutorial: <a href="https://codex.wordpress.org/TinyMCE_Custom_Buttons" title="TinyMCE Custom Buttons">TinyMCE Custom Buttons</a></li>
+<li> Tutorial: <strong class="selflink">Creating a Custom Style Dropdown</strong></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/add_editor_style" title="Function Reference/add editor style">add_editor_style()</a></li>
+<li> Filter: <a href="/index.php?title=Plugin_API/Filter_Reference/mce_spellchecker_languages&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/mce spellchecker languages (page does not exist)">mce_spellchecker_languages</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_buttons,_mce_buttons_2,_mce_buttons_3,_mce_buttons_4" title="Plugin API/Filter Reference/mce buttons, mce buttons 2, mce buttons 3, mce buttons 4">mce_buttons, mce_buttons_2, mce_buttons_3, mce_buttons_4</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_css" title="Plugin API/Filter Reference/mce css">mce_css</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_external_plugins" title="Plugin API/Filter Reference/mce external plugins">mce_external_plugins</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_external_languages" title="Plugin API/Filter Reference/mce external languages">mce_external_languages</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/tiny_mce_before_init" title="Plugin API/Filter Reference/tiny mce before init">tiny_mce_before_init</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004136
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.016 seconds
+Preprocessor visited node count: 67/1000000
+Preprocessor generated node count: 114/1000000
+Post‐expand include size: 767/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.978      1 - Template:TinyMCE_API
+100.00%    0.978      1 - -total
+-->

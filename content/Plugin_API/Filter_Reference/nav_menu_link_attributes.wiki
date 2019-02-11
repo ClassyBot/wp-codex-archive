@@ -1,0 +1,87 @@
+== Description ==
+The <b>nav menu link attributes</b> filter allows themers and developers full control over what HTML attributes are added to menus generated with the WP Menu API.
+
+This filter runs <i>per nav item</i>, vs providing a list of all nav elements at once.
+
+== Usage ==
+When the 'nav menu link attributes' filter is called, it is passed three parameters: 
+<ul>
+<li>$atts - HTML attributes in an associative array</li>
+<li>$item - Object containing item details. E.G: If the link is to a page $item will be a WP_Post object</li>
+<li>$args - Array containing config with desired markup of nav item</li>
+</ul>
+
+<pre>
+add_filter( 'nav_menu_link_attributes', 'filter_function_name', 10, 3 );
+
+function filter_function_name( $atts, $item, $args ) {
+    // Manipulate attributes
+    return $atts;
+}
+</pre>
+
+Where 'filter_function_name' is the function WordPress should call when filter is run. Note that the filter function <b>must</b> return a value after it is finished processing or the result will be empty.
+
+'''filter_function_name''' should be unique function name. It cannot match any other function name already declared.
+
+== Examples ==
+
+The following example adds an attribute to all <a> tags in the wp_nav_menu
+<pre>
+function add_menu_atts( $atts, $item, $args ) {
+	$atts['onClick'] = 'return true';
+    return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'add_menu_atts', 10, 3 );
+</pre>
+
+The following example adds an attribute to specific menu items (34 and 39). Specify the ID of each menu item as an array.
+<pre>
+function add_specific_menu_atts( $atts, $item, $args ) {
+	$menu_items = array(34,39);
+	if (in_array($item->ID, $menu_items)) {
+	  $atts['onClick'] = 'return false';
+	}
+	
+    return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'add_specific_menu_atts', 10, 3 );
+</pre>
+
+In the simplest instance above, the filter adds the attribute to '''all menu items of all menus'''. In case you only want to add the attributes to a certain menu location, you can check for menu location in the $args. 
+
+The following function adds a class attribute to all <a> tags in a '''particular menu location''' ('primary')
+<pre>
+function add_specific_menu_location_atts( $atts, $item, $args ) {
+    // check if the item is in the primary menu
+    if( $args->theme_location == 'primary' ) {
+      // add the desired attributes:
+      $atts['class'] = 'menu-link-class';
+    }
+    return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'add_specific_menu_location_atts', 10, 3 );
+</pre>
+
+The following function adds a class to all menu items that have "Open link in a new window/tab" checked in the menu options.
+<pre>
+function add_class_to_target_blank_menu_items( $atts, $item, $args ) {
+    // check if the item is set to target="_blank"
+    if ( $item->target == '_blank' ) {
+      // add the desired attributes:
+      $atts['class'] = 'target-blank';
+    }
+    return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'add_class_to_target_blank_menu_items', 10, 3 );
+</pre>
+
+== Change Log ==
+* Since: [[Version_3.6|3.6.0]]
+
+==See Also==
+* Index: [[Plugin_API/Filter_Reference|List of filters]]
+* Tutorial: [[Plugin_API#Create_a_Filter_Function|Creating a Filter Function]]
+* Function: [[Function_Reference/add_filter|add_filter()]]
+
+[[Category:Filters]]

@@ -1,0 +1,96 @@
+{{Languages|
+{{en|Configuring_Automatic_Background_Updates}}
+{{it|Configurare_gli_aggiornamenti_automatici}}
+{{ja|自動バックグラウンド更新の設定}}
+}}
+
+Gli aggiornamenti automatici in background sono stati introdotti in [[Version_3.7|WordPress 3.7]] al fine di promuovere una maggiore sicurezza e ottimizzare l'esperienza complessiva dell'aggiornamento. Per impostazione predefinita, sono abilitati solamente gli aggiornamenti delle release minori – quelle rilasciate ad esempio per questioni di manutenzione e sicurezza – e dei file di traduzione. In casi particolari, plugin e temi possono essere aggiornati.
+
+In WordPress, ci sono quattro tipi di aggiornamenti automatici in background:
+# Aggiornamenti dei file core
+# Aggiornamenti dei plugin
+# Aggiornamenti dei temi
+# Aggiornamenti dei file di traduzione
+
+== Aggiornamenti dei file core ==
+
+Gli aggiornamenti dei file core sono suddivisi in tre tipi:
+# Aggiornamenti di sviluppo, noti come "bleeding edge"
+# Aggiornamenti di release minori, come quelle di manutenzione e sicurezza
+# Aggiornamenti di release maggiori
+
+Per impostazione predefinita, gli aggiornamenti automatici sono abilitati solo per le release minori e i file di traduzione.
+
+=== <tt>WP_AUTO_UPDATE_CORE</tt> ===
+
+Per abilitare gli aggiornamenti automatici per le release maggiori o le versioni di sviluppo, bisogna far riferimento alla costante <tt>WP_AUTO_UPDATE_CORE</tt>. Definire questa costante in uno dei tre modi possibili permette di abilitare o disabilitare vari tipi di aggiornamento.
+
+<tt>WP_AUTO_UPDATE_CORE</tt> può avere uno dei seguenti tre valori, ognuno dei quali produce un determinato effetto:
+* Valore <tt>true</tt> – Sono <strong>abilitati</strong> tutti gli aggiornamenti di sviluppo, release minori e maggiori
+* Valore <tt>false</tt> – Sono <strong>disabilitati</strong> tutti gli aggiornamenti di sviluppo, release minori e maggiori
+* Valore <tt>minor</tt> – Gli aggiornamenti delle versioni minori sono <strong>abilitati</strong>, quelli di sviluppo e delle versioni maggiori sono <strong>disabilitati</strong>
+
+=== Filtri calibrati ===
+
+Nel caso di volesse abilitare o disabilitare le varie tipologie di aggiornamento in modo selettivo, si può far uso dei filtri <tt>allow_dev_auto_core_updates</tt>, <tt>allow_minor_auto_core_updates</tt> e <tt>allow_major_auto_core_updates</tt>.
+
+Ci sono due funzioni integrate in WordPress che permettono di abilitare o disabilitare specifici tipi di aggiornamento con una sola riga di codice. Queste sono [[it:Riferimento_funzioni/__return_true|__return_true]] e [[it:Riferimento_funzioni/__return_false|__return_false]]. Di seguito vi sono alcuni esempi:
+
+Per <em>abilitare</em> specificatamente gli aggiornamenti (notturni) di sviluppo, utilizzare quanto segue:
+<pre>add_filter( 'allow_dev_auto_core_updates', '__return_true' );</pre>
+
+Per <em>disabilitare</em> specificatamente gli aggiornamenti minori, utilizzare quanto segue:
+<pre>add_filter( 'allow_minor_auto_core_updates', '__return_false' );</pre>
+
+Per <em>abilitare</em> specificatamente gli aggiornamenti maggiori, utilizzare quanto segue:
+<pre>add_filter( 'allow_major_auto_core_updates', '__return_true' );</pre>
+
+Per <em>abilitare</em> specificatamente gli aggiornamenti automatici anche se viene trovata una cartella VCS (.git, .hg, .svn ecc) nella directory di WordPress o in qualunque sua directory genitore:
+ function always_return_false_for_vcs( $checkout, $context ) {
+    return false;
+ }
+ add_filter( 'automatic_updates_is_vcs_checkout', 'always_return_false_for_vcs', 10, 2 );
+
+== Aggiornamenti di plugin e temi ==
+
+Gli aggiornamenti automatici di plugin e temi sono disabilitati per impostazione predefinta. Per abiltarli, si può utilizzare il filtro <tt>auto_update_$type</tt>, dove <tt>$type</tt> deve essere sostituito con "plugin" o "theme".
+
+Per abilitare gli aggiornamenti automatici dei plugin, utilizzare quanto segue:
+<pre>add_filter( 'auto_update_plugin', '__return_true' );</pre>
+
+Per abilitare gli aggiornamenti automatici dei temi, utilizzare quanto segue:
+<pre>add_filter( 'auto_update_theme', '__return_true' );</pre>
+
+== Aggiornamenti delle traduzioni ==
+
+Gli aggiornamenti automatici dei file delle traduzioni sono già abilitati per impostazione predefinita, così come gli aggiornamenti minori.
+
+Per disabilitare gli aggiornamenti dei file di traduzione, utilizzare quanto segue:
+<pre>add_filter( 'auto_update_translation', '__return_false' );</pre>
+
+== Disabilitare gli aggiornamenti automatici ==
+
+Gli sviluppatori di WordPress hanno preso la conscia decisione di abilitare gli aggiornamenti automatici per le release minori e i file di traduzione. In futuro questa funzionalità diventerà uno dei migliori modi per garantire che il sito rimanga aggiornato e sicuro; pertanto disabilitare gli aggiornamenti è altamente sconsigliato.
+
+=== Aggiornamenti Core ===
+
+Si possono disabilitare specificatamente tutti gli aggiornamenti del core attraverso il filtro <tt>auto_update_$type</tt>, dove <tt>$type</tt> deve essere sostituito con "core".
+
+Per disabilitare tutti gli aggiornamenti del core, utilizzare quanto segue:
+<pre>add_filter( 'auto_update_core', '__return_false' );</pre>
+
+=== Tutti gli aggiornamenti ===
+
+Per disabilitare completamente tutti i tipi di aggiornamenti automatici, aggiungere quanto segue al file wp-config.php:
+
+<pre>define( 'AUTOMATIC_UPDATER_DISABLED', true );</pre>
+
+Si possono disabilitare gli aggiornamenti automatici anche utilizzando il seguente filtro:
+
+<pre>add_filter( 'automatic_updater_disabled', '__return_true' );</pre>
+
+== Ulteriori letture ==
+
+Altri esempi http://make.wordpress.org/core/2013/10/25/the-definitive-guide-to-disabling-auto-updates-in-wordpress-3-7/
+
+[[Category:Installation]]

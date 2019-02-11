@@ -1,0 +1,123 @@
+<div style="background-color:#FCECAD; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is a <a href="https://codex.wordpress.org/Category:Drafts" title="Category:Drafts">ROUGH DRAFT</a>.  The author is still working on this document, so <b>please do not edit this without the author's permission</b>. The content within this article may not yet be verified or valid.  This information is subject to change.</div>
+<p>This article deals with finding where performance overhead exists in WordPress and WordPress Plugins. The first part addresses how to install Xdebug and how to configure Xdebug to produce cachegrind files. The second part walks you through installing and configuring MySQLnd library with the mysql PHP extension.
+</p><p>Testing WordPress performance is always an ongoing task. As new code is added, stripped away, or replaced, performance tests become stale. It is relevant to find out if a patch decreases or increases the performance of WordPress. It is relevant to find out if a WordPress Plugin is causing performance problems.
+</p><p>There are two types of performance, one is perceived and the other is real. Perceived performance is how quickly a page loads. The page might only take 500 milliseconds to execute, but it is takes 3 seconds to show for the user, then the user and owner are going to be upset.
+</p><p>Real performance is not always as easy or simple as perceived performance. Perceived performance might be as simple as compressing images. Real performance is tested by actually looking at how long each individual component of WordPress takes.
+</p><p>It is not as simple, since real performance depends other factors. One server might run WordPress at less than a second and on another, it might take 3 seconds. It depends on many factors during execution and a few are where the file system and database are located. It might even depend on how much load the system is having at the time.
+</p><p>The performance problem might not even be caused by WordPress, but by a Plugin. Only when you have the real statistics of where the overhead is located can you correct the problem.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Xdebug"><span class="tocnumber">1</span> <span class="toctext">Xdebug</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Installation"><span class="tocnumber">1.1</span> <span class="toctext">Installation</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Enabling_the_Xdebug_Extension"><span class="tocnumber">1.2</span> <span class="toctext">Enabling the Xdebug Extension</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Configuring_Xdebug_for_Profiling"><span class="tocnumber">1.3</span> <span class="toctext">Configuring Xdebug for Profiling</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Looking_at_the_Cachgrind_Files"><span class="tocnumber">1.4</span> <span class="toctext">Looking at the Cachgrind Files</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#MySQLnd"><span class="tocnumber">2</span> <span class="toctext">MySQLnd</span></a>
+<ul>
+<li class="toclevel-2 tocsection-7"><a href="#Installation_2"><span class="tocnumber">2.1</span> <span class="toctext">Installation</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Configuring"><span class="tocnumber">2.2</span> <span class="toctext">Configuring</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Profiling_SQL_Queries"><span class="tocnumber">2.3</span> <span class="toctext">Profiling SQL Queries</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Additional_Information"><span class="tocnumber">2.4</span> <span class="toctext">Additional Information</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Xdebug">Xdebug</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=1" title="Edit section: Xdebug">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <a rel="nofollow" class="external text" href="http://www.xdebug.org/">Xdebug</a> PHP Extension allows for enhanced debugging, function and method tracing, and profiling of PHP applications.
+</p>
+<h3><span class="mw-headline" id="Installation">Installation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=2" title="Edit section: Installation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><i>The process of installing Xdebug is for Windows users and assumes that Linux users are experienced enough with following the <a rel="nofollow" class="external text" href="http://xdebug.org/docs/install">official installation directions</a>.</i>
+</p>
+<ol><li> The first step involves going to the <a rel="nofollow" class="external text" href="http://xdebug.org/">xdebug</a> web site and choosing the download for the PHP version you are using. There are only versions available from the website for PHP 5.1.x and up.</li>
+<li> Move the downloaded file to your PHP <b>ext/</b> folder. If you are using WAMP 2, then it will be located in the WAMP bin directory and php/php#.#.#/ext/ directory.</li>
+<li> You will need to modify the php.ini file and if you are using WAMP 2, it will be located in your Apache bin directory of the Apache version directory you are running.</li></ol>
+<h3><span class="mw-headline" id="Enabling_the_Xdebug_Extension">Enabling the Xdebug Extension</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=3" title="Edit section: Enabling the Xdebug Extension">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The easiest and quickest way to open up the current php.ini file in WAMP 1.x and 2.0 is to click on the WAMP icon in the taskbar, hover over the PHP menu and click on the php.ini.
+</p><p>After you have opened the file, find the "Dynamic Extensions" section. Add the following after the last "extension=..." line.
+</p>
+<pre>zend_extension_ts = FULL_PATH_TO_PHP_EXT_DIRECTORY/PHP_XDEBUG_FILE_NAME
+</pre>
+<p>Make sure to include the <b>FULL_PATH_TO_PHP_EXT_DIRECTORY / PHP_XDEBUG_FILE_NAME</b> in quotes on that line. A full example showing the full path and Xdebug filename in quotes is below.
+</p>
+<pre>zend_extension_ts = "C:/Program Files/wamp/bin/php/php5.2.6/ext/php_xdebug-2.0.3-5.2.5.dll"
+</pre>
+<p>The concludes modifying the php.ini to enable Xdebug, the next step is to restart and look at your phpinfo page to make sure that it was installed correctly.
+</p><p>You will need to do additional modifications to the php.ini file, so keep it open for now.
+</p>
+<h3><span class="mw-headline" id="Configuring_Xdebug_for_Profiling">Configuring Xdebug for Profiling</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=4" title="Edit section: Configuring Xdebug for Profiling">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a rel="nofollow" class="external text" href="http://www.xdebug.org">Xdebug</a> has many <a rel="nofollow" class="external text" href="http://www.xdebug.org/docs/all_settings">configuration settings</a> that add other neat developer features for debugging PHP scripts. If you are interested in further using Xdebug for debugging, then you can start your journey at the <a rel="nofollow" class="external text" href="http://www.xdebug.org/docs/">Xdebug Documentation</a> to learn more.
+</p><p><a rel="nofollow" class="external text" href="http://www.xdebug.org/docs/profiler">Profiling PHP using Xdebug</a> has a few configuration settings, but only a couple are needed. For it to be easier to find and update the Xdebug configuration settings, it might be useful to put the configuration settings at the end of the file.
+</p><p>The most important step is to enable the Xdebug profiling, which is off by default. You may turn it on by setting the value to <b>1</b>.
+</p>
+<pre>xdebug.profiler_enable = 1
+</pre>
+<p>The next step is to set the output directory for the cachegrind files. The <b>xdebug.profiler_output_dir</b> setting handles that. You may put this anywhere Apache and PHP have access to, which if you are on Windows will be anywhere.
+</p>
+<pre>xdebug.profiler_output_dir = "C:/cachegrind/"
+</pre>
+<p>It would be easier to put the directory in an easy to remember and find place, so that you can use the files later.
+</p><p>Finally and optionally, you can set the file output name using escape codes. You may leave the default, but it is advised to change the output filename, so that you can have multiple cachegrind files for profiling different WordPress pages.
+</p><p>The <b>xdebug.profiler_output_name</b> setting is used for the cachegrind file name and uses <a rel="nofollow" class="external text" href="http://www.xdebug.org/docs/all_settings#trace_output_name">format specifiers</a> for dynamically creating the file name.
+</p><p>The suggested setting value includes request URI to inform you what page was profiled and the timestamp. The timestamp is for tracking page requests at different times and useful for tracking deviations.
+</p>
+<pre>xdebug.profiler_output_name =&#160;%R.%t.out
+</pre>
+<h3><span class="mw-headline" id="Looking_at_the_Cachgrind_Files">Looking at the Cachgrind Files</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=5" title="Edit section: Looking at the Cachgrind Files">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Instructions on the Xdebug site discuss KCacheGrind and WinCacheGrind, but there is also <a rel="nofollow" class="external text" href="https://github.com/jokkedk/webgrind">webgrind</a> and a Google Summer of Code WordPress project that allow you to view the cachegrind files online.
+</p><p><i>Future additions to this section will include how to install the Google Summer of Code Performance Plugin and looking at the cachegrind files from the Plugin Administration Panels.</i>
+</p>
+<h2><span class="mw-headline" id="MySQLnd">MySQLnd</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=6" title="Edit section: MySQLnd">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a rel="nofollow" class="external text" href="http://dev.mysql.com/downloads/connector/php-mysqlnd/">MySQLnd</a> is a MySQL library developed using the PHP Engine. This enhances the speed and makes it possible to provide accurate memory management. The important enhancements relevant to WordPress Performance is the ability to profile SQL queries.
+</p><p>MySQLnd will most likely be the database driver for both the PDO MYSQL extension and mysqli extension in PHP 5.3. It is still under development, but there are currently releases for the mysqli extension.
+</p>
+<h3><span class="mw-headline" id="Installation_2">Installation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=7" title="Edit section: Installation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><i>This section again assumes that you are using Windows and xAMP installation. For instructions on how to install mysqlnd on Linux, go to the official <a rel="nofollow" class="external text" href="http://dev.mysql.com/downloads/connector/php-mysqlnd/">mysqlnd</a> site.</i>
+</p><p>For Windows users, there is a precompiled binary for the mysqli PHP extension. The binary supports PHP 5.2.1 and must be used with that version. The binary is experimental, since the mysqlnd isn't stable.
+</p>
+<ol><li> Go to the <a rel="nofollow" class="external text" href="http://dev.mysql.com/get/Downloads/Connector-PHP-mysqlnd/php_5.2.1-mysqlnd-5.0.1-beta.zip/from/pick#mirrors">mysqlnd download</a> page and choose your mirror.</li>
+<li> Like the Xdebug PHP extension, the file in the download goes in the <b>ext/</b> folder in your PHP directory. Rename the current <b>php_mysqli.dll</b> file, so that you can restore to it later and copy the extracted <b>php_mysqli.dll</b> to the folder.</li></ol>
+<p>The binary from the mysql.com web site will not work with WAMP 5 2.0. Most likely you will need to download the version from the php.net web site and move the extension to that web site. Support for this is not available here. Once PHP 5.3 is released, updated instructions on how to easily install mysqlnd will be available here.
+</p><p>If you are going to activate it in the <b>php.ini</b> file, then you can search for the php_mysqli.dll in that file and remove the <i>;</i> character at the beginning of the line. If it doesn't exist, then you don't have to do anything except restart Apache and PHP.
+</p><p>Test for the new extension by going to your phpinfo page and checking for the library. If the mysqlnd is successfully installed and configured, under the pdo_mysql section, you should see Client API version as "mysqlnd 5.0.10"...
+</p>
+<h3><span class="mw-headline" id="Configuring">Configuring</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=8" title="Edit section: Configuring">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><i>Might not be applicable depending on whether profiling needs to be enabled or not.</i>
+</p>
+<h3><span class="mw-headline" id="Profiling_SQL_Queries">Profiling SQL Queries</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=9" title="Edit section: Profiling SQL Queries">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><i>There are resources already on what profiling feature are available. Might need to dig into the driver code to find out more information. Some is already online, so can use as much of those sources as possible.</i>
+</p><p>While the default driver provides some information, a modified version the default database driver available in <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/wp-mysql-profiler/">WP MySQL Profiler</a> (wordpress plugin) which should be used for more comprehensive profiling. It can not only give MySQL query performance info but locate the function where the query originated at.
+</p>
+<h3><span class="mw-headline" id="Additional_Information">Additional Information</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Testing_WordPress_Performance&amp;action=edit&amp;section=10" title="Edit section: Additional Information">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Most of what is discussed for MySQLnd is for PHP 5.3, but <a rel="nofollow" class="external text" href="http://blog.felho.hu/what-is-new-in-php-53-part-3-mysqlnd.html">What is new in PHP 5.3 Part 3</a> has a nice overview of just MySQLnd features and information.
+</p><p>The <a rel="nofollow" class="external text" href="http://forge.mysql.com/wiki/PHP_PDO_MYSQLND">MySQL Forge Wiki</a> has a page with development progress and bug tracking for the MySQLnd driver for PDO.
+</p><p>Most of the profiling statistics are listed on Ulf's <a rel="nofollow" class="external text" href="http://blog.ulf-wendel.de/2007/php-59-tuning-screws-for-mysqlnd/">PHP: 59 tuning screws for mysqlnd</a> blog post.
+</p>
+<div style="background-color:#EEEEFF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This article is <a href="https://codex.wordpress.org/Category:Copyedits" title="Category:Copyedits" class="mw-redirect">marked</a> as in need of editing. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Testing_WordPress_Performance&amp;action=edit">editing it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004133
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.058 seconds
+Preprocessor visited node count: 79/1000000
+Preprocessor generated node count: 195/1000000
+Post‐expand include size: 1812/2097152 bytes
+Template argument size: 532/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    5.983      1 - -total
+ 55.46%    3.318      1 - Template:Draft
+ 41.17%    2.463      1 - Template:Copyedit
+ 36.80%    2.202      2 - Template:Message
+-->

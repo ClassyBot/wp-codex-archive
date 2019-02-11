@@ -1,0 +1,38 @@
+== Description ==
+<tt>delete_post</tt> is fired before and after a post (or page) is deleted from the database.
+
+However by this time the post <b>comments and metadata</b> have been <b>already deleted</b>. Use the [[Plugin_API/Action_Reference/before_delete_post|before_delete_post]] hook to catch post deletion before that.
+
+== Definitions ==
+
+; <tt>/wp-includes/post.php - pre-deletion</tt>
+: ([http://core.trac.wordpress.org/browser/tags/3.2.1/wp-includes/post.php#L2041 ''#2041'']) ([[How_to_Pass_Tag_Parameters#Integer|integer]]) The <tt>$postid</tt> parameter is the same value that was passed to [[Function_Reference/wp_delete_post|wp_delete_post()]].
+:: Hook: <tt>do_action( 'delete_post', $postid );</tt>
+
+; <tt>/wp-includes/post.php - post-deletion</tt>
+: ([http://core.trac.wordpress.org/browser/tags/3.2.1/wp-includes/post.php#L2043 ''#2043'']) ([[How_to_Pass_Tag_Parameters#Integer|integer]]) The <tt>$postid</tt> parameter is the same value that was passed to [[Function_Reference/wp_delete_post|wp_delete_post()]].
+:: Hook: <tt>do_action( 'deleted_post', $postid );</tt>
+
+== Example ==
+Let's suppose you have a plugin that, for one reason or another, stores its own [[Function_Reference/post_meta_Function_Examples|post metadata]] in a separate database table called ''codex_postmeta''. One of the ways you can achieve synchronisation is to be made aware when a post is deleted so that you can replicate the changes yourself.
+
+%%%<?php
+add_action( 'admin_init', 'codex_init' );
+function codex_init() {
+    add_action( 'delete_post', 'codex_sync', 10 );
+}
+
+function codex_sync( $pid ) {
+    global $wpdb;
+    if ( $wpdb->get_var( $wpdb->prepare( 'SELECT post_id FROM codex_postmeta WHERE post_id = %d', $pid ) ) ) {
+        $wpdb->query( $wpdb->prepare( 'DELETE FROM codex_postmeta WHERE post_id = %d', $pid ) );
+    }
+}
+?>%%%
+
+== Related ==
+
+[[Function_Reference/wp_delete_post|wp_delete_post()]]
+[[Plugin_API/Action_Reference/before_delete_post|before_delete_post()]]
+
+[[Category:Actions]]

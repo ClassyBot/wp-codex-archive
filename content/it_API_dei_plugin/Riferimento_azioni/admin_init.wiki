@@ -1,0 +1,58 @@
+{{Languages|
+{{en|Plugin_API/Action_Reference/admin_init}}
+{{it|API dei plugin/Riferimento azioni/admin_init}}
+}}
+
+== Descrizione ==
+
+<tt>admin_init</tt> è attivata prima di qualunque altra cosa quando un utente accede all'area di amministrazione. Non ha parametri, per cui può essere usata per il callback di una specifica funzione.
+
+== Utilizzo ==
+
+<pre><?php add_action( 'admin_init', 'nome_funzione' ); ?></pre>
+
+dove "nome_funzione" è il nome della funzione da chiamare.
+
+== Esempio: Controllo degli accessi ==
+
+Consideriamo il seguente esempio:
+
+<pre>
+function restrict_admin(){
+	//se l'utente non è un amministratore, interrompe l'esecuzione di WordPress e stampa un messaggio
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( __('Non sei autorizzato ad accedere a questa sezione del sito') );
+	}
+}
+add_action( 'admin_init', 'restrict_admin', 1 );
+</pre>
+
+In questo esempio viene bloccato l'accesso al pannello di amministrazione per gli utenti che non hanno il [[Roles_and_Capabilities#Administrator|ruolo di amministratore]].
+
+== Esempio: Controllo degli accessi con redirezione ==
+
+Questo esempio funziona in modo simile al precedente, ma redirige all'home page automaticamente gli utenti che non hanno la capacità specificata.
+
+<pre>
+function restrict_admin_with_redirect() {
+	if ( ! current_user_can( 'manage_options' ) && $_SERVER['PHP_SELF'] != '/wp-admin/admin-ajax.php' ) {
+		wp_redirect( site_url() ); exit;
+	}
+}
+
+add_action( 'admin_init', 'restrict_admin_with_redirect' );
+</pre>
+
+== Esempio: Registrare nuove impostazioni ==
+
+Un altro tipico impiego è quello di registrare una nuova impostazione che deve essere utilizzata da un plugin:
+
+<pre>
+function myplugin_settings() {
+    register_setting( 'myplugin', 'myplugin_setting_1', 'intval' );
+    register_setting( 'myplugin', 'myplugin_setting_2', 'intval' );
+}
+add_action( 'admin_init', 'myplugin_settings' );
+</pre>
+
+[[Category:Plugins]]

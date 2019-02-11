@@ -1,0 +1,81 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/WordPress_の最適化/WordPress_パフォーマンス">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>This article is part of a series on <a href="https://codex.wordpress.org/WordPress_Optimization" title="WordPress Optimization">WordPress Optimization</a>.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Plugins"><span class="tocnumber">1</span> <span class="toctext">Plugins</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Themes"><span class="tocnumber">2</span> <span class="toctext">Themes</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#PHP_OPcache"><span class="tocnumber">3</span> <span class="toctext">PHP OPcache</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Further_Reading"><span class="tocnumber">4</span> <span class="toctext">Further Reading</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Plugins">Plugins</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=WordPress_Optimization/WordPress_Performance&amp;action=edit&amp;section=1" title="Edit section: Plugins">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The first and easiest way to improve WordPress performance is <b>plugins</b>. Deactivate and delete any unnecessary plugins. Try selectively disabling plugins to measure server performance. Is one of your plugins significantly affecting your site's performance?
+</p><p>Then you can look at <b>optimizing plugins</b>. Are plugins coded inefficiently? Do they repeat unnecessary database queries? WordPress has its own caching system, so generally speaking, using functions like get_option(), update_option() and so on will be faster than writing SQL.
+</p>
+<h2><span class="mw-headline" id="Themes">Themes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=WordPress_Optimization/WordPress_Performance&amp;action=edit&amp;section=2" title="Edit section: Themes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>After plugins come <b>theme optimization</b>. 
+</p>
+<ul><li> Image Files
+<ul><li> Are there any unnecessary images? (e.g. Can you replace some of the images with text?)</li>
+<li> Make sure all image files are optimized. Choose the correct format (JPG/PNG/GIF) for the type of image.</li>
+<li> <a rel="nofollow" class="external text" href="http://developer.yahoo.com/yslow/smushit/">Smush.it</a> and <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/wp-smushit/">WP Smush.it</a> plugin can also help.</li></ul></li></ul>
+<ul><li> Total File Number/Size
+<ul><li> Can you reduce the number of files needed to display the average page on your site?</li>
+<li> Combine multiple CSS files into a single, optimized file.</li>
+<li> Minify CSS and JavaScript files.</li>
+<li> If necessary, look into plugins to help this process (e.g. <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/head-cleaner/">Head Cleaner</a> and <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/wp-minify/">WP Minify</a>).</li></ul></li></ul>
+<ul><li> Query Reduction/Optimization
+<ul><li> Can static values be <b>hardcoded</b> into your themes? This will mean you have to edit code every time you make changes, but for generally static areas, this can be a good trade off.
+<ul><li> For example, your site charset, site title, and so on. </li>
+<li> Can you hardcode menus that rarely change? Avoiding functions like wp_list_pages() for example. </li></ul></li></ul></li></ul>
+<p>We have seen themes which put 3x extra load to the server. Turned out it caused 3x more database queries - which is bad in itself. Then we found out that some of the queries are unoptimized. Not good.
+</p><p>You can also use <a href="https://codex.wordpress.org/WordPress_Optimization/Offloading" title="WordPress Optimization/Offloading">offloading</a> to optimize your theme.
+</p>
+<h2><span class="mw-headline" id="PHP_OPcache">PHP OPcache</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=WordPress_Optimization/WordPress_Performance&amp;action=edit&amp;section=3" title="Edit section: PHP OPcache">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Because WordPress is PHP-based, it contains a large amount of code that must be "parsed" by PHP on every single page load; if you are using a heavy theme or plugin, or a large number of plugins, the amount of PHP code grows exponentially.
+</p><p>In many server environments (especially shared hosting), this "parse" time can greatly affect performance, adding several seconds to the total time it takes to finish loading a page. This is where OPcode caching can help, sometimes drastically, as it avoids the need to (re)parse PHP code too often, by way of "caching" the PHP content in a temporary cache.
+</p><p>Throughout its lifetime, PHP has supported various OPcode caching extensions. For many years, the most popular one was called Zend, which was a proprietary third party script, followed by APC, which was also maintained by a third party. However, upon the release of PHP 5.5, Zend decided to open-source their code and contribute it entirely to the PHP project, at which point it was included (and enabled by default) as part of PHP installations.
+</p>
+<blockquote>OPcache improves PHP performance by storing precompiled script bytecode in shared memory, thereby removing the need for PHP to load and parse scripts on each request. -- <a rel="nofollow" class="external text" href="https://secure.php.net/manual/en/intro.opcache.php">PHP.net</a></blockquote>
+<p>This is one of the reasons why it is so important to upgrade your PHP version. Many web hosts allow you to upgrade by request, while others do it automatically. And while OPcache is supported by PHP 5.5+ it has several more options available in PHP 7+ (along with generally faster PHP performance), so it's a good idea to stay as updated as possible.
+</p><p><strong>Further Reading:</strong>
+</p>
+<ul><li> <a rel="nofollow" class="external text" href="https://secure.php.net/manual/en/book.opcache.php">PHP OPcache</a></li>
+<li> <a rel="nofollow" class="external text" href="https://support.cloud.engineyard.com/hc/en-us/articles/205411888-PHP-Performance-I-Everything-You-Need-to-Know-About-OpCode-Caches">Engine Yard Developer Center</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/support/topic/wordpress-slow-performance-shared-hosting">WordPress.org forums</a></li>
+<li> <a rel="nofollow" class="external text" href="https://www.reddit.com/r/PHP/comments/4dgey3/performance_comparisons_between_suphp_and_mod_php">Reddit (PHP)</a></li></ul>
+<h2><span class="mw-headline" id="Further_Reading">Further Reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=WordPress_Optimization/WordPress_Performance&amp;action=edit&amp;section=4" title="Edit section: Further Reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://www.sitepoint.com/blogs/2009/08/03/gif-png-jpg-which-one-to-use/">Sitepoint: GIF, PNG, JPG. Which One To Use?</a></li>
+<li> <a rel="nofollow" class="external text" href="http://code.google.com/speed/page-speed/docs/payload.html">Google Code - Page Speed: Minimize payload size</a></li></ul>
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=WordPress_Optimization/WordPress_Performance&amp;action=edit">expanding it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004227
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.021 seconds
+Preprocessor visited node count: 56/1000000
+Preprocessor generated node count: 263/1000000
+Post‐expand include size: 1550/2097152 bytes
+Template argument size: 495/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    7.469      1 - -total
+ 57.18%    4.271      1 - Template:Languages
+ 39.59%    2.957      1 - Template:Stub
+ 23.51%    1.756      1 - Template:Message
+ 20.48%    1.530      1 - Template:ja
+ 16.70%    1.247      1 - Template:en
+-->

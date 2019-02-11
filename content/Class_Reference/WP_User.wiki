@@ -1,0 +1,264 @@
+{{Languages|
+{{en|Class_Reference/WP_User}}
+{{ja|クラスリファレンス/WP_User}}
+}}
+== Description ==
+
+The WordPress User Class allows accessing properties, roles and capabilities of a specific user.
+
+== Usage ==
+
+To instantiate a specific user, you may use the class constructor :
+%%%<?php $users = new WP_User( $id [, $name [, $blog_id ] ] ); ?>%%%
+
+You can also use the <tt>[[Function_Reference/wp_get_current_user|wp_get_current_user]]</tt> global function to get a <tt>WP_User</tt> object matching the current logged user.
+%%%<?php $current_user = wp_get_current_user(); ?>%%%
+
+== Constructor ==
+
+The <tt>WP_User</tt> constructor allows the following parameters :
+
+* '''<tt>id</tt>''' (''int'') - the user's id. Leave empty to use login name instead.
+* '''<tt>name</tt>''' (''string'') - the user's login name. Ignored if id is set.
+* '''<tt>blog_id</tt>''' (''int'') - the blog id on a multisite environment. Defaults to the current blog id.
+
+The semantics seem rather fuzzy.  If id is a WP_User or other object, or an array of properties, it seems to clone it without touching the cache.  Otherwise if id is a number it seems to try to read it possibly from the cache, or from the database using ->get_data_by(), which can also update the cache.  If id is empty it reads by login name.
+
+== Public Properties ==
+
+* '''<tt>ID</tt>''' (''int'') - the user's ID.
+* '''<tt>caps</tt>''' (''array'') - the individual capabilities the user has been given.
+* '''<tt>cap_key</tt>''' (''string'') - 
+* '''<tt>roles</tt>''' (''array'') - the roles the user is part of.
+* '''<tt>allcaps</tt>''' (''array'') - all capabilities the user has, including individual and role based.
+* '''<tt>first_name</tt>''' (''string'') - first name of the user.
+* '''<tt>last_name</tt>''' (''string'') - last name of the user.
+
+''Note:'' If called with the "id" or "name" parameter, the constructor queries the [[Database_Description#Table:_wp_users|wp_users table]]. If successful, the additional row data become properties of the object: '''user_login''', '''user_pass''', '''user_nicename''', '''user_email''', '''user_url''', '''user_registered''', '''user_activation_key''', '''user_status''', '''display_name''', '''spam''' (multisite only), '''deleted''' (multisite only).
+
+== Magic Methods ==
+These are [http://php.net/manual/en/language.oop5.magic.php PHP5 magic methods] that facilitate [http://www.php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members property overloading]. They don't need to be called directly, but are called automatically when a class property is referenced.
+
+=== <tt>__get( $key )</tt> ===
+
+Magic method for accessing custom fields.
+
+;Parameters : 
+* '''<tt>key</tt>''' (''string'') - property.
+
+;Returns : (''string'') Single value of the property filtered.
+
+;Since : 3.3.0
+
+=== <tt>__isset( $key )</tt> ===
+
+Determine whether a property or meta key is set from the users and usermeta tables.
+
+;Parameters : 
+* '''<tt>key</tt>''' (''string'') - property.
+
+;Returns : (''bool'') <tt>true</tt> if user has property, <tt>false</tt> otherwise.
+
+;Since : 3.3.0
+
+=== <tt>__set( $key, $value )</tt> ===
+
+Magic method for setting custom fields.
+
+Please note that setting custom fields affects only the current <tt>WP_User</tt> object, and '''does not''' set the value in the database. To change the database value use <tt>[[Function_Reference/wp_update_user | wp_update_user()]]</tt> or <tt>[[Function_Reference/update_user_meta | update_user_meta()]]</tt>.
+
+;Parameters : 
+* '''<tt>key</tt>''' (''string'') - property.
+* '''<tt>value</tt>''' (''string'') - value.
+
+;Returns : Nothing.
+
+;Since : 3.3.0
+
+== Public Methods ==
+
+=== <tt>exists()</tt> ===
+
+Determine whether the user exists in the database.
+
+It actually tests <tt>!empty(ID)</tt>, which will normally indicate that the user record was in the database at some stage.  It does not access the database.
+
+;Parameters : None
+
+;Returns : (''bool'') <tt>true</tt> if user exists, <tt>false</tt> otherwise.
+
+;Since : [[Version 3.4|3.4.0]]
+
+=== <tt>get( $key )</tt> ===
+
+Retrieve the value of a property or meta key from the users and usermeta tables.
+
+;Parameters : 
+* '''<tt>key</tt>''' (''string'') - property.
+
+;Returns : (''mixed'') String of the property filtered if single value, or array if value is stored as a serialized array
+
+;Since : 3.3.0
+
+=== <tt>has_prop( $key )</tt> ===
+
+Determine whether a property or meta key is set from the users and usermeta tables.
+
+;Parameters : 
+* '''<tt>key</tt>''' (''string'') - property.
+
+;Returns : (''bool'') <tt>true</tt> if user has property, <tt>false</tt> otherwise.
+
+;Since : 3.3.0
+
+=== <tt>get_role_caps()</tt> ===
+
+Retrieve all of the role capabilities and merge with individual capabilities.
+
+All of the capabilities of the roles the user belongs to are merged with the users individual roles. This also means that the user can be denied specific roles that their role might have, but the specific user isn't granted permission to.
+
+Sets the <tt>roles</tt> and <tt>allcaps</tt> properties.
+
+;Parameters : None
+
+;Returns : Nothing
+
+;Since : 2.0.0
+
+=== <tt>add_role( $role )</tt> ===
+
+Add role to user.
+
+Updates the user's meta data option with capabilities and roles.
+
+;Parameters : 
+* '''<tt>role</tt>''' (''string'') - role name.
+
+;Returns : Nothing
+
+;Since : 2.0.0
+
+=== <tt>remove_role($role)</tt> ===
+
+Remove role from user.
+
+;Parameters : 
+* '''<tt>role</tt>''' (''string'') - role name.
+
+;Returns : Nothing
+
+;Since : 2.0.0
+
+=== <tt>set_role($role)</tt> ===
+
+Set the role of the user.
+
+This will remove the previous roles of the user and assign the user the new one. You can set the role to an empty string and it will remove all of the roles from the user.
+
+;Parameters : 
+* '''<tt>role</tt>''' (''string'') - role name.
+
+;Returns : Nothing
+
+;Since : 2.0.0
+
+;Related actions : * '''[[Plugin_API/Action_Reference/set_user_role|set_user_role]]'''
+
+=== <tt>add_cap($cap [, $grant ] )</tt> ===
+
+Add capability and grant or deny access to capability.
+
+;Parameters :
+
+* '''<tt>cap</tt>''' (''string'') - capability name.
+* '''<tt>grant</tt>''' (''bool'') - whether to grant capability to user. Default to <tt>true</tt>.
+
+;Returns : Nothing
+
+;Since : 2.0.0
+
+=== <tt>remove_cap($cap)</tt> ===
+
+Remove capability from user.
+
+;Parameters : 
+* '''<tt>cap</tt>''' (''string'') - capability name.
+
+;Returns : Nothing
+
+;Since : 2.0.0
+
+=== <tt>remove_all_caps()</tt> ===
+
+Remove all of the capabilities of the user.
+
+;Parameters : None
+
+;Returns : Nothing
+
+;Since : 2.1.0
+
+=== <tt>has_cap($cap)</tt> ===
+
+Whether user has capability or role name.
+
+;Parameters : 
+* '''<tt>cap</tt>''' (''string'') - capability or role name to search.
+
+;Returns : (''bool'') <tt>true</tt> if user has capability, <tt>false</tt> if they do not have the capability.
+
+;Since : 2.0.0
+
+== Examples ==
+
+Checking if the current user can edit user profiles :
+%%%<?php
+    $cu = wp_get_current_user();
+    if ($cu->has_cap('edit_users')) {
+       // do something
+    }    
+?>%%%
+
+Check if user exists:
+%%%<?php
+    $user = wp_get_current_user();
+    if ( $user->exists() ) {
+       // do something
+    }    
+?>%%%
+
+Check if user has a property:
+%%%<?php
+    $user = wp_get_current_user();
+    if ( $user->has_prop( 'twitter' ) ) {
+       // do something
+    }    
+?>%%%
+
+== Change Log ==
+
+Since: [[Version 2.0|2.0.0]]
+
+== Source File ==
+
+<tt>WP_User</tt> is located in {{Trac|wp-includes/class-wp-user.php}}.
+
+== Related ==
+
+* [[Function_Reference/get_user_by|get_user_by]]
+* [[Function_Reference/get_userdata|get_userdata]]
+* [[Function_Reference/wp_set_current_user|wp_set_current_user]]
+* [[Function_Reference/wp_get_current_user|wp_get_current_user]]
+* [[Class_Reference/WP_Role|WP_Role]]
+* [[Class_Reference/WP_Roles|WP_Roles]]
+* [[Class_Reference/WP_User_Query|WP_User_Query]]
+* [[Roles_and_Capabilities|Roles and Capabilities]]
+
+== External Links ==
+
+* [http://scribu.net/wordpress/the-magic-of-wp_user.html Accessing custom fields using WP_User]
+* [http://wpsmith.net/?p=17709 An Introduction to WP_User Class]
+
+{{Class Footer}}
+
+[[Category:Classes]]

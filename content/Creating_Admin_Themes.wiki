@@ -1,0 +1,172 @@
+{{Languages|
+{{en|Creating Admin Themes}}
+{{ja|Creating Admin Themes}}
+{{ru|Создание темы для Админ-панели}}
+}}
+{{Copyedit}}
+<!-- Dependencies on 'colors' CSS styles per example? Also, old admin themes are still marked here as examples. #zeitgeist doesn't exist anymore, etc. -->
+__TOC__
+WordPress' flexible nature allows for almost every part of it to be easily changed. Creating a custom WordPress [[Administration Panels|Admin Panel]] Theme is no different. There are essentially two ways of making a WordPress Admin theme: with a Plugin or by simply changing the [[CSS]]. The Plugin method is the easier of the two methods, allowing you to install WordPress Admin Themes quickly and easily. You literally "plug it in" and it works.
+
+If you are the creative type, we also have instructions to help you design your own style sheet for the Administration Panels, and even how to turn your [[#Creating an Admin Theme Plugin|Admin Theme into a Plugin]] for easy distribution to the public.
+
+== Using Admin Theme Plugins ==
+
+[[File:wp-admin-theme.jpg|right|thumb]]
+
+[[Plugins|WordPress Plugins]] allow a user to easily add functionality to their blog without editing core WordPress files. There are several WordPress Plugins available that will allow you to use a WordPress Admin Theme with little or no fuss.
+
+Typically, the instructions are to upload the Admin Theme Plugin to your plugins folder and then activate it on your [[Administration_Panels#Plugins_-_Add_Functionality_to_your_Blog|Plugin Panel]]. Simple and easy.
+
+Other plugins, like [http://wordpress.org/extend/plugins/wp-admin-theme/ WP Admin Theme], allow you to change your layout on the fly, without the need for creating your own plugin.
+
+== Styling The Admin Theme ==
+
+[[Image:pinkhead.jpg|right|thumb|Pink Administration Theme]] The best way to design your own Administration Panel Theme is to make a plugin, even if you're never going to share the code with anyone else.  As a plugin, the Admin Theme includes a function that will instruct WordPress to use a new stylesheet for displaying the Admin Panel. A distinct advantage to making a plugin is that if you ever want to revert back to the default style, all you have to do is deactivate the plugin.
+
+
+You can also utilize the [[Must_Use_Plugins|mu-plugins]] folder for your plugin.
+
+===The Admin Style Sheet===
+
+[[Image:bluehead.jpg||right|thumb|Blue Administration Theme]]The default Admin Theme style sheet is very complex, covering all aspects of the Administration Panels thoroughly. Not all the parts and pieces may need to be changed to recreate your Admin Theme.  You can look at the files stored in <code>/wp-admin/css</code> to see all the style components that go into the admin dashboard.
+
+
+Here is a partial list of the important style references used in the Administration Panels. Per CSS web standards, <tt>#</tt> denotes a style ID and <tt>.</tt> denotes a style class.
+
+; <tt>#wphead</tt> :The main title of the admin panel. Used to display the name of the blog and a link to '''View Site'''.
+; <tt>#adminmenu ul</tt> :The main level navigation bar, for links: Dashboard, Write, Manage, etc.
+; <tt>#adminmenu2 ul</tt> :The sub level navigation bar, for links (example: under Manage: Posts, Pages, Categories).
+; <tt>.wrap</tt> :The basic wrapper for all content in the admin panel, set in a <tt>&lt;div></tt>. 
+; <tt>#zeitgeist</tt> :The sidebar on the Dashboard displaying Latest Activity and Blog Stats.
+; <tt>#footer</tt> :The footer at the bottom, with Wordpress logo, version number, and help links.
+; <tt>.wrap h2</tt> :Individual Page headers for the various subpanels, like '''General Options'''.
+
+The changes you make can be major or minor. For instance, you can change the background color, add a background image to different sections, change the font, or even just do a minor color or design change to the [[Coloured_Quicktags|Quicktag buttons]]. Feel free to use your imagination, and create whatever effect you want.
+
+=== Creating an Admin Theme Plugin ===
+
+Admin theme plugins can be used to change the header or footer of admin pages in different ways.
+
+An important aspect of admin theme plugins is that they can be easily installed with little effort by the user, and easily uninstalled or deactivated, returning the [[Administration Panels]] to their original state.  
+
+We begin by telling WordPress to link to a new style sheet.
+
+In a [[Glossary#Text editor|text editor]], in a new document, put the following:
+
+<pre>
+&lt;?php
+
+/*
+Plugin Name: My Admin Theme
+Plugin URI: http://example.com/my-crazy-admin-theme
+Description: My WordPress Admin Theme - Upload and Activate.
+Author: Ms. WordPress
+Version: 1.0
+Author URI: http://example.com
+*/
+
+function my_admin_theme_style() {
+    wp_enqueue_style('my-admin-theme', plugins_url('wp-admin.css', __FILE__));
+}
+add_action('admin_enqueue_scripts', 'my_admin_theme_style');
+add_action('login_enqueue_scripts', 'my_admin_theme_style');
+
+?&gt;
+</pre>
+
+This plugin simply allows you to customize the CSS of the admin dashboard via a file called <tt>wp-admin.css</tt> in your plugin folder.
+
+If you wanted to change the <tt>#wphead</tt> format to look blue (like in the above image), then you would add in:
+
+<pre>
+#wphead {
+  border-bottom: MidnightBlue 1px solid;
+  background-color: #E4F0FE!important;
+  background: -moz-linear-gradient(bottom,#E4F0FE,#B0C4DE);
+  background: -webkit-gradient(linear,left bottom,left top,from(#E4F0FE),to(#B0C4DE));
+}
+</pre>
+
+
+In addition to using the <tt>admin_head</tt> Plugin API hook for stylesheets, you can also optionally add a function to add content to the <tt>admin_footer</tt>. For example, you might want to put a notice about the theme in the footer. Here is how to add it to your plugin:
+
+<pre>
+function my_crazy_admin_footer() {
+   echo '<p>This theme was made by &lt;a href="http://example.com"&gt;Ms. WordPress&lt;/a&gt;.</p>';
+}
+
+add_action('admin_footer', 'my_crazy_admin_footer');
+</pre>
+
+Which looks like this:
+[[Image:footer.jpg|center]]
+
+Save the plugin and upload it to your site. Select it from the Plugins Panel and see if anything about <tt>My Admin Theme</tt> appears. If it does, you are on the right track!
+
+Another way would be to use filters instead of actions:
+
+<pre>
+add_filter('admin_footer_text', 'left_admin_footer_text_output'); //left side
+function left_admin_footer_text_output($text) {
+    $text = 'How much wood would a woodchuck chuck?';
+    return $text;
+}
+ 
+add_filter('update_footer', 'right_admin_footer_text_output', 11); //right side
+function right_admin_footer_text_output($text) {
+    $text = 'That\'s purely hypothetical.';
+    return $text;
+}
+</pre>
+
+Which looks like this, totally replacing the footer:
+
+[[Image:footer-filter.jpg|center]]
+
+Source: [http://wpglee.com/2011/02/change-admin-footer-text/ WP Glee]
+
+== Change Log-In page's style ==
+
+You can use the [[Plugin_API/Action_Reference/login_head|<tt>login_head</tt>]] action to add a style sheet to your log-in page. To get this working, copy the <tt>login.css</tt> file from <tt>/wp-admin/css/</tt> you can append the following to the original plug-in you've created.
+
+<pre>
+function my_login_css() {
+  echo '<link rel="stylesheet" type="text/css" href="' .plugins_url('login.css  ', __FILE__). '">';
+}
+
+add_action('login_head', 'my_login_css');
+</pre>
+
+== Advanced CSS Styles ==
+
+[[Image:admin-rounded-corners.png|right|thumbnail|Rounded Corners]]
+Sometimes there are places where CSS just cannot achieve the look you want without making modifications to the HTML of the Administration Panels. 
+
+A popular CSS style is to create rounded corners on "boxes" of content. The technique involves adding divisions or ''wrappers'' to the HTML architecture in order to achieve the effect.  Since we really do not want to get into the core Administration Panels to make these changes, which will disappear with the next upgrade, you can use the DOM (Document Object Model). The DOM is a way of dynamically accessing and updating content, structure, and style of documents.
+
+In this example, using the [http://www.456bereastreet.com/archive/200609/transparent_custom_corners_and_borders_version_2/ Transparent Rounded Corners] effect from 456 Berea Street, you can add the Javascript provided on the site to your Admin Theme Plugin, without editing the WordPress source.
+
+Download the script and save it to your <tt>blue-steel</tt> folder as <tt>javascript.js</tt>.  Change the <tt>mr_blue_steel()</tt> function to:
+
+<pre>
+function mr_blue_steel() {
+    $url = get_option('siteurl');
+    $dir = $url . '/wp-content/plugins/blue-steel/';
+    echo '&lt;link rel="stylesheet" type="text/css" href="' . $dir . 'wp-admin.css" /&gt;';
+    echo '&lt;script type="text/javascript" src="' . $dir .'javascript.js"&gt;&lt;/script&gt;';
+}
+</pre>
+
+This script uses a single "hook" (<tt>cbb</tt>) to create many divisions around the container. For this to work, open the Javascript file and change all references of <tt>cbb</tt> to <tt>wrap</tt> to match the <tt>wp-admin.css</tt> standard style references.
+
+== Resources ==
+
+* [[Function_Reference/get_option|get_option]]
+* [[Function_Reference/get_settings|get_settings]] (Deprecated 2.1)
+* [[Writing a Plugin]]
+* [[Plugins]]
+* [[Blog Design and Layout]]
+* [[Blog_Design_and_Layout#WordPress_and_CSS|WordPress and CSS]]
+
+[[Category:About Codex]]

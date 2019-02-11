@@ -1,0 +1,51 @@
+== Description ==
+This filter applies to a query's LIMIT clause before the query is sent to the database, allowing you to define a new query LIMIT.
+
+== Usage ==
+%%%<?php add_filter( 'post_limits', 'my_post_limits' ); ?>%%%
+
+== Examples ==
+
+<pre>
+/**
+ * Limit the main query search results to 25.
+ *
+ * We only want to filter the limit on the front end of the site, so we use
+ * is_admin() to check that we aren't on the admin side.
+ *
+ * We also only want to filter the main query, so we check that this is it
+ * with $query->is_main_query().
+ *
+ * Finally, we only want to change the limit for searches, so we check that
+ * this query is a search with $query->is_search().
+ *
+ * @see http://codex.wordpress.org/Plugin_API/Filter_Reference/post_limits
+ * 
+ * @param string $limit The 'LIMIT' clause for the query.
+ * @param object $query The current query object.
+ *
+ * @return string The filtered LIMIT.
+ */
+function wpcodex_filter_main_search_post_limits( $limit, $query ) {
+
+	if ( ! is_admin() && $query->is_main_query() && $query->is_search() ) {
+		return 'LIMIT 0, 25';
+	}
+
+	return $limit;
+}
+add_filter( 'post_limits', 'wpcodex_filter_main_search_post_limits', 10, 2 );
+</pre>
+
+This will allow your query to return 25 results only for the search page. All other queries will continue to return the default value.
+
+== Notes ==
+You can return null to remove the LIMIT clause from the query, allowing you to return all results. However, this will set $wp_query->found_posts to 0.
+
+On some server environments the LIMIT will be applied to all queries on the page.
+This results in menu items and widgets also being limited to the defined number.<br>
+To only limit the number of posts on a page use [[Plugin API/Action Reference/pre get posts]].
+
+Return to [[Plugin API/Filter Reference]]
+
+[[Category:Filters]]

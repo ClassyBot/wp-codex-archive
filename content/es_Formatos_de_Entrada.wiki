@@ -1,0 +1,107 @@
+{{Languages|
+{{en|Post Formats}}
+{{es|Formatos de Entrada}}
+{{ja|Post Formats}}
+{{pt-br|Formatos de Posts}}
+{{ru|Форматы записей}}
+{{zh-cn|文章形式}}
+{{zh-tw|文章格式}}
+}}
+
+{{Stub}} 
+
+==Intro==
+'''Formatos de Entrada''' es una  [[Característica para Temas|Características para Temas]] introducida en la [[Version 3.1]]. Un formato de entrada es una pieza de meta-información que puede ser usada por un tema para personalizar la presentación de una entrada. La función de formatos de entrada proporciona una lista estandarizada de formatos que están disponibles para todos los temas que soportan esta característica. No es necesario que los temas soporten cada uno de los formatos de la lista. No se pueden introducir nuevos formatos a través de temas ni plugins. La estandarización de esta lista proporciona compatibilidad entre los numerosos temas, y una vía para que las herramientas externas de blogging puedan acceder a esta función de una manera coherente.
+
+En resumen, con un tema que admite los formatos de entrada, un blogger puede cambiar la apariencia de cada entrada eligiendo un Formato de Entrada de la lista.
+
+Usando '''Asides''' por ejemplo, anteriormente se creaba una categoría llamada Asides, las entradas se asignaban a esa categoría, y se mostraban de forma diferente basándose en reglas de estilo de <tt>[[Template_Tags/post_class|post_class()]]</tt> o de <tt>[[Conditional Tags|in_category('asides')]]</tt>.  Con [[Formatos de Entrada]], este nuevo enfoque permite añadir soporte para Formatos de Entrada a un tema (p.e. <tt>[[Function_Reference/add_theme_support|add_theme_support('post-formats', array('aside'))]]</tt>), entonces el formato de entrada puede ser seleccionado en la pantalla de edición de la entrada.  Luego, una llamada a la función <tt>[[Function_Reference/get_post_format|get_post_format($post->ID)]]</tt> permite determinar el formato de la entrada, y en cualquier caso <tt>[[Template_Tags/post_class|post_class()]]</tt> creará la clase "format-asides", para cambiar el estilo puramente por css.
+
+==Formatos Soportados==
+
+Los siguientes Formatos de Entrada están disponibles para elegir, si el tema activa soporte para ellos.
+
+* '''aside''' - Típicamente se muestra sin un título.
+* '''gallery''' - Una galería de imágenes. La entrada contendría un [[shortcode]] gallery e imágenes adjuntas.
+* '''link''' - Un enlace a otro sitio. Los temas pueden usar el primer tag <a href=””> en el contenido como enlace externo para ese artículo. Una forma diferente sería que el artículo consistiera de solo una URL (que sería dónde se enlaza), y el título (que sería el nombre del enlace).
+* '''image''' - Una sola imagen. El primer tag <img /> en la entrada podría ser considerada la imagen. Alternativamente, si la entrada consiste de una URL, esa podría ser la URL de la imagen, y el título de la entrada podría ser el título de la imagen.
+* '''quote''' -  Una cita. Probablemente contenga un blockquote conteniendo la entrada. Alternativamente, la cita podría ser solo el contenido, siendo la fuente o el autor el título de la entrada.
+* '''status''' - Una pequeña actualización de estado, similar a una actualización de estado de Twitter.
+* '''video''' - Un vídeo. El primer tag <video /> o el primer object/embed en la entrada podría ser considerador el vídeo. De forma alternativa, si la entrada consiste solo de una URL, esa sería la URL del vídeo. Podría incluso contener el vídeo como un adjunto la entrada si existe soporte para vídeo en el blog.
+* '''audio''' - Un archivo de audio. Puede ser usado para Podcasting.
+* '''chat''' - Una trascripción de chat, como por ejemplo:
+<pre>
+Juan: foo
+María: bar
+Juan: foo 2
+</pre>
+
+Nota: Al escribir o editar una Entrada, Estándar se utiliza para indicar que no se especifica el formato de entrada. Además, si se especifica un formato que no es válido entonces estándar (sin formato) se utilizará.
+
+== Referencia de funciones ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Main Functions'''
+|-
+|
+* <tt>[[Function_Reference/set_post_format | set_post_format()]]</tt>
+* <tt>[[Function_Reference/get_post_format | get_post_format()]]</tt>
+* <tt>[[Function_Reference/has_post_format | has_post_format()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Other Functions'''
+|-
+|
+* <tt>[[Function_Reference/get_post_format_link | get_post_format_link()]]</tt>
+* <tt>[[Function_Reference/get_post_format_string | get_post_format_string()]]</tt>
+|}
+|}
+
+== Añadiendo soporte al Tema ==
+
+Los temas necesitan usar <tt>[[Function_Reference/add_theme_support|add_theme_support()]]</tt> en el archivo  ''functions.php'' para indicar a WordPress qué formatos de entrada soporta, pasándole una lista de formatos, tal y como:
+
+<pre>add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );</pre>
+
+Nota: ¡Debes llamar a esta función antes de que el gancho [[Plugin_API/Action_Reference/init|init]] sea llamado! Un buen gancho para usar es [[Plugin_API/Action_Reference/after_setup_theme|after_setup_theme]].
+
+
+== Retrocompatibilidad ==
+
+Si tu plugin o tema necesita ser compatible con versiones anteriores de WordPress, tendrás que añadir a la taxonomía "post-format" un elemento llamado $format. Por ejemplo:
+
+<pre>
+wp_insert_term( 'post-format-aside', 'post_format' );
+</pre>
+
+También tendrás que registrar la taxonomía post_format taxonomy con <tt>[[Function_Reference/register_taxonomy|register_taxonomy()]]</tt>.
+
+
+== Archivo fuente ==
+* {{Trac|wp-includes/post.php}}
+
+== Recursos Externos  ==
+
+* [http://ottopress.com/2010/post-types-and-formats-and-taxonomies-oh-my/ Post Types and Formats and Taxonomies, oh my!] by Otto
+* [http://andrewnacin.com/2011/01/27/on-standardized-post-formats/ On standardized Post Formats] by Andrew Nacin
+* [http://markjaquith.wordpress.com/2010/11/12/post-formats-vs-custom-post-types/ Post Formats vs. Post Types] by Mark Jaquith
+* [http://lisasabin-wilson.com/wordpress-3-1-post-formats-reference WordPress 3.1 Post Formats Reference] by Lisa Sabin-Wilson
+* [http://dougal.gunters.org/blog/2010/12/10/smarter-post-formats Smarter Post Formats?] by Dougal Campbell
+* [http://generatewp.com/theme-support/ WordPress Theme Support Generator]
+
+== Relacionado ==
+{{Post Formats}}
+
+{{Theme Support}}
+
+[[Category:Advanced Topics]]
+[[Category:New page created]]

@@ -1,0 +1,181 @@
+These notes are from memory. Please correct them!
+
+[http://www.cimatti.it/blog/cimy-wordpress-plugins/cimy-user-extra-fields/]
+
+Note from Marco Cimmino the author of the plug-in:
+
+These informations are from users not from me, so I thanx them but I should advise you that are UNOFFICIAL and UNSUPPORTED by me.
+
+Also note that these modifications are no more necessary with Cimy User Extra Fields 1.0.0 that partially support WordPress MU.
+If you want to see full MU support in this plug-in contact me and sponsor it.
+
+Thanx<br>
+Marco Cimmino
+
+EDIT 09 Feb 2009:
+Cimy User Extra Fields 1.4.0 supports officially WordPress MU so these information are now obsolete.
+
+== Cimy User Extra Fields for WordPress ==
+''
+WordPress is becoming more than ever a tool to open blog/websites and CMSs in an easier way. Users are increasing day by day; one of the limits however is the restricted and predefined fields that are available in the registered users profile: it is difficult for example to ask for the acceptance of “Terms and Conditions of Use” or “Permission to use personal data”.
+
+It’s also possible to set a password during registration combined to equalTO rule, only people who knows the password can register.
+
+We have developed a WordPress plug-in to do this.
+''
+
+----
+
+This plugin can work if you make two types of MU modification: 
+
+1) [[UnMuify the plugin shared tables]]
+2) [[Manually activate the WPMU mu-plugins]]
+
+For 1) at the start of the plugin's main file, there's a line that sets $cimy_data = $wpdb->prefix . 'cimy_data';
+
+Now, WPMU muifys the prefix, replacing changing it from the default wp_ prefix to wp_x_ where x = 1...n; as this is usually needed to convert plugins that know about a single blog to one that can deal with many. You need to inhibit this. In the plugin file, at the top, replace the $wpdb->prefix with the change:
+
+$cimy_data = 'wp_'. 'cimy_data';
+$cimy_fields = 'wp_'. 'cimy_fields';
+
+For 2) WPMU does not honour WP's contract to plugins to let them activate when they first start. This means that plugins never get the chance to initialize tables.
+
+A crap (but effective) workaround is to manually install into plugins, activate, and move the plugin into Mu plugins. In order for this to work, you need to disable (remove) the copy on mu-plugins, activate this one, and then upload to mu-plugins.
+
+----
+
+Feel free to correct these instructions, and point to them liberally, but please don't add them to the forum. Because the forums are write-once, they have become morass of duplicated, often incorrect and incomplete.
+
+<pre>
+RCS file: cimy_user_extra_fields.php,v
+retrieving revision 1.1
+diff -C 5 -r1.1 cimy_user_extra_fields.php
+*** cimy_user_extra_fields.php  2007/08/24 11:59:54     1.1
+--- cimy_user_extra_fields.php  2007/08/24 19:01:42
+***************
+*** 35,46 ****
+  */
+
+  if (!function_exists(php_compat_mqgpc_unescape))
+        include_once("magic_quotes_gpc_off_function.php");
+
+! $wpdb_data_table = $wpdb->prefix."cimy_data";
+! $wpdb_fields_table = $wpdb->prefix."cimy_fields";
+
+  $cimy_uef_options = "cimy_uef_options";
+  $cimy_uef_options_descr = "Cimy User Extra Fields options are stored here and modified only by admin";
+
+  /*
+--- 35,48 ----
+  */
+
+  if (!function_exists(php_compat_mqgpc_unescape))
+        include_once("magic_quotes_gpc_off_function.php");
+
+!       //$wpdb_data_table = $wpdb->prefix."cimy_data";
+!       //$wpdb_fields_table = $wpdb->prefix."cimy_fields";
+!       $wpdb_data_table = "wp_cimy_data";
+!       $wpdb_fields_table = "wp_cimy_fields";
+
+  $cimy_uef_options = "cimy_uef_options";
+  $cimy_uef_options_descr = "Cimy User Extra Fields options are stored here and modified only by admin";
+
+  /*
+***************
+*** 193,202 ****
+--- 195,205 ----
+
+  // add update engine for extra fields to user's registration
+  add_action('user_register', 'cimy_register_user_extra_fields');
+
+  // function that add the submenu under 'Users'
++
+  add_action('admin_menu', 'cimy_admin_menu_custom');
+
+  // delete user extra fields data when a user is deleted
+  add_action('delete_user', 'cimy_delete_user_info');
+
+***************
+*** 257,267 ****
+                $values = substr($values, $label_pos + 1);
+        }
+        else
+                $label = "";
+
+!       $items = explode(",",$values);
+        $html_options = "";
+
+        foreach ($items as $item) {
+                $html_options.= "\n\t\t\t";
+                $html_options.= '<option value="'.$item.'"';
+--- 260,272 ----
+                $values = substr($values, $label_pos + 1);
+        }
+        else
+                $label = "";
+
+!       // in case the user pastes from windows or mac, convert to \n
+!       $items = str_replace(array("\r\n", "\n", "\r"), "\n", $items);
+!       $items = explode("\n",$values);
+        $html_options = "";
+
+        foreach ($items as $item) {
+                $html_options.= "\n\t\t\t";
+                $html_options.= '<option value="'.$item.'"';
+***************
+*** 306,317 ****
+  }
+
+  function cimy_admin_menu_custom() {
+        global $cimy_uef_name;
+
+!       add_options_page($cimy_uef_name, $cimy_uef_name, 10, basename(__FILE__), 'cimy_admin_define_extra_fields');
+!         add_submenu_page('profile.php', 'Authors & Users Extended', 'A&amp;U Extended', 10, basename(__FILE__), 'cimy_admin_users_list_page');
+  }
+
+  function cimy_get_thumb_path($file_path) {
+        $file_path_purename = substr($file_path, 0, strrpos($file_path, "."));
+        $file_path_ext = substr($file_path, strlen($file_path_purename));
+--- 311,324 ----
+  }
+
+  function cimy_admin_menu_custom() {
+        global $cimy_uef_name;
+
+!       if (is_site_admin()) {
+!         add_options_page($cimy_uef_name, $cimy_uef_name, 10, basename(__FILE__), 'cimy_admin_define_extra_fields');
+!         add_submenu_page('profile.php', 'Authors & Users Extended', 'A&amp;U Extended', 10, basename(__FILE__), 'cimy_admin_users_list_page');
+!       }
+  }
+
+  function cimy_get_thumb_path($file_path) {
+        $file_path_purename = substr($file_path, 0, strrpos($file_path, "."));
+        $file_path_ext = substr($file_path, strlen($file_path_purename));
+***************
+*** 2770,2780 ****
+
+        if ($i > 0) {
+                $query.=" ELSE FIELD_ID END WHERE FIELD_ID IN(".$field_ids.") AND USER_ID = ".$get_user_id;
+
+                // $query WILL BE: UPDATE <table> SET VALUE=CASE FIELD_ID WHEN <field_id1> THEN <value1> [WHEN ... THEN ...] ELSE FIELD_ID END WHERE FIELD_ID IN(<field_id1>, [<field_id2>...]) AND USER_ID=<user_id>
+!               $wpdb->query($query);
+        }
+  }
+
+  function cimy_insert_ExtraFields_if_not_exist($user_id, $field_id) {
+        global $wpdb, $wpdb_data_table;
+--- 2777,2787 ----
+
+        if ($i > 0) {
+                $query.=" ELSE FIELD_ID END WHERE FIELD_ID IN(".$field_ids.") AND USER_ID = ".$get_user_id;
+
+                // $query WILL BE: UPDATE <table> SET VALUE=CASE FIELD_ID WHEN <field_id1> THEN <value1> [WHEN ... THEN ...] ELSE FIELD_ID END WHERE FIELD_ID IN(<field_id1>, [<field_id2>...]) AND USER_ID=<user_id>
+!               $ans = $wpdb->query($query);
+        }
+  }
+
+  function cimy_insert_ExtraFields_if_not_exist($user_id, $field_id) {
+        global $wpdb, $wpdb_data_table;
+</pre>
+
+[[Category:WPMU]]

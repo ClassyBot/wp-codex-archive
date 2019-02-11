@@ -1,0 +1,216 @@
+{{Languages|
+{{en|Installing/Updating WordPress with Subversion}}
+{{ja|Installing/Updating WordPress with Subversion}}
+}}
+
+If you have command-line access to your web server, and if your server has a [[Using Subversion|Subversion (svn)]] client installed, you can use Subversion to install and update WordPress. Although SubVersion is mostly a software developers' tool, non-developers can also use it to install and upgrade WordPress. Some people consider this to be much easier than following the [[Installing WordPress|standard WordPress installation and upgrade methods]] (downloading and unzipping archives, then using FTP to put them on your web host), and this article explains how to do it.
+
+== Introduction and Decisions ==
+
+First, a little background. Subversion is one of many existing ''source-code version-control systems''; specifically, it is the version-control system that is used by WordPress. Version-control systems are used by software developers to keep track of their source code and its revisions behind the scenes, and periodically release versions of the software for public use. You can read more about Subversion, Subversion commands, and the use of Subversion in WordPress development in the [[Using Subversion]] article.
+
+As detailed in the [[Using Subversion]] article, the WordPress Subversion repository has several ''branches'' or sections. When you install or upgrade WordPress, you have to choose a branch to use. Your main choices are:
+* trunk: Trunk is the "bleeding edge" version of WordPress that is being developed. This branch is likely to be broken and buggy, but can be useful for testing plugins and themes to see if they will work with the next release of WordPress. If you want to use this branch, read the "Tracking Trunk" section below.
+* A specific WordPress released version: This is recommended if you want a stable, working version of the software. If you want to use a stable version, read the "Tracking Stable Versions" section below.
+
+The other decision you need to make is to decide which directory to install your blog in. All examples here assume your blog is installed in a directory called "blog". If your blog is installed in a different directory, you will need to alter the commands shown accordingly. 
+
+'''Note:''' These instructions do not follow the [[Installing WordPress|official]] WordPress upgrade recommendations of deactivating all plugins and backing up your database before an upgrade. You may still want to do those things. ''Caveat blogger''.
+
+== Tracking Trunk ==
+
+This section of the article assumes you have decided you want to have your blog run the latest "bleeding edge" development version of WordPress, and are willing to put up with bugs. If you would rather run a stable, released version of WordPress, skip down to the "Tracking Stable Versions" section below. If your blog had already been installed by the standard method, read the "Converting" section at the end of the article.
+
+=== New Install ===
+
+To install a fresh copy of WordPress, type the following at your command prompt, starting from the directory above where you want to install WordPress. These commands will create a directory "blog" for your blog, and then ''check out'' (Subversion command <code>co</code>), or extract from the repository (Subversion command <code>export</code>), the latest "trunk" version of WordPress. Do not type the "$" characters — they are just indications of the command prompt. Here are the commands:
+
+<pre lang=shell>
+$ mkdir blog
+$ cd blog
+$ svn co https://core.svn.wordpress.org/trunk/ .
+</pre>
+
+The trailing slash on the URL, and that period at the end of the command, are both important — they make sure that downloaded files from the repository end up in the current directory; leave off that dot and you'll end up creating a new installation directory (which would be called "trunk"), which is not what you want if the current directory is the intended installation directory.
+
+When download is complete, copy <code>wp-config-sample.php</code> to <code>wp-config.php</code> and edit <code>wp-config.php</code>, then access your blog URL to complete installation, as in the [[Installing WordPress|standard WordPress installation instructions]].
+
+=== A note about <code>.svn</code> folders on public servers ===
+
+Using <code>svn co</code> ('checkout'; rather than 'export') will download a copy of all files, including a hidden folder named "<code>.svn</code>". This folder stores important information about the state of the checked-out repository, and may contain sensitive information such as passwords. Typically, it is a good idea not to store this folder in a publically-accessible location, but if you want to use this system of using Subversion for updating WordPress then you have no choice. It is, however, quite easy to prevent anyone from browsing the <code>.svn</code> directory, and this is usually considered sufficient security. For example, if (as most people are) you are using the Apache web server, then you can prevent access to all <code>.svn</code> directories (at any level) by adding the following to your <code>.htaccess</code> file:
+
+<pre>
+RewriteEngine On
+RewriteRule ^(.*/)?\.svn/ - [F,L]
+ErrorDocument 403 "Access Forbidden"
+</pre>
+
+You can test to see if this works by visiting <nowiki>http://www.example.com/.svn/entries</nowiki> — if you get a "403 Access Forbidden" error message then your <code>.svn</code> directory is protected correctly.
+
+The above rule will also protect <code>.svn</code> directories in <code>/wp-content/plugins</code>, if you are also using Subversion to manage anything there.
+
+=== Updating to a New Trunk Version ===
+
+Some time later, you may decide that you want to update so that you are running the latest trunk version of the WordPress software. To do that, log in and use the Subversion "update" (up) command:
+
+<code>
+$ cd blog<br />
+$ svn up 
+</code>
+
+Doing so will overwrite any changed WordPress-provided files, while leaving any custom or privately owned files, plugins, and themes alone. In other words, it should be safe (but make a backup, just in case).
+
+Run the usual <code>wp-admin/upgrade.php</code> and you're done.
+
+== Tracking Stable Versions ==
+
+This section of the article assumes you have decided you want to have your blog run a stable version of WordPress. If you would rather run an unstable version in development, go back to the "Tracking Trunk" section above. If your blog had already been installed by the standard method, read the "Converting" section at the end of the article.
+
+The next thing you will need to do is decide which exact version of WordPress you would like to install. The examples in this section assume you want to install particular version numbers; if you want to install a different version, substitute that version number.
+
+=== New Install ===
+
+To install a fresh copy of WordPress, type the following at your command prompt, starting from the directory above where you want to install WordPress. These commands will create a directory "blog" for your blog, and then ''check out'' (Subversion command "co"), or extract from the repository (Subversion command "export"), the stable version of WordPress you have chosen. Do not type the "$" characters -- they are just indications of the command prompt. Here are the commands (assuming the version you want is {{CurrentVersion}}):
+
+<code>
+$ mkdir blog<br />
+$ cd blog<br />
+$ svn co <nowiki>https://core.svn.wordpress.org/tags/</nowiki>{{CurrentVersion}} .</code>
+
+The period at the end of the command is very important - it makes sure that downloaded files from the repository end up in the current directory; leave off that dot and you'll end up creating a new installation directory (which would be called "<code>{{CurrentVersion}}</code>"), which is not what you want if the current directory is the intended installation directory.
+
+When download is complete, edit <code>wp-config.php</code>, then access your blog URL to complete installation, as in the [[Installing WordPress|standard WordPress installation instructions]].
+
+=== Updating to a New Stable Version ===
+
+The next time WordPress releases a new version, you will probably want to upgrade to that version. To do that, log in and use the Subversion "switch" command (sw) to switch to a new version (assuming the new version is {{CurrentVersion}}):
+
+<code>
+$ cd blog<br />
+$ svn sw <nowiki>https://core.svn.wordpress.org/tags/</nowiki>{{CurrentVersion}}/ .
+</code>
+
+Doing so will overwrite any changed WordPress-provided files, while leaving any custom or privately owned files, plugins, and themes alone. In other words, it should be safe (but make a backup, just in case).
+
+Run the usual <code>wp-admin/upgrade.php</code> and you're done.
+
+=== Finding Released Versions ===
+
+You can visit http://core.svn.wordpress.org/tags/, the "tags" section of the Subversion repository, to find the list of tagged versions of WordPress.
+
+== Removing an erroneous upgrade notice ==
+
+When a site's upgrades are managed with Subversion, the "WordPress {{CurrentVersion}} is available! Please update now." notice can sometimes stick around even though the site is actually running {{CurrentVersion}}. To remove this notice (in fact, ''all'' update nags), use the following in a custom plugin:<ref>''How does one dismiss the 'upgrade notice' when managing upgrades with SVN?'', retrieved 22 October 2015 from http://wordpress.stackexchange.com/questions/206217/how-does-one-dismiss-the-upgrade-notice-when-managing-upgrades-with-svn</ref>
+
+<pre lang=php>
+add_action( 'admin_menu', function() {
+    remove_action( 'admin_notices', 'update_nag', 3 );
+} );
+</pre>
+
+== Relocating from the old <i>svn.automattic.com</i> repository ==
+
+You may get this error if you have an existing checkout from the old <code>svn.automattic.com</code> repository and you want to switch to a branch at the new <code>core.svn.wordpress.org</code> repository:
+
+ svn: '<nowiki>https://svn.automattic.com/wordpress/tags/</nowiki>{{CurrentVersion}}'
+ is not the same repository as
+ '<nowiki>https://core.svn.wordpress.org</nowiki>'
+
+Use the [http://svnbook.red-bean.com/en/1.5/svn.ref.svn.c.switch.html relocate command] to tell Subversion you want to use the <strong>same branch</strong> at a new location:
+
+$ <code>svn switch --relocate <var>fromURL</var> <var>toURL</var> [<var>path</var>]</code>, e.g.
+
+$ <code>svn switch --relocate <nowiki>https://svn.automattic.com/wordpress/tags/</nowiki>{{CurrentVersion}} <nowiki>https://core.svn.wordpress.org/tags/</nowiki>{{CurrentVersion}}/</code>
+
+Then you can update or switch your working copy just as described above.
+
+== Converting a "Traditional" WordPress Blog to a Subversion Checkout ==
+
+If you originally installed your blog without subversion, but now want to convert it to installing/upgrading with Subversion, this section explains how. The basic steps are: 
+
+# Create a new temporary blog directory.
+# Use the Subversion commands from above to check out WordPress (trunk or stable version) into it.
+# Copy all your custom files from the old blog location to the temporary directory.
+# Rename the temporary directory to match the old directory name. 
+# Run the WordPress update script (by going to your admin page - /wp-admin/) and test everything.
+
+Of course, backing up the old directory, backing up the database, and disabling all plugins before you start would be advisable.
+
+Here are the details of what commands to type, assuming that your old directory was called "blog", your temporary directory is called "blog-new", and the version of WordPress you want to use is the stable {{CurrentVersion}} version. As above, do not type the "$" characters -- they are an indication of the command prompt.
+
+First, check what version of WordPress you're using (you'll find this in the Dashboard of your admin section). For this example, let's assume you're using version 3.2.
+
+Next, check out WordPress v3.2 in to a new directory (that we'll call blog-new in this example):
+
+ $ svn co <nowiki>https://core.svn.wordpress.org/tags/3.2</nowiki> blog-new
+
+Copy the old wp-config and .htaccess files to the new site:
+
+ $ cd ../blog
+ $ cp -p wp-config.php .htaccess ../blog-new
+
+Copy plugins, themes, and any uploaded images/media from the old site to the new (all three are stored in the wp-content directory):
+
+ $ cp -rpfu wp-content/* ../blog-new/wp-content
+
+This shouldn't affect any ''WordPress-provided'' plugins that live in that directory, but you can make sure by using subversion:
+
+ $ svn status ../blog-new/wp-content
+
+The results should only have lines that start with '?' (for your own files that didn't come from the WordPress subversion repository) or 'X' for plugins like Akismet that have their own subversion repository. If there are any files that have 'M' at the start, they have been modified locally and you'll need to revert each of them:
+
+ $ svn revert ../blog-new/wp-content/some/file
+
+Next, copy custom files and directories you may have on the old installation into the new one (this may not apply to you). For example, if you have an ''images'' directory and a ''wp-digest'' file:
+
+ $ cp -rp images wp-digest ../blog-new
+
+Now you can check that everything is good-to-go using the diff tool:
+
+ $ diff -rq blog/ blog-new/ | grep -v svn
+
+Any files that are listed as 'Only in .' should be copied across to the subversion checkout using the above 'cp -rp' command.
+
+Now, rename the directories to make the new blog dir into the current site. Do this in one line to make it as fast as possible (users shouldn't see any outage):
+
+ $ cd ..
+ $ mv blog blog-old; mv blog-new blog
+
+Now go to your blog and make sure it all looks right. If anything isn't working, check to make sure you actually copied all your custom files over from the old site (run the diff again). You shouldn't encounter any problems, but if you do, just move the old directory back into place, and if absolutely necessary, restore your database from backup.
+
+At this point, we have our blog working on the same version of WordPress that it's always been running. All we need to do now is update WordPress to the latest version.
+
+Each time there's a new version just run:
+
+ $ svn sw <nowiki>https://core.svn.wordpress.org/tags/</nowiki>{{CurrentVersion}} blog
+
+Now that all the files are updated, the last step is to visit the usual <tt>wp-admin/upgrade.php</tt> URL to allow WordPress to perform any needed database upgrades. Then you are ready to test all the links and features.
+
+== Introduction to Using GIT with WordPress ==
+
+WordPress uses the Subversion version control system. GIT is an alternative software version control system which is very popular. If you prefer GIT the good news is that you can manage WordPress using GIT.
+
+There is an official GIT mirror of the WordPress core development SVN repository.
+
+ $ git clone git://develop.git.wordpress.org/
+
+Read-only mirrors are also set up for a few other WordPress.org repositories, including BuddyPress, bbPress, and the old core.svn “build” repository:
+
+ git clone git://buddypress.git.wordpress.org/
+ git clone git://bbpress.git.wordpress.org/
+ git clone git://core.git.wordpress.org/
+ git clone git://glotpress.git.wordpress.org/
+
+For all practical purposes, the SVN and Git repositories are now equals. Use whatever you'd like for all your development and deployment needs.
+
+==Resources==
+[[Using Subversion]]
+
+[http://codex.wordpress.org/Installing_Multiple_Blogs#WP-Create_and_WP-Mass-Upgrade Scripts for automating and managing WP blogs under svn control] 
+
+[https://make.wordpress.org/core/2014/01/15/git-mirrors-for-wordpress/ Announcing Git mirrors for WordPress]
+
+[http://clintberry.com/2011/speed-up-your-wordpress-development-cycle-with-git/ Speed Up Your WordPress Development Cycle With Git]
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

@@ -1,0 +1,393 @@
+{{French Header}}
+{{Draft}}
+==Introduction==
+[[The Loop|"The Loop"]] ou [[fr:La Boucle|"La Boucle"]] est un terme qui se réfère au processus principal de WordPress.  Vous utilisez la boucle dans vos fichiers de [[Templates|modèle (template)]] pour afficher vos [[Writing_Posts|articles (posts)]] aux visiteurs. Vous pouriez créer des modèles sans boucle, mais vous ne pourriez alors n'afficher les données que d'un seul article.
+
+La première chose que WordPress fait est de vérifier que tous les fichiers dont il a besoin sont présents.
+<BR>Ensuite, il collecte les paramètres par défaut définis par [[Registered_User_Features|les administrateurs]] du blog, depuis la base de données. lesquels incluent certaines données telles que: le nombre d'articles à afficher par pages, si les commentaires sont autorisés ou non, et d'autres, et qui détermineront la façon dont les articles seront affichés.
+<BR>Une fois que ces paramètres sont définis, WordPress vérifie ce que le visiteur recherche, afin de déterminer quels articles extraire de la base de données.
+
+Si le visiteur n'a pas demandé un article, une catégorie, une page, ou une date spécifique, WordPress utilise les paramètres par défaut précédemment collectées pour déterminer quels articles préparer pour le visiteur.<BR>
+Par exemple: si l'administrateur du blog a choisi d'afficher 5 articles par page dans [[Administration_Panels|Administration]] > [[Administration_Panels#Reading|Réglages]] > [[Settings_Reading_SubPanel|Lecture]], alors WordPress extrait les 5 derniers articles publiés de la base de donnée.<BR>
+Si le visiteur a fait la demande d'un article, une catégorie, une page, ou une date spécifique, alors WordPress utilise ces informations pour savoir quel(s) article(s) extraire.
+
+Une fois cela fait, WordPress se connecte à la base de données, récupère les informations spécifiées, et range les valeurs dans une variable.
+C'est La Boucle qui accède à cette variable, et utilise les valeurs à afficher dans votre modèle.
+
+Par défaut, si le visiteur n'a pas fait de recherche sur un article, une catégorie, une page, ou une date spécifique, WordPress utilise <tt>index.php</tt> pour tout afficher.
+
+Dans la première partie de cette discussion sur La Boucle, nous allons nous attarder sur <tt>index.php</tt>, et l'affichage par défaut de votre blog.<BR>
+Plus loin, une fois que vous aurez compris comment tout cela fonctionne, nous examinerons quelques  astuces avec La Boucle dans d'autres modèles.
+
+==La Page d'Index la Plus Simple du Monde==
+Le code suivant est un index totalement fonctionnel qui affichera le contenu (et seulement le contenu) de chaque article, en accord avec les conditions dictées pour la préparation de La Boucle.<BR>
+Le but ici est de démontrer que très peu de code est nécessaire au fonctionnement de La Boucle. Le plus gros de votre <tt>index.php</tt> réside dans les déclarations CSS, HTML et PHP qui habillent La Boucle.
+<pre>
+&lt;?php
+get_header();
+if (have_posts()) :
+   while (have_posts()) :
+      the_post();
+      the_content();
+   endwhile;
+endif;
+get_sidebar();
+get_footer(); 
+?&gt;
+</pre>
+
+Maintenant, jetons un œil à tout ce qui va habiller votre Boucle.
+
+==La Boucle par Défaut==
+Le détail suivant regarde l'utilisation par défaut de La Boucle dans les thèmes ''Default'' et ''Classic'' de l'installation par défaut de WordPress.
+
+===Commencer la Boucle===
+Le code d'initialisation de [[The Loop|La Boucle]] est situé au début du fichier de modèle (template) <tt>index.php</tt> par défaut.
+<pre>&lt;?php if (have_posts()) : ?&gt;<br />
+<?php while (have_posts()) : the_post(); ?></pre>
+
+#D'abord il vérifie si il y a des articles avec la fonction <tt>have_posts()</tt>.
+#Si des articles existent, une boucle PHP <tt>[http://www.php.net/while while]</tt> est démarrée. Une instruction <tt>while</tt> s'exécute tant que la condition entre parenthèses est vrai. Donc tant que <tt>have_posts()</tt> retourne une valeur vrai, La Boucle continue.
+#La fonction <tt>have_posts()</tt> vérifie simplement l'item suivant dans la collection d'articles: s'il y a un article suivant, elle retourne vrai; si il n'existe plus d'article, elle retourne faux, et La Boucle s'arrête.
+
+===Générer un Article===
+La fonction <tt>the_post()</tt> prends l'item courant dans la collection d'articles et rends celui-ci utilisable dans l'itération de La Boucle. Sans la fonction <tt>the_post()</tt> certains des [[Template Tags|marqueurs de modèle (template tags)]] utilisé dans votre thène ne fonctionnerait pas.
+
+Une fois que les données de l'article sont accessibles, le modèle (template) peut commencer l'affichage de ces données au visiteur.
+
+====Titre, Date et Auteur====
+Les [[Template Tags|template tags]] ou [[Template Tags|marqueurs de modèle]] suivants récupèrent le titre de l'article courant, ainsi que sa date de publication et l'auteur de celui-ci.
+<pre>
+&lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?>" rel="bookmark" title="Permanent Link to &lt;?php the_title(); ?&gt;"&gt;
+&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;small&gt;&lt;?php the_time('F jS, Y') ?&gt; &lt;!-- by &lt;?php the_author() ?&gt; --&gt;&lt;/small&gt;
+</pre>
+
+====Contenu de l'Article====
+Le marqueur de modèle <tt>[[Template_Tags/the_content|the_content()]]</tt> affiche le contenu de l'article. C'est l'essentiel de chaque passage dans la boucle:
+<pre>
+&lt;div class="entry"&gt;
+&lt;?php the_content('Read the rest of this entry &amp;raquo;'); ?&gt;
+&lt;/div&gt;
+</pre>
+Si vous incluez le bouton du [[Write_Post_SubPanel#Quicktags|marqueur rapide (Quicktag)]] nommé '''more''' (ou "Lire la suite" ou "En savoir plus" ou autre en fonction de la traduction de votre modèle), dont la syntaxe est <tt>[[Customizing_the_Read_More|&lt;!--more--&gt;]]</tt>, après une ligne dans le corps d'un article, seule la portion <em>au dessus</em> de cette ligne sera affichée au visiteur.<BR>
+Donc, si vous voulez par exemple que votre page d'accueil n'affiche que la première ligne de chaque article que vous écrivez, insérez simplement <tt>&lt;!--more--&gt;</tt> après la première ligne de texte de chacun.
+
+Lorsqu'un article est affiché seul, il l'est en entier et le délimiteur <tt>&lt;!-- more --&gt;</tt> est omis.<BR>
+Ce qui implique qu'insérer le délimiteur <tt>&lt;!-- more --&gt;</tt> dans chacun de vos articles forcera le lecteur à cliquer sur chaque entrée d'article pour pouvoir en lire l'intégralité.
+
+====Détails Additionnels====
+La Boucle sert également à afficher des informations complémentaires aux articles, comme les catégories, la date, ou encore les commentaires. Ces informations sont appelées les méta-données de l'article et la zone où elles sont affichées : Zone de méta-données de l'article ([[Post_Meta_Data_Section|post meta data section]] en anglais). Si vous êtes un utilisateur connecté avec des droits suffisants ou l'auteur de l'article en question, vous pouvez également voir affiché un lien "Modifier" grâce au marqueur de modèle <tt>[[Template_Tags/edit_post_link|edit_post_link()]]</tt>.
+<pre>
+&lt;p class="postmetadata"&gt;
+Posted in &lt;?php the_category(', ') ?&gt; 
+&lt;strong&gt;|&lt;/strong&gt;
+&lt;?php edit_post_link('Edit','','<strong>|</strong>'); ?&gt;  
+&lt;?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?&gt;&lt;/p&gt;
+</pre>
+
+Si les commentaires sont ouverts, ou si l'article a déjà été commenté, le marqueur de modèle <tt>[[Template_Tags/comments_popup_link|comments_popup_link()]]</tt> affichera un lien vers les commentaires. Si vous utilisez le marqueur de modèle [[Template_Tags/comments_popup_script|comments popup window]], le lien généré affichera les commentaires dans une fenêtre popup, sinon le navigateur sautera directement à l'emplacement des commentaires sur la page de l'article.
+
+Si le visiteur consulte une liste d'articles (une page d'archive par exemple), le lien généré par le marqueur de modèle <tt>comments_popup_link()</tt> l'amènera sur la page individuelle de l'article.
+
+====Trackback Automatique====
+The <tt>[[Template_Tags/trackback_rdf|trackback_rdf]]</tt> template tag's function is to output machine-readable code used for [[Glossary#Trackback|trackback]] auto-discovery.
+
+<pre>
+&lt;!--
+&lt;?php trackback_rdf(); ?&gt;
+--&gt;
+</pre>
+
+'''Note:''' The <tt>trackback_rdf()</tt> tag is supposed to be used with [[Commenting_Code|comments]] around it.  It is not "turned off".
+
+===Terminer la Boucle===
+<pre>
+&lt;?php endwhile; ?&gt;
+</pre>
+Ce code termine la Boucle. Après cela, tous les marqueurs de modèles relatifs aux articles ne fonctionneront plus comme vu plus haut (ou si ils fonctionnent, ils utiliseront les données du dernier article passé dans la Boucle).
+Ceci signifie que si vous avez besoin d'utiliser un marqueur de modèle qui fonction '''within The Loop''' (dans la Boucle) il faudra le placer avant ce point du code.
+
+====Pagination====
+Immédiatement après la fin de la Boucle vous trouvez la section qui affiche les contrôles de navigation permettant d'accéder aux pages des articles plus récents (next) ou plus anciens (previous).
+<pre>
+&lt;div class="navigation"&gt;
+&lt;div class="alignleft"&gt;&lt;?php posts_nav_link('','','&amp;laquo; Previous Entries') ?&gt;&lt;/div&gt;
+&lt;div class="alignright"&gt;&lt;?php posts_nav_link('','Next Entries &amp;raquo;','') ?&gt;&lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+Si WordPress est configuré pour afficher 10 articles par page (via le menu Réglages/Lecture du panneau d'administration) et que la Boucle doit en afficher 25, alors il y aura 3 pages à parcourir : 2 pages de 10 articles et une page de 5. Les liens de navigation permettront au visiteur de naviguer facilement dans cet ensemble de pages.
+
+Les contrôles de navigation sont placés <em>en dehors</em> de la Boucle, mais <em>au sein</em> de la condition <tt>if</tt> testant la présence d'article à afficher. Ainsi ces contrôles ne s'afficheront pas si aucun article n'est à afficher. 
+
+====Aucun contenu====
+<pre>
+&lt;?php else : ?&gt;
+ &lt;h2 class="center"&gt;Not Found&lt;/h2&gt;
+ &lt;p class="center"&gt;
+&lt;?php _e("Sorry, but you are looking for something that isn't here."); ?&gt;&lt;/p&gt;
+</pre>
+La clause <tt>else :</tt> précises ce qui doit être affiché si <tt>have_posts()</tt> est faux (aucun article à afficher). Par exemple un message signifiant au visiteur qu'aucun contenu ne correspond aux critères de sa recherche.
+
+====Terminaison====
+<pre>
+  &lt;?php endif; ?&gt;
+</pre>
+Ceci termine le test conditionnel "Si il y a des articles à afficher fait ceci, sinon fait cela".
+Viennent ensuite l'inclusion de la barre latérale (sidebar) et enfin du pied de page (footer).
+
+==La Boucle dans d'Autres Modèles==
+WordPress can use different template files for displaying your blog in different ways.  In the default WordPress theme, there are [[Templates|template files]] for the index view, category view, and archive view, as well as a template for viewing individual posts.  Each of these uses [[The Loop]], but does so with slightly different formatting, as well as different uses of the [[Template_Tags|template tags]].
+
+For any view which does not have a separate template file, WordPress will use <tt>index.php</tt> by default.  If a visitor requests a single post, WordPress will first look for a file named <tt>single.php</tt>.  If that file exists, it will be used to present the post to the visitor.  If that file does not exist, WordPress will use <tt>index.php</tt> to present the post to the visitor. This is called the [[Template Hierarchy]].
+
+If you are making your own [[Using Themes|Theme]], it's often helpful to look at the [[Templates|template files]] from the default Theme as a point of reference.  It's also helpful to use your theme's <tt>index.php</tt> as a template for your other template files.  Doing so may give you a known and working page from which to begin making changes as you create more template files.
+
+===Différents Format d'Archives===
+An <em>archive</em> is a collection of historical posts.  In the default usage, the posts displayed on your main index are recent [http://mydatapages.com/chronological.html chronological] postings.  When a visitor clicks on one of your archive links, or if they manually request a specific date (<nowiki>http://www.example.com/blog/index.php?m=200504</nowiki> or <nowiki>http://www.example.com/blog/2005/04</nowiki> to select all posts from April, 2005), WordPress will display an <em>archive</em> view.  By default, the archive will use <tt>index.php</tt>, and thus look the same as your front page, just displaying the posts from April 2005.
+
+When WordPress prepares an [[Creating_an_Archive_Index|archive view]] for a visitor, it specifically looks for a file named <tt>archive.php</tt> in your current theme's directory.  If you'd like to visually disambiguate archives from your front page, simply copy <tt>index.php</tt> to <tt>archive.php</tt>, and edit <tt>archive.php</tt> as necessary!
+
+For example, if you want to show only post titles, and no post content, for your list of archives, you could use something like this:
+<pre>
+&lt;?php get_header(); ?&gt;
+ &lt;div id="content" class="narrowcolumn"&gt;
+
+  &lt;?php if (have_posts()) : ?&gt;
+   &lt;?php while (have_posts()) : the_post(); ?&gt;
+     &lt;div class="post"&gt;
+     &lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?&gt;" rel="bookmark" title="Permanent Link to &lt;?php the_title(); ?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+     &lt;small&gt;&lt;?php the_time('F jS, Y') ?&gt; &lt;!-- by &lt;?php the_author() ?&gt; --&gt;&lt;/small&gt;
+      &lt;/div&gt;
+    &lt;?php endwhile; ?&gt;
+&lt;div class="navigation"&gt;
+&lt;div class="alignleft"&gt;
+&lt;?php posts_nav_link('','','&amp;laquo; Previous Entries') ?&gt;
+&lt;/div&gt;
+&lt;div class="alignright"&gt;
+&lt;?php posts_nav_link('','Next Entries &amp;raquo;','') ?&gt;
+&lt;/div&gt;
+  &lt;/div&gt;
+&lt;?php else : ?&gt;
+  &lt;h2 class="center"&gt;Not Found&lt;/h2&gt;
+ &lt;p class="center"&gt;&lt;?php _e("Sorry, but you are looking for something that isn't here."); ?&gt;&lt;/p&gt;
+  &lt;?php endif; ?&gt;
+&lt;/div&gt;
+&lt;?php get_sidebar(); ?&gt;
+&lt;?php get_footer(); ?&gt;
+</pre>
+
+===Différents Format de Catégorie===
+Like the archive views, WordPress looks for a separate template file for [[Category_Templates|category views]].  If a visitor clicks on a link for a category in your blog, they will be taken to the category view.  WordPress will prepare The Loop with posts from that category only, limiting the number of posts per the blog's default settings.
+
+To make your category view different from your index view, copy <tt>index.php</tt> and rename it <tt>category.php</tt>.  For a category view, it's probably not necessary to list the categories to which a post is assigned, so let's remove that portion.  Instead, let's announce the category at the top of the page:
+<pre>
+&lt;?php get_header(); ?&gt;
+ &lt;div id="content" class="narrowcolumn"&gt;
+ &lt;p&gt;
+ &lt;strong&gt;
+  &lt;?php single_cat_title('Currently browsing '); ?&gt;
+  &lt;/strong&gt;&lt;br /&gt;
+ &lt;?php echo category_description(); ?&gt;
+ &lt;/p&gt;
+ &lt;?php if (have_posts()) : ?&gt;
+   &lt;?php while (have_posts()) : the_post(); ?&gt;
+     &lt;div class="post"&gt;
+      &lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?&gt;" rel="bookmark" title="Permanent Link to &lt;?php the_title(); ?&gt;"&gt;
+&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+   &lt;small&gt;
+     &lt;?php the_time('F jS, Y') ?&gt; 
+        &lt;!-- by &lt;?php the_author() ?&gt; --&gt;
+   &lt;/small&gt;
+ &lt;/div&gt;
+&lt;?php endwhile; ?&gt;
+ &lt;div class="navigation"&gt;
+   &lt;div class="alignleft"&gt;
+    &lt;?php posts_nav_link('','','&amp;laquo; Previous Entries') ?&gt;
+   &lt;/div&gt;
+   &lt;div class="alignright"&gt;
+    &lt;?php posts_nav_link('','Next Entries &amp;raquo;','') ?&gt;
+   &lt;/div&gt;
+ &lt;/div&gt;
+&lt;?php else : ?&gt;
+  &lt;h2 class="center"&gt;Not Found&lt;/h2&gt;
+&lt;p class="center"&gt;&lt;?php _e("Sorry, but you are looking for something that isn't here."); ?&gt;&lt;/p&gt;
+ &lt;?php endif; ?&gt;
+&lt;/div&gt;
+&lt;?php get_sidebar(); ?&gt;
+&lt;?php get_footer(); ?&gt;
+</pre>
+
+===Différents Format de Différentes Catégories===
+As explained in the [[Template Hierarchy]], it is possible to [[Category_Templates|create separate template files for each category]].  Simply name the file <tt>category-<b><u>X</u></b>.php</tt>, where <b><u>X</u></b> is the numerical ID of the category.  Consider carefully whether you need a whole new template for a specific category.
+
+Let's look at two categories, "Plants" and "Flowers", with category IDs 3 and 4, respectively.  Next to each post title in the output you want to have picture of either a plant, or a flower, depending on which category is being displayed.  You could:
+* Use two separate files, <tt>category-3.php</tt> and <tt>category-4.php</tt>, each with a different <tt>img</tt> tag for each post title.
+* Use a conditional test inside your default <tt>category.php</tt> file to check whether the current category is "Plants" or "Flowers" (or neither), and display the appropriate image:
+<pre>
+&lt;?php if (is_category('3') ):
+ // we're in the Plants category, so show a plant ?&gt;
+ &lt;img src='/images/plant.png' alt='a plant' /&gt;
+&lt;?php } elseif (is_category('4') ):
+ // we're in the Flowers category, so show a flower ?&gt;
+ &lt;img src='/images/flower.png' alt='a pretty flower' /&gt;
+&lt;?php endif; // end the if, no images for other other categories ?&gt;
+</pre>
+
+If you added another category, "Cars", which you wanted to display in a <em>significantly</em> different way, then a separate <tt>category-<b><u>X</u></b>.php</tt> would be more appropriate.
+
+=== CSS Différent pour d'Autres Catégories ===
+
+Many users want to create separate CSS files for a specific category.  This, too, can be easily accomplished.  It is important to remember that stylesheets are defined and loaded in the <tt>&lt;head&gt;</tt> section of the HTML document.  WordPress uses the <tt>header.php</tt> file for this.  In the default <tt>header.php</tt>, find this line:
+<pre>
+&lt;link rel="stylesheet" href="&lt;?php bloginfo('stylesheet_url'); ?&gt;" type="text/css" media="screen" /&gt;
+</pre>
+And change it to something like this:
+<pre>
+&lt;?php if ( is_category('5') ) { // Load special CSS for "Cars" category ?&gt;
+  <link rel="stylesheet" href="<?php bloginfo('template_url'); ?>/category-5.css" type="text/css" media="screen" />;
+&lt;?php } else { ?&gt;
+   <link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" media="screen" />
+&lt;?php } ?&gt;
+</pre>
+<strong>Note:</strong> The Cars template uses the <tt>category-5.css</tt> file to override the default layout.  In this example the CSS file is named after the category template file to which it will be applied, rather than the actual name of the category.  Thus, you know that <tt>category-5.css</tt> goes with <tt>category-5.php</tt>.
+
+===Différents Format d'Article Seul===
+When viewing any single post (or [[Glossary#Permalink|permalink]]), WordPress will use <tt>single.php</tt>, if present.
+
+This portion, from the WordPress default single.php, provides the [[Post_Meta_Data_Section|post meta data information]] about the current post:
+<pre>
+<p class="postmetadata alt">
+<small>
+This entry was posted on &lt;?php the_time('l, F jS, Y') ?&gt; at &lt;?php the_time() ?&gt; 
+and is filed under &lt;?php the_category(', ') ?&gt;.
+You can follow any responses to this entry through 
+the &lt;?php comments_rss_link('RSS 2.0'); ?&gt; feed.
+&lt;?php
+if (('open' == $post-&gt;comment_status) && ('open' == $post->ping_status)) {
+// Both Comments and Pings are open
+?&gt;
+  You can &lt;a href="#respond"&gt;leave a response&lt;/a&gt;, or 
+  &lt;a href="&lt;?php trackback_url(display); ?&gt;"&gt;trackback&lt;/a&gt; 
+from your own site.
+&lt;?php 
+} elseif (!('open' == $post-&gt;comment_status) && ('open' == $post->ping_status)) {
+// Only Pings are Open 
+?&gt;
+  Responses are currently closed, but you can 
+  &lt;a href="&lt;?php trackback_url(display); ?&gt; "&gt;trackback&lt;/a&gt; 
+from your own site.
+&lt;?php
+} elseif (('open' == $post-&gt;comment_status) && !('open' == $post->ping_status)) { 
+// Comments are open, Pings are not 
+?&gt;
+  You can skip to the end and leave a response. Pinging is currently not allowed.
+&lt;?php
+} elseif (!('open' == $post-&gt;comment_status) && !('open' == $post->ping_status)) { 
+// Neither Comments, nor Pings are open 
+?&gt;
+  Both comments and pings are currently closed.
+&lt;?php 
+} 
+edit_post_link('Edit this entry.','',''); ?&gt;
+&lt;/small&gt;
+&lt;/p&gt;
+</pre>
+This sort of information -- whether comments are open or closed -- is largely inappropriate on an index, archive, or category view; which is why it's only included in the <tt>single.php</tt> template file.
+
+==Autres Astuces pour la Boucle==
+Now that you have a good introduction to the basic uses for the WordPress Loop, let's introduce you to some more Loop effects and tricks.
+
+===Page de Garde Statique===
+
+How can you display something special <em>only</em> on the front page of your blog? That's right, only on the front page or home page, and have it not be seen anywhere else on your site. Easy! We call this the ''static front page''.  The front or first page of your site isn't really static.  It's just using the Loop to make it look that way.
+
+To make this Loop trick work, use the [[Conditional_Tags#The_Main_Page|is_home()]] conditional template tag function.
+
+In your <tt>index.php</tt>, use an <tt>if ()</tt> test to conditionally output additional content:
+
+<pre>
+&lt;?php get_header(); ?&gt;
+&lt;?php if (is_home()) {
+ // we're on the home page, so let's show a picture of our new kitten!
+ echo "&lt;img src='/images/new_kitty.jpg' alt='Our new cat, Rufus!' /&gt;";
+ // and now back to our regularly scheduled home page
+} ?&gt; 
+</pre>
+
+The function <tt>is_home()</tt> will only produce a true value if the visitor is not requesting a specific post, page, category, or date, so it only shows up on the "home" page.
+
+For more information, see [[Creating a Static Front Page]].
+
+===Extraits Seulement===
+The easiest way to display excerpts, instead of the full content, of posts, replace all instances of <tt>[[Template_Tags/the_content|the_content]]()</tt> with <tt>[[Template_Tags/the_excerpt|the_excerpt()]]</tt>.  If you have not created explicit excerpts for your posts, this function will automatically display the first 120 words of the post.
+<pre>
+&lt;div class="entry"&gt;
+&lt;?php the_excerpt(); ?&gt;
+&lt;/div&gt;
+</pre>
+
+===Liste des Extraits ou des Articles Entier en Fonction du Nombre d'Articles===
+In some circumstances, for example on archive pages, you may want to show the full post if there is only one post or excerpts if there are multiple posts. You can customize the loop to do this.
+
+<pre>
+<?php if (have_posts()) : ?>
+
+  <?php if (($wp_query->post_count) > 1) : ?>
+     <?php while (have_posts()) : the_post(); ?>
+       <!-- Do your post header stuff here for excerpts-->
+          <?php the_excerpt() ?>
+       <!-- Do your post footer stuff here for excerpts-->
+     <?php endwhile; ?>
+
+  <?php else : ?>
+
+     <?php while (have_posts()) : the_post(); ?>
+       <!-- Do your post header stuff here for single post-->
+          <?php the_content() ?>
+       <!-- Do your post footer stuff here for single post-->
+     <?php endwhile; ?>
+
+  <?php endif; ?>
+
+<?php else : ?>
+     <!-- Stuff to do if there are no posts-->
+
+<?php endif; ?>
+
+</pre>
+
+===Différents En-têtes/Encadrés/Pied-de-Page===
+WordPress offers the <tt>get_header()</tt>, <tt>get_sidebar()</tt>, and <tt>get_footer()</tt> [[Include Tags]] for use in your [[Templates|template files]].  These functions make it easy to define a standard header/sidebar/footer which is easily editable.  Any changes made to these files will immediately be made visible to viewers, without any work on your part.
+
+But sometimes you might not <em>want</em> a sidebar.  If you don't want a sidebar, simply exclude the call to the <tt>get_sidebar()</tt> function from your template.  For example, the <tt>single.php</tt> template in the WordPress default theme does not include a sidebar.
+
+To create your own <strong>different</strong> sidebar, you have two choices.
+# Include the sidebar contents directly into the template file on which you're working.  If you want category-3 to have a different sidebar, edit <tt>category-3.php</tt> and include the necessary HTML and PHP to generate your distinctive sidebar.
+# Use the PHP <tt>[http://www.php.net/include include]</tt> function, to include another file.  The WordPress <tt>get_sidebar()</tt> function <em>only</em> loads <tt>sidebar.php</tt>.  If you make a file named <tt>sideleft.php</tt>, you would include it like this:
+<pre>
+&lt;?php include(TEMPLATEPATH . '/sideleft.php'); ?&gt;
+</pre>
+
+Using the WordPress default [[Template Hierarchy]], if you want to use the same elements on multiple or different templates, it's probably best to put them in separate template files and use the PHP <tt>include()</tt> function.  If the element you're adding is specifically for one template file, it's probably best to include it directly in that template file.
+
+==Sommaire==
+We've just scratched the surface of what can be done with the Loop.  As a reminder, the following are resources that will help you customize your own [[The Loop|WordPress Loop]].
+
+* [[Templates|Template Files]]
+* [[Template Tags]]
+* [[Template Hierarchy]]
+* [[Conditional Tags]]
+
+[[Category:WordPress Lessons]]
+[[Category:Design and Layout]]
+[[Category:Advanced Topics]]
+[[Category:Translating WordPress]]
+
+==Ressources==
+* [http://www.obeattie.com/2006/05/02/wordpress-the-loop/ oBeattie : The Loop]
+* [http://www.themelab.com/2008/04/04/the-ultimate-guide-to-the-wordpress-loop/ The Ultimate Guide to the WordPress Loop]

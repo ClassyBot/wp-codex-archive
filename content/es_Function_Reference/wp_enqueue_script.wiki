@@ -1,0 +1,351 @@
+== Descripción ==
+
+Una forma segura de añadir JavaScripts a una página generada por WordPress.
+
+== Uso ==
+
+%%%<?php wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer ); ?>%%%
+
+== Parámetros ==
+
+{{Parameter|$handle|string|Nombre del script. Cadena en minúsculas.|requerido}}
+
+{{Parameter|$src|string|URL del script. Ejemplo: "http://example.com/wp-includes/js/scriptaculous/scriptaculous.js". Este parámetro solo es necesario cuando WordPress no conoce, todavía, el script.|opcional}}
+
+{{Parameter|$deps|array|Array de manejadores de cualquier script del que tenga dependencias este script; scripts que deban ser cargados previamente. False si no hay dependencias. Este parámetro solo se necesita cuando WordPress no conoce ya el script.|opcional|array()}}
+
+{{Parameter|$ver|string|Cadena que especifica la versión del script, si tiene una. Por defecto; false. Este parámetro se usa para asegurarse de que se envía al cliente la versión correcta, independientemente de cachés, de esta forma podría incluirse si hay un número de versión disponible y tiene sentido para el script.|opcional|false}}
+
+{{Parameter|$in_footer|boolean|Normalmente los scripts se colocan en la sección <tt><head></tt>. Si este parámetro se pone en true, el script se colocará en al final del <tt><body></tt>. Para ello, el tema tiene que disponer del gancho [[es:Plugin API/Action Reference/wp footer|wp_footer()]] en el sitio apropiado. Note que usted tiene que poner en la cola a su script para que se ejecute antes que <code>wp_head</code>, incluso si éste se situa en el pie de página. (Nuevo en WordPress 2.8) |opcional|false}}
+
+== Ejemplo ==
+
+=== Carga de un script por defecto de WordPress desde una ubicación diferente a la oficial ===
+
+Suponiendo  que usted quisiera utilizar la copia CDN de jQuery en vez de la de WordPress, usted añadiria este códifo a su  archivo <tt>function.php</tt>.
+
+%%%<?php
+function my_init_method() {
+    wp_deregister_script( 'jquery' );
+    wp_register_script( 'jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js');
+}    
+ 
+add_action('init', 'my_init_method');
+?>%%%
+
+=== Carga del script de scriptaculous ===
+
+%%%<?php
+function my_init_method() {
+    wp_enqueue_script('scriptaculous');            
+}    
+ 
+add_action('init', 'my_init_method');
+?>%%%
+
+=== Carga de un script que depende de scriptaculous ===
+
+Añadir y cargar un script nuevo que depende de scriptaculous (esto también hará que se cargue scriptaculous en la página):
+%%%<?php
+wp_enqueue_script('newscript',
+ WP_PLUGIN_URL . '/someplugin/js/newscript.js',
+ array('scriptaculous'),
+ '1.0' );
+?>%%%
+
+=== Carga de un script excluyendo el área de admin ===
+
+Si usted necesita cargar un script personalizado para funcionar solamente en el front end de la bitácora es importante que sepa que utilizando wp_enqueue_script cargará sus scripts para el área de administración también.  Esto puede provocar conflictos con otros scripts en éste área. Para evitarlo haga lo siguiente.
+%%%<?php
+if ( !is_admin() ) { // para que solo haga la carga si no es el área de admin
+   // registra la ubicación, dependencias y versión de su script.
+   wp_register_script('custom_script',
+       get_bloginfo('template_directory') . '/js/custom_script.js',
+       array('name_of_script_dependencies'),
+       '1.0' );
+   // pone en cola es script
+   wp_enqueue_script('custom_script');
+}
+?>%%%
+
+=== Carga scripts solo en páginas de plugin ===
+
+<pre>
+<?php
+
+    /*
+     * Este ejemplo funcionará a partir de la versión 2.6.3, 
+     * puede que en versiones anteriores también.
+     */
+
+    add_action('admin_init', 'my_plugin_admin_init');
+    add_action('admin_menu', 'my_plugin_admin_menu');
+    
+    function my_plugin_admin_init()
+    {
+        /* Registro de nuestro script. */
+        wp_register_script('myPluginScript', WP_PLUGIN_URL . '/myPlugin/script.js');
+    }
+    
+    function my_plugin_admin_menu()
+    {
+        /* Registro de nuestra página de plugin */
+        $page = add_submenu_page( 'edit.php', 
+                                  __('My Plugin', 'myPlugin'), 
+                                  __('My Plugin', 'myPlugin'), 9,  __FILE__, 
+                                  'my_plugin_manage_menu');
+   
+        /* Utilizando el manejador registrado $page para "enganchar" la carga del script */
+        add_action('admin_print_scripts-' . $page, 'my_plugin_admin_styles');
+    }
+    
+    function my_plugin_admin_styles()
+    {
+        /*
+         * Será llamado solo en la página de administración de su plugin, ponga en la cola a sus scritps aqui
+         */
+        wp_enqueue_script('myPluginScript');
+    }
+    
+    function my_plugin_manage_menu()
+    {
+        /* Salida a su página de adminsitración */
+    }
+    
+?>
+</pre>
+
+
+'''Nota''': Esta función no funcionará si se la llama desde una acción <tt>wp_head</tt>, dado que la etiqueta <script> se imprimer antes de que se ejecute <tt>wp_head</tt>.  En su lugar, llame a <tt>wp_enqueue_script</tt> desde una función de acción <tt>init</tt> (para cargarla en todas las páginas), <tt>template_redirect</tt> (para cargarla solo en las páginas públicas), o <tt>admin_print_scripts</tt> (solo para páginas de administración). No utilice <tt>wp_print_scripts</tt> ([http://wordpress.org/support/topic/169647 consulte aquí para explicacines]).
+
+== Contenedores noConflict jQuery==
+
+'''Nota''': La librería jQuery incluida en WordPress se carga en  [http://docs.jquery.com/Using_jQuery_with_Other_Libraries modo de "no conflicto"]. Esto se hace para prevenir problemas de compatibilidad con otras librerías JavaScript que usa WordPress.
+
+Para utilizar el atajo habitual de jQuery $, usted puede utilizar el siguente contenedor al rededor de su código:
+<pre>
+jQuery(document).ready(function($) {
+    // dentro de esta función $() funcionará como un álias de jQuery()
+});
+</pre>
+
+El contenedor hará que el código se ejecuta una vez la página termine de cargarse, y el símbolo $ funcionará llamando a jQuery. Si, por alguna razón, ysted quiere que su código se ejecute inmediatamente (en vez de esperar al evento DOM ready), entonces usted puede utilizar este otro contenedor:
+<pre>
+(function($) {
+    // dentro de esta función $() funcionará como un álias de jQuery() 
+})(jQuery);
+</pre>
+
+== Scripts incluidos en WordPress por defecto ==
+
+{| class="wikitable"
+|-
+! '''Script Name'''
+! '''Handle'''
+|-
+| [http://script.aculo.us Scriptaculous Root]
+| scriptaculous-root
+|-
+| [http://script.aculo.us Scriptaculous Builder]
+| scriptaculous-builder
+|-
+| [http://script.aculo.us Scriptaculous Drag &amp; Drop]
+| scriptaculous-dragdrop
+|-
+| [http://script.aculo.us Scriptaculous Effects]
+| scriptaculous-effects
+|-
+| [http://script.aculo.us Scriptaculous Slider]
+| scriptaculous-slider
+|-
+| [http://script.aculo.us/ Scriptaculous] Sound
+| scriptaculous-sound
+|-
+| [http://script.aculo.us Scriptaculous Controls]
+| scriptaculous-controls
+|-
+| [http://script.aculo.us Scriptaculous]
+| scriptaculous
+|-
+| [http://www.defusion.org.uk/ Image Cropper]
+| cropper
+|-
+| [http://code.google.com/p/swfobject/ SWFObject]
+| swfobject
+|-
+| [http://swfupload.org/ SWFUpload]
+| swfupload
+|-
+| [http://swfupload.org/ SWFUpload Degarade]
+| swfupload-degrade
+|-
+| [http://swfupload.org/ SWFUpload Queue]
+| swfupload-queue
+|-
+| [http://swfupload.org/ SWFUpload Handlers]
+| swfupload-handlers
+|-
+| [http://jquery.com/ jQuery]
+| jquery
+|-
+| [http://plugins.jquery.com/project/form/ jQuery Form]
+| jquery-form
+|-
+| [http://plugins.jquery.com/project/color/ jQuery Color]
+| jquery-color
+|-
+| [http://jqueryui.com/ jQuery UI Core]
+| jquery-ui-core
+|-
+| [http://jqueryui.com/demos/tabs/ jQuery UI Tabs]
+| jquery-ui-tabs
+|-
+| [http://jqueryui.com/demos/sortable/ jQuery UI Sortable]
+| jquery-ui-sortable
+|-
+| [http://jqueryui.com/demos/draggable/ jQuery UI Draggable]
+| jquery-ui-draggable
+|-
+| [http://jqueryui.com/demos/droppable/ jQuery UI Droppable]
+| jquery-ui-droppable
+|-
+| [http://jqueryui.com/demos/selectable/ jQuery UI Selectable]
+| jquery-ui-selectable
+|-
+| [http://jqueryui.com/demos/resizable/ jQuery UI Resizable]
+| jquery-ui-resizable
+|-
+| [http://jqueryui.com/demos/dialog/ jQuery UI Dialog]
+| jquery-ui-dialog
+|-
+| [http://interface.eyecon.ro/ jQuery Interface]
+| interface
+|-
+| [http://trainofthoughts.org/blog/2007/02/15/jquery-plugin-scheduler/ jQuery Schedule]
+| schedule
+|-
+| [http://plugins.jquery.com/project/suggest jQuery Suggest]
+| suggest
+|-
+| [http://jquery.com/demo/thickbox/ ThickBox]
+| thickbox
+|-
+| [http://plugins.jquery.com/project/hotkeys jQuery Hotkeys]
+| jquery-hotkeys
+|-
+| [http://www.twilightuniverse.com Simple AJAX Code-Kit]
+| sack
+|-
+| [http://www.alexking.org QuickTags]
+| quicktags
+|-
+| [http://mattkruse.com ColorPicker]
+| colorpicker
+|-
+| [http://tinymce.moxiecode.com/ Tiny MCE]
+| tiny_mce
+|-
+| [http://www.prototypejs.org/ Prototype Framework]
+| prototype
+|-
+| Autosave
+| autosave
+|-
+| WordPress AJAX Response
+| wp-ajax-response
+|-
+| List Manipulation
+| wp-lists
+|-
+| WP Common
+| common
+|-
+| WP Editor
+| editor
+|-
+| WP Editor Functions
+| editor-functions
+|-
+| AJAX Cat
+| ajaxcat
+|-
+| Admin Categories
+| admin-categories
+|-
+| Admin Tags
+| admin-tags
+|-
+| Admin custom fields
+| admin-custom-fields
+|-
+| Password Strength Meter
+| password-strength-meter
+|-
+| Admin Comments
+| admin-comments
+|-
+| Admin Users
+| admin-users
+|-
+| Admin Forms
+| admin-forms
+|-
+| XFN
+| xfn
+|-
+| Upload
+| upload
+|-
+| PostBox
+| postbox
+|-
+| Slug
+| slug
+|-
+| Post
+| post
+|-
+| Page
+| page
+|-
+| Link
+| link
+|-
+| Comment
+| comment
+|-
+| Admin Gallery
+| admin-gallery
+|-
+| Media Upload
+| media-upload
+|-
+| Admin widgets
+| admin-widgets
+|-
+|  Word Count
+| word-count
+|-
+| WP Gears
+| wp-gears
+|-
+| Theme Preview 
+| theme-preview
+|}
+==Recursos==
+* [http://wptricks.net/jquery-noconflict-wrappers-on-wordpress/ jQuery noConflict wrappers on WordPress]
+* [http://www.prelovac.com/vladimir/best-practice-for-adding-javascript-code-to-wordpress-plugin Best practice for adding JavaScript code to WordPress plugins]
+* [http://nickohrn.com/loading-javascript-libraries-in-wordpress-plugins-with-wp_enqueue_script/ Loading Javascript Libraries in Wordpress Plugins with wp_enqueue_script()]
+*[http://planetozh.com/blog/2008/04/how-to-load-javascript-with-your-wordpress-plugin/ How To: Load Javascript With Your WordPress Plugin]
+*[http://noteslog.com/post/how-to-load-javascript-in-wordpress-plugins/ How to load JavaScript in WordPress plugins]
+*[http://comox.textdrive.com/pipermail/wp-hackers/2008-March/018979.html wp_enqueue_script question on wp-hackers]
+*[http://themocracy.com/2009/04/using-jquery-with-wordpress/ Using jQuery with WordPress]
+*[http://www.devlounge.net/articles/using-javascript-and-css-with-your-wordpress-plugin  Using JavaScript and CSS with your WordPress Plugin]
+* [http://www.lost-in-code.com/platforms/wordpress/wordpress-using-javascript-libraries-with-your-plugin-or-theme/ Using Javascript libraries with your Wordpress plugin or theme]
+* [http://www.ericmmartin.com/5-tips-for-using-jquery-with-wordpress/ 5 Tips For Using jQuery with WordPress]
+* [http://beerpla.net/2010/01/13/wordpress-plugin-development-how-to-include-css-and-javascript-conditionally-and-only-when-needed-by-the-posts/ How to Include CSS and JavaScript Conditionally, and Only When Needed by the Posts]
+
+[[Category:New page created]]
+[[Category:Functions]]
+
+{{Copyedit}}

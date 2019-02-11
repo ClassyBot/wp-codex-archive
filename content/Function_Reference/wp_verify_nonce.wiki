@@ -1,0 +1,108 @@
+{{Languages|
+{{en|Function_Reference/wp_verify_nonce}}
+{{ja|関数リファレンス/wp_verify_nonce}}
+}}
+
+== Description ==
+
+Verify that a [[Glossary#Nonce|nonce]] is correct and unexpired with the respect to a specified action. The function is used to verify the nonce sent in the current request usually accessed by the <tt>[http://php.net/manual/en/reserved.variables.request.php $_REQUEST]</tt> PHP variable.
+
+Nonces should never be relied on for authentication or authorization, access control. Protect your functions using [[Function Reference/current_user_can|<tt>current_user_can()</tt>]], always assume Nonces can be compromised.
+
+== Usage ==
+
+%%%<?php wp_verify_nonce( $nonce, $action ); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$nonce|string|Nonce to verify.}}
+{{Parameter|$action|string/int|Action name. Should give the context to what is taking place and be the same when the nonce was created.|optional|-1}}
+
+== Return Values ==
+
+{{Return||boolean/integer|Boolean ''false'' if the nonce is invalid. Otherwise, returns an integer with the value of:
+* ''1'' – if the nonce has been generated in the past 12 hours or less.
+* ''2'' – if the nonce was generated between 12 and 24 hours ago.}}
+
+== Example ==
+Verify an nonce created with <tt>[[Function_Reference/wp_create_nonce | wp_create_nonce()]]</tt>:
+
+<pre>
+<?php
+
+// Create an nonce, and add it as a query var in a link to perform an action.
+$nonce = wp_create_nonce( 'my-nonce' );
+
+echo "<a href='myplugin.php?_wpnonce={$nonce}'>Save Something</a>";
+
+?>
+
+.....
+
+<?php 
+
+// In our file that handles the request, verify the nonce.
+
+$nonce = $_REQUEST['_wpnonce'];
+
+if ( ! wp_verify_nonce( $nonce, 'my-nonce' ) ) {
+
+     die( 'Security check' ); 
+
+} else {
+
+     // Do stuff here.
+}
+
+?>
+</pre>
+
+You may also decide to take different actions based on the age of the nonce:
+
+<pre>
+<?php
+
+$nonce = wp_verify_nonce( $nonce, 'my-nonce' );
+
+switch ( $nonce ) {
+
+    case 1:
+        echo 'Nonce is less than 12 hours old';
+    break;
+
+    case 2:
+        echo 'Nonce is between 12 and 24 hours old';
+    break;
+
+    default:
+        exit( 'Nonce is invalid' );
+}
+
+?>
+</pre>
+
+== Change Log ==
+
+Since: [[Version 2.0.3|2.0.3]]
+
+== Source File ==
+
+<tt>wp_verify_nonce()</tt> is defined in {{Trac|wp-includes/pluggable.php}}
+
+== Related ==
+
+{{Nonces}}
+* [[Wordpress Nonce Implementation]]
+
+== External Resources ==
+* [http://php.net/manual/en/reserved.variables.request.php PHP: $_REQUEST - Manual]
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ Mark Jaquith - WordPress Nonces]
+* [http://www.prelovac.com/vladimir/improving-security-in-wordpress-plugins-using-nonces Vladimir Prelovac - Using Nonces in WordPress Plugins]
+* [[wikipedia:Cryptographic_nonce|Cryptographic nonce - Wikipedia, the free encyclopedia]]
+* [http://wordpress.stackexchange.com/questions/48110/wp-verify-nonce-vs-check-admin-referer wp_verify_nonce vs check_admin_referer - WordPress Answers]
+*[https://codeseekah.com/2016/01/21/wordpress-nonces-vulnerabilities/ WordPress Nonce Vulnerabilities | codeseekah.com]
+* [https://www.bynicolas.com/code/wordpress-nonce/ Nicolas Sebastiani on How Do WordPress Nonces Really Work | bynicolas.com ]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

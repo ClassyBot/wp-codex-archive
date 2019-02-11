@@ -1,0 +1,91 @@
+{{Languages|
+{{en|Custom Fields}}
+{{nl|Custom Fields}}
+{{ja|カスタムフィールドの使い方}}
+{{mk|Посебни Полиња}}
+}}
+__TOC__
+Wordpress heeft de mogelijkheid dat auteurs van berichten en pagina's een custom field kunnen toevoegen aan een bericht. Dit is een apart veld waar je extra informatie kunt invullen (zonder het in de content box neer te zetten), zoals: 
+
+    * Stemming: Blij
+    * Boek: Harry Potter
+    * Muziek: Smurfenlied
+    * Het weer: Heet en vochtig
+
+Met wat extra programmeerwerk is het mogelijk om meer complexe dingen weer te geven, zoals het gebruik van meta-data voor het opslaan van de vervaldatum van een bericht. 
+
+Meta-data worden 'behandeld' met key's/value's. De key is de naam van het meta-data element. De value is de informatie die wil verschijnen voor elk bericht dat een value heeft.
+
+Keys kunnen vaker dan 1 keer worden gebruikt voor een bericht. Als je bijvoorbeeld 2 verschillende boeken aan het lezen was, dan kun je de key "lezen" aanmaken en het twee keer gebruiken voor hetzelfde bericht, één voor elk boek.
+
+Hier is een voorbeeld van hoe de informatie er uit kan zien in je bericht:
+
+<div style="border:1px solid blue; width:50%; margin: 20px; padding:20px">
+'''Boek dat ik momenteel lees''' : ''Harry Potter''
+
+'''Mijn stemming vandaag''': '' Blij'' 
+</div>
+
+== Gebruik == 
+
+Gebaseerd op de voorbeelden van boven gaan we nu het echte werk doen. We maken 2 custom fields, "Boek dat ik momenteel lees" en de andere "Mijn stemming vandaag". De volgende instructies laten je zien hoe je deze informatie kunt toevoegen aan een bericht door het gebruik van Custom fields.
+
+# Na dat je een post heb geschreven, scroll naar beneden naar het veld genaamd '''Custom Fields'''
+# Om een nieuw '''Custom Field''' genaamd "Het boek dat ik momenteel lees" te maken, plaats de tekst "Het boek dat ik momenteel lees" (zonder aanhalingstekens) in het tekst veld genaamd '''Key''' of '''Name'''. 
+# De nieuwe '''Key''' zou nu een ook een '''Value''' moeten bevat, dus type "Harry Potter" in het veld genaamd '''Value''', dit keer zonder aanhalingstekens
+# Klik nu op de '''Custom Field toevoegen'''-knop om deze informatie op te slaan voor je bericht
+
+Om je "Mijn stemming vandaag" ook toe te voegen, herhaal het proces van boven en plaats bij de '''key''' "Mijn stemming vandaag", en je stemming (in dit geval Blij) in het '''value''' veld. En klik op '''Opslaan''' om deze informatie bij je bericht op te slaan.
+
+Voor je volgende bericht kun je dezelfde '''keys ''' als eerder opnieuw gebruiken. In het '''Custom Fields''' gebied, zal de '''Key''' nu een dropdown-lijst laten zien van al gebruikte '''Keys '''. Kies '''Boek'' dat ik momenteel lees" en vul een nieuw boek in (als je tenminste al zover bent) in het '''Key''' gebied. Klik nu in plaats van '''Opslaan''' op '''Custom Field toevoegen''' en herhaal dit ook met "Mijn stemming vandaag".
+
+Je hoeft maar '''één''' keer een nieuwe "KEY" te maken, hierna kun je het toevoegen aan elk bericht. Je kunt ook, zoals eerder verteld, meerdere '''Value's''' maken voor een '''key'''. Dat is dus voor mensen die meerdere boeken tegelijk lezen.
+
+==Laat je Custom field zien==
+
+Nadat we een Custom Field toegevoegd hebben aan je bericht, gaan we hem nu laten zien aan je bezoekers. Om dit te laten zien voor elk bericht gebruik je de <tt>[[Template_Tags/the_meta|the_meta()</tt>]] template-tag. Deze "tag" moet in de [[The Loop]] worden toegevoegd om het te laten werken. Veel mensen voegen de <tt>the_meta()</tt> template-tag aan het einde van hun bericht toe of in hun [[Post Meta Data Section]]. Hier is een standaard voorbeeld voor het gebruik van deze tag:
+
+<?php the_meta(); ?>
+
+Zo zal het eruit zien in de broncode:
+
+<pre>&lt;ul class='post-meta'&gt;
+&lt;li&gt;&lt;span class='post-meta-key'&gt;Boek dat ik momenteel lees:&lt;/span&gt; Harry Poter&lt;/li&gt;
+&lt;li&gt;&lt;span class='post-meta-key'&gt;Mijn stemming vandaag:&lt;/span&gt; Blij &lt;/li&gt;
+&lt;/ul&gt;</pre>
+
+De template-tag voegt automatisch bij de hele meta-data CSS toe, genaamd : <tt>post-meta</tt>. De '''Key''' is in een <tt>span</tt> genaamd <tt>post-meta-key</tt> zodat je de opmaak kunt toevoegen in je Stylesheet. Dit alles wordt weergegeven in een UL (unordered) - list.
+
+Om de weergave van de post-meta lijst te bewerken, moet je de kenmerken in je stylesheet bewerken. Laten we bijvoorbeeld wat opmaak toevoegen aan het voorbeeld van boven. De stylesheet-elementen zullen er dan zo uitzien:
+
+<pre>.post-meta {font-variant: small-caps; color: maroon; }
+.post-meta-key {color: green; font-weight: bold; font-size: 110%; }</pre>
+
+<div style="border:1px solid blue; width:50%; margin: 20px; padding:20px">
+* <span style="font-size:110%; color: green; font-weight:bold; font-variant: small-caps">Boek dat ik momenteel lees</span>: <span style="font-style:italic; color: maroon; font-variant: small-caps">Harry Potter</span>
+* <span style="font-size:110%; color: green; font-weight:bold; font-variant: small-caps">Mijn stemming vandaag</span>: <span style="font-style:italic; color: maroon; font-variant: small-caps">Blij</span>
+</div>
+
+Er zijn ook veel Plugins in de [http://wordpress.org/extend/plugins/ Officiële WordPress Plugin Directory] die mooie eigenschappen aan de meta-tags toevoegen.
+
+==Professionele technieken voor Custom Fields==
+
+Om de waarden van meta gebruiken, gebruik je het volgende:
+
+  get_post_meta($post_id, $key, $single);
+
+*<tt>$post_id</tt> is de ID van de post waar je de meta-values voor wilt. Gebruik <tt>$post->ID</tt> voor het krijgen van een ID van een post
+*<tt>$key</tt> is een 'string' die de name van meta value bevat die je wilt 
+*<tt>$single</tt> kan zijn: <tt>true</tt> of <tt>false</tt>. Als je het op true zet dan zal de functie een single result laten zijn, als een '''string'''. Als het false is, dat is de default, dan zal de functie een '''array''' maken voor de custom fields.
+
+====Implementatie====
+De PostMeta informatie wordt opgeslagen in een nieuwe tabel, <tt>$wpdb->postmeta</tt>. Deze tabel heeft vier velden:
+
+:<tt>meta_id</tt>: Een uniqe ID for elke entry<br />
+:<tt>post_id</tt>: De ID van een post voor de metadata<br />
+:<tt>meta_key</tt>: De naam van de 'Key'<br />
+:<tt>meta_value</tt>: De value The value geassocieërd met de 'Key'<br />
+
+'''''Terug naar de [[nl:Startpagina | Startpagina]]'''''
+
+[[Category:Dutch Codex|C]]

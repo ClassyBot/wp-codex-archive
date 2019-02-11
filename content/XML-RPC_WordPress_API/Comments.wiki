@@ -1,0 +1,214 @@
+== wp.getCommentCount ==
+
+Retrieve comment count for a specific post.
+
+Added in WordPress 2.5.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* string <tt>post_id</tt>
+
+=== Return Values ===
+
+* array
+** struct
+*** int <tt>approved</tt>
+*** int <tt>awaiting_moderation</tt>
+*** int <tt>spam</tt>
+*** int <tt>total_comments</tt>
+
+=== Errors ===
+
+* 403
+** If the user does not have the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap.
+
+== wp.getComment ==
+
+Retrieve a comment.
+
+Added in WordPress 2.7.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>comment_id</tt>
+
+=== Return Values ===
+
+* struct
+** string <tt>comment_id</tt>
+** string <tt>parent</tt>
+** string <tt>user_id</tt>
+** datetime <tt>dateCreated</tt>
+** string <tt>status</tt>
+** string <tt>content</tt>
+** string <tt>link</tt>
+** string <tt>post_id</tt>
+** string <tt>post_title</tt>
+** string <tt>author</tt>
+** string <tt>author_url</tt>
+** string <tt>author_email</tt>
+** string <tt>author_ip</tt>
+** string <tt>type</tt>
+
+=== Errors ===
+
+* 403
+** If the user does not have the <tt>[[Roles_and_Capabilities#moderate_comments|moderate_comments]]</tt> cap.
+* 404
+** If no comment with that <tt>comment_id</tt> exists.
+
+== wp.getComments ==
+
+Retrieve list of comments.
+
+Added in WordPress 2.7.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>filter</tt>
+** int <tt>post_id</tt>: If empty, retrieves all comments.
+** string <tt>status</tt>
+** int <tt>number</tt>
+** int <tt>offset</tt>
+
+=== Return Values ===
+
+* array
+** struct: see [[#wp.getComment]] for fields.
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#moderate_comments|moderate_comments]]</tt> cap.
+
+== wp.newComment ==
+
+Create a new comment.
+
+Added in WordPress 2.7.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>post_id</tt>
+* struct <tt>comment</tt>
+** int <tt>comment_parent</tt>
+** string <tt>content</tt>
+** string <tt>author</tt>
+** string <tt>author_url</tt>
+** string <tt>author_email</tt>
+
+=== Return Values ===
+
+* int <tt>comment_id</tt>
+
+=== Errors ===
+
+* 403
+** If anonymous comments are disallowed and invalid credentials are supplied.
+** If comment does not follow required comment fields configuration.
+* 404
+** If no post with that <tt>post_id</tt> exists.
+
+=== Note on Anonymous Comments ===
+
+By default, the <tt>username</tt> and <tt>password</tt> parameters are required. However, if you wish to allow anonymous comments, you can use the <tt>xmlrpc_allow_anonymous_comments</tt> filter:
+
+<pre>
+add_filter( 'xmlrpc_allow_anonymous_comments', '__return_true' );
+</pre>
+
+In such cases, the <tt>username</tt> and <tt>password</tt> parameters can be left as empty strings.
+
+== wp.editComment ==
+
+Edit an existing comment.
+
+Added in WordPress 2.7.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>comment_id</tt>
+* struct <tt>comment</tt>
+** string <tt>status</tt>: See [[#wp.getCommentStatusList]]. Usually 'hold', 'approve', or 'spam'.
+** datetime <tt>date_created_gmt</tt>
+** string <tt>content</tt>
+** string <tt>author</tt>
+** string <tt>author_url</tt>
+** string <tt>author_email</tt>
+
+=== Return Values ===
+
+* boolean <tt>true</tt>
+
+=== Errors ===
+
+* 401
+** If <tt>status</tt> is not a valid comment status.
+* 403
+** If the user does not have the <tt>[[Roles_and_Capabilities#moderate_comments|moderate_comments]]</tt> cap.
+** If the user does not have permission to edit this comment.
+* 404
+** If no comment with that <tt>comment_id</tt> exists.
+
+== wp.deleteComment ==
+
+Remove an existing comment.
+
+Added in WordPress 2.7.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>comment_id</tt>
+
+=== Return Values ===
+
+* boolean <tt>true</tt>
+
+=== Errors ===
+
+* 403
+** If the user does not have the <tt>[[Roles_and_Capabilities#moderate_comments|moderate_comments]]</tt> cap.
+** If the user does not have permission to edit this comment.
+* 404
+** If no comment with that <tt>comment_id</tt> exists.
+
+== wp.getCommentStatusList ==
+
+Retrieve list of comment statuses.
+
+Added in WordPress 2.7.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* array
+** struct
+*** string (key): status value
+*** string (value): status description
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Feeds]]

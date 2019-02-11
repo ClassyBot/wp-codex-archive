@@ -1,0 +1,77 @@
+{{Languages|
+{{en|Function Reference/check_admin_referer}}
+{{ja|関数リファレンス/check_admin_referer}}
+}}
+
+== Description ==
+Tests either if the current request carries a valid [[Glossary#Nonce|nonce]], or if the current request was referred from an [[Administration Screens|administration screen]]; depending on whether the <tt>$action</tt> argument is given (which is prefered), or not, respectively. On failure, the function [http://php.net/manual/en/function.die.php dies] after calling the <tt>[[Function Reference/wp_nonce_ays|wp_nonce_ays()]]</tt> function.
+
+Used to avoid CSRF security exploits. Nonces should never be relied on for authentication or authorization, access control. Protect your functions using [[Function Reference/current_user_can|<tt>current_user_can()</tt>]], always assume Nonces can be compromised.
+
+''The now improper name of the function is kept for backward compatibility and has origin in previous WordPress versions where the function only checked the referer. For details, see the [[#Notes|Notes]] section below.''
+
+== Usage ==
+=== Obsolete Usage ===
+%%%<?php check_admin_referer(); ?>%%%
+
+=== Prefered Usage ===
+%%%<?php check_admin_referer( $action, $query_arg ); ?>%%%
+
+== Parameters ==
+{{Parameter|$action|string|Action name. Should give the context to what is taking place. (Since [[Version 2.0.1|2.0.1]]).|optional|-1}}
+{{Parameter|$query_arg|string|Where to look for nonce in the <tt>[http://php.net/manual/en/reserved.variables.request.php $_REQUEST]</tt> PHP variable. (Since [[Version 2.5|2.5]]).|optional|'_wpnonce'}}
+
+== Return ==
+
+To return boolean ''true'', in the case of the [[#Obsolete Usage|obsolete usage]], the current request must be referred from an [[Administration Screens|administration screen]]; in the case of the [[#Prefered Usage|prefered usage]], the nonce must be sent and valid. Otherwise the function [http://php.net/manual/en/function.die.php dies] with an appropriate message (''"Are you sure you want to do this?"'' by default).
+
+== Examples ==
+
+Here is an example of how you might use this in a plugin's option page. You add a nonce to a form using the <tt>[[Function Reference/wp_nonce_field|wp_nonce_field()]]</tt> function:
+<pre>
+<form method="post">
+   <!-- some inputs here -->
+   <?php wp_nonce_field( 'name_of_my_action', 'name_of_nonce_field' ); ?>
+</form>
+</pre>
+
+Then in the page where the form submits to, you can verify whether or not the form was submitted and update values if it was successfully submitted:
+
+<pre>
+<?php
+check_admin_referer( 'name_of_my_action', 'name_of_nonce_field' );
+// process form data, e.g. update fields
+// you can use it in a IF statement if you want, not mandatory because there is not "false" return, only true or die().
+
+// Display the form
+</pre>
+
+== Notes ==
+* Using the function without the <tt>$action</tt> argument is obsolete and, as of [[Version 3.2]], if [[WP_DEBUG]] is set to ''true'' will die with an appropriate message (''"You should specify a nonce action to be verified by using the first parameter."'' is the default).
+* As of [[Version 2.0.1|2.0.1]], the referer is checked ''only'' if the <tt>$action</tt> argument is not specified (or set to the default ''-1'') as a backward compatibility fallback for not using a nonce. A nonce is prefered to unreliable referers and with <tt>$action</tt> specified the function behaves the same way as <tt>[[Function Reference/wp_verify_nonce|wp_verify_nonce()]]</tt> except that it dies after calling <tt>[[Function Reference/wp_nonce_ays|wp_nonce_ays()]]</tt> if the nonce is not valid or was not sent.
+
+== Change Log ==
+Since: 1.2.0
+
+== Source File ==
+
+<tt>check_admin_referer()</tt> is located in {{Trac|wp-includes/pluggable.php}}.
+
+== Related ==
+
+{{Nonces}}
+* [[Wordpress Nonce Implementation]]
+
+== Resources ==
+* [http://php.net/manual/en/function.die.php PHP: die - Manual]
+* [http://php.net/manual/en/reserved.variables.request.php PHP: $_REQUEST - Manual]
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ Mark Jaquith - WordPress Nonces]
+* [http://www.prelovac.com/vladimir/improving-security-in-wordpress-plugins-using-nonces Vladimir Prelovac - Using Nonces in WordPress Plugins]
+* [[wikipedia:Cryptographic_nonce|Cryptographic nonce - Wikipedia, the free encyclopedia]]
+* [http://wordpress.stackexchange.com/questions/48110/wp-verify-nonce-vs-check-admin-referer wp_verify_nonce vs check_admin_referer - WordPress Answers]
+*[https://codeseekah.com/2016/01/21/wordpress-nonces-vulnerabilities/ WordPress Nonce Vulnerabilities | codeseekah.com]
+* [https://www.bynicolas.com/code/wordpress-nonce/ This post explains ] how WordPress nonces really work - bynicolas.com
+
+{{Tag Footer}}
+
+[[Category:Functions]]

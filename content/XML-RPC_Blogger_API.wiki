@@ -1,0 +1,207 @@
+WordPress supports the [http://www.blogger.com Blogger] XML-RPC API methods, augmented with additional WordPress-specific functionality (denoted by &dagger;) . This support was added in WordPress 1.5.0.
+
+The original Blogger API spec lived at http://plant.blogger.com/api, but is no longer available.
+
+== blogger.getUsersBlogs ==
+
+Returns information about all the blogs a given user is a member of.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* array
+** struct
+*** string <tt>blogid</tt>
+*** string <tt>url</tt>: Homepage URL for this blog.
+*** string <tt>blogName</tt>
+*** bool <tt>isAdmin</tt>&dagger;
+*** string <tt>xmlrpc</tt>&dagger;: URL endpoint to use for XML-RPC requests on this blog.
+
+== blogger.getUserInfo ==
+
+Authenticates and returns basic information about the requesting user.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* string <tt>username</tt>
+* string <tt>password</tt> 
+
+=== Return Values ===
+
+* struct
+** int <tt>userid</tt>
+** string <tt>nickname</tt>
+** string <tt>firstname</tt>
+** string <tt>lastname</tt>
+** string <tt>url</tt>
+
+=== Notes ===
+
+* This method does not return an <tt>email</tt> value as specified in the original Blogger API spec.
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap.
+
+== blogger.getPost ==
+
+Retrieve information about a post.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* int <tt>postid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* struct
+** string <tt>postid</tt>
+** string <tt>userid</tt>
+** datetime <tt>dateCreated</tt>
+** string <tt>content</tt>: Character-encoded XML, see example:
+
+==== Example Response ====
+
+<pre><?xml version="1.0"?>
+<methodResponse>
+  <params>
+    <param>
+      <value>
+      <struct>
+        <member>
+          <name>userid</name><value><string>1</string></value>
+        </member>
+        <member>
+          <name>dateCreated</name>
+          <value><dateTime.iso8601>20110101T12:00:00</dateTime.iso8601></value>
+        </member>
+        <member>
+         <name>content</name>
+         <value><string>&amp;lt;title&amp;gt;Hello world!&amp;lt;/title&amp;gt;&amp;lt;category&amp;gt;1&amp;lt;/category&gt;Welcome to WordPress. This is your first post. Edit or delete it, then start blogging!</string></value>
+        </member>
+        <member>
+          <name>postid</name><value><string>1</string></value>
+        </member>
+      </struct>
+      </value>
+    </param>
+  </params>
+</methodResponse></pre>
+
+=== Errors ===
+
+* 401
+** If the user does not have permission to edit the post.
+
+== blogger.getRecentPosts ==
+
+Retrieve list of recent posts.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* int <tt>blogId</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* string <tt>username</tt>
+* string <tt>password</tt> 
+* int <tt>numberOfPosts</tt>: Optional.
+
+=== Return Values ===
+
+* array
+** struct (see [[#blogger.getPost]])
+
+=== Errors ===
+
+* If a user cannot edit a post that would be included in the result set, it will be omitted from the response. Therefore, the total number of posts returned may be less than the requested quantity.
+
+== blogger.newPost ==
+
+Create a new post.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* int <tt>blogid</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* string <tt>username</tt>
+* string <tt>password</tt> 
+* string <tt>content</tt>
+* bool <tt>publish</tt>: Whether to publish the post upon creation or leave it as a draft.
+
+=== Return Values ===
+
+* int <tt>postid</tt>
+
+=== Errors ===
+
+* 401
+** If <tt>publish</tt> is <tt>false</tt> and the user lacks the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap.
+** If <tt>publish</tt> is <tt>true</tt> and the user lacks the <tt>[[Roles_and_Capabilities#publish_posts|publish_posts]]</tt> cap.
+
+== blogger.editPost ==
+
+Edit an existing post.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* int <tt>postid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* string <tt>content</tt>
+* bool <tt>publish</tt>
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have permission to edit this post.
+** If <tt>publish</tt> is <tt>true</tt> and the user lacks the <tt>[[Roles_and_Capabilities#publish_posts|publish_posts]]</tt> cap.
+* 404
+** If no post with that <tt>postid</tt> exists.
+
+== blogger.deletePost ==
+
+Delete an existing post.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* int <tt>postid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* bool <tt>publish</tt>: Will be ignored.
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have permission to delete this post.
+* 404
+** If no post with that <tt>postid</tt> exists.
+
+== blogger.getTemplate ==
+
+Not supported. Please use the [[Editing Files|theme editor]] to manage your templates.
+
+== blogger.setTemplate ==
+
+Not supported. Please use the [[Editing Files|theme editor]] to manage your templates.
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Feeds]]

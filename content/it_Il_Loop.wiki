@@ -1,0 +1,371 @@
+{{Languages|
+{{en|The Loop}}
+{{fr|La Boucle}}
+{{it|Il Loop}}
+{{ja|The Loop}}
+{{pt-br|O Loop}}
+{{ru|Цикл WordPress}}
+{{zh-cn|循环}}
+{{zh-tw|迴圈}}
+}}
+
+__TOC__
+'''Il Loop''' è il codice PHP utilizzato da WordPress per visualizzare gli articoli. Utilizzando Il Loop, WordPress processa ciascun articolo per essere visualizzato sulla pagina corrente e lo formatta secondo i criteri specificati tramite i tag de Il Loop. Ogni codice [[Glossary#HTML|HTML]] o [[Glossary#PHP|PHP]] presente ne Il Loop verrà eseguito per ciascun articolo. 
+
+Quando nella documentazione di WordPress si legge "questo tag deve essere usato all'interno de Il Loop", sia per uno specifico [[Template Tags|Tag dei template]] o per i plugin, il tag verrà eseguito per ciascun articolo. Ad esempio, Il Loop visualizza di base per ciascuna articolo le seguenti informazioni: 
+* Titolo (<tt>[[Template Tags/the_title|the_title()]]</tt>)
+* Data/ora (<tt>[[Template Tags/the_time|the_time()]]</tt>)
+* Categorie (<tt>[[Template Tags/the_category|the_category()]]</tt>).  
+
+&Egrave; possibile visualizzare altre informazioni per ciasucn articolo utilizando gli opportuni [[Template Tags|Tag dei Template]] o (per gli utenti esperti) accedendo alle variabili di <tt>$post</tt>, che vengono impostate con le informazioni dell'articolo corrente mentre si esegue Il Loop.
+
+Per chi inizia con Il Loop si veda [[The Loop in Action]].
+
+== Utilizzare Il Loop ==
+
+Il Loop deve essere inserito in <tt>index.php</tt> ed in ogni altro Template utilizzato per visualizzare informazioni sugli articoli. 
+
+Assicurarsi di inserire una chiamata al template della testata all'inizio del vostro template del [[Theme Development|Tema]]. Se state utilizzando Il Loop all'interno di un vostro design (ed il vostro design non è un template), impostate <tt>WP_USE_THEMES</tt> a <tt>false</tt>:
+
+<pre><?php define('WP_USE_THEMES', false); get_header(); ?></pre>
+
+Il loop inizia qui:
+
+ <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+
+e finisce qui:
+
+ <?php endwhile; else: ?>
+ &lt;p&gt;<?php _e('Sorry, no posts matched your criteria.'); ?>&lt;/p&gt;
+ <?php endif; ?>
+
+Questo esempio usa la sintassi alternativa di PHP per le strutture di controllo e può essere scritto anche come:
+
+ <?php 
+ 	if ( have_posts() ) {
+ 		while ( have_posts() ) {
+ 			the_post(); 
+ 			//
+ 			// Qui il contenuto dell'articolo
+ 			//
+ 		} // end while
+ 	} // end if
+ ?>
+
+== Esempi di Loop ==
+
+=== Stilizzare in maniera diversa gli articoli di una categoria ===
+
+Questo esempio visualizza ciascuna articolo con il proprio Titolo (che viene utilizzato come link all'Articolo - [[Using Permalinks|Permalink]]), le Categorie ed il Contenuto. Inoltre fa si che gli articoli che hanno ID di Categoria '3' vengano stilizzati differentemente. Per far ciò viene utilizzato il [[Template Tags|Tag dei Template]] <tt>[[Function Reference/in_category|in_category()]]</tt>. Leggete attentamente i commenti per capire cosa faccia ogni parte del codice.
+
+ <nowiki>
+ <!-- Avvio del Loop. -->
+ <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+
+ <!-- Esegue un test per vedere se l'articolo corrente è nella categoria 3. -->
+ <!-- Se lo è, al div che lo contiene viene assegnata la classe CSS "post-cat-three". -->
+ <!-- Altrimenti al div che lo contiene viene assegnata la classe CSS "post". -->
+
+ <?php if ( in_category('3') ) { ?>
+           <div class="post-cat-three">
+ <?php } else { ?>
+           <div class="post">
+ <?php } ?>
+
+
+ <!-- Visualizza il Titolo come link al Permalink dell'Articolo. -->
+
+ <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permalink a <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h2>
+
+
+ <!-- Visualizza la data (in formato November 16th, 2009 - ndt: la data su un WordPress con impostata la lingua italiana appararirà in formato italiano) ed un link agli altri articoli dello stesso autore. -->
+
+ <small><?php the_time('F jS, Y') ?> by <?php the_author_posts_link() ?></small>
+
+
+ <!-- Visualizza il contenuto dell'Articolo in un div. -->
+
+ <div class="entry">
+   <?php the_content(); ?>
+ </div>
+
+
+ <!-- Visualizza un elenco separato da virgolo delle Categorie dell'articolo. -->
+
+ <p class="postmetadata">Pubblicato in <?php the_category(', '); ?></p>
+ </div> <!-- Chiude il primo div  -->
+
+
+ <!-- Ferma Il Loop (ma non il comando "else:" - si veda la riga seguente). -->
+
+ <?php endwhile; else: ?>
+
+
+ <!-- Viene verificato il primo "if" per vedere se vi sono articoli da -->
+ <!-- visualizzare.  Questa parte "else" indica cosa fare se non ve ne sono. -->
+ <p>Spiacenti, nessun articolo corrisponde ai criteri di ricerca indicati.</p>
+
+
+ <!-- Ferma VERAMENTE Il Loop. -->
+ <?php endif; ?></nowiki>
+
+'''Nota:''' tutto il codice [[Glossary#HTML|HTML]] deve essere ''all'esterno'' dei tag <tt><?php &nbsp;?></tt>.  Ed il codice [[Glossary#PHP|PHP]] (anche delle cose semplici come le parentesi graffe: <tt>}</tt> ) deve stare ''dentro'' i tag <tt><?php &nbsp;?></tt>. Potete aprire o chiudere blocchi di codice PHP per inserire codice HTML dentro i comandi <tt>if</tt> ed <tt>else</tt> come mostrato nell'esempio precedente.
+
+=== Escludere Articoli di una data Categoria ===
+
+Questo esempio mostra come nascondere alla visualizzazione una specifica Categoria o alcune Categorie. Inq uesto caso vengono esclusi gli articoli delle Categorie 3 ed 8. L'esempio differisce da quello precedente in quanto modifica la [[Template_Tags/query_posts|query]] stessa.
+
+ <nowiki>
+ <?php query_posts($query_string . '&cat=-3,-8'); ?>
+ <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+
+ <div class="post">
+ 
+ <!-- Visualizza il Titolo come link al Permalink dell'Articolo. -->
+ <h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permalink a <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h2>
+
+ <!-- Visualizza la data (in formato November 16th, 2009 - ndt: la data su un WordPress con impostata la lingua italiana appararirà in formato italiano) ed un link agli altri articoli dello stesso autore. -->
+ <small><?php the_time('F jS, Y') ?> by <?php the_author_posts_link() ?></small>
+ 
+  <div class="entry">
+    <?php the_content(); ?>
+  </div>
+
+  <p class="postmetadata">Pubblicato in <?php the_category(', '); ?></p>
+ </div> <!-- Chiude il primo div -->
+
+ <?php endwhile; else: ?>
+ <p>Spiacenti, nessun articolo corrisponde ai criteri di ricerca indicati..</p>
+ <?php endif; ?></nowiki>
+
+'''Nota''': Se utilizate questo esempio per la vostra pagina principale dovrete usare un [[Templates|Template]] diverso per i vostri [[Category Templates|Archivi di Categoria]], altrimenti WordPress escludera gli articoli della Categoria 3 anche quando si sta vedendo il suo archivio di Categoria!  Tuttavia se volete usare lo stesso file dei template potete superare il problema usando il tag <tt>[[Function_Reference/is_home|is_home()]]</tt> per assicurarvi che la Categoria 3 venga esclusa solo dalla pagina principale:  
+ ...
+ <?php if ( is_home() ) {
+ query_posts($query_string . '&cat=-3');
+ }
+ ?>
+ ...
+Vi sono altri [[Conditional Tags|Tag Condizionali ]] che possono venir usati per controllare l'output in funzioni del fatto che una particolare condizione sia vera o falsa rispetto alla pagina richiesta.
+
+==Multiple Loops==
+
+Questa sezione tratta l'uso avanzato del Loop.  E' un pò tecnica – ma non lasciamoci spaventare.  Inizieremo a trattare argomenti facili. Con un pò di buon senso, pazienza ed entusiasmo, arriveremo fare Multiple Loops.
+
+Prima di tutto, <b>"Perchè dovremmo usare Multiple Loops?"</b> In generale, la risposta è che vorremmo fare <i>quanlcosa</i> con un gruppo di Posts, e fare <i>qualcosa di differente</i> con un altro gruppo di Posts, <i>ma visualizzare entrambi i gruppi nella stessa pagina</i>.  Potremmo fare di tutto; l'unico limite alla nostra immaginazione è la nostra conoscenza del PHP.  
+
+Iniziamo con gli esempi, inanzitutto leggiamo qualcosa di semplice, di seguito il Loop di base:
+
+      <?php if (have_posts()) : ?>
+                <?php while (have_posts()) : the_post(); ?>    
+                &lt;!-- do stuff ... --&gt;
+                <?php endwhile; ?>
+      <?php endif; ?>
+
+In English (PHP types and people familiar with code speak can skip to below), the above would be read:  If we are going to be displaying posts, then get them, one at a time.  For each post in the list, display it according to <tt>&lt;!-- do stuff ... --&gt;</tt>.  When you hit the last post, stop.  The <tt>do stuff</tt> line(s), are template dependent.  
+
+A little aside on <tt>Do stuff</tt>:  in this example it is simply a placeholder for a bunch of code that determines how to format and display each post on a page.  This code can change depending on how you want your WordPress to look.   If you look at the Kubrick theme’s index.php the <tt>do stuff</tt> section would be everything below:
+
+      <?php while (have_posts()) : the_post(); ?>
+To above:
+
+      <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?>
+
+An explanation for the coders out there:
+The <tt>have_posts()</tt> and <tt>the_post()</tt> are convenience wrappers around the global <tt>$wp_query</tt> object, which is where all of the action is.  The <tt>$wp_query</tt> is called in the blog header and fed query arguments coming in through <tt>GET</tt> and <tt>PATH_INFO</tt>.  The <tt>$wp_query</tt> takes the arguments and builds and executes a DB query that results in an array of posts.  This array is stored in the object and also returned back to the blog header where it is stuffed into the global <tt>$posts</tt> array (for backward compatibility with old post loops).
+
+Once WordPress has finished loading the blog header and is descending into the template, we arrive at our post Loop.  The <tt>have_posts()</tt> simply calls into <tt>$wp_query->have_posts()</tt> which checks a loop counter to see if there are any posts left in the post array.  And <tt>the_post()</tt> calls <tt>$wp_query->the_post()</tt> which advances the loop counter and sets up the global <tt>$post</tt> variable as well as all of the global post data.  Once we have exhausted the loop, <tt>have_posts()</tt> will return false and we are done.
+
+==== Loop Examples====
+
+Below are three examples of using multiple loops.  The key to using multiple loops is that <tt>$wp_query</tt> can only be called once.  In order to get around this it is possible to re-use the query by calling <tt>rewind_posts()</tt> or by creating a new query object.  This is covered in example 1.  In example 2, using a variable to store the results of a query is covered.  Finally, ‘multiple loops in action’ brings a bunch of ideas together to document one way of using multiple loops to promote posts of a certain category on your blog’s homepage.
+
+=====Multiple Loops Example 1=====
+
+In order to loop through the same query a second time, call <tt>rewind_posts()</tt>.  This will reset the loop counter and allow you to do another loop.  
+
+   <?php rewind_posts(); ?>
+  
+   <?php while (have_posts()) : the_post(); ?>
+     &lt;!-- Do stuff... --&gt;
+   <?php endwhile; ?>
+
+If you are finished with the posts in the original query, and you want to use a different query, you can reuse the <tt>$wp_query</tt> object by calling <tt>query_posts()</tt> and then ''looping back'' through.  The <tt>query_posts()</tt> will perform a new query, build a new posts array, and reset the loop counter.
+
+   // Get the last 10 posts in the special_cat category.
+   <?php query_posts('category_name=special_cat&posts_per_page=10'); ?>
+ 
+   <?php while (have_posts()) : the_post(); ?>
+     &lt;!-- Do special_cat stuff... --&gt;
+   <?php endwhile;?>
+
+If you need to keep the original query around, you can create a new query object.
+
+ <?php $my_query = new WP_Query('category_name=special_cat&posts_per_page=10'); ?>
+ 
+ <?php while ($my_query->have_posts()) : $my_query->the_post(); ?>
+   &lt;!-- Do special_cat stuff... --&gt;
+ <?php endwhile; ?>
+
+The query object <tt>my_query</tt> is used because you cannot use the global <tt>have_posts()</tt> and <tt>the_post()</tt> since they both use <tt>$wp_query</tt>.  Instead, call into your new <tt>$my_query</tt> object.
+
+=====Multiple Loops Example 2=====
+
+Another version of using multiple Loops takes another tack for getting around the inability to use <tt>have_posts()</tt> and <tt>the_post()</tt>.  To solve this, you need to store the original query in a variable, then re-assign it with the other Loop. This way, you can use all the standard functions that rely on all the globals.
+
+For example:
+
+ // going off on my own here
+ <?php $temp_query = $wp_query; ?>
+ &lt;!-- Do stuff... --&gt;
+ 
+ <?php query_posts('category_name=special_cat&posts_per_page=10'); ?>
+ 
+ <?php while (have_posts()) : the_post(); ?>
+   &lt;!-- Do special_cat stuff... --&gt;
+ <?php endwhile; ?>
+ 
+ // now back to our regularly scheduled programming
+ <?php $wp_query = $temp_query; ?>
+
+'''Note:''' In PHP 5, objects are referenced with the "= clone" operator instead of "=" like in PHP 4. To make Example 2 work in PHP 5 you need to use the following code:
+
+<pre>
+ // going off on my own here
+ <?php $temp_query = clone $wp_query; ?>
+ &lt;!-- Do stuff... --&gt;
+ 
+ <?php query_posts('category_name=special_cat&posts_per_page=10'); ?>
+ 
+ <?php while (have_posts()) : the_post(); ?>
+   &lt;!-- Do special_cat stuff... --&gt;
+ <?php endwhile; ?>
+ <?php endif; ?>
+ 
+ // now back to our regularly scheduled programming
+ <?php $wp_query = clone $temp_query; ?>
+</pre>
+
+However, this second example does not work in WordPress 2.1.
+
+====Multiple Loops in Action====
+
+The best way to understand how to use multiple loops is to actually show an example of its use.  Perhaps the most common use of multiple loops is to show two (or more) lists of posts on one page.  This is often done when a webmaster wants to feature not only the very latest post written, but also posts from a certain category.
+
+Leaving all formatting and CSS issues aside, let us assume we want to have two lists of posts.  One which would list the most recent posts (the standard 10 posts most recently added), and another which would contain only one post from the category ‘featured’.  Posts in the ‘featured’ category should be shown first, followed by the second listing of posts (the standard).  <b>The catch is that no post should appear in both categories.</b>
+
+<b>Step 1.</b>  Get only one post from the ‘featured’ category.
+
+   <?php $my_query = new WP_Query('category_name=featured&posts_per_page=1');
+   while ($my_query->have_posts()) : $my_query->the_post();
+   $do_not_duplicate = $post->ID; ?>
+     &lt;!-- Do stuff... --&gt;
+   <?php endwhile; ?>
+
+In English the above code would read: 
+
+Set <tt>$my_query</tt> equal to the result of querying all posts where the category is named featured and by the way, get me one post only. Also, set the variable <tt>$do_not_duplicate</tt> equal to the ID number of the single post returned.  Recall that the <tt>Do stuff</tt> line represents all the formatting options associated for the post retrieved.
+
+Note that we will need the value of <tt>$do_not_duplicate</tt> in the next step to ensure that the same post doesn't appear in both lists.    
+
+<b>Step 2</b>.  The second loop, get the X latest posts (except one).
+
+The following code gets X recent posts (as defined in WordPress preferences) save the one already displayed from the first loop and displays them according to <tt>Do stuff</tt>.
+
+   <?php if (have_posts()) : while (have_posts()) : the_post(); 
+   if( $post->ID == $do_not_duplicate ) continue;?>
+    &lt;!-- Do stuff... --&gt;
+   <?php endwhile; endif; ?>
+
+In English the above code would read: 
+
+Get all posts, where a post equals <tt>$do_not_duplicate</tt> then just do nothing (<tt>continue</tt>), otherwise display all the other the posts according to <tt>Do stuff</tt>.  Also, update the cache so the tagging and keyword plugins play nice.  Recall, <tt>$do_not_duplicate</tt> variable contains the ID of the post already displayed.
+
+<b>The End Result</b>
+
+Here is what the final piece of code looks like <i>without any formatting</i>:
+
+   <?php $my_query = new WP_Query('category_name=featured&posts_per_page=1');
+   while ($my_query->have_posts()) : $my_query->the_post();
+   $do_not_duplicate = $post->ID;?>
+     &lt;!-- Do stuff... --&gt;
+   <?php endwhile; ?>
+     &lt;!-- Do other stuff... --&gt;
+   <?php if (have_posts()) : while (have_posts()) : the_post(); 
+   if( $post->ID == $do_not_duplicate ) continue; ?>
+    &lt;!-- Do stuff... --&gt;
+   <?php endwhile; endif; ?>
+
+The end result would be a page with two lists.  The first list contains only one post -- the most recent post from the 'feature' category.  The second list will contain X recent posts (as defined in WordPress preferences) <i>except</i> the post that is already shown in the first list.  So, once the feature post is replaced with a new one, the previous feature will show up in standard post list section below (depending on how many posts you choose to display and on the post frequency).  This technique (or similar) has been used by many in conjunction with knowledge of the [http://codex.WordPress.org/Template_Hierarchy Template Hierarchy] to create a different look for home.php and index.php.  See associated resources at the bottom of this page.
+
+<b>Note for Multiple Posts in the First Category</b>
+
+If posts_per_page=2 or more, you will need to alter the code a bit.  The variable $do_not_duplicate needs to be changed into an array as opposed to a single value.  Otherwise, the first loop will finish and the variable $do_not_duplicate will equal only the id of the latest post.  This will result in duplicated posts in the second loop.  To fix the problem replace
+ 
+ <?php $my_query = new WP_Query('category_name=featured&amp;posts_per_page=1');
+  while ($my_query->have_posts()) : $my_query->the_post();
+  $do_not_duplicate = $post->ID;?>
+
+with
+
+ <?php $my_query = new WP_Query('category_name=featured&amp;posts_per_page=2');
+   while ($my_query->have_posts()) : $my_query->the_post();
+   $do_not_duplicate[] = $post->ID ?>
+
+Note that "posts_per_page" can be any number.
+This changes $do_not_duplicate into an array.  Then replace
+ 
+ <?php if (have_posts()) : while (have_posts()) : the_post(); if( $post->ID ==
+   $do_not_duplicate ) continue; ?>
+
+with
+
+ <?php if (have_posts()) : while (have_posts()) : the_post(); 
+  if (in_array($post->ID, $do_not_duplicate)) continue;
+  ?>
+
+Where you continue the pattern for whatever posts_per_page is set equal to (2 in this case).
+
+Alternatively you can pass the entire <tt>$do_not_duplicate</tt> array to <tt>$wp_query</tt> and only entries that match your criteria will be returned:
+ 
+ <?php query_posts(array('post__not_in'=>$do_not_duplicate));
+  if (have_posts()) : while (have_posts()) : the_post();
+  ?> 
+
+Note that instead a string, the query parameter was an associative array, with <tt>post__not_in</tt> option.
+
+== Nested Loops ==
+Nesting loops means that you are running a second loop before finishing the first one. This can be useful to display a post list with a [[Shortcode API|shortcode]] for example.
+<code>
+    $my_query = new WP_Query( "cat=3" );
+    if ( $my_query->have_posts() ) { 
+        while ( $my_query->have_posts() ) { 
+            $my_query->the_post();
+            the_content();
+        }
+    }
+    wp_reset_postdata();
+</code>
+It is necessary to reset the main loop data after a nested loop so that some global variables hold the correct values again.
+
+==Sources==
+The section on multiple loops is a combination of [http://boren.nu Ryan Boren] and [http://www.alexking.org Alex King's] [http://comox.textdrive.com/pipermail/hackers/2005-January/003578.html discussion] about the Loop on the [[Mailing Lists#Hackers|Hackers Mailing List]]. The nested loops example was inspired by [http://lists.automattic.com/pipermail/wp-hackers/2010-May/032064.html another discussion] on the mailing list and a post by [http://www.nkuttler.de/2010/05/30/wordpress-loop-inside-a-loop/ Nicolas Kuttler].
+
+==Resources==
+* [http://generatewp.com/wp_query/ WordPress WP_Query Generator]
+* [http://www.slideshare.net/mitcho/getting-into-the-loop Getting Into The Loop] - (slides) an introduction to how plugins and themes can modify the Loop
+
+==Related==
+To learn more about the WordPress Loop, and the various template tags that work only within the Loop, here are more resources:
+
+===More About The Loop===
+* Article: [[The Loop in Action]]
+* Article: [[Template Tags]]
+* Article: [[Templates|Using the Loop in Template Files]]
+
+{{Query Tags}}
+
+
+[[Category:it:Design and Layout]]
+[[Category:it:Advanced Topics]]
+{{Copyedit}}
+[[Category:it:UI Link]]

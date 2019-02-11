@@ -1,0 +1,66 @@
+{{Languages|
+{{en|Post Formats}}
+{{ja|Post Formats}}
+{{pt-br|Formatos de Posts}}
+{{ru|Форматы записей}}
+{{zh-cn|文章形式}}
+{{zh-tw|文章格式}}
+}}
+
+在 [[zh-cn:3.1 版本|3.1 版本]]中引入的[[zh-cn:文章形式|文章形式]]，是文章的一种属性，可以被主题用来决定文章的显示方式。其设计目的是要提供一个特殊的方法来根据文章的特点选用显示“格式”。该方法用于替代以前需要使用分类来达到同样目的的做法，而且更重要的是，该方法在支持的主题间是通用的。
+
+简单地说，如果一位博客作者正在使用一个支持“文章形式”的主题，那么作者就可以从一个单选列表中选择文章的形式，以此决定文章的显示样式。
+
+以'''微博式'''（aside）为例，以前曾经创建了一个称作“Asides”的分类，指定为该分类的文章在显示的时候与别的文章不同，而是基于[[Template_Tags/post_class|post_class()]] 或者 [[Conditional Tags|in_category('asides')]]所设定的样式规则。有了[[zh-cn:文章形式|文章形式]]，就为主题设定文章格式提供了一种的新方法（例如，[[Function_Reference/add_theme_support|add_theme_support('post-formats', array('aside'))]]），然后就可以在保存文章的时候在发布信息框里选择对应的文章格式。通过调用功能函数[[Function_Reference/get_post_format|get_post_format( $post->ID )]]就能确定文章所属格式，而[[Template_Tags/post_class|post_class()]]将会创建“format-asides”类，以用于纯 CSS 样式编辑。
+
+==支持的形式==
+
+目前支持以下文章格式：
+
+* '''[[Adding_Asides|日志（aside）]]''' - 典型样式就是没有标题。类似于 Facebook 或人人网中更新的一条日志。
+* '''相册（gallery）''' - 图像陈列厅。文章中通常会有“gallery”代码和相应的图像附件。
+* '''链接（link）''' - 链接到其它网站的链接。主题可能会使用文章中的第一个 <a href=""> 标签作为文章的外部链接。有可能有的文章至包含一个 URL，那么这个 URL 将会被使用；同时，文章标题（post_title）将会是附加到它的锚的名称。
+* '''图像（image）''' - 单张图像。文章中的首个 <img /> 标记将会被认为是该图片。另外，如果文章只包含一个 URL 链接，则被认为是该图片的 URL 地址，而文章标题（post_title）将会作为图片的标题属性。
+* '''引语（quote）''' -  引用他人的一段话。通常使用 blockquote 来包裹引用内容。或者，可能直接将引语写入文章，并将其出处写在标题栏。
+* '''状态（status）''' - 简短更新，通常最多 140 个字符。类似于微博 Twitter 状态消息。
+* '''视频（video）''' - 单一视频。文章中第一个 <video /> 或 object 或 embed 将被作为视频处理。或者，文章可以仅包含视频的 URL，甚至一些主题和插件可以支持自动嵌入您的文章附件中的视频。
+* '''音频（audio）''' - 一个音频文件。可以用于播客（podcasting）等。
+* '''聊天（chat）''' - 聊天记录，类似于：
+<pre>
+张三: foo
+李四: bar
+张三: foo 2
+</pre>
+
+注意：当编辑文章时，若没有指定文章样式，则默认使用“标准”。同样，若指定了一个无效的文章形式，那么也将默认使用标准样式。
+
+== 参考函数 ==
+主题和插件可以使用函数 [[Function_Reference/set_post_format|set_post_format()]] 来设置形式，使用 [[Function_Reference/get_post_format|get_post_format()]] 来查询形式，使用 [[Function_Reference/has_post_format|has_post_format()]] 来检查是否已经设置了某个形式。
+
+== 添加主题支持 ==
+
+主题必须使用 [[Function_Reference/add_theme_support|add_theme_support()]] 函数，通过传递一个数组来告诉 WordPress 使用何种文章形式，例如：
+
+<pre>add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );</pre>
+
+然后在主题中使用 [[Function_Reference/get_post_format|get_post_format()]] 函数以检查文章格式，并据此来修改格式。要注意的是使用默认格式的文章时，该函数返回值为FALSE。或者使用 [[Conditional Tags|条件判断标签函数]] [[Function_Reference/has_post_format|has_post_format()]]：
+
+<pre>
+if ( has_post_format( 'video' )) {
+  echo 'this is the video format';
+}
+</pre>
+
+== 后向兼容 ==
+
+如果要让你的插件或主题兼容早期版本的 WordPress，你需要按照 post-format-$format 的格式添加 "post_format" 分类。例如
+
+<pre>
+wp_insert_term('post-format-aside', 'post_format');
+</pre>
+
+还需要用函数 [[Function_Reference/register_taxonomy|register_taxonomy()]] 来注册 post_format 文章形式分类。
+
+[[Category:zh-cn:高级话题]]
+
+{{zh-cn:Copyedit}}

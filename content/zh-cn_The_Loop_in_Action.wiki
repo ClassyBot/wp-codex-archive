@@ -1,0 +1,393 @@
+{{Languages|
+{{en|The Loop in Action}}
+{{ja|The Loop in Action}}
+{{zh-cn|运行中的循环}}
+}}
+
+==序言==
+
+[[The Loop|"循环"]]是一个指明WordPress主要程序过程的术语。你在你的模板[[Templates|template files]]中应用循环来把你的文章表现给读者。你可以制做不包含循环的模板，但是你就只能展示一篇文章的数据了。
+
+在我们进入'循环'之前，让我们先来了解一点关于WordPress在循环开始前的动作情况的背景知识。它要做的第一件事就是检查它所需要提供的所有文件。然后，它会从数据库收集[[Registered_User_Features|blog administrator]]的默认设置。这包括如每一页展示的文章数，评论是否加载，以及其它一些东西。一量这些默认的数据建立好了，WordPress检查用户请求内容。这一信息将被用来决定那些文章会被从数据库抓取出来。
+
+如果用户没有请求特定的文章，分类，页面或数据，WordPress使用提前采集好的默认数据来决定把那些文章提供给用户。例如，如果博客管理员已经在[[Administration_Panels|Administration]] > [[Administration_Panels#Reading|Settings]] > [[Settings_Reading_SubPanel|Reading]]设定显示5篇文章在每个页面，那么WordPress将会从数据库抓取最新的五篇文章给用户。如果用户请求了特定的文章，分类，页面或者是数据，那么WordPress将会使用这个信息决定从数据库取出那些数据。
+
+一旦这些过程完成，WP连接到数据库，检索特定的信息，将结果存在一个变量。循环需要调用这个变量来控制你的模板输出。
+
+默认的，如果访客没有选定一些特定的文章，页面，分类，或数据，WP使用<tt>index.php</tt>来展示所有东西。做为讨论循环的第一个部分，我们将集中讨论<tt>index.php</tt>，以及按默认值输出你的文章的情况，后面，只要你理解了这工作是怎么完成的，我们将介绍在其它模板文件下的循环技术。
+
+==世界上最简单的index页面==
+
+下面展示了一个全功能的首页文件(index.php), 他仅展示了每篇文章的内容，使用中视具体情况去调整循环。 这个展示的目的是向你证明一个循环是多么简单。 大多数在<tt>index.php</tt> 里的循环增加了更多的css，html，php，这些都让这个循环看起来更强大也更漂亮。
+<pre>
+&lt;?php
+get_header();
+if (have_posts()) :
+   while (have_posts()) :
+      the_post();
+      the_content();
+   endwhile;
+endif;
+get_sidebar();
+get_footer(); 
+?&gt;
+</pre>
+
+现在就让我们做一些东西让循环看起来更漂亮吧！
+
+==默认循环==
+下面我们来一步一步看 ''默认'' 和 ''经典'' 的循环是怎么实现的，基于标准的WordPress v1.5.
+
+===开始循环===
+在<tt>index.php</tt>文件顶部可以看到[[The Loop|循环]]如何开始. 
+<pre>&lt;?php if (have_posts()) : ?&gt;
+<?php while (have_posts()) : the_post(); ?></pre>
+
+#首先, 通过<tt>have_posts()</tt>方法来检查是否有文章。
+#如果有文章, PHP <tt>[http://www.php.net/while while]</tt>循环开始.  <tt>while</tt> 循环会一直执行一直到其括号里的条件为真。所以直到<tt>have_posts()</tt>返回真，<tt>while</tt>循环就不会停止(<tt>have_posts()</tt> 方法单纯的检查下一篇文章能否找到。如果找到了，<tt>if</tt>判断返回真，<tt>while</tt>循环就再次执行；如果没有下一篇文章，<tt>if</tt>判断返回假，跳出循环）。
+
+===产生文章===
+<tt>the_post()</tt>方法 takes the current item in the collection of posts and makes it available for use inside this iteration of The Loop.  没有 <tt>the_post()</tt>, 大多数 [[Template Tags|模板标签]] 都不能用了。
+
+当文章信息可用时，模板文件向访问者展现文章信息。 
+
+====标题、日期及作者====
+下面的[[Template Tags|模板标签]] 得到了当前文章标题，时间和作者。
+<pre>
+<h2 id="post-<?php the_ID(); ?>">
+  <a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title(); ?>">
+  <?php the_title(); ?><!--文章标题-->
+</a>
+</h2>
+<small>
+  <?php the_time('F jS, Y') ?><!--日期--> 
+  by <?php the_author() ?><!--作者-->
+</small>
+</pre>
+
+====文章内容====
+<tt>[[Template_Tags/the_content|the_content()]]</tt>是文章内容。它是循环里文章的“肉”。
+<pre>
+&lt;div class="entry"&gt;
+&lt;?php the_content('阅读全文 &amp;raquo;'); ?&gt;
+&lt;/div&gt;
+</pre>
+
+如果你熟悉CSS,注意到<tt>div</tt> 被赋予 <tt>class="entry"</tt>.这样你就可以根据这个特定的符号来对其进行设定样式或功能。
+
+<em>更多标签</em> :
+如果文章包含[[Write_Post_SubPanel#Quicktags|快速标签]] 叫做 '''更多''', 写做 <tt>[[Customizing_the_Read_More|&lt;!--more--&gt;]]</tt>，所有之前的将在循环中显示，之后的被省略。
+
+单独文章页面 <tt>&lt;!--more--&gt;</tt> 将被无视。所以使用 <tt>&lt;!--more--&gt;</tt> 可强迫读者进入单独文章页面。
+
+====其它细节====
+Beneath each post's content in the <tt>index.php</tt> template file is a place to display more information about the post, such as the categories, date, and comment information.  Known as the [[Post_Meta_Data_Section|post meta data section]], if you're a logged in user of sufficient privilege (or the post's author), you will also see an "Edit This" link, thanks to the <tt>[[Template_Tags/edit_post_link|edit_post_link()]]</tt> template tag function.
+<pre>
+&lt;p class="postmetadata"&gt;
+Posted in &lt;?php the_category(', ') ?&gt; 
+&lt;strong&gt;|&lt;/strong&gt;
+&lt;?php edit_post_link('Edit','','<strong>|</strong>'); ?&gt;  
+&lt;?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?&gt;&lt;/p&gt;
+</pre>
+
+If commenting is enabled, or if the post has comments, the <tt>[[Template_Tags/comments_popup_link|comments_popup_link()]]</tt> template tag will display a link to the comments.  If you're using the [[Template_Tags/comments_popup_script|comments popup window]], this link will open the comments window; otherwise it will jump right to this post's comments.
+
+If the visitor is viewing an index of posts (''i.e.:'' more than one post in The Loop), the <tt>comments_popup_link()</tt> link will take the reader to this post's individual page.
+
+====自动发现Trackback====
+The <tt>[[Template_Tags/trackback_rdf|trackback_rdf]]</tt> template tag's function is to output machine-readable code used for [[Glossary#Trackback|trackback]] auto-discovery.
+
+<pre>
+&lt;!--
+&lt;?php trackback_rdf(); ?&gt;
+--&gt;
+</pre>
+
+'''Note:''' The <tt>trackback_rdf()</tt> tag is supposed to be used with [[Commenting_Code|comments]] around it.  It is not "turned off".
+
+===结束循环===
+The following ends The Loop.  After this, the various post-related template tags will not work as expected (or if they do, they will use the last post from The Loop). This means, that if you need to use a template tag that works '''within The Loop''', you need to put it in before this point.
+<pre>
+&lt;?php endwhile; ?&gt;
+</pre>
+
+This section, immediately after the end of The Loop, displays navigation controls to move forward and backward by each web page. More information is available in function reference for [[Function_Reference/posts_nav_link|posts_nav_link()]].
+<pre>
+ &lt;div class="navigation">
+ &lt;div class="alignleft"><?php previous_posts_link('&amp;laquo; Previous Entries') ?></div>
+ &lt;div class="alignright"><?php next_posts_link('Next Entries &amp;raquo;',<nowiki>''</nowiki>) ?></div>
+ &lt;/div>
+</pre>
+
+If the blog is set to display 10 posts per page, and the conditions used by The Loop collect 25 posts, there will be three pages to navigate: two pages of 10 posts each, and one page of 5 posts.  The navigation links will allow the visitor to move forward and backward through the collection of posts.
+
+The navigation controls are included <em>outside</em> The Loop, but <em>inside</em> the <tt>if</tt> condition, so that they only show up if there are any posts.  The navigation functions themselves also check whether or not there is anything to which they will link, based on the current Loop, and only display links if there's something to link.
+
+<pre>
+&lt;?php else : ?&gt;
+ &lt;h2 class="center"&gt;Not Found&lt;/h2&gt;
+ &lt;p class="center"&gt;
+&lt;?php _e("Sorry, but you are looking for something that isn't here."); ?&gt;&lt;/p&gt;
+</pre>
+The <tt>else :</tt> clause determines what to do if <tt>have_posts()</tt> (from way up at the top) is false.  That is to say, the stuff after the '''else''' will only be executed/displayed if The Loop had zero posts. No posts show up if, for example, the visitor requested a specific day for which no posts were made or a search was performed that produced no results.
+
+<pre>
+  &lt;?php endif; ?&gt;
+</pre>
+This ends the conditional test of "if there are posts do this, else if there are no posts, do that".  Once the conditional test is finished, the default index.php template next includes the sidebar, and finally the footer.
+
+==其它模板中的循环==
+WordPress会用不同的模版文件使得博客的显示方式多彩多样。在默认的WordPress主题中，利用 [[Templates|template files]] 的 主页视图，分类视图，以及存档视图来作为显示单独文章的模版。 每个使用 [[The Loop]]的模版,但采用了稍微不同的样式, 则参考 [[Template_Tags|template tags]]的不同用法.
+
+For any view which does not have a separate template file, WordPress will use <tt>index.php</tt> by default.  If a visitor requests a single post, WordPress will first look for a file named <tt>single.php</tt>.  If that file exists, it will be used to present the post to the visitor.  If that file does not exist, WordPress will use <tt>index.php</tt> to present the post to the visitor. This is called the [[Template Hierarchy]].
+
+If you are making your own [[Using Themes|Theme]], it's often helpful to look at the [[Templates|template files]] from the default Theme as a point of reference.  It's also helpful to use your theme's <tt>index.php</tt> as a template for your other template files.  Doing so may give you a known and working page from which to begin making changes as you create more template files.
+
+===不同的存档格式===
+An <em>archive</em> is a collection of historical posts.  In the default usage, the posts displayed on your main index are recent [http://mydatapages.com/chronological.html chronological] postings.  When a visitor clicks on one of your archive links, or if they manually request a specific date (<nowiki>http://www.example.com/blog/index.php?m=200504</nowiki> or <nowiki>http://www.example.com/blog/2005/04</nowiki> to select all posts from April, 2005), WordPress will display an <em>archive</em> view.  By default, the archive will use <tt>index.php</tt>, and thus look the same as your front page, just displaying the posts from April 2005.
+
+When WordPress prepares an [[Creating_an_Archive_Index|archive view]] for a visitor, it specifically looks for a file named <tt>archive.php</tt> in your current theme's directory.  If you'd like to visually disambiguate archives from your front page, simply copy <tt>index.php</tt> to <tt>archive.php</tt>, and edit <tt>archive.php</tt> as necessary!
+
+For example, if you want to show only post titles, and no post content, for your list of archives, you could use something like this:
+<pre>
+&lt;?php get_header(); ?&gt;
+ &lt;div id="content" class="narrowcolumn"&gt;
+
+  &lt;?php if (have_posts()) : ?&gt;
+   &lt;?php while (have_posts()) : the_post(); ?&gt;
+     &lt;div class="post"&gt;
+     &lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?&gt;" rel="bookmark" title="Permanent Link to &lt;?php the_title(); ?&gt;"&gt;&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+     &lt;small&gt;&lt;?php the_time('F jS, Y') ?&gt; &lt;!-- by &lt;?php the_author() ?&gt; --&gt;&lt;/small&gt;
+      &lt;/div&gt;
+    &lt;?php endwhile; ?&gt;
+&lt;div class="navigation"&gt;
+&lt;div class="alignleft"&gt;
+&lt;?php posts_nav_link('','','&amp;laquo; Previous Entries') ?&gt;
+&lt;/div&gt;
+&lt;div class="alignright"&gt;
+&lt;?php posts_nav_link('','Next Entries &amp;raquo;','') ?&gt;
+&lt;/div&gt;
+  &lt;/div&gt;
+&lt;?php else : ?&gt;
+  &lt;h2 class="center"&gt;Not Found&lt;/h2&gt;
+ &lt;p class="center"&gt;&lt;?php _e("Sorry, but you are looking for something that isn't here."); ?&gt;&lt;/p&gt;
+  &lt;?php endif; ?&gt;
+&lt;/div&gt;
+&lt;?php get_sidebar(); ?&gt;
+&lt;?php get_footer(); ?&gt;
+</pre>
+
+===不同的分类格式===
+Like the archive views, WordPress looks for a separate template file for [[Category_Templates|category views]].  If a visitor clicks on a link for a category in your blog, they will be taken to the category view.  WordPress will prepare The Loop with posts from that category only, limiting the number of posts per the blog's default settings.
+
+To make your category view different from your index view, copy <tt>index.php</tt> and rename it <tt>category.php</tt>.  For a category view, it's probably not necessary to list the categories to which a post is assigned, so let's remove that portion.  Instead, let's announce the category at the top of the page:
+<pre>
+&lt;?php get_header(); ?&gt;
+ &lt;div id="content" class="narrowcolumn"&gt;
+ &lt;p&gt;
+ &lt;strong&gt;
+  &lt;?php single_cat_title('Currently browsing '); ?&gt;
+  &lt;/strong&gt;&lt;br /&gt;
+ &lt;?php echo category_description(); ?&gt;
+ &lt;/p&gt;
+ &lt;?php if (have_posts()) : ?&gt;
+   &lt;?php while (have_posts()) : the_post(); ?&gt;
+     &lt;div class="post"&gt;
+      &lt;h2 id="post-&lt;?php the_ID(); ?&gt;"&gt;
+&lt;a href="&lt;?php the_permalink() ?&gt;" rel="bookmark" title="Permanent Link to &lt;?php the_title(); ?&gt;"&gt;
+&lt;?php the_title(); ?&gt;&lt;/a&gt;&lt;/h2&gt;
+   &lt;small&gt;
+     &lt;?php the_time('F jS, Y') ?&gt; 
+        &lt;!-- by &lt;?php the_author() ?&gt; --&gt;
+   &lt;/small&gt;
+ &lt;/div&gt;
+&lt;?php endwhile; ?&gt;
+ &lt;div class="navigation"&gt;
+   &lt;div class="alignleft"&gt;
+    &lt;?php posts_nav_link('','','&amp;laquo; Previous Entries') ?&gt;
+   &lt;/div&gt;
+   &lt;div class="alignright"&gt;
+    &lt;?php posts_nav_link('','Next Entries &amp;raquo;','') ?&gt;
+   &lt;/div&gt;
+ &lt;/div&gt;
+&lt;?php else : ?&gt;
+  &lt;h2 class="center"&gt;Not Found&lt;/h2&gt;
+&lt;p class="center"&gt;&lt;?php _e("Sorry, but you are looking for something that isn't here."); ?&gt;&lt;/p&gt;
+ &lt;?php endif; ?&gt;
+&lt;/div&gt;
+&lt;?php get_sidebar(); ?&gt;
+&lt;?php get_footer(); ?&gt;
+</pre>
+
+===不同分类不同格式===
+As explained in the [[Template Hierarchy]], it is possible to [[Category_Templates|create separate template files for each category]].  Simply name the file <tt>category-<b><u>X</u></b>.php</tt>, where <b><u>X</u></b> is the numerical ID of the category.  Consider carefully whether you need a whole new template for a specific category.
+
+Let's look at two categories, "Plants" and "Flowers", with category IDs 3 and 4, respectively.  Next to each post title in the output you want to have picture of either a plant, or a flower, depending on which category is being displayed.  You could:
+* Use two separate files, <tt>category-3.php</tt> and <tt>category-4.php</tt>, each with a different <tt>img</tt> tag for each post title.
+* Use a conditional test inside your default <tt>category.php</tt> file to check whether the current category is "Plants" or "Flowers" (or neither), and display the appropriate image:
+<pre>
+&lt;?php if (is_category('3') ):
+ // we're in the Plants category, so show a plant ?&gt;
+ &lt;img src='/images/plant.png' alt='a plant' /&gt;
+&lt;?php } elseif (is_category('4') ):
+ // we're in the Flowers category, so show a flower ?&gt;
+ &lt;img src='/images/flower.png' alt='a pretty flower' /&gt;
+&lt;?php endif; // end the if, no images for other other categories ?&gt;
+</pre>
+
+If you added another category, "Cars", which you wanted to display in a <em>significantly</em> different way, then a separate <tt>category-<b><u>X</u></b>.php</tt> would be more appropriate.
+
+=== 不同分类不同的CSS样式 ===
+
+Many users want to create separate CSS files for a specific category.  This, too, can be easily accomplished.  It is important to remember that stylesheets are defined and loaded in the <tt>&lt;head&gt;</tt> section of the HTML document.  WordPress uses the <tt>header.php</tt> file for this.  In the default <tt>header.php</tt>, find this line:
+<pre>
+&lt;link rel="stylesheet" href="&lt;?php bloginfo('stylesheet_url'); ?&gt;" type="text/css" media="screen" /&gt;
+</pre>
+And change it to something like this:
+<pre>
+&lt;?php if ( is_category('5') ) { // Load special CSS for "Cars" category ?&gt;
+  <link rel="stylesheet" href="<?php bloginfo('template_url'); ?>/category-5.css" type="text/css" media="screen" />;
+&lt;?php } else { ?&gt;
+   <link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>" type="text/css" media="screen" />
+&lt;?php } ?&gt;
+</pre>
+<strong>Note:</strong> The Cars template uses the <tt>category-5.css</tt> file to override the default layout.  In this example the CSS file is named after the category template file to which it will be applied, rather than the actual name of the category.  Thus, you know that <tt>category-5.css</tt> goes with <tt>category-5.php</tt>.
+
+===不同的单文章格式===
+When viewing any single post (or [[Glossary#Permalink|permalink]]), WordPress will use <tt>single.php</tt>, if present.
+
+This portion, from the WordPress default single.php, provides the [[Post_Meta_Data_Section|post meta data information]] about the current post:
+<pre>
+<p class="postmetadata alt">
+<small>
+This entry was posted on &lt;?php the_time('l, F jS, Y') ?&gt; at &lt;?php the_time() ?&gt; 
+and is filed under &lt;?php the_category(', ') ?&gt;.
+You can follow any responses to this entry through 
+the &lt;?php comments_rss_link('RSS 2.0'); ?&gt; feed.
+&lt;?php
+if (('open' == $post-&gt;comment_status) && ('open' == $post->ping_status)) {
+// Both Comments and Pings are open
+?&gt;
+  You can &lt;a href="#respond"&gt;leave a response&lt;/a&gt;, or 
+  &lt;a href="&lt;?php trackback_url(display); ?&gt;"&gt;trackback&lt;/a&gt; 
+from your own site.
+&lt;?php 
+} elseif (!('open' == $post-&gt;comment_status) && ('open' == $post->ping_status)) {
+// Only Pings are Open 
+?&gt;
+  Responses are currently closed, but you can 
+  &lt;a href="&lt;?php trackback_url(display); ?&gt; "&gt;trackback&lt;/a&gt; 
+from your own site.
+&lt;?php
+} elseif (('open' == $post-&gt;comment_status) && !('open' == $post->ping_status)) { 
+// Comments are open, Pings are not 
+?&gt;
+  You can skip to the end and leave a response. Pinging is currently not allowed.
+&lt;?php
+} elseif (!('open' == $post-&gt;comment_status) && !('open' == $post->ping_status)) { 
+// Neither Comments, nor Pings are open 
+?&gt;
+  Both comments and pings are currently closed.
+&lt;?php 
+} 
+edit_post_link('Edit this entry.','',''); ?&gt;
+&lt;/small&gt;
+&lt;/p&gt;
+</pre>
+This sort of information -- whether comments are open or closed -- is largely inappropriate on an index, archive, or category view; which is why it's only included in the <tt>single.php</tt> template file.
+
+==其它循环技巧==
+Now that you have a good introduction to the basic uses for the WordPress Loop, let's introduce you to some more Loop effects and tricks.
+
+===静态首页===
+
+如何做到使某些特殊的内容<em>仅</em>显示在首页？没错，仅显示在首页，而不是你网站上任何其他的页面。非常简单！这我们称之为''静态首页''。 你网站的首页或第一页并非是真正静态的，而是通过循环使之看起来那样。
+
+为了做到这点，我们使用条件模板标签<tt>[[Function_Reference/is_home|is_home()]]</tt>。
+
+在 <tt>index.php</tt>, 使用 <tt>if()</tt> 判断来[[Conditional Tags|选择性的]]输出额外的内容:
+
+<pre>
+&lt;?php get_header(); ?&gt;
+&lt;?php if (is_home()) {
+ // we're on the home page, so let's show a picture of our new kitten!
+ echo "&lt;img src='/images/new_kitty.jpg' alt='Our new cat, Rufus!' /&gt;";
+ // and now back to our regularly scheduled home page
+} ?&gt; 
+</pre>
+
+当访问者请求的不是某一个文章、页面、分类或日期时，函数 <tt>[[Function_Reference/is_home|is_home()]]</tt> 才会返回true。于是乎以上内容将仅显示在首页。
+
+要了解更多，请查看 [[Creating a Static Front Page|创建静态首页]].
+
+===只显示摘要===
+The easiest way to display excerpts, instead of the full content, of posts, replace all instances of <tt>[[Template_Tags/the_content|the_content]]()</tt> with <tt>[[Template_Tags/the_excerpt|the_excerpt()]]</tt>.  If you have not created explicit excerpts for your posts, this function will automatically display the first 55 words of the post.
+<pre>
+&lt;div class="entry"&gt;
+&lt;?php the_excerpt(); ?&gt;
+&lt;/div&gt;
+</pre>
+
+===依靠文章编号显示摘要或全文===
+In some circumstances, for example on archive pages, you may want to show the full post if there is only one post or excerpts if there are multiple posts. You can customize the loop to do this.
+
+<pre>
+<?php if (have_posts()) : ?>
+
+  <?php if (($wp_query->post_count) > 1) : ?>
+     <?php while (have_posts()) : the_post(); ?>
+       <!-- Do your post header stuff here for excerpts-->
+          <?php the_excerpt() ?>
+       <!-- Do your post footer stuff here for excerpts-->
+     <?php endwhile; ?>
+
+  <?php else : ?>
+
+     <?php while (have_posts()) : the_post(); ?>
+       <!-- Do your post header stuff here for single post-->
+          <?php the_content() ?>
+       <!-- Do your post footer stuff here for single post-->
+     <?php endwhile; ?>
+
+  <?php endif; ?>
+
+<?php else : ?>
+     <!-- Stuff to do if there are no posts-->
+
+<?php endif; ?>
+
+</pre>
+
+===不同的顶栏边栏底栏===
+WordPress offers the <tt>[[Function Reference/get_header|get_header()]]</tt>, <tt>[[Function Reference/get_sidebar|get_sidebar()]]</tt>, and <tt>[[Function Reference/get_footer|get_footer()]]</tt> [[Include Tags]] for use in your [[Templates|template files]]. These functions make it easy to define a standard header/sidebar/footer which is easily editable. Any changes made to these files will immediately be made visible to viewers, without any work on your part.
+
+But sometimes you might not <em>want</em> a sidebar. If you don't want a sidebar, simply exclude the call to the <tt>[[Function Reference/get_sidebar|get_sidebar()]]</tt> function from your template. For example, the <tt>single.php</tt> template in the WordPress default theme does not include a sidebar.
+
+To create your own <strong>different</strong> sidebar, you have two choices:
+# Include the sidebar contents directly into the template file on which you're working.  If you want category-3 to have a different sidebar, edit <tt>category-3.php</tt> and include the necessary HTML and PHP to generate your distinctive sidebar.
+# Use the PHP <tt>[http://www.php.net/include include]</tt> function, to include another file. The WordPress <tt>[[Function Reference/get_sidebar|get_sidebar()]]</tt> function <em>only</em> loads <tt>sidebar.php</tt>.  If you make a file named <tt>sideleft.php</tt>, you would include it like this:
+<pre>
+&lt;?php include(TEMPLATEPATH . '/sideleft.php'); ?&gt;
+</pre>
+
+In Wordpress [[Version 2.5]] and above you can also call a sidebar like this:
+<pre>
+&lt;?php get_sidebar('right'); ?&gt;
+</pre>
+
+This causes the template TEMPLATEPATH . 'sidebar-right.php' to be included.
+
+Using the WordPress default [[Template Hierarchy]], if you want to use the same elements on multiple or different templates, it's probably best to put them in separate template files and use the PHP <tt>[http://us3.php.net/manual/en/function.include.php include()]</tt> function. If the element you're adding is specifically for one template file, it's probably best to include it directly in that template file.
+
+==综述==
+
+我们刚刚大致了解了如何处理循环。提醒一下，下面是能帮助你自定义你自己[[The Loop|WordPress Loop]]的资源。
+* [[Templates|Template Files]]
+* [[Template Tags]]
+* [[Template Hierarchy]]
+* [[Conditional Tags]]
+
+[[Category:WordPress Lessons]]
+[[Category:Design and Layout]]
+[[Category:Advanced Topics]]

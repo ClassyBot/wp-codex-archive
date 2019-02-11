@@ -1,0 +1,511 @@
+<p>&lt;?php
+/*
+</p>
+<pre>     Plugin Name: Statictis
+     Plugin URI: <a rel="nofollow" class="external free" href="http://makiwaki.no-ip.org/Statictis/">http://makiwaki.no-ip.org/Statictis/</a>
+     Description: widget que muestra estadisticas sobre las visitas a tu blog
+     Version: 2.0
+     Author: Emilio díaz peña
+</pre>
+<ul><li>/</li></ul>
+<p>/*
+</p>
+<pre>   Copyright 2011 Emilio díaz peña  (email&#160;: emiliotuccy@gmail.com)
+</pre>
+<pre>   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License, version 2, as 
+   published by the Free Software Foundation.
+</pre>
+<pre>   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+</pre>
+<pre>   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+</pre>
+<ul><li>/</li></ul>
+<p>	/*
+		functiones de operaciones
+	 */
+	 		/* 
+	 		   los proxys van añadiendo al final de esta cabecera
+			   las direcciones ip que van "ocultando". Para localizar la ip real
+			   del usuario se comienza a mirar por el principio hasta encontrar
+			   una dirección ip que no sea del rango privado. En caso de no
+			   encontrarse ninguna se toma como valor el REMOTE_ADDR
+			 */
+function Statictis_getIp(){
+	if($_SERVER[HTTP_X_FORWARDED_FOR]!=<i>){</i>
+		$client_ip =(!empty($_SERVER[REMOTE_ADDR]))?$_SERVER[REMOTE_ADDR]:((!empty($_ENV[REMOTE_ADDR]))?$_ENV[REMOTE_ADDR]:"unknown" );
+		$entries = split('[, ]', $_SERVER[HTTP_X_FORWARDED_FOR]);
+		reset($entries);
+		while(list(, $entry)=each($entries)){
+			$entry = trim($entry);
+			if ( preg_match("/^([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)/",$entry,$ip_list)){
+				$private_ip = array('/^0\\./','/^127\\.0\\.0\\.1/','/^192\\.168\\..*/','/^172\\.((1[6-9])|(2[0-9])|(3[0-1]))\\..*/','/^10\\..*/');
+				$found_ip = preg_replace($private_ip,$client_ip,$ip_list[1]);
+				if ($client_ip&#160;!= $found_ip){
+					$client_ip = $found_ip;
+				break;
+				}
+			}
+		}
+	}
+	else{
+		$client_ip=(!empty($_SERVER[REMOTE_ADDR]))?$_SERVER[REMOTE_ADDR]:((!empty($_ENV[REMOTE_ADDR]))?$_ENV[REMOTE_ADDR]:"unknown" );
+	}
+	return $client_ip;
+	unset($client_ip, $private_ip, $found_ip, $entries);
+}
+function Statictis_getOs(){
+</p>
+<pre>   $userAgent=$_SERVER[HTTP_USER_AGENT];
+</pre>
+<p>	if(preg_match('/Linux/i',$userAgent))
+	{
+		$os='Linux';
+	}
+	elseif(preg_match('/Windows/i',$userAgent))
+	{
+		$os='Windows';
+	}
+	elseif(preg_match('Macintosh',$userAgent))
+	{
+		$os='Macintosh';
+	}
+	else
+	{
+		$os='Otros';
+	}
+return $os;
+unset($os,$userAgent);
+}
+	/*
+	   malabares para distingir ie de opera y mozilla cromium, sfari y peiphany entre ellos
+	   1.-por descartes como mozilla solo devuelve mozilla si se encuentra mozilla en la cadena 
+	   y ninguno de los otros que tienen mozilla en sus cadenas el navegador es mozilla
+	   2.-descartadas las confusiones con mozilla si se encuentra safari pero no se encuentra epiphany ni chrome
+	   el navegador es safari ya q la cadena de safari no contiene crhomee ni epiphany
+	   3.-si se encuentra crhomium pero no se encuentra epiphany el navegador es cromium ya q mozilla y safari qedaron descartados
+	   4.-confusiones entre opera e ie si la cadena contiene msie pero no opera el navegador es ie ya que opera ademas de contener msie contiene opera en su cadena
+	 */
+function Statictis_getBrowser(){
+</p>
+<pre>   $userAgent=$_SERVER[HTTP_USER_AGENT];
+</pre>
+<p>	if(preg_match('/Mozilla/i',$userAgent)&amp;&amp;!preg_match('/Chromium/i',$userAgent)&amp;&amp;!preg_match('/Epiphany/i',$userAgent)&amp;&amp;!preg_match('/Safari/i',$userAgent)){
+		$browser='Mozilla';
+	}
+	elseif(preg_match('/Safari/i',$userAgent)&amp;&amp;!preg_match('/Chrome/i',$userAgent)&amp;&amp;!preg_match('/Epiphany/i',$userAgent))
+	{
+		$browser= 'Safari';
+	}
+	elseif(preg_match('/Chrome/i',$userAgent)&amp;&amp;!preg_match('/Epiphany/i',$userAgent)){
+		$browser='Chromium';
+	}
+	elseif(preg_match('/MSIE/i',$userAgent)&amp;&amp;!preg_match('/Opera/i',$userAgent)){
+		$browser='Internet Explorer';
+	}
+	elseif(preg_match('/Opera/i',$userAgent)){
+		$browser='Opera';
+	}
+	elseif(preg_match('/Epiphany/i',$userAgent)){
+		$browser='Epiphany';
+	}
+	elseif(preg_match('/Netscape/i',$userAgent)){
+		$browser='Netscape';
+	}
+	elseif(preg_match('/Midori/i',$userAgent)){
+		$browser='Midori';
+	}
+	else{
+		$browser='Otros';
+	}
+return $browser;
+unset($browser,$userAgent);
+}
+function getTable(){
+	global $wpdb;
+	$table= $wpdb-&gt;prefix."Statictis";
+return $table;
+unset($table);
+}
+	/*
+	   Funciones de conexion con db
+	 */
+</p><p>function Statictis_install(){
+	$table= getTable();
+	$statment="CREATE TABLE IF NOT EXISTS `$table` (
+</p>
+<pre> 	`Browser` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+ 	`Os` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+ 	`Ip` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+ 	PRIMARY KEY (`Ip`)
+</pre>
+<p>	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
+	$query=mysql_query($statment);
+	unset($query,$statment,$table);
+}
+function Statictis_uninstall(){
+	$table= getTable();
+	$statment="DROP TABLE $table";
+	$query=mysql_query($statment);
+	mysql_free_result($query);
+	unset($query,$statment,$table);
+}
+function Statictis_update($ip,$os,$browser){
+	$table=getTable();
+	$statment="SELECT * FROM $table WHERE Ip='$ip'";
+	$query=mysql_query($statment);
+	if($row=mysql_fetch_array($query, MYSQL_ASSOC)){
+		if($row[Os]!=$os&amp;&amp;$row[Browser]!=$browser){
+			$statment="UPDATE $table SET Os='$os', Browser='$browser' WHERE Ip='$ip'";
+		}
+		elseif($row[Os]!=$os){
+			$statment="UPDATE $table SET Os='$os' WHERE Ip='$ip'";
+		}
+		elseif($row[Browser]!=$browser){
+			$statment="UPDATE $table SET Browser='$browser' WHERE Ip='$ip'";
+		}
+		else{
+			mysql_free_result($query);
+			unset($query,$statment,$table,$row,$os,$browser,$ip);
+			return;
+		}
+	}
+	else{
+		$statment="INSERT INTO $table VALUES('$browser','$os', '$ip')";
+	}
+	$query=mysql_query($statment);
+	mysql_free_result($query);
+	unset($query,$statment,$table,$os,$browser,$ip);
+}
+function Statictis_getStats(){
+		$table=getTable();
+		$count_IE=$count_MOZILLA=$count_CHROMIUM=$count_OPERA=$count_SAFARI=$count_EPIPHANY=$count_NETSCAPE=$count_MIDORI=$count_OTHERS_BROWSERS=$count_WINDOWS=$count_LINUX=$count_MACINTOSH=$count_OTHERS_OS=0;
+		$statment="SELECT * FROM $table";
+		$query=mysql_query($statment);
+	while($row=mysql_fetch_array($query)){
+		switch ($row[Browser]){
+			case 'Internet Explorer':$count_IE++;break;
+			case 'Chromium':$count_CHROMIUM++;break;
+			case 'Mozilla':$count_MOZILLA++;break;
+			case 'Opera':$count_OPERA++;break;
+			case 'Safari':$count_SAFARI++;break;
+			case 'Epiphany':$count_EPIPHANY++;break;
+			case 'Netscape':$count_NETSCAPE++;break;
+			case 'Midori':$count_MIDORI++;break;
+			case 'Otros':$count_OTHERS_BROWSERS++;break;
+		}
+		switch ($row[Os]){
+			case 'Windows':$count_WINDOWS++;break;
+			case 'Linux':$count_LINUX++;break;
+			case 'Macintosh':$count_MACINTOSH++;
+			case 'Otros':$count_OTHERS_OS++;break;
+		}
+	}
+	mysql_free_result($query);
+	$total=$count_WINDOWS+$count_LINUX+$count_MACINTOSH+$count_OTHERS_OS;
+		$stats=array(
+			'IE' =&gt; $count_IE,
+			'CHROMIUM' =&gt; $count_CHROMIUM,
+			'MOZILLA' =&gt; $count_MOZILLA,
+			'OPERA' =&gt; $count_OPERA,
+			'SAFARI' =&gt; $count_SAFARI,
+			'EPIPHANY' =&gt; $count_EPIPHANY,
+			'NETSCAPE' =&gt; $count_NETSCAPE,
+			'MIDORI' =&gt; $count_MIDORI,
+			'OTHERS_BROWSERS' =&gt; $count_OTHERS_BROWSERS,
+			'WINDOWS' =&gt; $count_WINDOWS,
+			'LINUX' =&gt; $count_LINUX,
+			'MACINTOSH' =&gt; $count_MACINTOSH,
+			'OTHERS_OS' =&gt; $count_OTHERS_OS,
+			'TOTAL' =&gt; $total,
+			'PERCENT_IE' =&gt; round(($count_IE*100)/$total),
+			'PERCENT_CHROMIUM' =&gt; round(($count_CHROMIUM*100)/$total),
+			'PERCENT_MOZILLA' =&gt; round(($count_MOZILLA*100)/$total),
+			'PERCENT_OPERA' =&gt; round(($count_OPERA*100)/$total),
+			'PERCENT_SAFARI' =&gt; round(($count_SAFARI*100)/$total),
+			'PERCENT_EPIPHANY' =&gt; round(($count_EPIPHANY*100)/$total),
+			'PERCENT_NETSCAPE' =&gt; round(($count_NETSCAPE*100)/$total),
+			'PERCENT_MIDORI' =&gt; round(($count_MIDORI*100)/$total),
+			'PERCENT_OTHERS_BROWSERS' =&gt; round(($count_OTHERS_BROWSERS*100)/$total),
+			'PERCENT_WINDOWS' =&gt; round(($count_WINDOWS*100)/$total),
+			'PERCENT_LINUX' =&gt; round(($count_LINUX*100)/$total),
+			'PERCENT_MACINTOSH' =&gt; round(($count_MACINTOSH*100)/$total),
+			'PERCENT_OTHERS_OS' =&gt; round(($count_OTHERS_OS*100)/$total)
+		);
+return $stats;
+unset($table,$statment,$query,$count_IE,$count_MOZILLA,$count_CHROMIUM,$count_OPERA,$count_SAFARI,$count_EPIPHANY,$count_NETSCAPE,$count_MIDORI,$count_OTHERS_BROWSERS,$count_WINDOWS,$count_LINUX,$count_OTHERS_OS,$total,$stats);
+}
+function Statictis_printTitle($options_site,$stats){
+	if($options_site[title]!=null){
+</p>
+		echo "<h3 class="widget-title"><span class="mw-headline" id=".24options_site.5Btitle.5D">$options_site[title]</span></h3>";
+<p>	}
+	else{
+</p>
+		echo "<h3 class="widget-title"><span class="mw-headline" id="Statictis">Statictis</span></h3>";
+<p>	}
+unset($options_site,$stats);
+}
+function Statictis_printBrowsers($options_site,$path,$stats){
+	if($options_site[allowBrowserStats]==true){
+		if($options_site[allowIcons]==true&amp;&amp;$options_site[allowPercent]==true){
+			echo "<b>BUSCADORES:</b><br />";
+			echo "&lt;img src='$path/CHROMIUM.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;CHROMIUM: $stats[PERCENT_CHROMIUM]%<br />";
+			echo "&lt;img src='$path/MOZILLA.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;MOZILLA: $stats[PERCENT_MOZILLA]%<br />";
+			echo "&lt;img src='$path/IE.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;IE: $stats[PERCENT_IE]%<br />";
+			echo "&lt;img src='$path/OPERA.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;OPERA: $stats[PERCENT_OPERA]%<br />";
+			echo "&lt;img src='$path/SAFARI.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;SAFARI: $stats[PERCENT_SAFARI]%<br />";
+			echo "&lt;img src='$path/EPIPHANY.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;EPIPHANY: $stats[PERCENT_EPIPHANY]%<br />";
+			echo "&lt;img src='$path/NETSCAPE.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;NETSCAPE: $stats[PERCENT_NETSCAPE]%<br />";
+			echo "&lt;img src='$path/MIDORI.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;MIDORI: $stats[PERCENT_MIDORI]%<br />";
+			echo "&lt;img src='$path/OTROS.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;OTROS: $stats[PERCENT_OTHERS_BROWSERS]%<br />";
+		}
+		elseif($options_site[allowIcons]==false&amp;&amp;$options_site[allowPercent]==true){
+			echo "<b>BUSCADORES:</b><br />";
+			echo "CHROMIUM: $stats[PERCENT_CHROMIUM]%<br />";
+			echo "MOZILLA: $stats[PERCENT_MOZILLA]%<br />";
+			echo "IE: $stats[PERCENT_IE]%<br />";
+			echo "OPERA: $stats[PERCENT_OPERA]%<br />";
+			echo "SAFARI: $stats[PERCENT_SAFARI]%<br />";
+			echo "EPIPHANY: $stats[PERCENT_EPIPHANY]%<br />";
+			echo "NETSCAPE: $stats[PERCENT_NETSCAPE]%<br />";
+			echo "MIDORI: $stats[PERCENT_MIDORI]%<br />";
+			echo "OTROS: $stats[PERCENT_OTHERS_BROWSERS]%<br />";
+		}
+		elseif($options_site[allowIcons]==true&amp;&amp;$options_site[allowPercent]==false){
+			echo "<b>BUSCADORES:</b><br />";
+			echo "&lt;img src='$path/CHROMIUM.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;CHROMIUM: $stats[CHROMIUM]<br />";
+			echo "&lt;img src='$path/MOZILLA.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;MOZILLA: $stats[MOZILLA]<br />";
+			echo "&lt;img src='$path/IE.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;IE: $stats[IE]<br />";
+			echo "&lt;img src='$path/OPERA.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;OPERA: $stats[OPERA]<br />";
+			echo "&lt;img src='$path/SAFARI.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;SAFARI: $stats[SAFARI]<br />";
+			echo "&lt;img src='$path/EPIPHANY.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;EPIPHANY: $stats[EPIPHANY]<br />";
+			echo "&lt;img src='$path/NETSCAPE.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;NETSCAPE: $stats[NETSCAPE]<br />";
+			echo "&lt;img src='$path/MIDORI.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;MIDORI: $stats[MIDORI]<br />";
+			echo "&lt;img src='$path/OTROS.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;OTROS: $stats[OTHERS_BROWSERS]<br />";
+		}
+		elseif($options_site[allowIcons]==false&amp;&amp;$options_site[allowPercent]==false){
+			echo "<b>BUSCADORES:</b><br />";
+			echo "CHROMIUM: $stats[CHROMIUM]<br />";
+			echo "MOZILLA: $stats[MOZILLA]<br />";
+			echo "IE: $stats[IE]<br />";
+			echo "OPERA: $stats[OPERA]<br />";
+			echo "SAFARI: $stats[SAFARI]<br />";
+			echo "EPIPHANY: $stats[EPIPHANY]<br />";
+			echo "NETSCAPE: $stats[NETSCAPE]<br />";
+			echo "MIDORI: $stats[MIDORI]<br />";
+			echo "OTROS: $stats[OTHERS_BROWSERS]<br />";
+		}
+	}
+unset($options_site,$path,$stats);
+}
+function Statictis_printOs($options_site,$path,$stats){
+	if($options_site[allowOsStats]==true){
+		if($options_site[allowIcons]==true&amp;&amp;$options_site[allowPercent]==true){
+			echo "<b>SISTEMAS OPERATIVOS:</b><br />";
+			echo "&lt;img src='$path/LINUX.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;LINUX: $stats[PERCENT_LINUX]%<br />";
+			echo "&lt;img src='$path/WINDOWS.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;WINDOWS: $stats[PERCENT_WINDOWS]%<br />";
+			echo "&lt;img src='$path/MACINTOSH.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;MACINTOSH: $stats[PERCENT_MACINTOSH]%<br />";
+			echo "&lt;img src='$path/OTROS.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;OTROS: $stats[PERCENT_OTHERS_OS]%<br />";
+		}
+		elseif($options_site[allowIcons]==false&amp;&amp;$options_site[allowPercent]==true){
+			echo "<b>SISTEMAS OPERATIVOS:</b><br />";
+			echo "LINUX: $stats[PERCENT_LINUX]%<br />";
+			echo "WINDOWS: $stats[PERCENT_WINDOWS]%<br />";
+			echo "MACINTOSH: $stats[PERCENT_MACINTOSH]%<br />";
+			echo "OTROS: $stats[PERCENT_OTHERS_OS]%<br />";
+		}
+		elseif($options_site[allowIcons]==true&amp;&amp;$options_site[allowPercent]==false){
+			echo "<b>SISTEMAS OPERATIVOS:</b><br />";
+			echo "&lt;img src='$path/LINUX.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;LINUX: $stats[LINUX]<br />";
+			echo "&lt;img src='$path/WINDOWS.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;WINDOWS: $stats[WINDOWS]<br />";
+			echo "&lt;img src='$path/MACINTOSH.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;MACINTOSH: $stats[MACINTOSH]<br />";
+			echo "&lt;img src='$path/OTROS.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;OTROS: $stats[OTHERS_OS]<br />";
+		}
+		elseif($options_site[allowIcons]==false&amp;&amp;$options_site[allowPercent]==false){
+			echo "<b>SISTEMAS OPERATIVOS:</b><br />";
+			echo "LINUX: $stats[LINUX]<br />";
+			echo "WINDOWS: $stats[WINDOWS]<br />";
+			echo "MACINTOSH: $stats[MACINTOSH]<br />";
+			echo "OTROS: $stats[OTHERS_OS]<br />";
+		}
+	}
+unset($options_site,$path,$stats);
+}
+function Statictis_printVisits($options_site,$stats){
+	if($options_site[allowTotalVisits]==true){
+	echo "VISITAS: $stats[TOTAL]<br />";
+	}
+unset($options_site,$stats);
+}
+function Statictis_PrintYourBrowser($options_site,$path,$browser){
+		if($options_site[allowIcons]==true){
+			switch ($browser){
+				case 'Internet Explorer':$image='IE';break;
+				case 'Chromium':$image='CHROMIUM';break;
+				case 'Mozilla':$image='MOZILLA';break;
+				case 'Opera':$image='OPERA';break;
+				case 'Safari':$image='SAFARI';break;
+				case 'Epiphany':$image='EPIPHANY';break;
+				case 'Netscape':$image='NETSCAPE';break;
+				case 'Midori':$image='MIDORI';break;
+				case 'Otros':$image='OTROS';break;
+			}
+			echo "Tu navegador es: &lt;img src='$path/$image.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;$browser<br />";
+		}
+		else{
+			echo "Tu navegador es: $browser<br />";
+		}
+unset($options_site,$path,$browser,$image);
+}
+function Statictis_PrintYourOs($options_site,$path,$os){
+	if($options_site[allowIcons]==true){
+		switch ($os){
+			case 'Windows':$image='WINDOWS';break;
+			case 'Linux':$image='LINUX';break;
+			case 'Macintosh':$image='MACINTOSH';break;
+			case 'Otros':$image='OTROS';break;
+		}
+		echo "Tu sistema operativo es: &lt;img src='$path/$image.png' style='width:$options_site[imageSize]px; height:$options_site[imageSize]px; vertical-align:middle'&gt;$os<br />";
+	}
+	else{
+		echo "Tu sistema operativo es: $os<br />";
+	}
+unset($options_site,$path,$os,$image);
+}
+	/*
+	   funciones de wordpress
+	 */
+function Statictis_public($args=false){
+	$options_site=get_option('Statictis');
+	$ip=Statictis_getIp();
+	$browser=Statictis_getBrowser();
+	$os=Statictis_getOs();
+	Statictis_update($ip,$os,$browser);
+	$stats=Statictis_getStats();
+	$url=get_option('siteurl');
+	$path="$url/wp-content/plugins/Statictis/images";
+	Statictis_printTitle($options_site,$stats);
+	Statictis_printBrowsers($options_site,$path,$stats);
+	Statictis_printOs($options_site,$path,$stats);
+	Statictis_printVisits($options_site,$stats);
+	Statictis_PrintYourBrowser($options_site,$path,$browser);
+	Statictis_PrintYourOs($options_site,$path,$os);
+unset($options_site,$ip,$browser,$stats,$path);
+}
+/*
+</p>
+<pre>  menú de opciones del widget
+*/
+</pre>
+<p>function Statictis_admin()
+{
+	if ($_SERVER[REQUEST_METHOD]=='POST'){
+	$options_site=array(
+		'title'=&gt;$_POST[title],
+		'allowBrowserStats'=&gt;$_POST[allowBrowserStats],
+		'allowOsStats'=&gt;$_POST[allowOsStats],
+		'allowTotalVisits'=&gt;$_POST[allowTotalVisits],
+		'allowIcons'=&gt;$_POST[allowIcons],
+		'imageSize'=&gt;$_POST[imageSize],
+		'allowPercent'=&gt;$_POST[allowPercent],
+		'allowYourBrowser'=&gt;$_POST[allowYourBrowser],
+		'allowYourOs'=&gt;$_POST[allowYourOs]
+		);
+	update_option('Statictis',$options_site);
+	}
+	else{
+	$options_site=get_option('Statictis');
+</p>
+	echo "	<p>
+			Titulo:
+		 	   &lt;input id='title' type='text' name='title' style='width:99%;'/&gt;
+		</p>";
+	echo "	<p>
+			Ver estadísticas de navegadores:
+			    &lt;input id='allowBrowserStats' type='checkbox' name='allowBrowserStats' checked='true' style='width:99%;'/&gt;
+		</p>";
+	echo "	<p>
+			Ver estadísticas de Sistemas Operativos:
+			    &lt;input id='allowOsStats' type='checkbox' name='allowOsStats' checked='true' style='width:99%;'/&gt;
+		</p>";
+	echo "	<p>
+			Ver total de visitas:
+			    &lt;input id='allowTotalVisits' type='checkbox' name='allowTotalVisits' checked='true' style='width:99%;'/&gt;
+		</p>";
+	echo "	<p>
+			Mostrar Iconos:
+			    &lt;input id='allowIcons' type='checkbox' name='allowIcons' checked='true' style='width:99%;'/&gt;
+		</p>";
+	echo "<p>
+		  Tamaño de iconos:
+				&lt;input id='imageSize' type='text' name='imageSize' value='32' style='width:30%;'/&gt;px
+		  </p>";
+	echo "	<p>
+			Mostrar en tantos&#160;%:
+			    &lt;input id='allowPercent' type='checkbox' name='allowPercent' checked='true' style='width:99%;'/&gt;
+		</p>";
+	echo "	<p>
+			Mostrar al visitante cual es su navegador:
+			    &lt;input id='allowYourBrowser' type='checkbox' name='allowYourBrowser' checked='true' style='width:99%;'/&gt;
+		</p>";
+	echo "	<p>
+			Mostrar al visitante cual es su sistema operativo:
+			    &lt;input id='allowYourOs' type='checkbox' name='allowYourOs' checked='true' style='width:99%;'/&gt;
+		</p>";
+<p>	}
+}
+/*
+</p>
+<pre>  colocar plugin en modo debug
+*/
+</pre>
+<p>define('WP_DEBUG',true); 
+/*
+</p>
+<pre>  función de registro del plugin como widget
+*/
+</pre>
+<p>function Statictis_init(){
+	register_sidebar_widget('Statictis','Statictis_public');
+	register_widget_control('Statictis','Statictis_admin');
+}
+/*
+</p>
+<pre>  función de registro del plugin 
+*/
+</pre>
+<p>add_action('plugins_loaded','Statictis_init');
+/*
+</p>
+<pre>  función de instalación y desinstalación
+*/
+</pre>
+<p>add_action('activate_Statictis/Statictis.php','Statictis_install');
+add_action('deactivate_Statictis/Statictis.php','Statictis_uninstall');
+?&gt;
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004029
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.016 seconds
+Preprocessor visited node count: 3/1000000
+Preprocessor generated node count: 8/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 1/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

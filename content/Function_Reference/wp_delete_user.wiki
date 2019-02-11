@@ -1,0 +1,63 @@
+{{Languages|
+{{en|Function Reference/wp delete user}}
+{{ja|Function Reference/wp delete user}}
+}}
+== Description ==
+Remove user and optionally reassign posts and links to another user. 
+
+If the <tt>$reassign</tt> parameter is not assigned to a User ID, then all posts will be deleted of that user. The action '<tt>delete_user</tt>' that is passed the User ID being deleted will be run after the posts are either reassigned or deleted. The user meta will also be deleted that are for that User ID.
+
+== Usage ==
+%%%<?php wp_delete_user( $id, $reassign ); ?>%%%
+
+== Parameters ==
+{{Parameter|$id|integer|User ID.}}
+{{Parameter|$reassign|integer|Reassign posts and links to new User ID.|optional|null}}
+
+== Return Values ==
+; (boolean) : True when finished.
+
+== Examples ==
+Allow users to terminate their user accounts.
+
+<pre>
+if ( is_user_logged_in() && ! empty( $_GET['DeleteMyAccount'] ) ) {
+	add_action( 'init', 'remove_logged_in_user' );
+}
+
+function remove_logged_in_user() {
+	// Verify that the user intended to take this action.
+	if ( ! wp_verify_nonce( 'delete_account' ) ) {
+		return;
+	}
+
+	require_once(ABSPATH.'wp-admin/includes/user.php' );
+	$current_user = wp_get_current_user();
+	wp_delete_user( $current_user->ID );
+}
+</pre>
+
+== Notes ==
+* If you wish to use this function in a plugin then you must include the ./wp-admin/includes/user.php file in your plugin function, else it will throw a 'call to undefined function' error
+* Uses global: (<tt>object</tt>) [[Class Reference/wpdb|<tt>$wpdb</tt>]]
+* This is an Admin function.
+* Uses: [[Function_Reference/do_action|<tt>do_action()</tt>]] Calls [[Plugin_API/Action_Reference/deleted_user|'deleted_user']] hook
+
+== Change Log ==
+Since: 2.0
+
+== Source File ==
+
+<tt>wp_delete_user()</tt> is located in {{Trac|wp-admin/includes/user.php}}.
+
+== Related ==
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+
+{{Tag Footer}}
+
+[[Category:Functions]]

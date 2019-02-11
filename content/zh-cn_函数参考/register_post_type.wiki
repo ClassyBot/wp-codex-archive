@@ -1,0 +1,252 @@
+{{Languages|
+{{en|Function Reference/register_post_type}}
+{{zh-cn|函数参考/register_post_type}}
+{{ja|関数リファレンス/register_post_type}}
+}}
+
+<span style="color:red">这篇函数参考按照[[Version 3.1]]做了修改. 3.1以前版本请查看 [http://codex.wordpress.org/index.php?title=Function_Reference/register_post_type&oldid=93756 this revision.]</span>
+
+== 说明 ==
+Create or modify a [[Glossary#Post Type|post type]]. Do not use [[Function Reference/register_post_type|register_post_type]] before init.
+
+== 用法 ==
+%%%<?php register_post_type( $post_type, $args ) ?>%%%
+== 参数 ==
+{{Parameter|$post_type|string|文章类型。('''最多20个字符''')|必选|空}}
+{{Parameter|$args|array|一个数组参数。|可选|空}}
+
+=== 参数 ===
+{{Parameter|label|string|A '''plural''' descriptive name for the post type marked for translation.|可选|$post_type}}
+
+{{Parameter|labels|array|labels - An array of labels for this post type. By default post labels are used for non-hierarchical types and page labels for hierarchical ones.|可选|if empty, name is set to label value, and singular_name is set to name value}}
+:* 'name' - general name for the post type, usually plural. The same as,  and overridden by $post_type_object->label
+:* 'singular_name' - name for one object of this post type. Defaults to value of name
+:* 'add_new' -  the add new text.  The default is Add New for both hierarchical and non-hierarchical types. When internationalizing this string, please use a [[I18n_for_WordPress_Developers#Disambiguation_by_context|gettext context]] matching your post type. Example: <code>_x('Add New', 'product');</code>
+:* 'add_new_item' -  the add new item text.  Default is Add New Post/Add New Page
+:* 'edit_item' - the edit item text. Default is Edit Post/Edit Page
+:* 'new_item' - the new item text.  Default is New Post/New Page
+:* 'view_item' - the view item text.  Default is View Post/View Page
+:* 'search_items' - the search items text. Default is Search Posts/Search Pages
+:* 'not_found' - the not found text. Default is No posts found/No pages found
+:* 'not_found_in_trash' - the not found in trash text. Default is No posts found in Trash/No pages found in Trash
+:* 'parent_item_colon' - the parent text.  This string isn't used on non-hierarchical types. In hierarchical ones the default is Parent Page
+:* 'menu_name' - the menu name text.  This string is the name to give menu items.  Defaults to value of name
+
+{{Parameter|description|string|A short descriptive summary of what the post type is.|optional|blank}}
+
+{{Parameter|public|boolean|Meta argument used to define default values for publicly_queriable, show_ui, show_in_nav_menus and exclude_from_search.|optional|false}}
+:* 'false' - do not display a user-interface for this post type (show_ui=false), post_type queries can not be performed from the front end (publicly_queryable=false), exclude posts with this post type from search results (exclude_from_search=true), hide post_type for selection in navigation menus (show_in_nav_menus=false)
+:* 'true' - show_ui=true, publicly_queryable=true, exclude_from_search=false, show_in_nav_menus=true
+
+{{Parameter|publicly_queryable|boolean|Whether post_type queries can be performed from the front end.|optional|value of public argument}}
+
+{{Parameter|exclude_from_search|boolean|Whether to exclude posts with this post type from search results.|importance|value of the opposite of the public argument}}
+
+{{Parameter|show_ui|boolean|Whether to generate a default UI for managing this post type.  Note that _built-in post types, such as post and page, are intentionally set to false.|optional|value of public argument}}
+:* 'false' - do not display a user-interface for this post type
+:* 'true' - display a user-interface (admin panel) for this post type
+
+{{Parameter|show_in_menu|boolean or string|Whether to show the post type in the admin menu and where to show that menu.  Note that show_ui must be true.|optional|null}}
+:* 'false' - do not display in the admin menu
+:* 'true' - display as a top level menu
+:* 'some string' - a top level page like 'tools.php' or 'edit.php?post_type=page'
+: Note: When using 'some string' to show as a submenu of a menu page created by a plugin, this item will become the first submenu item, and replace the location of the top level link. If this isn't desired, the plugin that creates the menu page needs to set the add_action priority for admin_menu to 9 or lower.
+
+{{Parameter|menu_position|integer|The position in the menu order the post type should appear. |optional|null - defaults to below Comments}}
+:* 5  - below Posts
+:* 10 - below Media
+:* 15 - below Links
+:* 20 - below Pages
+:* 25 - below comments
+:* 60 - below first separator
+:* 65 - below Plugins
+:* 70 - below Users
+:* 75 - below Tools
+:* 80 - below Settings
+:* 100 - below second separator
+
+{{Parameter|menu_icon|string|The url to the icon to be used for this menu.|optional|null - defaults to the posts icon}}
+
+{{Parameter|capability_type|string or array|The string to use to build the read, edit, and delete capabilities. May be passed as an array to allow for alternative plurals when using this argument as a base to construct the capabilities, e.g. array('story', 'stories').  By default the capability_type is used as a base to construct capabilities.|optional|"post"}}
+
+{{Parameter|capabilities|array|An array of the capabilities for this post type.|optional|capability_type is used to construct}}
+: By default, seven keys are accepted as part of the capabilities array:
+:* edit_post, read_post, and delete_post - These three are '''meta capabilities''', which are then generally mapped to corresponding '''primitive capabilities''' depending on the context, for example the post being edited/read/deleted and the user or role being checked. Thus these capabilities would generally not be granted directly to users or roles.
+:* edit_posts - Controls whether objects of this post type can be edited.
+:*  edit_others_posts - Controls whether objects of this type owned by other users can be edited. If the post type does not support an author, then this will behave like edit_posts.
+:* publish_posts - Controls publishing objects of this post type.
+:* read_private_posts - Controls whether private objects can be read.
+: Note: those last four '''primitive capabilities''' are checked in core in various locations.
+
+: There are also seven other '''primitive capabilities''' which are not referenced directly in core, except in map_meta_cap(), which takes the three aforementioned '''meta capabilities''' and translates them into one or more '''primitive capabilities''' that must then be checked against the user or role, depending on the context.  These additional capabilities are only used in map_meta_cap(). Thus, they are only assigned by default if the post type is registered with the 'map_meta_cap' argument set to true (default is false).
+:* read - Controls whether objects of this post type can be read.
+:* delete_posts - Controls whether objects of this post type can be deleted.
+:* delete_private_posts - Controls whether private objects can be deleted.
+:* delete_published_posts - Controls whether published objects can be deleted.
+:* delete_others_posts - Controls whether objects owned by other users can be  can be deleted. If the post type does not support an author, then this will behave like delete_posts.
+:* edit_private_posts - Controls whether private objects can be edited.
+:* edit_published_posts - Controls whether published objects can be edited.
+
+{{Parameter|map_meta_cap|boolean|Whether to use the internal default meta capability handling.|optional|false}}
+
+{{Parameter|hierarchical|boolean|Whether the post type is hierarchical. Allows Parent to be specified.|optional|false}}
+
+{{Parameter|supports|array|An alias for calling [[Function Reference/add_post_type_support|add_post_type_support()]] directly.|optional|title and editor}}
+:* 'title'
+:* 'editor' (content)
+:* 'author'
+:* 'thumbnail' (featured image, current theme must also support post-thumbnails)
+:* 'excerpt'
+:* 'trackbacks'
+:* 'custom-fields'
+:* 'comments' (also will see comment count balloon on edit screen)
+:* 'revisions' (will store revisions)
+:* 'page-attributes' (template and menu order, hierarchical must be true to show Parent option)
+
+{{Parameter|register_meta_box_cb|string|Provide a callback function that will be called when setting up the meta boxes for the edit form. Do [[Function Reference/remove_meta_box|remove_meta_box()]] and [[Function Reference/add_meta_box|add_meta_box()]] calls in the callback.|optional}}
+
+{{Parameter|taxonomies|array|An array of registered taxonomies like <code>category</code> or <code>post_tag</code> that will be used with this post type. This can be use in lieu of calling [[Function Reference/register_taxonomy_for_object_type|register_taxonomy_for_object_type()]] directly.  Taxonomies still need to be registered with [[Function Reference/register_taxonomy|register_taxonomy()]].|optional}}
+
+{{Parameter|permalink_epmask|string|The default rewrite endpoint bitmasks. For more info see [http://core.trac.wordpress.org/ticket/12605 Trac Ticket 12605].|optional|EP_PERMALINK}}
+
+{{Parameter|has_archive|boolean or string|Enables post type archives. Will use string as archive slug. Will generate the proper rewrite rules if rewrite is enabled.|optional|false}}
+
+{{Parameter|rewrite|boolean or array|Rewrite permalinks with this format.  False to prevent rewrite.|optional|true and use post type as slug}}
+:$args array
+:* 'slug' - prepend posts with this slug - defaults to post type's name - use array('slug'=>$slug) to customize permastruct
+:* 'with_front' - allowing permalinks to be prepended with front base (example: if your permalink structure is /blog/, then your links will be: false->/news/, true->/blog/news/) - defaults to true
+:* 'feeds' - default to has_archive value
+:* 'pages' - defaults to true
+
+{{Parameter|query_var|boolean or string|False to prevent queries, or string value of the query var to use for this post type.|optional|true - set to $post_type}}
+
+{{Parameter|can_export|boolean|Can this post_type be exported.|optional|true}}
+
+{{Parameter|show_in_nav_menus|boolean|Whether post_type is available for selection in navigation menus.|optional|value of public argument}}
+
+{{Parameter|_builtin|boolean|Whether this post type is a native or "built-in" post_type. '''Note: this Codex entry is for documentation - core developers recommend you don't use this when registering your own post type'''|not for general use|false}}
+:* 'false' - default this is a custom post type
+:* 'true' - this is a built-in native post type (post, page, attachment, revision, nav_menu_item)
+
+{{Parameter|_edit_link|boolean|Link to edit an entry with this post type. '''Note: this Codex entry is for documentation '-' core developers recommend you don't use this when registering your own post type'''|not for general use|}}
+:* 'post.php?post=%d'
+
+== 范例 ==
+注册一个文章类型叫 "book"的范例，包括提供上下文帮助:
+<pre>
+<?php
+add_action('init', 'my_custom_init');
+function my_custom_init() 
+{
+  $labels = array(
+    'name' => _x('Books', 'post type general name'),
+    'singular_name' => _x('Book', 'post type singular name'),
+    'add_new' => _x('Add New', 'book'),
+    'add_new_item' => __('Add New Book'),
+    'edit_item' => __('Edit Book'),
+    'new_item' => __('New Book'),
+    'view_item' => __('View Book'),
+    'search_items' => __('Search Books'),
+    'not_found' =>  __('No books found'),
+    'not_found_in_trash' => __('No books found in Trash'), 
+    'parent_item_colon' => '',
+    'menu_name' => 'Books'
+
+  );
+  $args = array(
+    'labels' => $labels,
+    'public' => true,
+    'publicly_queryable' => true,
+    'show_ui' => true, 
+    'show_in_menu' => true, 
+    'query_var' => true,
+    'rewrite' => true,
+    'capability_type' => 'post',
+    'has_archive' => true, 
+    'hierarchical' => false,
+    'menu_position' => null,
+    'supports' => array('title','editor','author','thumbnail','excerpt','comments')
+  ); 
+  register_post_type('book',$args);
+}
+
+//添加过滤器，以确保课本用户更新时会显示。
+ 
+add_filter('post_updated_messages', 'book_updated_messages');
+function book_updated_messages( $messages ) {
+  global $post, $post_ID;
+
+  $messages['book'] = array(
+    0 => '', // 未使用。信息开始在索引1。
+    1 => sprintf( __('Book updated. <a href="%s">View book</a>'), esc_url( get_permalink($post_ID) ) ),
+    2 => __('Custom field updated.'),
+    3 => __('Custom field deleted.'),
+    4 => __('Book updated.'),
+    /* translators: %s: date and time of the revision */
+    5 => isset($_GET['revision']) ? sprintf( __('Book restored to revision from %s'), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
+    6 => sprintf( __('Book published. <a href="%s">View book</a>'), esc_url( get_permalink($post_ID) ) ),
+    7 => __('Book saved.'),
+    8 => sprintf( __('Book submitted. <a target="_blank" href="%s">Preview book</a>'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
+    9 => sprintf( __('Book scheduled for: <strong>%1$s</strong>. <a target="_blank" href="%2$s">Preview book</a>'),
+      // translators: Publish box date format, see http://php.net/date
+      date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post_ID) ) ),
+    10 => sprintf( __('Book draft updated. <a target="_blank" href="%s">Preview book</a>'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
+  );
+
+  return $messages;
+}
+
+//显示图书上下文帮助
+add_action( 'contextual_help', 'add_help_text', 10, 3 );
+
+function add_help_text($contextual_help, $screen_id, $screen) { 
+  //$contextual_help .= var_dump($screen); // use this to help determine $screen->id
+  if ('book' == $screen->id ) {
+    $contextual_help =
+      '<p>' . __('Things to remember when adding or editing a book:') . '</p>' .
+      '<ul>' .
+      '<li>' . __('Specify the correct genre such as Mystery, or Historic.') . '</li>' .
+      '<li>' . __('Specify the correct writer of the book.  Remember that the Author module refers to you, the author of this book review.') . '</li>' .
+      '</ul>' .
+      '<p>' . __('If you want to schedule the book review to be published in the future:') . '</p>' .
+      '<ul>' .
+      '<li>' . __('Under the Publish module, click on the Edit link next to Publish.') . '</li>' .
+      '<li>' . __('Change the date to the date to actual publish this article, then click on Ok.') . '</li>' .
+      '</ul>' .
+      '<p><strong>' . __('For more information:') . '</strong></p>' .
+      '<p>' . __('<a href="http://codex.wordpress.org/Posts_Edit_SubPanel" target="_blank">Edit Posts Documentation</a>') . '</p>' .
+      '<p>' . __('<a href="http://wordpress.org/support/" target="_blank">Support Forums</a>') . '</p>' ;
+  } elseif ( 'edit-book' == $screen->id ) {
+    $contextual_help = 
+      '<p>' . __('This is the help screen displaying the table of books blah blah blah.') . '</p>' ;
+  }
+  return $contextual_help;
+}
+?>
+</pre>
+
+== Change Log ==
+
+* Since [[Version 2.9|2.9]]
+
+== Source File ==
+<tt>register_post_type()</tt> is located in {{Trac|wp-includes/post.php}}.
+
+== Resources ==
+* [[Custom Post Types]]
+* [http://core.trac.wordpress.org/ticket/12943 Feeds for Custom Post Types (Trac 12943)]
+* [http://lists.automattic.com/pipermail/wp-hackers/2010-June/032655.html Discussion on wp-hackers about capabilities]
+* [http://lists.automattic.com/pipermail/wp-hackers/2010-June/032657.html Another discussion on wp-hackers about capabilities]
+===Plugin Resources===
+* [http://wordpress.org/extend/plugins/content-types-wordpress-plugin/ Custom Content Type Plugin] 
+* [http://wordpress.org/extend/plugins/custom-post-type-ui/ Custom Post Type UI Plugin] 
+* [http://wordpress.org/extend/plugins/cms-press/ CMS Press] 
+* [http://wordpress.org/extend/plugins/gd-taxonomies-tools/ GD Custom Posts And Taxonomies Tools]
+* [http://wordpress.org/extend/plugins/post-types-order/ Change Order for Custom Post Types in WordPress 3.0]
+
+== Related ==
+{{Post Type Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

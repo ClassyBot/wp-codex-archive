@@ -1,0 +1,357 @@
+<h1>Plantillas de Categorías</h1>
+
+== Introducción == 
+Con el advenimiento de la característica [[es:Using Themes|Tema]] de WordPress, cambiar el aspecto y el sentido de su sitio WordPress nunca fue tan fácil. Este documento explica la relación entre las  [[es:Templates|plantillas]] de su tema y qué aspecto tiene su página cuando alguien visita una de sus categorías. Si es usted principiante en archivos de plantilla, vea [[es:Stepping Into Templates|Comenzando con Plantillas]].
+
+== Usando Plantillas de Categoría ==
+
+Cuando un visitante hace click en un enlace a una de las categorías de su sitio, el patrón hace una página que cataloga los posts de esa categoría en particular por orden cronológico, desde el post más reciente en la parte superior de la página hasta el más antiguo en la parte inferior.  En el tema por defecto, [http://binarybonsai.com/kubrick Kubrick], incluido en WordPress 1.5, por ejemplo, todas las páginas de archivo (archivo por meses, por categorías, etc.) listan los posts como extractos.  Quizá usted prefiera formatear sus páginas de categorías de forma diferente.  Para ello, puede crear plantillas de categorías que indiquen a WordPress como mostrar la información en las páginas de cada categoría.
+
+=== Qué Plantilla muestra una Determinada Categoría ===
+
+Primero, necesita conocer la [[es:Template Hierarchy|jerarquía de plantilla]] de las plantillas de categorías.  La jerarquía de plantillas determina exactamente qué archivo de plantilla usa WordPress para mostrar una página de categoría.
+
+Suponga que el ID de la categoría en cuestión es '''6'''.  WordPress usa el ''primer'' archivo de plantilla de la siguiente lista que encuentra en el directorio de su tema en uso.
+
+#<tt>category-6.php</tt>
+#<tt>category.php</tt>
+#<tt>archive.php</tt>
+#<tt>index.php</tt>
+
+Si no tiene un <tt>category-6.php</tt>, WordPress comprobará si existe un <tt>category.php</tt>, etcétera.
+
+La modificación más simple que usted puede hacer es hacer parecer diferentes las páginas de categoría de su página principal.  Para hacer esto, cree un archivo llamado <tt>category.php</tt> en el directorio del tema que está usando y controle cómo se muestra la categoría en ese archivo.
+
+Para que una ''determinada'' categoría sea mostrada de manera diferente a las demás, incluyendo la página principal, puede crear otro archivo de plantilla llamado <tt>category-6.php</tt> (donde '''6''' es el ID de categoría de esa categoría), y WordPress usará esta plantilla en su lugar.
+
+Esta característica de  [[es:Theme_Development#Query-based_Templates|plantillas basadas en preguntas]] amplía las posibilidades para diseñar categorías, así que use su imaginación.
+
+== Ejemplos de Página de Categoría ==
+
+Lo siguiente es una lista de ejemplos tutoriales para modificar las páginas para sus Categorías. Siéntase libre de hacer adiciones.
+
+=== Texto Adhesivo en Todas las Páginas de Categoría ===
+
+Suponga que quiere que se vea algún texto antes de la lista de posts cuando alguien visita cualquiera de sus páginas de categoría (p. ej. usted quiere mostrar el mismo texto para todas las categorías).
+
+Cree en el directorio de su tema un archivo llamado <tt>category.php</tt>. En realidad, usted podría copiar <tt>archive.php</tt> o <tt>index.php</tt> o <tt>page.php</tt> en esta nueva <tt>category.php</tt> y así no tiene que escribir tanto código; sólo tendrá que cambiarlo.
+
+Encima del [[es:The Loop|Loop]], inserte el código siguiente:
+<pre><nowiki>
+<div id="sticky-snip">
+Este es el texto que quiero que aparezca cuando se sigue el enlace a esta categoría.
+</div></nowiki></pre>
+
+=== Texto Adhesivo Diferente para Cada Página de Categoría ===
+
+El ejemplo encima es útil, pero supongo que quiere más flexibilidad; usted quiere que se vea un texto ''diferente'' sobre la lista de posts de categoría dependiendo de qué categoría se esté visitando. Como ejemplo, supongamos que quiere mostrar:
+*"Estos posts tratan todos sobre el queso." para la categoría "Queso",
+*"No llevo pantalones." para la categoría "Pantalones cortos",
+*y "Lo que sigue es una lista de posts sobre algún tema en concreto." para '''todas las demás categorías'''.
+
+Cree <tt>category.php</tt> como se ha explicado antes. Inserte antes del [[es:The Loop|Loop]]
+<pre><nowiki>
+<div id="sticky-snip">
+Lo siguiente es una lista de posts sobre un tema en concreto.
+</div></nowiki></pre>
+
+Determine el ID de la categoría "Queso". Si es '''6'''.  Cree <tt>category-6.php</tt> como antes.  Inserte antes del [[es:The Loop|Loop]]
+<pre><nowiki>
+<div id="sticky-snip">
+Estos posts tratan todos sobre el queso.
+</div></nowiki></pre>
+
+Determine el ID de la categoría "Pantalones cortos". Si es '''19'''.  Cree <tt>category-19.php</tt> como antes.  Inserte antes del [[es:The Loop|Loop]]
+<pre><nowiki>
+<div id="sticky-snip">
+No llevo pantalones.
+</div></nowiki></pre>
+
+=== Texto Adhesivo Solamente en la Primera Página de la Categoría ===
+
+Si su página de categoría personalizada tiene bastantes posts para generar una página anterior, un   [[es:Next_and_Previous_Links|link de página anterior]] aparecerá en la parte inferior de la página. Si pulsa el link para ver más posts dentro de esa categoría, el texto adhesivo aparecerá en cada página secuencial "anterior". Si no quiere ver el texto en las páginas secuenciales, puede usar una [[es:Conditional Tags|etiqueta condicional]] para comprobar en qué pagina de la serie se encuentra, y si es mayor que la página uno, que ya no se vea el texto adhesivo.
+
+Alrededor de su texto adhesivo, añada lo siguiente:
+
+<pre><!-- Comienza la declaración condicional -->
+<?php if ( $paged < 2 ) { // Do stuff specific to first page ?>
+
+<p>Esto es un texto que será visible en la primera página de la página de categoría.</p>
+
+<?php } else { // Do stuff specific to non-first page ?>
+
+<p>Si desea mostrar texto en páginas secuenciales, póngalo aquí.</p>
+
+<?php } ?>
+<!-- fin de la declaración condicional -->
+<!-- comienza Loop -->
+  <?php while (have_posts()) : the_post(); ?>.....</pre>
+
+=== Mostrar Extractos en lugar de Posts Completos ===
+
+Quizás usted busca reducir el tamaño de sus páginas de categoría. Puede hacerlo mostrando extractos en lugar del contenido entero de cada post. Si examina <tt>archive.php</tt> del tema "default" incluido en WordPress 1.5, verá como puede hacerse. En resumen, esto puede hacerse creando un <tt>category.php</tt> como antes, y usando <tt>[[es:Template Tags/the_excerpt|the_excerpt()]]</tt>
+ <?php the_excerpt(); ?>
+en lugar de <tt>[[es:Template Tags/the_content|the_content()]]</tt>
+ <?php the_content(); ?>
+
+=== Mostrar Imágenes que Enlacen a Posts Completos ===
+
+Como antes en WordPress 1.5, usted puede usar el campo de extracto para cambiar la apariencia de páginas de categoría. Coloque una etiqueta img dentro del campo de extracto cuando edita su post. En su plantilla, puede usar [[es:Template Tags/the_excerpt_rss|the_excerpt_rss()]] que elimina la etiqueta de párrafo de alrededor del extracto. Incluya esto en un permalink del post. 
+
+ <a href="<?php the_permalink() ?>"><?php the_excerpt_rss(); ?></a>
+
+Advertencia: usar el extracto de esta forma puede afectar a su feed de RSS, ya que esto coloca una etiqueta img en el extracto, en lugar del texto.
+
+== Reemplazar Múltiples Plantillas de Categoría por Una Sola ==
+
+Usando variables y preguntas WordPress, múltiples archivos de plantilla de categoría pueden ser substituidos por un archivo de plantilla <tt>category.php</tt> en vez del archivo de la plantilla de categoría individual <tt>category-#.php</tt>. Lo siguiente son ejemplos de como puede personalizar sus páginas de categoría basadas en una única plantilla de categoría. Solamente está usted limitado por su imaginación y habilidades para la codificación. Esto no es para el tímido, y se recomienda familiaridad con la sintaxis PHP y etiquetas de plantillas WordPress.
+
+Un único archivo de plantilla de categoría  (<tt>category.php</tt>) se puede crear usando la variable global $cat para determinar qué categoría está siendo mostrada, y usando la variable para averiguar la información sobre la categoría en uso, la categoría padre, o las subcategorías.
+
+Para este ejemplo,  se recoge la información siguiente:
+
+* Descripción de Categoría, que está puesta en el panel de administración [[es:Administration_Panels#Manage_-_Change_your_content|Gestionar]] > [[es:Administration_Panels#Categories|Categorías]].
+* ID y nombre de la categoría, que están puestos en el panel [[Administration_Panels#Manage_-_Change_your_content|Gestionar]] > [[Administration_Panels#Categories|Categorías]] 
+* Categoría padre para las subcategorías
+* El ID de categoría usado dentro de un plugin
+
+En nuestro ejemplo de plantilla personalizada de categoría figura lo siguiente, de forma visible en cada página de categoría:
+
+* Menú de la categoría padre y subcategorías
+* Título de la categoría
+* Descripción de la categoría
+* [http://www.coffee2code.com/wp-plugins/ Coffee2Code's Customizable Post Listings Plugin] para crear una lista aleatoria de posts de esta categoría
+
+=== Texto Personalizado de Página de Categoría ===
+
+Si usa el campo '''descripción de categoría''' en el panel [[es:Administration_Panels#Manage_-_Change_your_content|Gestionar]] > [[es:Administration_Panels#Categories|Categorías]], sea cual sea la información que introduzca en su descripción de categoría, con o sin etiquetas HTML, aparecerá en cualquier página de categoría que incluya una descripción. Si no desea que el texto personalizado aparezca en las páginas de categoría personalizadas, asegúrese que la información de categoría está en blanco.
+
+Un ejemplo de texto personalizado de página de categoría para la categoría "WordPress" podría ser:
+
+<div style="margin:20px; width:50%; border:solid 1px blue; padding:10px; color:#5200A3; font-variant:small-caps; font-size: 120%">
+<span style="font-size:140%">Categoría WordPress</span>
+
+En esta categoría hablamos de cómo usamos WordPress sobre nuestro sitio, ofreciendo consejos y trucos para ayudar a otros usuarios de WordPress a sacar el máximo partido de su sitio en WordPress. ¡Disfrute!
+</div>
+
+Para crear esto, se ha hecho una petición que dice:
+
+<pre>Si es una página de categoría, 
+     conseguir el ID de la categoría y el nombre. 
+     Añadir algunos filtros a la descripción para determinar la disposición, 
+         después mostrar el título de la categoría y la descripción de la categoría.</pre>
+
+El código se parece a esto:
+
+<pre><?php if ( is_category() ) : ?>
+<h2 id="category-name-header">
+<?php echo $cache_categories[$cat]->cat_name ?> Categoría</h2>
+<?php add_filter('category_description', 'wpautop'); ?>
+<?php add_filter('category_description', 'wptexturize'); ?>
+<div id="category-description">
+<?php echo category_description(); ?>
+</div>
+<?php endif; ?></pre>
+
+Recuerde el código de arriba para [[#Sticky Text Only on First Category Page|evitar la redundancia del texto adhesivo]] en las páginas anteriores. Ahora combine esto con el código para generar el título de categoría y la descripción.
+
+<pre><?php if ( $paged < 2 ) { // Do stuff specific to first page?>
+<?php if ( is_category() ) : ?>
+<h2 id="category-name-header"><?php echo $cache_categories[$cat]->cat_name ?></h2>
+<?php add_filter('category_description', 'wpautop'); ?>
+<?php add_filter('category_description', 'wptexturize'); ?>
+<div id="category-description">
+<?php echo category_description(); ?>
+</div>
+<?php endif; ?>
+<?php } else { // Do stuff specific to non-first page ?>
+<?php } ?></pre>
+
+==== Advertencia ====
+
+Si decide usar la '''Descripción de categoría''' como texto personalizado en sus páginas de categoría, tendrá que examinar '''TODOS''' sus archivos de plantilla y cambiar todas las referencias y usar  la descripción de categoría en esas etiquetas.
+
+'''Ejemplos'''
+
+;[[es:Template_Tags/wp_list_cats|<tt>wp_list_cats</tt>]] :El uso de <tt><?php wp_list_cats('use_desc_for_title=1'); ?></tt> genera una lista de enlaces a las categorías con la descripción como título. Esta etiqueta de plantilla a menudo se encuentra en los [[es:Templates|archivos de plantilla]] de cabecera, barra lateral o pie de página de tu tema. Cambie el '''1''' a '''0''' si no quiere esto y el título de enlace se cambiará por "Ver todos los posts archivados bajo nombredelacategoría", donde nombredelacategoría es el nombre de la categoría actual.
+;[[es:Template_Tags/list_cats|<tt>list_cats</tt>]] :Otra versión de <tt>wp_list_cats()</tt>, puede incluir el empleo de <tt>use_desc_for_title</tt>. Esta etiqueta de plantilla usa una larga [[Template_Tags/How_to_Pass_Tag_Parameters#Tags_with_query-string-style_parameters|query string of arguments]] para poner los parámetros. El décimo parámetro cubre la descripción de categoría usada en el enlace. Debe ponerse en <tt>FALSE</tt>: 
+<pre><?php list_cats(FALSE, '', 'ID',
+    'asc', '', TRUE, FALSE, 
+    FALSE, FALSE, FALSE); ?></pre>
+;[[es:Template_Tags/category_description|<tt>category_description()</tt>]] :Si has usado esta etiqueta de plantilla que explícitamente llama a la descripción de categoría desde un archivo de plantilla, tendrás que quitarlo o cambiarlo, o ser consciente de que esto llamará a la misma descripción de categoría que usas en tus páginas de categoría.
+
+=== El Menú ===
+
+El menú de categoría usa dos métodos para recoger la información para los enlaces: un enlace simple para generar un enlace a la categoría padre y empleo de la etiqueta de plantilla [[es:Template Tags/wp_list_cats|<tt>wp_list_cats()</tt>]] para generar las subcategorías de la categoría padre.
+
+La lista generada se parecerá a esto:
+
+<div style="margin:10px 20px; border:solid 1px blue; padding:10px; color:blue; width:55%">
+* <u>Categoría padre</u>
+** <u>Subcategoría uno</u>
+** <u>Subcategoría dos</u>
+*** <u>Sub-subcategoría A</u>
+*** <u>Sub-subcategoría B</u>
+** <u>Subcategoría tres</u>
+</div>
+
+El primer enlace es un [[es:Linking_Posts_Pages_and_Categories|enlace estático]] generado por una petición. Esta petición dice:
+
+# Si hay posts, comprobar qué categoría debe ser la primera en verse y llamarla <tt>$this_category</tt>. 
+# Conseguir el ID de la categoría y el enlace.
+# Si esta categoría es una categoría padre:
+## Imprimir el nombre de la categoría y el enlace. 
+## Si es la subcategoría, encontrar la categoría padre e imprimir el nombre de aquella categoría y el enlace.
+
+Un enlace a una página de categoría sin usar [[es:Using Permalinks|permalinks]] se parece básicamente a esto:
+
+ <a href="index.php?cat=8">Categoría ocho</a>
+
+La pregunta sustituirá la llamada a la <tt>cat=8</tt> de forma que el enlace genera el enlace a la '''categoría padre''' de la categoría mostrada.  
+
+El código se coloca en la plantilla después de la cabecera, tras las primeras referencias de estilo para la disposición de la página, y antes del [[es:The Loop|Loop de WordPress]]. Hemos creado un estilo para la lista y lo hemos llamado <tt>cattoc</tt> para "category table of contents" como nombre del menú:
+
+<pre><?php if (have_posts()) : ?>
+<div id="cattoc"><ul>
+<?php $this_category = get_category($cat); ?>
+<!-- Si la categoría es padre, listar categoría -->
+<?php if ($this_category->category_parent == 0) { ?>
+<li>
+<a href="<?php echo get_category_link($cat); ?>" title="<?php echo $this_category->cat_name; ?>">
+<?php echo $this_category->cat_name; ?>
+</a>
+<ul>
+<?php $this_category->category_parent = $cat; ?>
+<?php } else { ?> 
+<!-- Si la categoría no es padre, listar la categoría padre -->
+<?php $parent_category = get_category($this_category->category_parent); ?>
+<li>
+<a href="<?php echo get_category_link($parent_category->cat_ID); ?>" title="<?php echo $parent_category->cat_name; ?>">
+<?php echo $parent_category->cat_name; ?></a>
+<?php } ?>
+...
+...
+<?php endif; ?></pre>
+
+En la segunda parte del menú, necesitamos una lista de las subcategorías bajo la categoría paternal, para mejorar la navegación dentro de las páginas de categoría. La etiqueta de plantilla [[es:Template Tags/wp_list_cats|<tt>wp_list_cats()</tt>]] genera automáticamente un listado de las categorías y sus subcategorías, pero necesitamos dar instrucciones a la etiqueta de plantilla para "conseguir las subcategorías de la categoría padre".
+
+<pre><ul>
+<?php 
+wp_list_cats('list=1&use_desc_for_title=0&child_of=' . $this_category->category_parent); ?>
+</ul></li>
+</ul></div></pre>
+
+'''Nota:''' la etiqueta de plantilla pone específicamente <tt>use_desc_for_title</tt> en NO (0). Esto hace que la etiqueta NO use la descripción de categoría como "título" del enlace, ya que lo usaremos para el texto personalizado en la página de categoría. La etiqueta de plantilla también puede ser modificada para incluir una clasificación por nombre o ID y para incluir el número de posts. Para más información, ver:  [[es:Template Tags/wp_list_cats|<tt>wp_list_cats()</tt>]].
+
+=== Lista Aleatoria de Posts ===
+
+Si usamos [http://www.coffee2code.com/wp-plugins/ Coffee2Code's Customizable Post Listings Plugin] para crear una lista aleatoria de posts de esta categoría, tenemos que configurar la extensión (plugin) para que reconozca a qué categoría pertenecen los posts que deben mostrarse en una lista aleatoria.
+
+El uso normal de la etiqueta de la extensión (plugin) es:
+
+<pre><?php c2c_get_random_posts(number of posts, "<li>%post_URL%</li>", category ID); ?></pre>
+
+O, más específicamente, mostrar 5 posts en una lista de la categoría 8.
+
+<pre><?php c2c_get_random_posts(5, "<li>%post_URL%</li>", 8); ?></pre>
+
+La variable que debemos poner es el ID de la categoría. Reemplazamos esto por una pregunta que recoge el ID de la categoría y lo pone otra vez con la variable <tt>$cat</tt>:
+
+<pre>$wp_query->query_vars['cat']</pre>
+
+Ahora metemos esto en una sección llamada "Flashes" para presentar una lista aleatoria de 5 enlaces a posts de la misma categoría que está viéndose.
+
+<pre><h4>Flashes</h4>
+<ul>
+<?php c2c_get_random_posts( 10, "<li>%post_URL%</li>", $wp_query->query_vars['cat'], $cat); ?>
+</ul></pre>
+
+=== Mostrar los Posts de Categoría ===
+
+El resto de la página incluye el [[es:The Loop|Loop]] para mostrar los posts de esta categoría, and the ending if/else statements to close off the various queries we have made on the page. Mientras su Loop puede parecer diferente, aquí está el Loop de nuestro ejemplo de página de categoría personalizada.
+
+<pre><?php while (have_posts()) : the_post(); ?>
+<div class="excerpt-post">
+<h2 id="post-<?php the_ID(); ?>">
+<a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title(); ?>">
+<?php the_title(); ?></a></h2>
+<div class="catslist"><?php the_category(' and '); ?></div>
+    <div class="entry">
+        <?php the_excerpt('Continue Reading...') ?>
+    </div>
+<!--
+<?php trackback_rdf(); ?>
+-->
+</div>
+<?php endwhile; ?></pre>
+
+Después esto sigue con la [[es:Next_and_Previous_Links|navegación de páginas]] y las llamadas a los archivos de plantilla de la barra lateral y pie de página.
+
+=== La Plantilla de Categoría Personalizada ===
+
+Use todo esto que ha aprendido para verlo en acción, cree una plantilla <tt>category.php</tt> para generar información personalizada para cada categoría de su sitio.
+
+[NOTA: Esta plantilla necesita tener instalado y activo el plugin Coffee2Code 
+Customizable Post Listings.]
+
+<pre><div id="content">
+   <?php if (have_posts()) : ?>
+<div id="cattoc">
+   <ul>
+   &lt;?php $this_category = get_category($cat);?>
+    <?php if ($this_category->category_parent == 0) { ?>
+      <li>
+<a href="&lt;?php echo get_category_link($cat); ?>" title="<?php echo $this_category->cat_name; ?>">
+<?php echo $this_category->cat_name; ?></a>
+   <ul>
+     <?php $this_category->category_parent = $cat; ?>
+<?php } else { ?>
+     <?php $parent_category = get_category($this_category->category_parent); ?>
+      <li>
+<a href="<?php echo get_category_link($parent_category->cat_ID); ?>" title="<?php echo $parent_category->cat_name; ?>">
+<?php echo $parent_category->cat_name; ?></a>
+     <ul>
+<?php } ?>
+  <?php wp_list_cats('sort_column=name&optioncount=0&list=1&use_desc_for_title=0&child_of=' .$this_category->category_parent); ?>
+     </ul></li>
+</ul></div>
+<?php if ( $paged < 2 ) { // Do stuff specific to first page?>
+   <?php if ( is_category() ) : ?>
+     <h2 id="category-name-header"><?php echo $cache_categories[$cat]->cat_name ?></h2>
+       <?php add_filter('category_description', 'wpautop'); ?>
+       <?php add_filter('category_description', 'wptexturize'); ?>
+  <div id="category-description">
+    <?php echo category_description(); ?>
+  </div>
+<?php endif; ?>
+<h4>Article Highlights</h4>
+   <ul>
+<?php c2c_get_random_posts( 10, "<li>%post_URL%</li>", $wp_query->query_vars['cat'], $cat); ?>
+   </ul>
+<?php } else { // Do stuff specific to non-first page ?>
+   <?php } ?>
+<?php while (have_posts()) : the_post(); ?>
+   <div class="excerpt-post">
+     <h2 id="post-<?php the_ID(); ?>">
+<a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title(); ?>">
+<?php the_title(); ?></a></h2>
+   <div class="catslist"><?php the_category(' and '); ?></div>
+    <div class="entry">
+        <?php the_excerpt('Continue Reading...') ?>
+    </div>
+<!--
+<?php trackback_rdf(); ?>
+-->
+   </div>
+<?php endwhile; ?>
+<?php endif; ?></pre>
+
+Esto es solamente un ejemplo y un buen principio. Use su imaginación, PHP y habilidades de pregunta de WordPress para ayudarle a crear su propio archivo de plantilla de categoría personalizable.
+
+==Recursos==
+* [http://wordpress.org/support/topic/38046 Discusión en el foro de soporte sobre la página de inicio basada en categorías (en inglés)]
+* [http://comox.textdrive.com/pipermail/wp-hackers/2006-January/003808.html Enero de 2005. Discusión en la lista de correo de Hackers sobre el reemplazo de $cache_categories (en inglés)]
+
+{{es:Copyedit}}
+
+[[Category:Spanish Codex]]

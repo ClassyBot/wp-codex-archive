@@ -1,0 +1,175 @@
+{{Avançado}}
+
+Se você está tentando instalar o WordPress você mesmo em seu servidor local ou remoto, esta documentação lhe será útil.
+
+Em resumo, a instalação do WordPress consiste em:
+
+#Baixar o pacote contendo os arquivos do WordPress e enviá-lo para o servidor
+#Criar um banco de dados, onde ficarão os dados do site
+#Editar o arquivo <tt>wp-config.php</tt> com as informações de acesso do banco de dados e enviá-lo para o servidor.
+#Acessar a página de instalação já no seu servidor para o WordPress criar as entradas no banco de dados e o primeiro usuário e assim concluir a instalação.
+
+=== Passo 1: Baixe o pacote e envie ===
+Antes de começar, '''escolha se quer o WordPress acessível diretamente em seu domínio/endereço ou como uma área a parte''':
+
+*'''<tt> <nowiki> http://exemplo.com/</nowiki> </tt> - WordPress direto no endereço do site'''
+Se você quiser o WordPress na raiz do seu domínio (por exemplo, <tt> <nowiki> http://exemplo.com/ </nowiki> </tt>), os arquivos do WordPress devem ficar diretamente na pasta principal do seu servidor (geralmente ''public_html'').
+*'''<tt> <nowiki> http://exemplo.com/blog/</nowiki> </tt> - WordPress em uma pasta dentro do site'''
+Se você quer ter sua instalação do WordPress em um subdiretório do seu site (por exemplo, <tt> <nowiki> http://exemplo.com/blog/ </nowiki> </tt>), s arquivos do WordPress devem ficar dentro de uma pasta no seu servidor, por exemplo ''blog/public_html''.
+
+Por padrão, o pacote de instalação está dentro de uma pasta ''wordpress'', então se quiser o WordPress diretamente na raiz do seu site, terá que mover ou enviar os arquivos e pastas para o diretório raiz. Você pode fazer isso pelo painel de gerenciamento de arquivos do serviço de hospedagem ou por um software [[pt-br:Glossário#FTP|FTP]].
+
+Baixe e descompacte o pacote do WordPress http://br.wordpress.org, já em português do Brasil.
+* Se você vai enviar o WordPress para um servidor remoto, baixe o pacote do WordPress no seu computador com um navegador web e descompacte o pacote.
+* Se você vai usar FTP, pule para o passo seguinte - o upload dos arquivos é descrito log mais neste artigo.
+
+=== Passo 2: Crie um Banco de Dados e o Usuário ===
+Se estiver usando um serviço de hospedagem, você já pode ter um banco de dados do WordPress criado para você, ou pode haver uma solução de configuração automática para fazê-lo. Verifique  nas páginas de suporte do provedor de hospedagem ou seu Painel de Controle, em busca de pistas sobre se vai precisar criar um banco de dados manualmente.
+
+Se acha que precisa criar um manualmente, siga as instruções para [[pt-br:Backups_no_WordPress#Acessando_o__phpMyAdmin| Acessar o phpMyAdmin]] ou leia seguir.
+
+Se tiver apenas um banco de dados já em uso, você pode instalar o WordPress nele - apenas certifique-se de ter um prefixo distintivo para suas tabelas, para evitar a re-escrita.
+
+==== Com cPanel ====
+Se o seu provedor de hospedagem fornece o painel de controle [[pt-br:Glossário#cPanel|cPanel]] , você pode seguir estas instruções para criar seu nome de usuário e banco de dados WordPress. 
+
+# Entre no seu painel [[pt-br:Glossário#cPanel|cPanel]].
+# Clique no ícone '''MySQL Database Wizard''', na seção Banco de Dados.
+# Em '''Step 1. Create a Database''' digite o nome do banco de dados e clique em Next Step.
+# Em '''Step 2. Create Database Users''' digite o nome do usuário do banco ea senha. Certifique-se de usar uma senha segura. Clique em ''Create User''.
+# Em '''Step 3. Add User to Database''' clique na opção ''All Privileges'' e clique em ''Next Step''.
+# Em '''Step 4. Complete the task''' veja o nome do banco e do usuário. Anote os valores de ''hostname'', ''username'', ''databasename'' e a senha que escolher. (Veja que ''hostname''  será '''localhost''').
+
+==== Com phpMyAdmin ====
+Se o servidor web tem [[pt-br:phpMyAdmin|phpMyAdmin]] instalado, você pode seguir estas instruções para criar seu nome de usuário e banco de dados do WordPress.
+
+'''''Nota:''' Estas instruções são escritas para phpMyAdmin 2.6.0, a interface de usuário phpMyAdmin podem variar ligeiramente entre versões.''
+
+# Se um banco de dados relacionados ainda não exisitir na lista suspensa '''Database'''  a esquerda, crie uma:
+## Escolha um nome para seu banco de dados ('<tt>wordpress</tt>' ou '<tt>blog</tt>' etc),  informe no campo '''Create new database''' e clique em '''Create'''.
+# Clique no ícone '''Home''' no canto superior esquerdo para voltar à página principal, clique em '''Privileges'''. Se um usuário relativo ao WordPress ainda não existir na lista de usuários, crie um:
+## Clique '''Add a new User'''.
+## Escolha um nome para o WordPress (<tt>wordpress</tt> etc) e o informe no campo '''User name'''. (Certifique-se que '''Use text field:''' está selecionado na lista suspensa).
+## Escolha uma senha segura (de preferência contendo uma combinação de letras maiúsculas e minúsculas, números e símbolos, e insira  no campo '''password'''. Re-digite a senha no campo '''Re-type'''.
+## Escreva o nome de usuário e senha que você escolheu.
+## Deixar todas as opções em '''Global privileges''' em seus padrões.
+## Clique '''Go'''.
+
+# Volte para a tela '''Privileges''' e clique em '''Check privileges''' no usuário que você acabou de criar para o WordPress. Na seção '''Database-specific privileges''', selecione o banco de dados que você acabou de criar para o WordPress na lista suspensa '''Add privileges to the following database'''. A página será atualizada com privilégios para o banco de dados. Clique em '''Check All''' para selecionar todos os privilégios  e clique em '''Go'''.
+# Na página resultante, anote o nome do host listado após '''Server:''' no topo da página.(Isso geralmente é '''localhost'''.)
+
+==== Com Cliente MySQL ====
+
+Você pode criar usuários de MySQL e bancos de dados com rapidez e facilidade, executando mysql a partir do shell. A sintaxe é mostrada abaixo e o cifrão é o prompt de comando:
+
+<pre>
+$ mysql -u adminusername -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 5340 to server version: 3.23.54
+ 
+Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+ 
+mysql> CREATE DATABASE databasename;
+Query OK, 1 row affected (0.00 sec)
+ 
+mysql> GRANT ALL PRIVILEGES ON databasename.* TO "wordpressusername"@"hostname"
+    -> IDENTIFIED BY "password";
+Query OK, 0 rows affected (0.00 sec)
+  
+mysql> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> EXIT
+Bye
+$ 
+</pre>
+==== Com Plesk ====
+Veja: [http://www.tamba2.org.uk/wordpress/plesk/ Plesk 7 no tamba2.org]
+
+=== Passo 3: Crie e edite o arquivo wp-config.php ===
+Você pode criar e editar o <tt>wp-config.php</tt> você mesmo, ou você pode pular essa etapa e deixar o WordPress tentar fazer isso por você [[#Passo 5: Executando o script de Instalação|quando executar o passo 5]] (você ainda precisa dizer ao WordPress suas informações de banco de dados). É comum o WordPress não ter permissão para criar um arquivo (limitação comum em serviços de hospedagem).
+
+Se enviou os arquivos do WordPress já extraídos, a partir de seu computador:
+#Vá até a pasta onde estão os arquivos
+#Copie o arquivo <tt>wp-config-sample.php</tt>
+#Renomeie a cópia para <tt>wp-config.php</tt>
+#Abra o arquivo <tt>wp-config.php</tt> em um editor de texto apropriado
+#Preencha com seus dados de acesso ao banco de dados.
+#Envie o arquivo para onde estão os arquivos do WordPress no servidor.
+
+Se enviou o pacote .zip para o servidor e extraiu por lá usando o painel do serviço de hospedagem:
+#Abra o arquivo que fez donwload e extraia o arquivo <tt>wp-config-sample.php</tt>
+#Renomeie a cópia para <tt>wp-config.php</tt>
+#Abra o arquivo <tt>wp-config.php</tt> em um editor de texto apropriado
+#Preencha com seus dados de acesso ao banco de dados.
+#Envie o arquivo para onde estão os arquivos do WordPress no servidor.
+
+
+[[pt-br:Editando wp-config.php#Definindo_o_host_do_Banco_de_Dados|Informe o banco de dados]]  na seção entitulada:
+
+  // ** Configurações do MySQL - Você pode pegar essas informações com o serviço de hospedagem ** //
+ /** O nome do banco de dados do WordPress */
+ define('DB_NAME', 'nomedoBD');
+ /** O nome do banco de dados do WordPress */
+ define('DB_NAME', 'nomedoBD');
+ /** Usuário do banco de dados MySQL */
+ define('DB_USER', 'usuarioMySQL');
+ /** Senha do banco de dados MySQL */
+ define('DB_PASSWORD', 'senha');
+ /** nome do host do MySQL */
+ define('DB_HOST', 'localhost');
+
+Salve o arquivo <tt>wp-config.php</tt>.
+
+Para mais detalhes e instruções passo a passo, sobre criar o arquivo de configuração e chave secreta de segurança e senha, consulte [[pt-br:Editando wp-config.php|Editando wp-config.php]].
+
+=== Passo 4: Termine de instalar o WordPress===
+O WordPress precisa criar o primeiro usuário do seu site e também entradas especiais no banco de dados, para isso acesse o WordPress em seu servidor e assim continuar a instalação:
+
+* Se você deixou os arquivos do WordPress na raiz do site (diretamente), visite: <tt><nowiki>http://seusite.com/</nowiki></tt>
+* Se você deixou os arquivo WordPress em uma pasta, por exemplo ''blog'', visite: <tt><nowiki>http://seusite.com/blog</nowiki></tt>
+
+Uma vez que editou o arquivo <tt>wp-config.php</tt> corretamente, você verá a tela a seguir:
+{{Imagens|[[Image:wp-instala-04.png|750px]]|Esta é a tela de início da instalação, se os dados no arquivo <tt>wp-config.php</tt> estiverem corretos}}
+
+Preencha os dados pedidos não se esquecendo de informar um email válido para ser capaz de recuperar a senha caso a perca. Após preencher e clicar em  ''Instalar WordPress'', você verá esta tela:
+{{Imagens|[[Image:wp-instala-05.png|750px]]|Muito bem, sua instalação esta terminada}}
+;Sem o arquivo <tt>wp-config.php</tt>
+Se o WordPress não conseguir encontrar o arquivo <tt>wp-config.php</tt>, ele vai se oferecer para tentar criar e editar o arquivo para você. A seguinte tela aparecerá:
+{{Imagens|[[Image:wp-instala-criar-file.png|750px]]|Instalando sem criar o <tt>wp-config.php</tt>}}
+Clique em ''Criar um arquivo de configuração'' para preencher os dados necessários:
+{{Imagens|[[Image:wp-instala-01.png|750px]]|Tela de boas-vindas}}
+Preencha os dados sobre seu banco de dados na tela seguinte. 
+{{Imagens|[[Image:wp-instala-02.png|750px]]|Informando sobre o banco de dados}}
+Se funcionar, você pode ir adiante com a instalação, caso contrário,será preciso criar um arquivo <tt>wp-config.php</tt> e enviá-lo para seu servidor.
+
+;Término da Instalação
+Veja que ao informar detalhes, você  informa um título ao site, seu nome de usuário, sua escolha de senha (duas vezes) e seu endereço de email. Todas essas informações podem ser alteradas posteriormente nos  [[pt-br:Painéis de Administração|Painéis de Administração]]
+
+==Avisos comuns==
+{{Imagens-f|[[image:wp-install-erro.png|300px]]|Erro ao se conectar ao Banco de Dados|float:right;clear:both}}
+{{Imagens-f|[[image:wp-escrita-wp-config.png|300px]]|Não é possível criar o arquivo|float:right;clear:both}}
+{{Imagens-f|[[Image:wp-install-jaexiste.png|300px]]|Aviso de instalação existente|float:right;clear:both}}
+
+;Erro ao estabelecer conexão com o banco de dados
+Se você obter um erro sobre o banco de dados quando acessar o site:
+* Volte para o [[#Passo 2: Crie um Banco de Dados e o Usuário| Passo 2]] e [[#Passo 3: Crie e edite o arquivo wp-config.php|Passo 3]] e não se esqueça de ter em mãos todas as informações do banco de dados e que tudo foi digitado corretamente em <tt>wp-config.php</tt>.
+* É comum confundir as informações sobre o banco de dados, verja que cada informação geralmente não se repete, por exemplo, nome de usuário nunca é o mesmo que nome do banco de dados.
+* Certifique-se de que o servidor de banco de dados existe e está funcionando.
+
+;Não é possível criar o arquivo <tt>wp-config.php</tt>
+Ao preencher as informações para a criação do arquivo <tt>wp-config.php</tt> pode não ser possível criar o arquivo em seu servidor, então o WordPress vai avisá-lo sobre isso. Neste caso, você deverá criar um arquivo com o texto apresentado.
+
+;Já instalado
+Após a instalação concluída, ao tentar acessar o processo novamente o WordPress irá avisá-lo que já existe uma instalação. Se quer reinstalar e remover todo o conteúdo do WordPress, você deve acessar o phpMyAdmin e eliminar as tabelas em uso para então reinstalar o WordPress novamente do zero.
+
+==Veja também==
+* [[pt-br:Instalando Múltiplos Blogs|Instalando Múltiplos Blogs]]
+* [[pt-br:Instalando o WordPress em Diferentes Ambientes|Instalando o WordPress em Diferentes Ambientes]]
+* [[pt-br:Instalando o WordPress Localmente|Instalando o WordPress Localmente]]
+* [[pt-br:Instalando o WordPress em seu Idioma|WordPress em português]]
+* [[pt-br:FAQ_Instalação#Problemas_Comuns_de_Instalação|FAQ Instalação]]
+* [[pt-br:FAQ_Resolvendo_Problemas|FAQ Resolvendo Problemas]]
+{{Codex-pt}}
+{{DEFAULTSORT:I}}

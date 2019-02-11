@@ -1,0 +1,67 @@
+{{Languages|
+{{en|Using FeedBurner}}
+{{ja|Using FeedBurner}}
+{{pt-br|Usando o FeedBurner}}
+}}
+
+You may want to use [http://feedburner.com FeedBurner] to power your [[Glossary#Feed|feeds]] and make them available for everyone to subscribe to. FeedBurner is sometimes preferred for serving feeds as it has detailed statistics and display options such as sharing buttons.
+
+FeedBurner is an external service owned by Google and is in no way associated with the WordPress project.
+
+==Setup==
+
+You want all your feeds to automatically redirect to FeedBurner.  This way, new and old subscribers (including aggregators such as Google Reader) will automatically start fetching from FeedBurner instead.
+
+You could of course notify your readers that your feed is also available at <tt><nowiki>http://feeds.feedburner.com/yourfeed</nowiki></tt>, but users are lazy.
+
+There are three options to accomplish this. Use a plugin, custom function, or edit your .htaccess file. Most people prefer the ease of plugins so we'll start with that.
+
+==Plugins==
+
+Installing a plugin may simplify the process of enabling the redirection to FeedBurner.  Here are a few:
+* [http://wordpress.org/extend/plugins/feedburner-plugin/ FD FeedBurner Plugin]
+* [https://wordpress.org/plugins/rs-feedburner/ RS FeedBurner - Easy Implementation of FeedBurner, FeedPress, and FeedBlitz Feeds] This is a fork of the famous FeedBurner Feedsmith plugin by Steve Smith, since it was discontinued.
+
+=== Plugin notes, probably outdated===
+
+Note: If you have WordPress installed into a folder other than your root folder, you may encounter errors.  If so, try [http://www.thatedeguy.com/archives/2005/12/wordpress-feedburner-plugin-hack  Thatedeguy's Hack ]for a workaround.
+
+If you have '''index.php''' in your permalink structure you have to use [http://fredfred.net/skriker/index.php/feedburner-with-wordpress-without-htaccess/ this hack].  This hack only forwards part of the RSS feeds.  To forward all of your feeds to FeedBurner use [http://www.diylive.net/index.php/2006/01/20/forward-wordpress-feeds-to-feedburner/ This hack]
+
+== Custom Function ==
+
+For those who prefer a function instead of a plugin, you can use the following code. It uses the [[Plugin_API/Action_Reference/feed_link|feed_link]]  action hook and replaces all instances of your default WordPress feed (rss, rss2, atom, and rdf). Rename the function and remember to replace the url with your FeedBurner url.
+
+<pre>
+// replace the default posts feed with FeedBurner
+function appthemes_custom_rss_feed( $output, $feed ) {
+    if ( strpos( $output, 'comments' ) )
+        return $output;
+
+    return esc_url( 'http://feeds.feedburner.com/AppThemes/' );
+}
+add_action( 'feed_link', 'appthemes_custom_rss_feed', 10, 2 );
+</pre>
+
+For more use cases, see the Resources links below.
+
+== Editing .htaccess ==
+
+You need an .htaccess that is created/modified by WordPress via the Permalink/mod-rewrite option. Go to Settings > Permalinks in the wordpress administration menu and enable "fancy" urls by adding <nowiki>/%year%/%monthnum%/%day%/%postname%/</nowiki> at "Custom Structure". 
+
+Let's say your blog's feed is currently completely managed by WordPress at <tt><nowiki>http://example.com/wp-rss2.php</nowiki></tt> (or <tt><nowiki>http://example.com/feed/rss2/</nowiki></tt>), and you want your subscribers to instead subscriber to the FeedBurner feed, which is at <tt><nowiki>http://feeds.feedburner.com/yourfeed</nowiki></tt>.
+
+You must first modify your .htaccess file by following the instructions at [http://www.askapache.com/htaccess/redirecting-wordpress-feeds-to-feedburner.html Redirecting RSS to Feedburner]. 
+
+''Adapted from [http://wordpress.org/support/topic.php?id=20285#post-115463 The support forum]
+
+=== Resources ===
+* [http://www.wpbeginner.com/opinion/stop-using-feedburner-move-to-feedburner-alternatives/ Stop Using FeedBurner - Move to FeedBurner Alternatives]
+* [https://wordpress.org/plugins/xslt/ FeedBurner alternative: Better RSS Feeds plugin]
+* [http://docs.appthemes.com/tutorials/redirect-wordpress-feed-feedburner/ Redirect Your WordPress Feed to FeedBurner Without a Plugin]
+* [http://www.google.com/support/feedburner/bin/answer.py?answer=78483 Creating your WordPress feed (self-hosted WordPress)]
+* [http://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-setup-feedburner-for-wordpress/ Step by Step Guide to Setup FeedBurner for WordPress]
+
+[[Category:Getting Started]]
+[[Category:Advanced Topics]]
+[[Category:Feeds]]

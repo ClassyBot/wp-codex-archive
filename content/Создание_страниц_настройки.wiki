@@ -1,0 +1,249 @@
+{{Languages|
+{{en|Creating Options Pages}}
+{{ja|Creating Options Pages}}
+{{ru|Создание страниц настройки}}
+}}
+
+== Введение ==
+
+Создавать собственные панели настроек в WordPress относительно легко.
+
+Для начала, чтобы создать элемент меню и новую страницу, посмотрите статью [[Добавление административных меню|«Добавление административных меню»]].
+
+Если придерживаться этой структуры, WordPress сам позаботится о создании настроек, обновлении, сохранении и перенаправлении. Он также проверит права доступа и сделает остальную закулисную магию.
+
+Несколько новых функций были добавлены в WordPress 2.7. Эти новые функции необязательны в WordPress 2.7, но будут требоваться в будущем. Они необходимы для WordPress MU 2.7. См. [[Migrating Plugins and Themes to 2.7]] и [[Settings API]] для получения более детальной информации.
+
+== Открытие страницы ==
+
+Вы можете поместить код страницы параметров в ваш php-файл плагина или создать второй файл с именем например options.php, и включить его с помощью функции php include - http://www.w3schools.com/PHP/php_includes.asp
+
+Если вы хотите совместить внешний вид существующих страниц параметров WordPress, откройте следующее:
+ &lt;div class="wrap">
+ &lt;h2>Your Plugin Page Title</h2>
+
+== Тег формы ==
+
+Когда у вас появилась страница, нужно создать HTML-форму. Используйте этот код:
+ <form method="post" action="options.php">
+
+== Магия nonce ==
+
+После открытия тега формы вставьте следующий PHP-код:
+ <?php wp_nonce_field('update-options'); ?>
+
+Он добавит два скрытых поля, позволяющих автоматически проверять, что пользователь может обновлять настройки, и перенаправлять его обратно на нужную страницу (поскольку форма отсылает результат на другую страницу).
+
+(Это '''не требуется''' если используется '''версия 2.7''', функция [[Function Reference/settings_fields|settings_fields]].)
+
+== Форма таблицы  ==
+
+Большинство страниц параметров используют таблицу с классом «form-table» для отображения их параметров. Чтобы сопоставить внешний вид этих страниц, создайте новую таблицу:
+
+ &lt;table class="form-table">
+
+Используйте поля с теми же названиями, какие вы хотите дать создаваемым настройкам (которые будут храниться в таблице options), например:
+
+ &lt;tr valign="top">
+ &lt;th scope="row">New Option Name</th>
+ &lt;td><input type="text" name="new_option_name" value="<?php echo get_option('new_option_name'); ?>" /></td>
+ &lt;/tr>
+
+Внимательнее посмотрите на элемент &lt;input>:
+
+ &lt;input type="text" name="new_option_name" value="<?php echo get_option('new_option_name'); ?>" />
+
+Обратите внимание, что благодаря использованию функции get_option() в качестве значения поля, оно автоматически обновится, когда настройки будут сохранены.
+
+После того как вы добавили все поля для параметров, закройте таблицу:
+
+ &lt;/table>
+
+== Поле action ==
+
+Теперь создайте скрытое поле под названием «action» со значением «update».
+ <input type="hidden" name="action" value="update" />
+
+(Это '''не требуется''' если используется '''версия 2.7''', функция [[Function Reference/settings_fields|settings_fields]] is used.)
+
+== Поле page_options ==
+
+В заключение, создайте скрытое поле под названием «page_options», содержащее разделённый запятыми список всех настроек, которые нужно записать при сохранении.
+ <input type="hidden" name="page_options" value="new_option_name,some_other_option,option_etc" />
+
+(Это '''не требуется''' если используется '''версия 2.7''', и функции [[Function Reference/settings_fields|settings_fields]] и [[Function Reference/register_setting|register_setting]].)
+
+== Закрываем теги ==
+
+Затем, очевидно, следует закрыть тег формы. Если хотите, можно добавить ещё одну кнопку «Обновить настройки» — в WordPress так принято.
+ &lt;p class="submit">
+ <input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
+ </p>
+ </form>
+ </div>
+
+Обратите внимание на использование функции _e() для перевода текста. Подробности — в статье [[Localizing WordPress|«Локализация WordPress»]].
+
+== Смотрим всё вместе ==
+
+ &lt;div class="wrap">
+ &lt;h2>Your Plugin Name</h2>
+ 
+ &lt;form method="post" action="options.php">
+ <?php wp_nonce_field('update-options'); ?>
+ 
+ &lt;table class="form-table">
+ 
+ &lt;tr valign="top">
+ &lt;th scope="row">New Option Name</th>
+ &lt;td><input type="text" name="new_option_name" value="<?php echo get_option('new_option_name'); ?>" /></td>
+ &lt;/tr>
+  
+ &lt;tr valign="top">
+ &lt;th scope="row">Some Other Option</th>
+ &lt;td><input type="text" name="some_other_option" value="<?php echo get_option('some_other_option'); ?>" /></td>
+ &lt;/tr>
+ 
+ &lt;tr valign="top">
+ &lt;th scope="row">Options, Etc.</th>
+ &lt;td><input type="text" name="option_etc" value="<?php echo get_option('option_etc'); ?>" /></td>
+ &lt;/tr>
+ 
+ &lt;/table>
+ 
+ &lt;input type="hidden" name="action" value="update" />
+ &lt;input type="hidden" name="page_options" value="new_option_name,some_other_option,option_etc" />
+ 
+ &lt;p class="submit">
+ &lt;input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
+ &lt;/p>
+ 
+ &lt;/form>
+ &lt;/div>
+
+== Wordpress 2.7 и новее ==
+
+Здесь новые API функции, которые будут использоваться в версии 3.0.
+
+Эта функция создаёт страницу настройки. 
+
+Add sub menu page to the options main menu. 
+This function takes a capability which will be used to determine whether or not a page is included in the menu. The function which is hooked in to handle the output of the page must check that the user has the required capability as well. 
+
+;page_title: The text to be displayed in the title tags of the page when the menu is selected 
+;menu_title: The text to be used for the menu 
+;capability: The capability required for this menu to be displayed to the user. 
+;menu_slug: The slug name to refer to this menu by (should be unique for this menu) 
+;function: The function to be called to output the content for this page. 
+
+
+=== settings_fields Function ===
+
+The setting fields will know which settings your options page will handle.
+
+Somewhere within the form add this function
+
+ settings_fields( 'myoption-group' );
+
+where <tt>myoption-group</tt> is the same name used in the [[Function Reference/register_setting|register_setting]] function.
+
+This function '''replaces''' the '''nonce magic''', '''action field''', and '''page_options field''' mentioned above.
+
+=== Register Settings ===
+
+The [[Function Reference/register setting|register_setting]] and [[Function Reference/unregister setting|unregister_setting]] functions add and remove options from a whitelist of allowed options that the form is able to save. They can also name a sanitize callback function as a security measure to check each option's value.
+
+The register_setting function should be called in an [[Plugin API/Action Reference#Administrative Actions|admin_init]] action, which runs before every admin page and in particular, <tt>options.php</tt>, which receives this form.
+
+Your plugin probably has a section with an add_action that adds a new menu item to the administration menus. This line will be in the same section to add an action to admin_init.
+
+<pre>
+if ( is_admin() ){ // admin actions
+  add_action( 'admin_menu', 'add_mymenu' );
+  add_action( 'admin_init', 'register_mysettings' );
+} else {
+  // non-admin enqueues, actions, and filters
+}
+</pre>
+
+Then you create a new function that registers each option.
+
+<pre>
+function register_mysettings() { // whitelist options
+  register_setting( 'myoption-group', 'new_option_name' );
+  register_setting( 'myoption-group', 'some_other_option' );
+  register_setting( 'myoption-group', 'option_etc' );
+}
+</pre>
+
+The name of <tt>myoption-group</tt> doesn't matter but it has to match the name used in the settings_fields function above.
+
+
+
+=== See It All Together ===
+
+The below example uses the new Settings API to create and save your plugin options
+<pre>
+<?php
+// create custom plugin settings menu
+add_action('admin_menu', 'baw_create_menu');
+
+function baw_create_menu() {
+
+	//create new top-level menu
+	add_menu_page('BAW Plugin Settings', 'BAW Settings', 'administrator', __FILE__, 'baw_settings_page',plugins_url('/images/icon.png', __FILE__));
+
+	//call register settings function
+	add_action( 'admin_init', 'register_mysettings' );
+}
+
+
+function register_mysettings() {
+	//register our settings
+	register_setting( 'baw-settings-group', 'new_option_name' );
+	register_setting( 'baw-settings-group', 'some_other_option' );
+	register_setting( 'baw-settings-group', 'option_etc' );
+}
+
+function baw_settings_page() {
+?>
+<div class="wrap">
+<h2>Your Plugin Name</h2>
+
+<form method="post" action="options.php">
+    <?php settings_fields( 'baw-settings-group' ); ?>
+    <table class="form-table">
+        <tr valign="top">
+        <th scope="row">New Option Name</th>
+        <td><input type="text" name="new_option_name" value="<?php echo get_option('new_option_name'); ?>" /></td>
+        </tr>
+         
+        <tr valign="top">
+        <th scope="row">Some Other Option</th>
+        <td><input type="text" name="some_other_option" value="<?php echo get_option('some_other_option'); ?>" /></td>
+        </tr>
+        
+        <tr valign="top">
+        <th scope="row">Options, Etc.</th>
+        <td><input type="text" name="option_etc" value="<?php echo get_option('option_etc'); ?>" /></td>
+        </tr>
+    </table>
+    
+    <p class="submit">
+    <input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
+    </p>
+
+</form>
+</div>
+<?php } ?>
+</pre>
+==== Pitfalls ====
+The '''Settings''' name, the second parameter in the ''register_setting()'' function, MUST match the name of the option being updated in the database!
+<br />
+For example, say you have '''add_option( 'foo_bar', 'isfoo' )''', you MUST use '''foo_bar''' as the second parameter for the '''register_setting()''' function.  Otherwise WordPress does not know which setting it is suppose to update and it will fail to update.
+
+[[Category:ru:Plugins]]
+[[Category:WordPress Development]]
+[[Category:Advanced Topics]]
+[[Category:Russian Codex]]
+{{ru:Stub}}

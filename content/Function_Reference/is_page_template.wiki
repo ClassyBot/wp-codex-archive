@@ -1,0 +1,75 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/is_page_template/}}
+
+{{Languages|
+{{en|Function Reference/is_page_template}}
+{{ja|関数リファレンス/is_page_template}}
+}}
+
+==Description==
+This [[Conditional Tags|Conditional Tag]] allows you to determine if you are in any page template. Optionally checks if a specific [[Page_Templates|Page Template]] is being used in a [[Pages|Page]]. This is a boolean function, meaning it returns either TRUE or FALSE. This tag must be used BEFORE [[The Loop]] and does not work inside The Loop (see [[#Notes|Notes]] below).
+
+==Usage==
+%%%<?php is_page_template( $template ); ?>%%%
+
+==Parameters==
+{{Parameter|$template|string&#124;array|The specific template name or array of templates to match.|optional}}
+
+==Return Values==
+; <tt>(boolean)</tt> : True on success, false on failure.
+
+==Examples==
+Is [[Page_Templates|Page Template]] 'about' being used? Note that unlike with other conditionals, if you want to specify a particular Page Template, you need to use the filename, such as about.php or my_page_template.php.
+
+<pre>
+if ( is_page_template( 'about.php' ) ) {
+	// Returns true when 'about.php' is being used.
+} else {
+	// Returns false when 'about.php' is not being used.
+}
+</pre>
+
+==Notes==
+===Page template in subdirectory ===
+If the page template is located in a subdirectory of the theme (since WP 3.4), prepend the folder name and a slash to the template filename, e.g.:
+<pre>
+is_page_template( 'templates/about.php' );
+</pre>
+===Cannot Be Used Inside The Loop===
+Due to certain global variables being overwritten during The Loop <code>is_page_template()</code> will not work. In order to use it after The Loop you must call [[Function_Reference/wp_reset_query|wp_reset_query()]] after The Loop.
+
+====Alternative====
+Since the page template slug is stored inside the <tt>post_meta</tt> for any post that has been assigned to a page template, it is possible to directly query the <tt>post_meta</tt> to see whether any given page has been assigned a page template. This is the method that <tt>is_page_template()</tt> uses internally.
+
+The function [[Function_Reference/get_page_template_slug|get_page_template_slug( $post_id )]] will return the slug of the currently assigned page template (or an empty string if no template has been assigned - or <tt>false</tt> if the <tt>$post_id</tt> does not correspond to an actual <tt>page</tt>). You can easily use this anywhere (in The Loop, or outside) to determine whether any page has been assigned a page template.
+
+<pre>
+<?php 
+  // in the loop:
+  if ( get_page_template_slug( get_the_ID() ) ){
+     // Yep, this page has a page template
+  }
+
+  // anywhere:
+  if ( get_page_template_slug( $some_post_ID ) ){
+     // Uh-huh.
+  }
+?>
+</pre> 
+
+* See also [[Function_Reference/is_page|is_page()]]
+
+==Change Log==
+Since: 2.5.0
+
+==Source File==
+<!-- Need links to current source code files -->
+<tt>is_page_template()</tt> is located in {{Trac|wp-includes/post-template.php}}.
+
+==Related==
+
+{{Conditional Tags}}
+
+{{Tag Footer}}
+
+[[Category:Conditional Tags]]
+[[Category:Functions]]

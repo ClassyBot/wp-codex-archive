@@ -1,0 +1,72 @@
+{{Languages|
+{{en|Function Reference/current_time}}
+{{ja|関数リファレンス/current_time}}
+}}
+
+== Description ==
+Returns the blog's current local time in the specified format. There are two named formats: <tt>'mysql'</tt> for MySQL/MariaDB's timestamp data type format (i.e. <tt>YYYY-MM-DD HH:MM:SS</tt>), and <tt>'timestamp'</tt> for the Unix timestamp format (i.e. epoch). Other strings will be interpreted as PHP date formats (e.g. <tt>'Y-m-d'</tt>) since [[Version 3.9|3.9.0]]. The optional secondary parameter can be used to retrieve GMT time instead of the blog's local time.
+
+The local time returned is based on the timezone set on the blog's General Settings page, which is UTC by default.
+
+Note that if you are storing the time of an event, current_time( 'timestamp' ) should not be used in lieu of time(), as it returns a Unix timestamp that is incorrectly offset and inaccurate. Unix timestamps are always in UTC and do not have any other timezone attached. Should the site owner change the timezone of the WordPress installation at any time, stored timestamps that are offset using current_time( 'timestamp' ) will be incorrect. Instead of using current_time( 'timestamp' ), which is [https://core.trac.wordpress.org/ticket/40657 no longer recommended], use time() and store it unmodified. Then upon output to the screen, convert it to the user's timezone by passing the timezone to your visualization method. For example, PHP's DateTime class.
+
+== Usage ==
+%%%<?php $time = current_time( $type, $gmt = 0 ); ?>%%%
+== Parameters ==
+{{Parameter|$type|string|The time format to return. Possible values:<ul><li><tt>mysql</tt></li><li><tt>timestamp</tt></li><li>A PHP date format (e.g. <tt>'Y-m-d'</tt>) (since 3.9)</li></ul>}}
+
+{{Parameter|$gmt|integer|The time zone (GMT, local) of the returned time: Possible values:<ul><li><tt>1</tt></li><li><tt>0</tt></li></ul>|optional|0}}
+
+== Returns ==
+If the first parameter is <tt>'mysql'</tt>, the function returns a date-time string. If the first parameter is <tt>'timestamp'</tt>, the function returns a <tt>double</tt> value equal to the number of seconds since Jan. 1, 1970. When strict data typing is necessary, take note that the PHP <tt>time()</tt> function, which <tt>current_time()</tt> replaces, returns an integer value, so consider using <tt>(int) current_time( 'timestamp' )</tt> instead.
+
+As of version 3.9, any other value for the first parameter will be used as the format for the time. For example, <tt>current_time( 'Y-m-d' )</tt> will return something like '2014-04-14'.
+
+If the optional second parameter is <tt>1</tt>, the value returned represents the current GMT time. If <tt>0</tt> or no second parameter are set, the value returned represents the local time for the timezone declared in the blog's Timezone setting on the General Settings page.
+
+== Example ==
+This example gets the current time and assigns the parameters to variables.
+<pre>
+<?php 
+$blogtime = current_time( 'mysql' ); 
+list( $today_year, $today_month, $today_day, $hour, $minute, $second ) = preg_split( '([^0-9])', $blogtime );
+?>
+</pre>
+
+<div style="border:1px solid blue; width:50%; padding:10px">Example of format of <tt>current_time( 'mysql' )</tt>: 
+
+    2005-08-05 10:41:13
+
+</div>
+
+
+=== Examine the results ===
+<pre>
+<?php
+
+echo "current_time( 'mysql' ) returns local site time: " . current_time( 'mysql' ) . '<br />';
+echo "current_time( 'mysql', 1 ) returns GMT: " . current_time( 'mysql', 1 ) . '<br />';
+echo "current_time( 'timestamp' ) returns local site time: " . date( 'Y-m-d H:i:s', current_time( 'timestamp', 0 ) );
+echo "current_time( 'timestamp', 1 ) returns GMT: " . date( 'Y-m-d H:i:s', current_time( 'timestamp', 1 ) );
+
+?>
+</pre>
+
+== Notes ==
+
+== Change Log ==
+
+* Since: [[Version 1.0|1.0]]
+* [[Version 3.9|3.9.0]]: <tt>$type</tt> can now be any PHP date format.
+
+== Source File ==
+
+<tt>current_time()</tt> is located in {{Trac|wp-includes/functions.php}}
+
+== Related ==
+
+{{Time Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

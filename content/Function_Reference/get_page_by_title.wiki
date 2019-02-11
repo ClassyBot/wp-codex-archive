@@ -1,0 +1,88 @@
+{{Languages|
+{{en|Function Reference/get page by title}}
+{{ru|Справочник по функциям/get page by title}}
+{{ja|関数リファレンス/get page by title}}
+}}
+
+== Description ==
+
+Retrieves a post given its title. If more than one post uses the same title, the post with the smallest ID will be returned.
+
+Because this function uses the MySQL <tt>'='</tt> comparison the <tt>$page_title</tt> will ''usually'' be matched as case insensitive with [http://dev.mysql.com/doc/refman/5.5/en/case-sensitivity.html default collating].
+
+== Usage ==
+
+%%%
+<?php 
+  get_page_by_title( $page_title, $output, $post_type );
+?>
+%%%
+
+== Parameters ==
+
+{{Parameter|$page_title|string|Page title}}
+{{Parameter|$output|string|Output type. <tt>OBJECT</tt>, <tt>ARRAY_N</tt>, or <tt>ARRAY_A</tt>.|optional|OBJECT}}
+{{Parameter|$post_type|string|Post type.|optional|page}}
+
+== Return Values ==
+
+; (mixed) : <tt>OBJECT</tt>, <tt>ARRAY_N</tt>, or <tt>ARRAY_A</tt>. 
+<tt>NULL</tt> when no posts found.
+
+== Examples ==
+
+===Find Page ID to use with exclude in wp_list_pages===
+
+This example will return the $page object for the page titled "About".  Then the $page->ID element is used to exclude the About page when listing pages.
+
+<pre>
+<?php 
+$page = get_page_by_title( 'About' );
+wp_list_pages( 'exclude=' . $page->ID );
+?>
+</pre>
+
+===How To Find WordPress Page ID By Title Then Replace the_content()===
+
+In this example, we find the page id of "Sample Page" then replace the page's the_content() with "Hello World!"
+
+<pre>
+function my_content($content) {
+    $page = get_page_by_title( 'Sample Page' );
+    
+    if ( is_page($page->ID) )
+        $content = "Hello World!";
+        return $content;
+}
+
+add_filter('the_content', 'my_content');
+</pre>
+
+===How to Find WordPress Custom Post Type by Title===
+
+This is useful for Custom Post Types. Below, we find the $post array of a Custom Post Type "link" with a title of "World Peace Now":
+
+<pre>
+$mypost = get_page_by_title('World Peace Now', OBJECT, 'link');
+print_r($mypost);
+</pre>
+
+== Notes ==
+
+* Uses global: (<tt>object</tt>) [[Class Reference/wpdb|<tt>$wpdb</tt>]]
+
+== Change Log ==
+
+* Since: [[Version 2.1|2.1.0]]
+* [[Version 3.0|3.0.0]]: <code>$post_type</code> Parameter was added.
+
+== Source File ==
+
+<tt>get_page_by_title()</tt> is located in {{Trac|wp-includes/post.php}}.
+
+== Related ==
+{{Page Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

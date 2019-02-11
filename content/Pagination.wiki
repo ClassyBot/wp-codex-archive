@@ -1,0 +1,241 @@
+{{Languages|
+{{en|Pagination}}
+{{ja|Pagination}}
+{{vi|Pagination}}
+}}
+
+== Pagination ==
+WordPress offers built-in functionality for navigating through posts. Theme developers can use simple links or numbered pagination to indicate the previous page or the next page in a given sequence.
+
+WordPress has the ability to split a single post, or a list of posts, into multiple pages for "paged" navigation. You can set how many posts to list on each page on the [[Settings_Reading_Screen|Reading screen]] (wp-admin > Settings > Reading). Unless your theme overrides it, WordPress will use the value “Blog pages show at most” to determine how many blog posts are shown on a page. An instance where WordPress might override this value is when it is using a custom query, for instance.
+
+When multiple [[The_Loop|loops]] (post lists) are used in a theme template file, only one loop--the main loop--can be paginated.
+
+== Function Reference ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Multiple Posts Pagination'''
+|-
+|
+* <tt>[[Function Reference/posts_nav_link | posts_nav_link()]]</tt>
+* <tt>[[Function Reference/next_posts_link | next_posts_link()]]</tt>
+* <tt>[[Function Reference/previous_posts_link | previous_posts_link()]]</tt>
+* <tt>[[Function Reference/get_next_posts_link | get_next_posts_link()]]</tt>
+* <tt>[[Function Reference/get_previous_posts_link | get_previous_posts_link()]]</tt>
+* <tt>[[Function Reference/paginate_links | paginate_links()]]</tt>
+* <tt>[[Function Reference/the_posts_pagination | the_posts_pagination()]]</tt>
+* <tt>[[Function Reference/get_the_posts_pagination | get_the_posts_pagination()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Single Post pagination'''
+|-
+|
+* <tt>[[Function Reference/wp_link_pages | wp_link_pages()]]</tt>
+|}
+
+
+|}
+
+== Example Loop with Pagination ==
+This simplified example shows where you can add [[Pagination#Function_Reference|pagination functions]] for the [[the_loop|main loop]]. Add the functions just before or after the loop.
+<pre>
+<?php if ( have_posts() ) : ?>
+
+<!-- Add the pagination functions here. -->
+
+<!-- Start of the main loop. -->
+<?php while ( have_posts() ) : the_post();  ?>
+
+<!-- the rest of your theme's main loop -->
+
+<?php endwhile; ?>
+<!-- End of the main loop -->
+
+<!-- Add the pagination functions here. -->
+
+<div class="nav-previous alignleft"><?php previous_posts_link( 'Older posts' ); ?></div>
+<div class="nav-next alignright"><?php next_posts_link( 'Newer posts' ); ?></div>
+
+<?php else : ?>
+<p><?php _e('Sorry, no posts matched your criteria.'); ?></p>
+<?php endif; ?>
+</pre>
+
+See [[Function_Reference/next_posts_link#Usage_when_querying_the_loop_with_WP_Query|this example]] if you're querying the loop with [[Function_Reference/WP_Query|WP_Query]].
+
+== Troubleshooting Broken Pagination ==
+Sometimes pagination will break and give unexpected results, redirecting you to the wrong page or giving you a 404 error for the "paged" pages. This is usually due to your theme incorrectly altering (querying) the main [[the_loop|loop]].
+
+=== Basic Troubleshooting Steps ===
+
+Deactivate all [[Plugins|plugins]] to make sure that a plugin is not interfering with pagination. If this solves the problem, reactivate the plugins one by one until you find the plugin that is at fault. If you are using plugins for your pagination, see the [[Pagination#Plugins|plugin section]] of this page.
+
+Re-save your permalink structure on the [[Settings_Permalinks_Screen|Permalinks Screen]] (wp-admin > Settings > Permalinks) or set it to the default structure, and see if that solves the problem.
+
+In the next section, there are some advanced troubleshooting steps. If you find these steps to be too technical, or if they don't solve your pagination issue, then you might want to consider asking for help in the [http://wordpress.org/support/ forums]. 
+
+When posting to the forums, be sure to provide a link to a page that demonstrates the problem, as well as a link to the download page for the affected WordPress theme. Be sure to mention all of the actions that you performed while attempting to troubleshoot the issue. 
+
+Before posting to the [http://wordpress.org/support/ forums], it might be helpful to attempt some of the following actions:
+
+*Read the [[Forum_Welcome|forum welcome]]
+*Search for a [http://wordpress.org/tags/pagination solution] yourself
+*Locate the template file where the pagination is broken. Paste the code from your template file into a [[Forum_Welcome#Posting_Large_Excerpt_of_Code|pastebin]] and add a link to it in your forum post.
+
+=== Advanced Troubleshooting Steps===
+
+The next steps are for when your theme is querying the loop and is using one of the [[Pagination#Function_Reference|Multiple Posts Pagination]] functions.
+
+For this advanced section it is assumed you have a basic understanding of the following:
+*What [[Theme_Development#Template_Files|theme template files]] are
+*How to edit theme template files
+*What [[The_Loop|the loop]] is 
+*How a loop can be queried (altered) with [[Function_Reference/query_posts|query_posts()]] or [[Function_Reference/WP_Query|new WP_Query()]]
+
+{{Message|
+| background = #FCECAD
+| border = #CCCCCC
+| color = #000000
+| text = <strong>Important!</strong> Make a [[Backing_Up_Your_WordPress_Files|backup]] of your theme template files and create a [[Child_Themes|child theme]] before editing them. 
+}}
+  
+==== Step 1. Locating the template file====
+The first thing we need to do is find out which theme template file is experiencing issues with broken pagination. Looking at the [[Template_Hierarchy|template hierarchy]] can help you figure out which [[Theme_Development#Template_Files|template files]] are being used in your theme. You can also use a [http://wordpress.org/extend/plugins/what-template-file-am-i-viewing/ plugin] to locate a specific template file.
+
+==== Step 2. Finding the Main Paginated Loop ====
+Open the template file that you found in the previous step and find the main loop. 
+The main loop (if there is more than one loop) is the one that has one of the [[Pagination#Function_Reference|Multiple Posts Pagination]] functions before and/or after it. 
+If you didn't find any of the aforementioned functions in the template file, then your theme may be using a plugin or some other method of pagination.
+
+==== Adding the "Paged" Parameter to a Query ====
+If [[Function_Reference/WP_Query|WP_Query]] is altering the main loop and the "paged" parameter is not set you'll need to add it with [[Function_Reference/get_query_var|get_query_var()]]. This is so WordPress knows exactly what page it's on.
+
+For example, if your query looks like this (without the "paged" parameter):
+ <?php $the_query = new WP_Query( 'posts_per_page=3' ); ?>
+you add the parameter like this:
+<pre><?php
+$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+
+$the_query = new WP_Query( 'posts_per_page=3&paged=' . $paged ); 
+?></pre>
+The next example is exactly the same as above but with the parameters in an array:
+<pre><?php
+$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+$args = array(
+  'posts_per_page' => 3,
+  'paged'          => $paged
+);
+
+$the_query = new WP_Query( $args ); 
+?></pre>
+
+For more information about passing variables to query posts() or new WP_Query,
+check out [https://developer.wordpress.org/reference/functions/query_posts/#user-contributed-notes this article] in the [https://developer.wordpress.org/reference code reference section] of the developer handbook.
+
+==== Static Front Page ====
+If the pagination is broken on a [[Creating_a_Static_Front_Page|static front page]] you have to add the "paged" parameter this way:
+<pre><?php 
+if ( get_query_var( 'paged' ) ) { $paged = get_query_var( 'paged' ); }
+elseif ( get_query_var( 'page' ) ) { $paged = get_query_var( 'page' ); }
+else { $paged = 1; }
+
+$the_query = new WP_Query('posts_per_page=3&paged=' . $paged); 
+?></pre>
+
+==== Removing query_posts from the Main Loop ====
+[[Function_Reference/query_posts|query_posts()]] isn't meant to be used by plugins or themes. Use [[Function_Reference/WP_Query|WP_Query]] instead. It accepts the same parameters as query_posts does. Be aware that neither of these methods is the most efficient way to alter the default query. In fact, either method can also be responsible for breaking pagination. 
+
+If your theme is using either of these methods to query the main loop, you can replace it with the preferred way, that is to say, hooking into '[[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]]' and altering the main query by using [[Function_Reference/is_main_query|is_main_query()]]. This way is faster and more reliable because the query for the main loop is altered before the posts are retrieved from the database. 
+
+Please note that this method works on all template files except [[Pages#Page_Templates|page template files]]. For the page template file, you can use WP_Query instead. Here is an [[Function_Reference/next_posts_link#Usage_when_querying_the_loop_with_WP_Query|example]] of how to perform a query on a page template file using [[Function_Reference/WP_Query|WP_Query]].
+
+For example, lets say your theme queries the main loop like this on your home page (index.php) and category pages (category.php) and the pagination is not working:
+<pre><?php 
+// the query to set the posts per page to 3
+$paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+$args = array('posts_per_page' => 3, 'paged' => $paged );
+query_posts($args); ?>
+<!-- the loop -->
+<?php if ( have_posts() ) : while (have_posts()) : the_post(); ?>
+		<!-- rest of the loop -->
+		<!-- the title, the content etc.. -->
+<?php endwhile; ?>
+<!-- pagination -->
+<?php next_posts_link(); ?>
+<?php previous_posts_link(); ?>
+<?php else : ?>
+<!-- No posts found -->
+<?php endif; ?></pre>
+
+Remove the query_posts part from the template files (index.php, category.php) used in this example:
+<pre><?php 
+// query to set the posts per page to 3
+$paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+$args = array('posts_per_page' => 3, 'paged' => $paged );
+query_posts($args); ?></pre>
+
+And add the query for your home and category pages back in your theme's [[Functions_File_Explained|functions.php]] file:
+<pre>
+function my_post_queries( $query ) {
+  // do not alter the query on wp-admin pages and only alter it if it's the main query
+  if (!is_admin() && $query->is_main_query()){
+
+    // alter the query for the home and category pages 
+
+    if(is_home()){
+      $query->set('posts_per_page', 3);
+    }
+
+    if(is_category()){
+      $query->set('posts_per_page', 3);
+    }
+
+  }
+}
+add_action( 'pre_get_posts', 'my_post_queries' );
+</pre>
+
+As you can see we can make use of [[Conditional_Tags|conditional tags]] (is_home(), is_category(), etc...). This lets us target the pages where we want to alter the query. Lets say you want 6 posts on a category page called "Movies". We can add this to the my_post_queries() function above to target that category:
+
+<pre>
+    // alter the query for the Movies category page 
+    if(is_category('Movies')){
+      $query->set('posts_per_page', 6);
+    }
+</pre>
+
+Read more about querying with pre_get_posts:<br/>[http://www.billerickson.net/customize-the-wordpress-query/ Customize the WordPress query]<br/>
+[http://wordpress.stackexchange.com/questions/50761/when-to-use-wp-query-query-posts-and-pre-get-posts When to use WP_Query, query_posts and pre_get_posts]<br/>
+[http://developer.wordpress.com/2012/05/14/querying-posts-without-query_posts/ Querying posts without query_posts]
+
+== Numbered Pagination ==
+
+To show a set of page numbers (with or without links to the previous and next pages) use this code:
+
+With previous and next pages:
+<pre>
+the_posts_pagination( array(
+	'mid_size'  => 2,
+	'prev_text' => __( 'Back', 'textdomain' ),
+	'next_text' => __( 'Onward', 'textdomain' ),
+) );
+</pre>
+
+Without previous and next pages:
+<pre>
+the_posts_pagination( array( 'mid_size'  => 2 ) );
+</pre>
+
+== Related ==
+{{Pagination}}
+
+[[Category:Troubleshooting]]

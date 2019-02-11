@@ -1,0 +1,106 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Notes"><span class="tocnumber">3</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/user_has_cap&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This hook is applied to a user's capabilities list in the <tt><a href="https://codex.wordpress.org/Class_Reference/WP_User#has_cap.28.24cap.29" title="Class Reference/WP User"> WP_User-&gt;has_cap</a></tt> function (which is called by the <tt><a href="https://codex.wordpress.org/Function_Reference/current_user_can" title="Function Reference/current user can"> current_user_can()</a></tt> function). Filter function arguments are the capabilities list to be filtered, the capability being questioned, and the argument list (which has things such as the post ID if the capability is to edit posts, etc.). Changing a user's capabilities can, for example, enable or restrict access to specific administration panels.
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/user_has_cap&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+function give_permissions( $allcaps, $cap, $args ) {
+	// give author some permissions
+}
+add_filter( 'user_has_cap', 'give_permissions', 10, 3 );
+</pre>
+<p>A Full Example:
+</p>
+<pre>
+/**
+ * author_cap_filter()
+ *
+ * Filter on the current_user_can() function.
+ * This function is used to explicitly allow authors to edit contributors and other
+ * authors posts if they are published or pending.
+ *
+ * @param array $allcaps All the capabilities of the user
+ * @param array $cap     [0] Required capability
+ * @param array $args    [0] Requested capability
+ *                       [1] User ID
+ *                       [2] Associated object ID
+ */
+function author_cap_filter( $allcaps, $cap, $args ) {
+
+	// Bail out if we're not asking about a post:
+	if ( 'edit_post'&#160;!= $args[0] )
+		return $allcaps;
+
+	// Bail out for users who can already edit others posts:
+	if ( $allcaps['edit_others_posts'] )
+		return $allcaps;
+
+	// Bail out for users who can't publish posts:
+	if (&#160;!isset( $allcaps['publish_posts'] ) or&#160;!$allcaps['publish_posts'] )
+		return $allcaps;
+
+	// Load the post data:
+	$post = get_post( $args[2] );
+
+	// Bail out if the user is the post author:
+	if ( $args[1] == $post-&gt;post_author )
+		return $allcaps;
+
+	// Bail out if the post isn't pending or published:
+	if ( ( 'pending'&#160;!= $post-&gt;post_status ) and ( 'publish'&#160;!= $post-&gt;post_status ) )
+		return $allcaps;
+
+	// Load the author data:
+	$author = new WP_User( $post-&gt;post_author );
+
+	// Bail out if post author can edit others posts:
+	if ( $author-&gt;has_cap( 'edit_others_posts' ) )
+		return $allcaps;
+
+	$allcaps[$cap[0]] = true;
+
+	return $allcaps;
+
+}
+add_filter( 'user_has_cap', 'author_cap_filter', 10, 3 );
+</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/user_has_cap&amp;action=edit&amp;section=3" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Passing in a numeric value to <tt><a href="https://codex.wordpress.org/Class_Reference/WP_User#has_cap.28.24cap.29" title="Class Reference/WP User"> has_cap</a></tt> on <tt>WP_User</tt> objects has been deprecated.  Passing a numeric value will generate a deprecated option warning if <a href="https://codex.wordpress.org/Debugging_in_WordPress" title="Debugging in WordPress"> debugging mode</a> is enabled via <a href="https://codex.wordpress.org/Editing_wp-config.php" title="Editing wp-config.php"> wp_config.php</a>:
+</p>
+<pre>Usage of user levels by plugins and themes is deprecated. Use roles and capabilities instead.</pre>
+<p>This will occur if a plugin or a theme calls <tt>has_cap</tt> directly. The plugin or theme needs to be updated to use the new roles and capabilities classes.
+</p><p><em>It is important to note that many built-in functions will use the <tt>has_cap</tt> functionality within their implementation.</em>  For example <tt><a href="https://codex.wordpress.org/Function_Reference/add_options_page" title="Function Reference/add options page"> add_options_page()</a></tt> calls <tt>has_cap</tt> on the 3rd parameter.  If this is called with the <a href="https://codex.wordpress.org/Version_2.0" title="Version 2.0">Version 2.0</a> <a href="https://codex.wordpress.org/Roles_and_Capabilities#User_Levels" title="Roles and Capabilities"> user level syntax</a> by passing in a numeric value you will see the warning as noted above.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/user_has_cap&amp;action=edit&amp;section=4" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Article: <a href="https://codex.wordpress.org/Roles_and_Capabilities" title="Roles and Capabilities">Roles and Capabilities</a></li>
+<li> Function: <tt><a href="https://codex.wordpress.org/Class_Reference/WP_User#has_cap.28.24cap.29" title="Class Reference/WP User"> WP_User-&gt;has_cap()</a></tt></li>
+<li> Function: <tt><a href="https://codex.wordpress.org/Function_Reference/current_user_can" title="Function Reference/current user can"> current_user_can()</a></tt></li></ul>
+<p>Return to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">Plugin API/Filter Reference</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004107
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.004 seconds
+Real time usage: 0.009 seconds
+Preprocessor visited node count: 41/1000000
+Preprocessor generated node count: 80/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

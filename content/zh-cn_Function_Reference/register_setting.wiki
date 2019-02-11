@@ -1,0 +1,75 @@
+{{Languages|
+{{en|Function_Reference/register_setting}}
+{{es|Referencia_de_Funciones/register_setting}}
+{{ja|関数リファレンス/register_setting}}
+{{zh-cn|Function_Reference/register_setting}}
+}}
+== Description ==
+
+Register a setting and its sanitization callback. 
+
+This is part of the [[Settings API]], which lets you automatically generate wp-admin settings pages by registering your settings and using a few callbacks to control the output. 
+
+This function can also be used to register settings that will be shown on some default WP settings pages like <code>"media"</code> or <code>"general"</code>.  (As of WordPress 4.1 this function does not save settings if added to the <code>"permalink"</code> page.) Once the setting is registered you can add it to an existing section with [[Function Reference/add settings field|add_settings_field()]] or create a new section with [[Function Reference/add settings section|add_settings_section()]] and add it to that.
+
+== Usage ==
+
+%%% <?php register_setting( $option_group, $option_name, $sanitize_callback ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$option_group|string|A settings group name. Must exist prior to the <tt>register_setting</tt> call. This must match the group name in [[Function_Reference/settings_fields|<tt>settings_fields()</tt>]]}}
+{{Parameter|$option_name|string|The name of an [[Options_API|option]] to sanitize and save.}}
+{{Parameter|$sanitize_callback|callback|A callback function that sanitizes the option's value. (see also: [http://php.net/manual/en/ref.var.php built-in php callbacks]) |optional}}
+
+== Return Values ==
+
+; (void) : This function does not return a value.
+
+== Example ==
+
+<pre>function register_my_setting() {
+	register_setting( 'my_options_group', 'my_option_name', 'intval' ); 
+} 
+add_action( 'admin_init', 'register_my_setting' );</pre>
+
+==Notes==
+
+* It seems the data is passed through the sanitize function twice. For example this will give you a string with two exclamation marks: <code>function append_exclamation ($input) { return $input.'!'; }</code>
+
+: This should only happen when the option is not yet in the wp_options table. The issue is that the technique used by options.php is to fallback on <tt>update_option</tt>'s ability to detect that an option does not yet exist and subsequently call <tt>add_option</tt>. Problem being that <tt>update_option</tt> calls <tt>sanitize_option</tt> before <tt>add_option</tt>, which also calls <tt>sanitize_option</tt>. 
+
+* The "<strong>Error: options page not found.</strong>" problem (including a solution and explanation):
+
+: The problem then is, that the <tt>'whitelist_options'</tt> filter hasn't got the right index for your data. It gets applied on options.php#98 (WP 3.4).
+
+: <tt>register_settings()</tt> adds your data to the <tt>global $new_whitelist_options</tt>. This then gets merged with the <tt>global $whitelist_options</tt> inside the <tt>option_update_filter()</tt> (resp. <tt>add_option_whitelist()</tt>) callback(s). Those callbacks add your data to the <tt>global $new_whitelist_options</tt> with the <tt>$option_group</tt> as index. When you encounter <strong>"Error: options page not found."</strong> it means your index hasn't been recognized. The misleading thing is that the first argument is used as index and named <tt>$options_group</tt>, when the actual check in options.php#112 happens against <tt>$options_page</tt>, which is the <tt>$hook_suffix</tt>, which you get as <tt>@return</tt> value from <tt>add_submenu_page()</tt>.
+
+: In short, an easy solution is to make <tt>$option_group</tt> match <tt>$option_name</tt>.
+
+: Another cause for this error is having an invalid value for <tt>$page</tt> parameter when calling either <tt>add_settings_section( $id, $title, $callback, $page )</tt> or <tt>add_settings_field( $id, $title, $callback, $page, $section, $args )</tt>. 
+
+: Hint: <tt>$page</tt> should match <tt>$menu_slug</tt> from Function Reference/add theme page.
+
+* Make sure that the sanitization callback function input type is consistent with the <tt>$option_name</tt> type. For example, the absint function wouldn't work properly if <tt>$option_name</tt> is an array.
+
+== Change Log ==
+
+Since: [[Version 2.7|2.7.0]]
+
+== Source File ==
+
+<tt>register_setting()</tt> is located in {{Trac|wp-includes/option.php}}.
+
+== Resources ==
+
+* [http://planetozh.com/blog/2009/05/handling-plugins-options-in-wordpress-28-with-register_setting/ Handling Plugins Options in WordPress 2.8 with register_setting()]
+* [http://ottodestruct.com/blog/2009/wordpress-settings-api-tutorial/ WordPress Settings API Tutorial]
+
+== Related ==
+
+{{Setting Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

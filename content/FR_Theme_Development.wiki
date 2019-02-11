@@ -1,0 +1,298 @@
+__TOC__
+L'article qui suit traite du développement et de la conception de votre propre thème WordPress.  si vous désirez en savoir plus au sujet de l'installation et de l'utilisation des thèmes, revoyez la documentation [[FR:Using Themes]].
+
+Vous pouvez réaliser des thèmes pour votre propre compte ou bien [[FR:Designing Themes for Public Release|pour les distribuer]].  Ce sujet est différent de [[FR:Using Themes]] car il concerne l'aspect technique qui consiste à écrire du code pour construire votre propre thème plutôt que de l'activation des thèmes ou l'obtention de nouveaux thèmes.
+
+==Pourquoi des thèmes WordPress==
+
+Les thèmes WordPress sont des fichiers et des styles qui, ensembles, constituent la présentation d'un site WordPress. Chaque thème peut être différent des autres, et la grande variété de thèmes permet aux utilisateurs de changer rapidement la présentation de leur site. Dans ce cas, pourquoi créer votre propre thème WordPress ?
+
+* Pour créer votre propre site WordPress, avec sa propre présentation.
+* Pour profiter des [[Templates|modèles]], des [[Template Tags|modèles de marqueur]] et de [[The_Loop_in_Action|la fameuse boucle WordPress]]afin de générer différents résultats et présentations pour les pages Web.
+* Pour fournir des modèles en plus pour des fonctionnalités spécifiques, telles que [[Category_Templates|les pages de catégories]] et les résultats d'une recherche.
+* Pour basculer rapidement entre deux présentations de site ou pour permettre à vos utilisateurs de changer rapidement leur vision du site par le biais de [[Plugins/Styles|modules de changement de thème]].
+* Créer des thèmes WordPress pour que d'autres utilisateurs puissent apprécier votre travail.
+
+Un thème WordPress a également d'autres avantages.
+
+* Il sépare la présentation ([[Templates|les fichiers modèles]]) des fichiers système. Ainsi, une mise à jour du site se fera sans changements radicaux dans la présentation visuelle.
+* Il permet des choix de présentation et des résultats uniques pour chaque thème.
+* Il permet à un utilisateur WordPress de créer un site visuellement agréable sans connaissance CSS, HTML et PHP.
+
+Pourquoi construire votre propre thème ? C'est la vrai question.
+
+* C'est une chance d'en apprendre plus à propos de CSS, HTML et PHP.
+* C'est une chance de mettre votre expertise CSS, HTML et PHP à contribution.
+* C'est créatif.
+* C'est amusant (la plupart du temps).
+* Si vous [[Designing Themes for Public_Release|publiez votre thème libre de droits]], vous pourrez vous dire que vous avec partagé et donnez quelque chose en retour [[Contributing_to_WordPress|à la communauté WordPress]].
+
+== Anatomie d'un thème ==
+
+Les thèmes WordPress sont enregistrés dans des sous-répertoires situés sous <tt>wp-content/themes/</tt>. Ce répertoire contiendra tous les fichiers du thème, fichiers de style CSS, [[Templates|fichiers modèles]] ainsi que les images. Par exemple, un thème nommé "test" sera enregistré sous <tt>wp-content/themes/test/</tt>.
+
+WordPress inclue deux thèmes à l'installation, un thème "Classique" et un thème "Par défaut". Chacun est différent et utilise différentes fonctions et marqueurs pour générer le contenu et la présentation des pages Web. Examinez soigneusement ces fichiers pour avoir une meilleure idée de la façon de créer votre propre thème.
+
+Les thèmes WordPress sont constitués de deux ensembles de fichiers, en plus des images. Le premier est la feuille de style CSS, nommée <tt>style.css</tt>, qui contrôle la présentation visuelle des pages. Le second est constitué des [[Templates|modèles de page]], qui contrôle la façon dont les informations présentes dans la base de données seront affichées sur la page.  Examinons ceux-ci un par un.
+
+[http://www.headzoo.com/wptcs.png Aide-mémoire sur les thèmes]
+
+=== Feuille de style du thème ===
+
+La feuille de style, <tt>style.css</tt>, '''''doit''''' fournir des détails sur le thème sous la forme de commentaires. '''''En aucun cas deux thèmes ne doivent partager les mêmes détails''''' dans leur commentaires car cela conduirait à des problèmes dans [[Administration_Panels#Presentation_-_Change_the_Look_of_your_Blog|l'affichage des dialogues de choix du thème]]. Si vous faites votre propre thème en dupliquant un thème existant, assurez vous de changer ces informations en premier.
+
+Ce qui suit un un exemple des premières lignes de la feuille de style, appelées entête de la feuille de style, pour un thème nommé "Rose" :
+
+<pre>/*   
+Theme Name: Rose
+Theme URI: Homepage du thème
+Description: Une courte description
+Author: votre nom
+Author URI: votre URL
+Template: Utiliser cette ligne si vous utilisez un thème parent
+Version: numéro de version optionnel
+.
+Commentaires généraux / Information de licences si applicable.
+.
+*/</pre>
+
+Le thème le plus simple inclut uniquement un fichier <tt>style.css</tt> et des images. Pour créer un tel thème, vous devez spécifier un ensemble de modèles duquel ''hériter'' pour les utiliser dans votre propre thème, en édidant la ligne <tt>Template:</tt> du fichier <tt>style.css</tt>. Par exemple, si vous voulez que le thème "Rose" hérite des modèles du thème "Test", vous saisirez <tt>Template: test</tt> dans les commentaires du thème "Rose".
+Ainsi, "Test" sera le parent de "Rose", qui lui ne contiendra que le fichier <tt>style.css</tt> et les images associées, le tout situé dans le répertoire <tt>wp-content/themes/Rose</tt>. ''Notez que spécifier un thème Parent vous fera hériter de tous les modèles de ce thème ; un fichier modèle présent dans le répertoire du thème Enfant sera purement ignoré.''
+
+Les lignes de commentaires dans l'entête du fichier <tt>style.css</tt> sont indispensables pour que WordPress soit capable d'identifier le thème et de l'afficher dans [[Administration_Panels|le panneau d'administration]], [[Administration_Panels#Presentation_-_Change_the_Look_of_your_Blog|Gérer les thèmes]] comme un thème disponible parmi les autres thèmes installés.
+
+'''Note''' : ''Lors de la définition d'un thème Parent, dans la section <tt>Template:</tt> de l'entête, vous devez utiliser le nom du répertoire du style. Par exemple, pour utiliser le thème par défaut de WordPress, n'écrivez pas <tt>Template: WordPress Default</tt> mais <tt>Template: default</tt>, qui est le nom du répertoire pour ce thème.''
+
+===Fichiers modèles du thème===
+
+[[Les modèles]] sont des fichiers PHP utilisés pour générer les pages demandées par les visiteurs. Regardons quels sont les différents modèles qui peuvent être définis dans un thème.
+
+WordPress vous permet de définir des modèles séparés pour les différents aspects de votre blog ; cependant, il n'est pas nécessaire d'avoir tous ces fichiers présents pour que votre blog fonctionne correctement. Les modèles sont choisis et générés en fonction d'une [[Template Hierarchy | hiérarchie]], selon les fichiers disponibles pour un thème particulier. En tant que développeur de thème, vous pouvez choisir les possibilités de personnalisation que vous voulez en utilisant ces modèles. Par exemple, un cas extrême, vous pourriez utiliser uniquement un seul fichier modèle, nommé <tt>index.php</tt>, comme modèle pour toutes les pages de votre blog. Un usage plus courant est d'avoir différents modèles qui génèrent différents résultats, pour autoriser le maximum de personnalisation.
+
+====Les modèles de base====
+
+Au minimum, un thème WordPress est constitué de deux fichiers :
+
+* <tt>style.css</tt>
+* <tt>index.php</tt>
+
+Le [[Templates|modèle]] <tt>index.php</tt> est unique et souple. Il peut être utilisé pour inclure toutes les références aux pages d'entête, de barre latérale, de pied de page, de contenu, de catégories, d'archives, de recherche et d'erreur de votre site. Ou, il peut être ''divisé'' en modules, chacun prenant en charge une partie du travail.
+Si vous ne fournissez aucun autre fichier modèle, WordPress utilisera les fichiers par défaut. Par exemple, si vous n'avez pas de fichier <tt>comments.php</tt> ou <tt>comments-popup.php</tt>, WordPress utilisera automatiquement les fichiers <tt>wp-comments.php</tt> and <tt>wp-comments-popup.php</tt>. Ces modèles par défaut ne s'accorderont pas forcément parfaitement à votre thème, ce qui fait que vous préfèrerez certainement fournir les vôtres.
+
+Si vous voulez divisez le fichier principal <tt>index.php</tt> en plusieurs fichiers modèles, comme montrre dans le thème par défaut de WordPress, vous pouvez. Une telle division est optionnelle. Les fichiers supplémentaires peuvent inclure ces fichiers de base :
+
+* <tt>header.php</tt>
+* <tt>sidebar.php</tt>
+* <tt>footer.php</tt>
+* <tt>comments.php</tt>
+* <tt>comments-popup.php</tt>
+
+Ce sont les fichiers de base qui font un thème. Placez les avec les fichiers <tt>style.css</tt> et <tt>index.php</tt> dans leur propre sous-répertoire, sous <tt>wp-content/themes/</tt>, et vous obtenez un thème.
+
+En utilisant des fichiers modèles supplémentaires, vous pouvez mettre des marqueurs de modèles dans le fichier maître <tt>index.php</tt>  pour inclure ces fichiers  là ou vous vous qu'ils apparaissent dans la page web finale.
+
+* Pour inclure l'entête, utilisez le marqueur <tt>[[Include Tags#The Header Template|get_header()]]</tt>
+* Pour inclure la barre latérale, utilisez le marqueur <tt>[[Include Tags#The Sidebar Template|get_sidebar()]]</tt>.
+* Pour inclure le pied de page, utilisez le marqueur <tt>[[Include Tags#The Footer Template|get_footer()]]</tt>.
+
+
+Voici un exemple d'utilisation de ces inclusions :
+
+
+<pre>&lt;?php get_sidebar(); ?&gt;
+
+&lt;?php get_footer(); ?&gt;</pre>
+
+Pour plus d'information sur comment ces différents modèles s'utilisent et comment générer différentes informations à l'intérieur, lisez la documentation sur les [[Templates|modèles]].
+
+====Modèles basés sur des requêtes====
+
+WordPress peut charger différents [[Templates|modèles]] pour différents types de ''requêtes''. Il le fait au travers de la [[Template Hierarchy|hiérarchie de modèles]] incluses, ou au travers de [[Conditional Tags|marqueurs conditionnels]] à l'intérieur de [[The Loop |la boucle]], telle que celle présente dans le fichier <tt>index.php</tt>.
+
+En utilisant la hiérarchie de modèles, si votre thème fourni un fichier nommé <tt>category.php</tt> et qu'une catégorie est demandé, le fichier <tt>category.php</tt> sera chargé à la place du fichier <tt>index.php</tt>. Si <tt>category.php</tt> n'est pas présent, <tt>index.php</tt>sera utilisé comme d'habitude.
+
+Si vous désirez créer un modèle pour une et une seule catégorie, de telle manière que seul l'identifiant de cette catégorie génèrera une page différente (et donc que toutes les autres catégories utiliseront les fichiers <tt>category.php</tt> ou <tt>index.php</tt>), créez un fichier nommé tt>category-#.php</tt>, en remplaçant "#" par le numéro identifiant la catégorie désirée (ce numéro peut être trouvé dans [[Administration_Panels#Manage_-_Change_your_content|Articles]] >> [[Administration_Panels#Categories|Catégories]]). Si vous créez un fichier <tt>category-6.php</tt>, alors la catégorie 6 sera affichée avec ce fichier à la place de <tt>category.php</tt>. Pour plus d'informations sur ce processus, voir [[Category Templates]|modèles de catégorie].
+
+Pour générer un modèle différent en se basant sur [[Conditional Tags|l'utilisation de marqueurs conditionnels]] ou d'une requête, il faut que les conditions sont remplies. Dans ce cas, ce modèle sera utilisé par WordPress, autrement on reviendra au fichier suivant selon la [[Template Hierarchy|hiérarchie des modèles]].
+
+Par exemple, pour générer une feuille de style différente pour un artile trouvé sous une catégorie spécifique, le code pourra ressembler à cela :
+
+<pre><?php
+if (is_category(9)) {
+        // looking for category 9 posts
+include(TEMPLATEPATH . '/single2.php');
+} else {
+        // put this on every other category post
+include(TEMPLATEPATH . '/single1.php');
+        }
+?></pre>
+
+Ou, en utilisant une requête :
+
+<pre><?php
+$post = $wp_query->post;
+if ( in_category('9') ) {
+include(TEMPLATEPATH . '/single2.php');
+} else {
+include(TEMPLATEPATH . '/single1.php');
+}
+?></pre>
+
+Ainsi, si la condition ou la requête sont remplies, l'article de la catégorie 9 sera affiché en utilisant le fichier <tt>single2.php</tt>. Sinon, le fichier utilisé sera <tt>single1.php</tt>.
+
+Ces requêtes conditionnelles ne sont pas limitées aux articles. Vous pouvez également créer différents modèles pour différents [[Pages]]. Cliquez pour plus de détails.
+
+===Liste des fichiers modèles d'un thème===
+
+
+Voici la liste des fichiers modèles reconnus par WordPress. Bien sur, votre thème peu contenir d'autres fichiers CSS, images ou autres. ''Pensez seulement que les fichiers suivants ont une signification spéciale pour WordPress;''
+
+;<tt>style.css</tt>: La feuille de style principale. Elle '''doit''' être inclue avec votre thème.
+;<tt>index.php</tt>: Le modèle principal. Si votre thème fourni ses propres modèles, le fichier <tt>index.php</tt> doit être présent.
+;<tt>comments.php</tt>: Le modèle de commentaires. S'il est absent, <tt>comments.php</tt> du thème par défaut est utilisé.
+;<tt>comments-popup.php</tt>: Le modèle de commentaires en pop-up (dans une fenêtre séparée). S'il est absent,, <tt>comments-popup.php</tt> du thème par défaut est utilisé.
+;<tt>home.php</tt>: le modèle de page d'accueil.
+;<tt>single.php</tt>: Le modèle d'article seul, utilisé quand un article précis est demandé. Pour celui-ci et tous les modèles suivants, <tt>index.php</tt> est utilisé si le fichier est absent.
+;<tt>page.php</tt>: Le modèle de Page. Utilisé quand une [[Pages|Page]] est demandée.
+;<tt>category.php</tt>: Le [[Category Templates|modèle de catégories]]. Utilisé quand une catégorie est demandé.
+;<tt>author.php</tt>: Le [[Author Templates|modèle auteur]]. Utilisé quand un auteur est demandé.
+;<tt>date.php</tt>: Le modèle de date. Utilisé quand une date ou une heure est demandée. Année, mois, jour, heure, minute, seconde.
+;<tt>archive.php</tt>: Le modèle d'archive, utilisé quand un auteur, une date, une catégorie est demandé. Si <tt>category.php</tt>, <tt>author.php</tt> ou <tt>date.php</tt>, ils seront utilisés à la place de <tt>archive.php</tt>.
+;<tt>search.php</tt>: Le modèle de recherche, utilisé pour les recherches.
+;<tt>404.php</tt>: Le modèle '''[[Creating_an_Error_404_Page|404 page non trouvée]]'''. Utilisé quand WordPress ne peut pas trouver d'article ou de page qui correspondent à la demande.
+
+
+Ces fichiers ont une signification spéciale pour WordPress car ils sont utilisés en remplacement de <tt>index.php</tt>, à condition qu'ils soient disponibles et que le [[Conditional Tags|marqueurs conditionnels]] correspondant (autrement dit <tt>is_*();</tt> function) retourne vrai. Par exemple, si un seul article est affiché, la fonction <tt>[[Conditional Tags#A Single Post Page|is_single()]]</tt> retourne "vrai" et, si un fichier modèle <tt>single.php</tt> existe pour le thème actif, ce modèle est utilisé pour générer la page.
+
+===Referencing Files From a Template===
+
+The WordPress Default Theme (based on  Michael Heilemann's [http://binarybonsai.com/kubrick/ Kubrick] layout for WordPress 1.2) provides a good example of how queries are mapped onto templates.
+
+The code <tt><?php bloginfo('template_directory'); ?></tt> inserts the URL of the template directory into the template output.  You can append any additional URI information to this output to reference files in your Theme.
+
+The code <tt><?php bloginfo('stylesheet_directory'); ?></tt> inserts the URL of the directory that contains the current Theme stylesheet into the template output.  You can append any additional URI information to this output to reference files for your Theme, specifically those that are used by the stylesheet.
+
+The constant TEMPLATEPATH is a reference to the absolute path to the template directory for the current Theme (without the / at the end).
+
+Note that URIs that are used in the stylesheet are relative to the stylesheet, not the page that references the stylesheet.  This obviates the need to include PHP code in the CSS file to specify directories.  For example, if you include an <tt>images/</tt> directory in your Theme, you need only specify this relative directory in the CSS, like so:  
+
+ <tt>h1 { background-image: URL(images/my_background.jpg); }</tt>
+
+It is a good practice to use URIs in the manner described above to reference files from within a template, since, then your template will not depend on absolute paths.
+
+===Defining Custom Templates===
+
+It is possible to use the WordPress plugin system to define additional templates that are shown based on your own custom criteria.  This advanced feature can be accomplished using the <tt>template_redirect</tt> [[Plugin API#Current Hooks For Actions|action hook]].  More information about creating plugins can be found in the [[Plugin API]] reference.
+
+===Plugin API Hooks===
+
+When developing themes, it's good to keep in mind the specialized group of [[Plugin API]] functions listed below. These plugin hooks are called as [[Template Tags]], either as a parameter to WordPress' <tt>do_action()</tt> function:
+
+ &lt;?php do_action( 'hook_name' [, optional second parameter] ); ?&gt;
+
+or as functions in their own right (one exception noted below):
+
+ &lt;?php hook_name(); ?&gt;
+
+When you include the template-specific hooks in your theme, plugins will be able to run code or display data directly in it, without requiring their own template tag functions be added. So it's important to include these plugin hooks in your templates especially if you plan on redistributing your theme, otherwise you risk breaking important features of a plugin which makes use of one or more of them. See [[Plugin_API#Current_Hooks_For_Actions|Current Hooks For Actions]] for a full list of <tt>do_action</tt> hooks (note that most are not intended as template hooks for plugins).
+
+'''Template Plugin Hooks:'''
+
+; wp_head 
+: Goes in the [[Glossary#HTML|HTML]] <tt>&lt;head&gt;</tt> element of a theme; <tt>header.php</tt> template. This hook has no second parameter. Example plugin use: add javascript code. 
+
+: Usage: <tt><nowiki><?php do_action('wp_head'); ?></nowiki></tt> &nbsp;''-or-''&nbsp; <tt><nowiki><?php wp_head(); ?></nowiki></tt>
+
+; wp_footer
+: Goes in the "footer" of a theme; <tt>footer.php</tt> template. This hook has no second parameter. Example plugin use: insert PHP code that needs to run after everything else.
+
+: Usage: <tt><nowiki><?php do_action('wp_footer'); ?></nowiki></tt> &nbsp;''-or-''&nbsp; <tt><nowiki><?php wp_footer(); ?></nowiki></tt>
+
+; wp_meta 
+: Typically goes in the <tt><nowiki><li>Meta</li></nowiki></tt> section of a theme's menu or sidebar; <tt>sidebar.php</tt> template. This hook has no second parameter. Example plugin use: include a rotating advert.
+
+: Usage: <tt><nowiki><?php do_action('wp_meta'); ?></nowiki></tt> &nbsp;''-or-''&nbsp; <tt><nowiki><?php wp_meta(); ?></nowiki></tt>
+
+; comment_form 
+: Goes in <tt>comments.php</tt> and <tt>comments-popup.php</tt>, directly before the comment form's closing tag (<code><nowiki></form></nowiki></code>). Its second parameter must be <tt>$post->ID</tt>. Example plugin use: display a comment preview.
+
+: Usage: <tt><nowiki><?php do_action('comment_form', $post->ID); ?></nowiki></tt>
+
+For a real world usage example, you'll find these plugin hooks included in the default theme's templates.
+
+==Theme Development General Guidelines==
+
+Please be clear about the following in your documentation (a README file included with your Theme helps many users over any potential stumbling blocks):
+# Indicate precisely what your Theme and template files will achieve.
+# Indicate deficiencies in your Themes, if any.
+# Clearly reference any special modifications or notes to [[Commenting_Code|comments]] within the template and style sheet files and comment modifications, template sections, and CSS styles, especially those which cross template files. 
+# If you have any special requirements, which may include custom RewriteRules, or the use of some additional, special templates, images or files, please explicitly state the steps of action a user should take to get your Theme working.
+# Try and test your Theme [[CSS_Fixing_Browser_Bugs|across browsers]] to catch at least a few of the [[CSS_Troubleshooting|problems]] the users of the Theme may find later.
+# Provide contact information (web page or email), if possible, for support information and questions.
+
+Since the concept of using Themes is currently new to WordPress, the additional effort you put in to make the Themes user-friendly will be greatly appreciated. Take time to read through [[Designing Themes for Public Release]], an article with good tips on preparing your Theme for the public. For criteria on how to release your Theme to the public, see [[Designing_Themes_for_Public_Release#Promoting_Your_Theme|Promoting Your Theme]].
+
+==References and Resources==
+
+To help you develop your WordPress Theme, here are some resources and references.
+
+===WordPress Resources===
+
+====CSS and Layout====
+
+* [[CSS|WordPress CSS Information and Resources]]
+* [[FAQ#Layout| FAQ - Layout]]
+* [[Blog Design and Layout]]
+* [[Developing a Colour Scheme]]
+
+====Theme and Template Resources====
+
+* [[Using Themes]]
+* [[Templates|Template Files]]
+* [[Pages|Creating Individual Pages]] 
+* [[Template Tags]]
+* [[Stepping Into Template Tags]]
+* [[The Loop|The WordPress Loop]]
+* [[The Loop in Action]]
+* [[Designing Themes for Public Release]]
+
+====Testing and Validating====
+
+* [[CSS Fixing_Browser Bugs]]
+* [[CSS Troubleshooting]]
+* [[Validating a Website]]
+
+====General Resources====
+
+* [[WordPress Lessons]]
+* [[Know Your Sources]]
+
+===References===
+
+*[http://boren.nu/archives/2004/11/10/anatomy-of-a-wordpress-theme/ Ryan Boren's Anatomy of a Theme]
+*[http://www.transycan.net/blogtest/2005/03/31/visual-anatomy-of-a-wp-15-theme/ Moshu's Visual Anatomy of a WP v1.5 Theme]
+*[http://boren.nu/archives/2004/10/16/templates-and-the-is-functions/ Templates and "is" functions, by Ryan]
+*[http://www.chrisjdavis.org/2005/05/26/secrets-of-wp-theming-part-1/ Chris J. Davis' Secrets of  WP Theming, Part 1]
+*[http://www.chrisjdavis.org/2005/06/02/secrets-pt-2/ Chris J. Davis' Secrets of  WP Theming, Part 2]
+*[http://www.chrisjdavis.org/2005/06/13/secrets-pt-3/ Chris J. Davis' Secrets of  WP Theming, Part 3]
+* [http://www.techwench.com/05-2005/15-theme-cheat-sheet Theme Cheat Sheet for WordPress 1.5]
+* [http://www.urbangiraffe.com/2005/04/12/themeguide1/ Dissection of a WordPress Theme]
+* [http://www.tamba2.org.uk/wordpress/graphicalcss/ WordPress CSS Guides by Podz]
+
+===Tools===
+
+;[[Glossary#Text_editor|Plain Text Editors]] :A list of plain text editors for all platforms.
+;[[Developing_a_Colour_Scheme]] :Article on developing a colour scheme for your site.
+; [http://www.redalt.com/Tools/builder.php WordPress Index Builder] :This tool will ask you a series of questions about your site to generate  a working WordPress template page and CSS file. Criteria include number of columns and color matching.
+; [http://flumpcakes.co.uk/css/optimiser/ Flumpcakes CSS Optimizer] :Optimize your CSS file. ''Contains a possibly "not safe for work" header image.''
+
+===Other Resources===
+
+*[http://creativecommons.org/image/ Creative Commons Images]:Search for Creative Commons images that are free to share and use online.
+*[http://www.imageafter.com/ Image * After]:A free stock image library for commercial and personal use.
+*[http://www.sxc.hu/ stock.xchng]:Photographs available free of charge to the public.
+*[http://www.freedigitalphotos.net freedigitalphotos.net]:Free photos for commercial and non-commercial use.
+
+{{Copyedit}}
+[[Category:Design and Layout]]
+[[Category:WordPress Development]]

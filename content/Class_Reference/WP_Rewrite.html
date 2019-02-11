@@ -1,0 +1,277 @@
+<p>This document assumes familiarity with <a rel="nofollow" class="external text" href="http://httpd.apache.org">Apache</a>'s <a rel="nofollow" class="external text" href="http://httpd.apache.org/docs/2.0/mod/mod_rewrite.html">mod_rewrite</a>. If you've never heard of this before, try reading Sitepoint's <a rel="nofollow" class="external text" href="http://www.sitepoint.com/article/guide-url-rewriting">Beginner's Guide to URL Rewriting</a>.  Also see Otto's explanation of <a rel="nofollow" class="external text" href="http://lists.automattic.com/pipermail/wp-testers/2009-January/011110.html">hierarchy of rewrite rules</a> in the wp-hackers email list.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Role_of_WP_Rewrite"><span class="tocnumber">1</span> <span class="toctext">Role of WP_Rewrite</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Methods_and_Properties"><span class="tocnumber">2</span> <span class="toctext">Methods and Properties</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Properties"><span class="tocnumber">2.1</span> <span class="toctext">Properties</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Methods"><span class="tocnumber">2.2</span> <span class="toctext">Methods</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Plugin_Hooks"><span class="tocnumber">3</span> <span class="toctext">Plugin Hooks</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Examples"><span class="tocnumber">3.1</span> <span class="toctext">Examples</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Non-WordPress_rewrite_rules"><span class="tocnumber">4</span> <span class="toctext">Non-WordPress rewrite rules</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Source_File"><span class="tocnumber">5</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Articles"><span class="tocnumber">6.1</span> <span class="toctext">Articles</span></a></li>
+<li class="toclevel-2"><a href="#Hooks"><span class="tocnumber">6.2</span> <span class="toctext">Hooks</span></a></li>
+<li class="toclevel-2"><a href="#Functions"><span class="tocnumber">6.3</span> <span class="toctext">Functions</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-10"><a href="#Further_Reading"><span class="tocnumber">7</span> <span class="toctext">Further Reading</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Role_of_WP_Rewrite">Role of WP_Rewrite</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=1" title="Edit section: Role of WP Rewrite">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>WP_Rewrite</tt> is WordPress' class for managing the rewrite rules that allow you to use <a href="https://codex.wordpress.org/Introduction_to_Blogging#Pretty_Permalinks" title="Introduction to Blogging">Pretty Permalinks</a> feature. It has several methods that generate the rewrite rules from values in the database. It is used internally when updating the rewrite rules, and also to find the URL of a specific post, Page, category archive, etc.. It's defined in <tt>wp-includes/rewrite.php</tt> as a single instance global variable, <tt>$wp_rewrite</tt>, is initialised in <tt>wp-settings.php</tt>.
+</p>
+<h2><span class="mw-headline" id="Methods_and_Properties">Methods and Properties</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=2" title="Edit section: Methods and Properties">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This is the formal documentation of <tt>WP_Rewrite</tt>. Try not to access or set the properties directly, instead use the methods to interact with the <tt>$wp_rewrite</tt> object.  See also <a href="https://codex.wordpress.org/Rewrite_API" title="Rewrite API">Rewrite_API</a>.
+</p>
+<h3><span class="mw-headline" id="Properties">Properties</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=3" title="Edit section: Properties">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<dl><dt> <tt>$permalink_structure</tt>&#160;</dt>
+<dd> The permalink structure as in the database. This is what you set on the Permalink Options page, and includes 'tags' like&#160;%year%,&#160;%month% and&#160;%post_id%.</dd>
+<dt> <tt>$category_base</tt>&#160;</dt>
+<dd> Anything to be inserted before category archive URLs. Defaults to 'category/'.</dd>
+<dt> <tt>$category_structure</tt>&#160;</dt>
+<dd> Structure for category archive URLs. This is just the <tt>$category_base</tt> plus '%category%'.</dd>
+<dt> <tt>$author_base</tt>&#160;</dt>
+<dd> Anything to be inserted before author archive URLs. Defaults to 'author/'.</dd>
+<dt> <tt>$author_structure</tt>&#160;</dt>
+<dd> Structure for author archive URLs. This is just the <tt>$author_base</tt> plus '%author%'.</dd>
+<dt> <tt>$pagination_base</tt>&#160;</dt>
+<dd> Anything to be inserted before pagination indices. Defaults to 'page/'.</dd>
+<dt> <tt>$feeds</tt>&#160;</dt>
+<dd> Supported feeds names (rdf, rss, atom) Use <a href="https://codex.wordpress.org/Rewrite_API/add_feed" title="Rewrite API/add feed">add_feed</a> to override or add.</dd>
+<dt> <tt>$feed_base</tt>&#160;</dt>
+<dd> Anything to be inserted before feed URLs. Defaults to 'feed/'.</dd>
+<dt> <tt>$feed_structure</tt>&#160;</dt>
+<dd> Structure for feed URLs. This is just the <tt>$feed_base</tt> plus '%feed%'.</dd>
+<dt> <tt>$search_base</tt>&#160;</dt>
+<dd> Anything to be inserted before searches. Defaults to 'search/'.</dd>
+<dt> <tt>$search_structure</tt>&#160;</dt>
+<dd> Structure for search URLs. This is just the <tt>$search_base</tt> plus '%search%'.</dd>
+<dt> <tt>$comments_base</tt>&#160;</dt>
+<dd> Anything to be inserted just before the <tt>$feed_structure</tt> to get the latest comments feed. Defaults to 'comments'.</dd>
+<dt> <tt>$comments_feed_structure</tt>&#160;</dt>
+<dd> The structure for the latest comments feed. This is just <tt>$comments_base</tt> plus <tt>$feed_base</tt> plus '%feed%'.</dd>
+<dt> <tt>$date_structure</tt>&#160;</dt>
+<dd> Structure for dated archive URLs. Tries to be '%year%/%monthnum%/%day%', '%day%/%monthnum%/%year%' or '%monthnum%/%day%/%year%', but if none of these are detected in your <tt>$permalink_structure</tt>, defaults to '%year%/%monthnum%/%day%'. Various functions use this structure to obtain less specific structures: for example, <tt>get_year_permastruct()</tt> simply removes the '%monthnum%' and '%day%' tags from <tt>$date_structure</tt>.</dd>
+<dt> <tt>$page_structure</tt>&#160;</dt>
+<dd> Structure for Pages. Just '%pagename%'.</dd>
+<dt> <tt>$front</tt>&#160;</dt>
+<dd> Anything up to the start of the first tag in your <tt>$permalink_structure</tt>.</dd>
+<dt> <tt>$root</tt>&#160;</dt>
+<dd> The root of your WordPress install. Prepended to all structures.</dd>
+<dt> <tt>$matches</tt>&#160;</dt>
+<dd> Used internally when calculating back references for the redirect part of the rewrite rules.</dd>
+<dt> <tt>$rules</tt>&#160;</dt>
+<dd> The rewrite rules. Set when <tt>rewrite_rules()</tt> is called.</dd>
+<dt> <tt>$non_wp_rules</tt>&#160;</dt>
+<dd> Associative array of "rules that don't redirect to WP's index.php (and thus shouldn't be handled by WP at all)" roughly in the form <code>'Pattern' =&gt; 'Substitution'</code> (see <a href="https://codex.wordpress.org/Function_Reference/WP_Rewrite#Non-WordPress_rewrite_rules" title="Function Reference/WP Rewrite" class="mw-redirect">below</a>).</dd>
+<dt> <tt>$rewritecode</tt>&#160;</dt>
+<dd> An array of all the tags available for the permalink structure. See <a href="https://codex.wordpress.org/Using_Permalinks#Structure_Tags" title="Using Permalinks">Using Permalinks</a> for a list.</dd>
+<dt> <tt>$rewritereplace</tt>&#160;</dt>
+<dd> What each tag will be replaced with for the regex part of the rewrite rule. The first element in <tt>$rewritereplace</tt> is the regex for the first element in <tt>$rewritecode</tt>, the second corresponds to the second, and so on.</dd>
+<dt> <tt>$queryreplace</tt>&#160;</dt>
+<dd> What each tag will be replaced with in the rewrite part of the rewrite rule. The same correspondance applies here as with <tt>$rewritereplace</tt>.</dd></dl>
+<h3><span class="mw-headline" id="Methods">Methods</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=4" title="Edit section: Methods">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<dl><dt> <tt>add_rewrite_tag(<var>$tag</var>, <var>$pattern</var>, <var>$query</var>)</tt>&#160;</dt>
+<dd> Add an element to the <var>$rewritecode</var>, <var>$rewritereplace</var> and <var>$queryreplace</var> arrays using each parameter respectively. If <var>$tag</var> already exists in <var>$rewritecode</var>, the existing value will be overwritten. <br />See also: <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_tag" title="Rewrite API/add rewrite tag"><tt>add_rewrite_tag(<var>$tagname</var>, <var>$regex</var>)</tt></a></dd>
+<dt> <tt><a href="https://codex.wordpress.org/Rewrite_API/add_feed" title="Rewrite API/add feed">add_feed</a>(<var>$feedname</var>, <var>$function</var></tt>)&#160;</dt>
+<dd> Add a new feed type like /atom1/ .  Requires one-time use of <a href="https://codex.wordpress.org/Rewrite_API/flush_rules" title="Rewrite API/flush rules">flush_rules()</a> to take effect.</dd>
+<dt> <tt><a href="https://codex.wordpress.org/Rewrite_API/flush_rules" title="Rewrite API/flush rules">flush_rules()</a></tt>&#160;</dt>
+<dd> Regenerate the rewrite rules and save them to the database</dd>
+<dt> <tt>generate_rewrite_rule(<var>$permalink_structure</var>, <var>$walk_dirs</var> = false)</tt>&#160;</dt>
+<dd> Generates a no-frills rewrite rule from the permalink structure. No rules for extra pages or feeds will be created.</dd>
+<dt> <tt>generate_rewrite_rules(<var>$permalink_structure</var>, <var>$ep_mask = EP_NONE</var>, <var>$page</var> = true, <var>$feed</var> = true, <var>$forcomments</var> = false, <var>$walk_dirs</var> = true)</tt>&#160;</dt>
+<dd> A large function that generates the rewrite rules for a given structure, <var>$permalink_structure</var>. If <var>$page</var> is true, an extra rewrite rule will be generated for accessing different pages (e.g. /category/tech/page/2 points to the second page of the 'tech' category archive). If <var>$feed</var> is true, extra rewrite rules will be generated for obtaining a feed of the current page, and if <var>$forcomments</var> is true, this will be a comment feed. If <var>$walk_dirs</var> is true, then a rewrite rule will be generated for each directory of the structure provided, e.g. if you provide it with '/%year%/%month%/%day/', rewrite rules will be generated for '/%year%/', /%year%/%month%/' and '/%year%/%month%/%day%/'. This returns an associative array using the regex part of the rewrite rule as the keys and redirect part of the rewrite rule as the value.</dd>
+<dt> <tt>get_date_permastruct()</tt>, <tt>get_category_permastruct()</tt>, <tt>get_date_permastruct()</tt> etc.&#160;</dt>
+<dd> Populates the corresponding property (e.g., <var>$date_structure</var> for <tt>get_date_permastruct()</tt>) if it's not already set and returns it. The functions <tt>get_month_permastruct()</tt> and <tt>get_year_permastruct()</tt> don't have a corresponding property: they work out the structure by taking the <var>$date_structure</var> and removing tags that are more specific than they need (i.e., <tt>get_month_permastruct()</tt> removes the '%day%' tag, as it only needs to specify the year and month).</dd>
+<dt> <tt>init()</tt>&#160;</dt>
+<dd> Set up the object, set <var>$permalink_structure</var> and <var>$category_base</var> from the database. Set <var>$root</var> to <var>$index</var> plus '/'. Set <var>$front</var> to everything up to the start of the first tag in the permalink structure. Unset all other properties.</dd>
+<dt> <tt>mod_rewrite_rules()</tt>&#160;</dt>
+<dd> returns a string (not an array) of all the rules. They are wrapped in an Apache <tt><a rel="nofollow" class="external text" href="http://httpd.apache.org/docs/2.0/mod/core.html#ifmodule">&lt;IfModule&gt;</a></tt> block, to ensure mod_rewrite is enabled.</dd>
+<dt> <tt>page_rewrite_rules()</tt>&#160;</dt>
+<dd> Returns the set of rules for any Pages you have created.</dd>
+<dt> <tt>rewrite_rules()</tt>&#160;</dt>
+<dd> populate and return the <var>$rules</var> variable with an associative array as in <tt>generate_rewrite_rules()</tt>. This is generated from the post, date, comment, search, category, authors and page structures.</dd>
+<dt> <tt>set_category_base(<var>$category_base</var>)</tt>&#160;</dt>
+<dd> Change the category base.</dd>
+<dt> <tt>set_permalink_structure(<var>$permalink_structure</var>)</tt>&#160;</dt>
+<dd> Change the permalink structure.</dd>
+<dt> <tt>using_index_permalinks()</tt>&#160;</dt>
+<dd> Returns <tt>true</tt> if your blog is using PATHINFO permalinks.</dd>
+<dt> <tt>using_mod_rewrite_permalinks</tt>&#160;</dt>
+<dd> Returns <tt>true</tt> your blog is using "pretty" permalinks via mod_rewrite.</dd>
+<dt> <tt>using_permalinks()</tt>&#160;</dt>
+<dd> Returns <tt>true</tt> if your blog is using any permalink structure (i.e. not the default query URIs <tt>?p=n</tt>, <tt>?cat=n</tt>).</dd>
+<dt> <tt>WP_Rewrite</tt> (constructor)&#160;</dt>
+<dd> Calls <tt>init()</tt>.</dd>
+<dt> <tt>wp_rewrite_rules()</tt>&#160;</dt>
+<dd> returns the array of rewrite rules as in <tt>rewrite_rules()</tt>, but using <tt><var>$matches</var>[xxx]</tt> in the (where xxx is a number) instead of the normal mod_rewrite backreferences, <var>$xxx</var> (where xxx is a number). This is useful when you're going to be using the rules inside PHP, rather than writing them out to a .htaccess file.</dd></dl>
+<h2><span class="mw-headline" id="Plugin_Hooks">Plugin Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=5" title="Edit section: Plugin Hooks">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>As the rewrite rules are a crucial part of your website's functionality, WordPress allows plugins to hook into the generation process at several points. <tt>rewrite_rules()</tt>, specifically, contains nine filters and one hook for really precise control over the rewrite rules process. Here's what you can filter in <tt>rewrite_rules()</tt>:
+</p>
+<ul><li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/post_rewrite_rules" title="Plugin API/Filter Reference/post rewrite rules">post_rewrite_rules</a></tt> - Used to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> the rewrite rules generated for permalink URLs.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/date_rewrite_rules" title="Plugin API/Filter Reference/date rewrite rules">date_rewrite_rules</a></tt> - Used to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> the rewrite rules generated for dated archive URLs.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/$permastruct_rewrite_rules" title="Plugin API/Filter Reference/$permastruct rewrite rules">{$permastruct}_rewrite_rules</a></tt> - Can be used to filter permastructs like 'category' or other taxonomies.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/search_rewrite_rules" title="Plugin API/Filter Reference/search rewrite rules">search_rewrite_rules</a></tt> - Used to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> the rewrite rules generated for search URLs.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/comments_rewrite_rules" title="Plugin API/Filter Reference/comments rewrite rules">comments_rewrite_rules</a></tt> - Used to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> the rewrite rules generated for the latest comment feed URLs.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/author_rewrite_rules" title="Plugin API/Filter Reference/author rewrite rules">author_rewrite_rules</a></tt> - Used to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> the rewrite rules generated for author archive URLs.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/page_rewrite_rules" title="Plugin API/Filter Reference/page rewrite rules">page_rewrite_rules</a></tt> - Used to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> the rewrite rules generated for your Pages.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/root_rewrite_rules" title="Plugin API/Filter Reference/root rewrite rules">root_rewrite_rules</a></tt> - Used to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> the rewrite rules generated for the root of your weblog.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/rewrite_rules_array" title="Plugin API/Filter Reference/rewrite rules array">rewrite_rules_array</a></tt> - Use to <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference" title="Plugin API/Filter Reference">filter</a> <i>all</i> the rewrite rules at once.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/generate_rewrite_rules" title="Plugin API/Action Reference/generate rewrite rules">generate_rewrite_rules</a></tt> - This <a href="https://codex.wordpress.org/Plugin_API/Action_Reference" title="Plugin API/Action Reference">action</a> hook runs <strong>after</strong> all the rules have been created. If your function takes a  parameter, it will be passed a <a rel="nofollow" class="external text" href="http://www.php.net/manual/en/language.references.php">reference</a> to the entire <tt>$wp_rewrite</tt> object.</li></ul>
+<p><tt>mod_rewrite_rules()</tt> is the function that takes the array generated by <tt>rewrite_rules()</tt> and actually turns it into a set of rewrite rules for the .htaccess file. This function also has a filter, <tt>mod_rewrite_rules</tt>, which will pass functions the string of all the rules to be written out to .htaccess, including the <tt>&lt;IfModule&gt;</tt> surrounding section. (Note: you may also see plugins using the <tt>rewrite_rules</tt> hook, but this is <a href="https://codex.wordpress.org/Glossary#Deprecated" title="Glossary">deprecated</a>).
+</p>
+<h3><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=6" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>(See also: <a href="https://codex.wordpress.org/Custom_Queries#Permalinks_for_Custom_Archives" title="Custom Queries">Permalinks for Custom Archives</a>)
+The most obvious thing a plugin would do with the <tt>$wp_rewrite</tt> object is add its own rewrite rules. This is remarkably simple. Filter the generic <tt>rewrite_rules_array</tt>.
+</p><p>A Quick and dirty example for rewriting <a rel="nofollow" class="external free" href="http://mysite/project/1">http://mysite/project/1</a> into <a rel="nofollow" class="external free" href="http://mysite/index.php?pagename=project&amp;id=1">http://mysite/index.php?pagename=project&amp;id=1</a>:
+</p>
+<pre>
+add_filter( 'rewrite_rules_array','my_insert_rewrite_rules' );
+add_filter( 'query_vars','my_insert_query_vars' );
+add_action( 'wp_loaded','my_flush_rules' );
+
+// flush_rules() if our rules are not yet included
+function my_flush_rules(){
+	$rules = get_option( 'rewrite_rules' );
+
+	if (&#160;! isset( $rules['(project)/(\d*)$'] ) ) {
+		global $wp_rewrite;
+	   	$wp_rewrite-&gt;flush_rules();
+	}
+}
+
+// Adding a new rule
+function my_insert_rewrite_rules( $rules )
+{
+	$newrules = array();
+	$newrules['(project)/(\d*)$'] = 'index.php?pagename=$matches[1]&amp;id=$matches[2]';
+	return $newrules + $rules;
+}
+
+// Adding the id var so that WP recognizes it
+function my_insert_query_vars( $vars )
+{
+    array_push($vars, 'id');
+    return $vars;
+}
+</pre>
+<p>Keep in mind that the <tt>flush_rules</tt> function is quite slow, so in practice you never want to call it from the <tt>wp_loaded</tt> action that gets executed on each page load. Instead, call this function only when the rewrite rules change. If the rules get set up and then never change, it is enough to flush in <tt>register_activation_hook</tt> of your plugin.
+</p><p>The <a rel="nofollow" class="external text" href="http://vapourtrails.ca/wp-keywords">Jerome's Keywords</a> plugin does this to enable URLs like <tt>http://example.com/tag/sausages</tt>.
+</p>
+<pre>
+function keywords_create_rewrite_rules( $rewrite ) {
+	global $wp_rewrite;
+	
+	// add rewrite tokens
+	$keytag_token = '%tag%';
+	$wp_rewrite-&gt;add_rewrite_tag( $keytag_token, '(.+)', 'tag=' );
+	
+	$keywords_structure = $wp_rewrite-&gt;root . "tag/$keytag_token";
+	$keywords_rewrite = $wp_rewrite-&gt;generate_rewrite_rules( $keywords_structure );
+	
+	return ( $rewrite + $keywords_rewrite );
+}
+</pre>
+<p>Instead of inserting the rewrite rules into the <tt>$rewrite</tt> array itself, Jerome chose to create a second array, <tt>$keywords_rewrite</tt>, using the <tt>WP_Rewrite</tt> function <tt>generate_rewrite_rules()</tt>. Using that function means that the plugin doesn't have to create rewrite rules for extra pages (like <tt>page/2</tt>), or feeds (like <tt>feed/atom</tt>), etc. This array is then appended onto the <tt>$rewrite</tt> array and returned.
+</p><p>A simpler example of this is Ryan Boren's <a rel="nofollow" class="external text" href="http://boren.nu/archives/2005/03/29/feed-director-plugin/">Feed Director</a> plugin. This simply redirects URLs like <a rel="nofollow" class="external free" href="http://example.com/feed.xml">http://example.com/feed.xml</a> to <a rel="nofollow" class="external free" href="http://example.com/feed/rss2">http://example.com/feed/rss2</a>:
+</p>
+<pre>
+function feed_dir_rewrite( $wp_rewrite ) {
+    $feed_rules = array(
+        'index.rdf' =&gt; 'index.php?feed=rdf',
+        'index.xml' =&gt; 'index.php?feed=rss2',
+        '(.+).xml' =&gt; 'index.php?feed=' . $wp_rewrite-&gt;preg_index(1)
+    );
+
+    $wp_rewrite-&gt;rules = $feed_rules + $wp_rewrite-&gt;rules;
+    return $wp_rewrite-&gt;rules;
+}
+
+// Hook in.
+add_filter( 'generate_rewrite_rules', 'feed_dir_rewrite' );
+</pre>
+<p>As the array is so simple here, there is no need to call <tt>generate_rewrite_rules()</tt>. Again, the plugin's rules are added to WordPress'. Notice that as this function filters <tt>generate_rewrite_rules</tt>, it accepts a reference to the entire <tt>$wp_rewrite</tt> object as a parameter, not just the rewrite rules.
+</p><p>Of course, as you're adding your rewrite rules to the array before WordPress does anything with them, your plugins rewrite rules will be included in anything WordPress does with the rewrite rules, like write them to the .htaccess file.
+</p>
+<h2><span class="mw-headline" id="Non-WordPress_rewrite_rules">Non-WordPress rewrite rules</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=7" title="Edit section: Non-WordPress rewrite rules">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+&#160;<span style="color: #0000BB">&lt;?php<br />&#160;&#160;&#160;&#160;$wp_rewrite</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">non_wp_rules&#160;</span><span style="color: #007700">=&#160;array(&#160;</span><span style="color: #DD0000">'Pattern'&#160;</span><span style="color: #007700">=&gt;&#160;</span><span style="color: #DD0000">'Substitution'&#160;</span><span style="color: #007700">);<br />&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$wp_rewrite</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">mod_rewrite_rules</span><span style="color: #007700">());<br /></span><span style="color: #0000BB">?&gt;</span>&#160;</span>
+</code>
+</p><p>prints
+</p>
+<pre> &lt;IfModule mod_rewrite.c&gt;
+ RewriteEngine On
+ RewriteBase <var>/wp_home/</var>
+ RewriteRule ^Pattern <var>/wp_home/</var>Substitution [QSA,L]
+ RewriteCond&#160;%{REQUEST_FILENAME}&#160;!-f
+ RewriteCond&#160;%{REQUEST_FILENAME}&#160;!-d
+ RewriteRule . /<var>wp_home</var>/index.php [L]
+ &lt;/IfModule&gt;
+</pre>
+<p>where <var>/wp_home/</var> is WordPress' home directory (or the root URL <tt>/</tt> if WordPress is installed in your web root.)
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=8" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>WP_Rewrite()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/class-wp-rewrite.php#L0">wp-includes/class-wp-rewrite.php</a></code>
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=9" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h4><span class="mw-headline" id="Articles">Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-1" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Lesson: <a href="https://codex.wordpress.org/Rewrite_API" title="Rewrite API"> Rewrite API Overview</a></li>
+<li> Class: <tt><strong class="selflink">WP_Rewrite()</strong></tt> - An overview of WordPress's built-in URL rewrite class.</li></ul>
+<h4><span class="mw-headline" id="Hooks">Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-2" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/root_rewrite_rules" title="Plugin API/Filter Reference/root rewrite rules">root_rewrite_rules</a></tt> - Filters the rewrite rules generated for the root of your weblog.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/post_rewrite_rules" title="Plugin API/Filter Reference/post rewrite rules">post_rewrite_rules</a></tt> - Filters the rewrite rules generated for permalink URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/page_rewrite_rules" title="Plugin API/Filter Reference/page rewrite rules">page_rewrite_rules</a></tt> - Filters the rewrite rules generated for your Pages.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/date_rewrite_rules" title="Plugin API/Filter Reference/date rewrite rules">date_rewrite_rules</a></tt> - Filters the rewrite rules generated for dated archive URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/search_rewrite_rules" title="Plugin API/Filter Reference/search rewrite rules">search_rewrite_rules</a></tt> - Filters the rewrite rules generated for search URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/comments_rewrite_rules" title="Plugin API/Filter Reference/comments rewrite rules">comments_rewrite_rules</a></tt> - Filters the rewrite rules generated for the latest comment feed URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/author_rewrite_rules" title="Plugin API/Filter Reference/author rewrite rules">author_rewrite_rules</a></tt> - Filters the rewrite rules generated for author archive URLs.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/rewrite_rules_array" title="Plugin API/Filter Reference/rewrite rules array">rewrite_rules_array</a></tt> - Filters <i>all</i> the rewrite rules at once.</li>
+<li> Filter: <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/$permastruct_rewrite_rules" title="Plugin API/Filter Reference/$permastruct rewrite rules">{$permastruct}_rewrite_rules</a></tt> - Can be used to create or modify rewrite rules for any custom permastructs, such as taxonomies or custom post types.</li>
+<li> Action: <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/generate_rewrite_rules" title="Plugin API/Action Reference/generate rewrite rules">generate_rewrite_rules</a></tt> - Runs <strong>after</strong> all the rules have been created.</li></ul>
+<h4><span class="mw-headline" id="Functions">Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Rewrite_API&amp;action=edit&amp;section=T-3" title="Template:Rewrite API">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<ul><li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_tag" title="Rewrite API/add rewrite tag"> add_rewrite_tag()</a> - Can be used to allow WordPress to recognize custom variables (particularly custom querystring variables).</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_rule" title="Rewrite API/add rewrite rule"> add_rewrite_rule()</a> - Allows you to specify new, custom rewrite rules.</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_rewrite_endpoint" title="Rewrite API/add rewrite endpoint"> add_rewrite_endpoint()</a> - Add a new endpoint like /trackback/</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/flush_rules" title="Rewrite API/flush rules"> flush_rules()</a> - Regenerate the rewrite rules and save them to the database.</li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/flush_rewrite_rules" title="Function Reference/flush rewrite rules"> flush_rewrite_rules()</a> - Remove rewrite rules and then recreate rewrite rules.</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/generate_rewrite_rules" title="Rewrite API/generate rewrite rules"> generate_rewrite_rules()</a> - Generates rewrite rules from a permalink structure</li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/add_permastruct" title="Function Reference/add permastruct"> add_permastruct()</a> - Add a new permastruct</li>
+<li> <a href="https://codex.wordpress.org/Rewrite_API/add_feed" title="Rewrite API/add feed"> add_feed()</a>- Add a new feed type like /atom1/</li></ul>
+<h2><span class="mw-headline" id="Further_Reading">Further Reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Class_Reference/WP_Rewrite&amp;action=edit&amp;section=10" title="Edit section: Further Reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/User:Amereservant/Editing_and_Customizing_htaccess_Indirectly" title="User:Amereservant/Editing and Customizing htaccess Indirectly">Editing and Customizing .htaccess Indirectly</a> - An in-depth explanation on adding .htaccess file contents and non-WordPress rewrite rules.</li></ul>
+<div style="background-color:#DFDFDF; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Class_Reference" title="Class Reference">Class Reference</a> and index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003739
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.028 seconds
+Real time usage: 0.033 seconds
+Preprocessor visited node count: 129/1000000
+Preprocessor generated node count: 320/1000000
+Post‐expand include size: 3463/2097152 bytes
+Template argument size: 194/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    6.617      1 - -total
+ 34.05%    2.253      1 - Template:Trac
+ 31.63%    2.093      1 - Template:Rewrite_API
+ 31.04%    2.054      1 - Template:Class_Footer
+ 15.97%    1.057      1 - Template:Message
+ 12.66%    0.838      1 - Template:CurrentVersion
+-->

@@ -1,0 +1,133 @@
+__TOC__
+'''This page only applies to developers, so if it's all G(r)eek to you, don't worry!'''
+
+The WordPress project uses [http://subversion.apache.org/ Subversion] for code version control. Most WordPress users will never want to use Subversion, because they will only install the released versions of WordPress. However, developers of plugins and themes may want to test their software against the latest development version of WordPress, and people interested in [[Contributing to WordPress]] by testing or fixing bugs will need to have access to the code that is under development. 
+
+This development code is available via Subversion. In this article, we'll cover the basics of connecting to the WordPress Subversion repository and running the commands that are available to most WordPress users. 
+
+Aside from the one section on Not Using Subversion, this article assumes that you have Subversion (or at least a Subversion client) installed already, and it only covers the most basic commands. For installation instructions, alternative clients, and more detailed information, check out these resources:
+* [http://subversion.tigris.org/ Subversion web site]
+* [http://subversion.apache.org/faq.html Subversion FAQ]
+* [http://subclipse.tigris.org/ Subclipse] - a Subversion plugin for the [http://www.eclipse.org/ Eclipse] development environment
+* [http://tortoisesvn.tigris.org/ TortoiseSVN] - a popular Windows Subversion client
+* [http://svnbook.red-bean.com/ The Subversion Book] - available free online
+
+Note that if you choose to use TortoiseSVN, Subclipse, or another graphical client, the commands below will be menu selections -- however, the same principles apply. Check the help files for your client to figure out how to connect to the repository and execute the equivalent commands.
+
+== Repository, Branches, Trunk, and Tags ==
+
+The basic idea of Subversion is that the source code and revisions are kept in a ''repository'' on a server. Users connect to the repository by using a ''client'' program, which allows the user to check out, view, edit, patch, and commit changes to the source code files (depending on the client's permission level; in the WordPress project, only a handful of people have permission to commit changes to the repository). 
+
+The WordPress repository is at [https://develop.svn.wordpress.org/ develop.svn.wordpress.org]. Within the repository, there are three sections:
+* '''trunk''': [https://develop.svn.wordpress.org/trunk/ develop.svn.wordpress.org/trunk] always contains the latest development code
+* '''branches''': Each major version of WordPress has its own branch which includes major and minor releases. For instance, the 3.7 branch at [https://develop.svn.wordpress.org/branches/3.7/ develop.svn.wordpress.org/branches/3.7] is currently on version 3.7.1, which is the latest release in the 3.7 branch.
+* '''tags''': When any version is released to the public, the source code is "tagged" with the version number. So for instance, WordPress 3.7.1 can be found at [https://develop.svn.wordpress.org/tags/3.7.1/ develop.svn.wordpress.org/tags/3.7.1]
+
+Starting with WordPress 3.7, the repository includes not only the source code for WordPress, but also files relating to the project's build process, unit tests and various other tools. The directory structure is thus:
+* '''trunk/src''': [https://develop.svn.wordpress.org/trunk/src develop.svn.wordpress.org/trunk/src] - The source code of WordPress itself
+* '''trunk/tests''': [https://develop.svn.wordpress.org/trunk/tests develop.svn.wordpress.org/trunk/tests] - WordPress unit tests
+* '''trunk/tools''': [https://develop.svn.wordpress.org/trunk/tools/ develop.svn.wordpress.org/trunk/tools] - Currently only the i18n tools
+
+These directories can also be found within the tags and branches directories since version 3.7.
+
+== Not Using Subversion ==
+
+Some people who want to test WordPress may have no interest in setting up Subversion. For those people, there are a couple of places to download development versions of WordPress:
+* [http://wordpress.org/plugins/wordpress-beta-tester/ The WordPress Beta Tester plugin] - Just install and activate this plugin on an existing WordPress install and you'll be able to choose to update to beta (under development) versions of WordPress.
+* [http://wordpress.org/nightly-builds/wordpress-latest.zip wordpress.org/nightly-builds/wordpress-latest.zip] - Every night this ZIP contains the latest in-development version of WordPress.
+* http://core.trac.wordpress.org/browser - Trac source-code browser - navigate to the branch/tag you want (see section above), and at the bottom of the page, you will see a link to download a ZIP archive of the up-to-the-minute latest checkins on that branch/tag.
+
+== Checking Out the Code ==
+
+Once you have Subversion installed, the first step you'll need to do is to ''check out'' the code, which basically means that you will download a version from the repository to your computer. To do this, make an empty directory for your copy of the code, change to that directory, and execute the [http://svnbook.red-bean.com/en/1.1/ch03s04.html checkout command] on the trunk, branch, or tag you are interested in. For instance, to check out the <tt>trunk</tt> (latest development version):
+
+<pre> svn co https://develop.svn.wordpress.org/trunk/ </pre>
+
+If you're only interested in the source code (and not the unit tests and build tools), you can check out the <tt>src</tt> subdirectory:
+
+<pre> svn co https://develop.svn.wordpress.org/trunk/src/ </pre>
+
+After a short wait (depending on your Internet connection speed), the result will be that the directory is filled with all of the WordPress files, as well as some hidden <tt>.svn</tt> subdirectories containing Subversion information.
+
+== Updating Your Copy of the Code ==
+
+If some time has passed since you checked out the code, and you would like to update to the latest version now available, use the  [http://svnbook.red-bean.com/en/1.1/ch03s05.html#svn-ch-3-sect-5.1 update command], after first changing to the directory where you checked out the code originally:
+
+<pre> svn update </pre>
+
+== Exporting the Code ==
+
+If you are not planning to do any editing, updating, hacking, or bug fixing in the WordPress code, but just want to download the latest version so you can install it somewhere, you can use the ''export'' command (after first creating a new directory to hold the results, and changing to that directory):
+
+<pre> svn export https://develop.svn.wordpress.org/trunk/ </pre>
+
+This will give you the same WordPress code as using <tt>svn co</tt>, but without the hidden <tt>.svn</tt> directories. None of the other Subversion commands will work after an export -- you need to do a checkout if you want to use the other Subversion commands. 
+
+== Browsing the Code ==
+
+To list all the files in the repository, without updating, checking out, etc, you can use the <tt>list</tt> command:
+<pre>svn list https://develop.svn.wordpress.org/trunk/</pre>
+To list files in a sub-directory, such as wp-includes:
+<pre>svn list https://develop.svn.wordpress.org/trunk/src/wp-includes/</pre>
+
+There is also an [http://core.trac.wordpress.org/browser online browser] for the WordPress Subversion repository.
+
+== Developer's commands ==
+
+If you are fixing bugs in WordPress, edit the files in the directory where you checked out the code. When you are ready to submit your fixes for inclusion in an upcoming version of WordPress, read [[Reporting Bugs]] to find out how to create a bug ticket on [http://core.trac.wordpress.org/browser Trac] (the WordPress bug tracking system), and then use the commands below.
+
+You may need to change to a sub-directory (such as <tt>trunk</tt>) to execute these commands.
+
+=== Checking differences in your working copy === 
+These commands help you understand what parts of your working copy are different from the committed version in the repository.
+
+* To get a list of the files you have changed, use the [http://svnbook.red-bean.com/en/1.1/ch03s05.html#svn-ch-3-sect-5.3.1 status command]:
+<pre> svn status </pre>
+
+* To show the changes you have made in a line-by-line ''patch'' format (which will also be used in exporting patches), use the [http://svnbook.red-bean.com/en/1.1/ch03s05.html#svn-ch-3-sect-5.3.2 diff command]. This will output a [http://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html#Detailed%20Unified unified diff] of all the changes you have made to the entire tree of source code:
+<pre> svn diff </pre>
+
+* To show the differences for just one file (multiple file paths can be given to show differences for a set of pages):
+<pre> svn diff path/to/file </pre>
+
+=== Saving patch/diff files ===
+To share the changes you've made with other people you must export them as a .diff or .patch file (they are plain text files with the same format and either extension is fine). Once you have exported your changes as a diff file you can attach it as a patch to a [http://core.trac.wordpress.org/browser Trac] report.
+
+For WordPress development all patches should be generated from the root of WordPress, rather than inside directories like wp-admin.
+
+* Use the diff command with > to indicate the destination file. This will save the diff output for any files changed in the current working copy.
+<pre> svn diff > my-patch-file.diff </pre>
+
+* Similar to the regular diff command you can specify specific file(s) you want the diff to show differences for (useful if you have other changes in your working copy that you don't want to include in the patch)
+
+ svn diff src/wp-admin/comment.php src/wp-includes/comment.php > comments-patch-r3234.diff
+
+=== Applying .patch or .diff files ===
+* To implement a .diff or .patch file into a working copy use the 'patch' command:
+ patch -p0 < /path/to/patch.diff
+
+
+
+=== Reverting changes to your working copy === 
+
+* To reset your working copy to the code you checked out (to throw away any changes you've made):
+<pre>svn revert . -R</pre>
+
+* You can also do a <tt>revert</tt> for just a single file:
+<pre>svn revert path/to/file</pre>
+
+=== Switching your Working copy to another branch ===
+
+* If you already have a working copy of the trunk, but you want to switch back to one of the released versions, you can use the ''''svn switch'''' command to bring all the files in your working copy back to the state of the released version. For instance, to switch back to version 3.7.1:
+
+<pre> svn switch https://develop.svn.wordpress.org/tags/3.7.1</pre>
+
+== Resources ==
+* [http://www.adobe.com/devnet/dreamweaver/articles/using_subversion_pt1.html Using Dreamweaver to update the SVN repository]
+* [http://markjaquith.wordpress.com/2005/11/02/my-wordpress-toolbox/ Mark Jaquith's Toolbox with Linux/Mac command-line explanations] 
+* [http://blog.ftwr.co.uk/archives/2005/11/03/windows-wordpress-toolbox/ Westi's blog post on using Tortoise SVN in Windows]
+* [https://github.com/kasparsd/wp-deploy Git to SVN Deploy Scripts for WordPress Plugins and Themes]
+* [https://brianhogg.com/maintain-update-free-wordpress-org-hosted-plugin-using-git/ Maintain and update your WordPress.org hosted plugin using Git]
+[[Category:WordPress Development]]
+
+{{Copyedit}}

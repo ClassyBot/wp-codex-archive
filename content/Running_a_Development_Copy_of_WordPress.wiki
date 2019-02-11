@@ -1,0 +1,67 @@
+Whether you're developing WordPress plugins, WordPress themes, or rolling out a new site based on a customized version of WordPress, it's often helpful to be able to mirror your live site on your local system for development. This is common for commercial sites, where you have a live production server but you also need a development and/or staging server, which is run locally to test plugins, mods, themes, and everything else that you don't want to do on the live production server. For example, your live site could be http://my.web.zz/wordpress and your development site might be http://my.web.zz/dev. However, WordPress serves pages with embedded absolute URLs based on the absolute site URL configured in your database, so none of the links on your development site will work.
+
+WordPress knows "what is this site's current URL?" because of two values in the <code>wp_options</code> database, specifically <code>siteurl</code> and <code>home</code> (WP base URL, and website homepage; if your whole site is WP they can be the same; these are normally set in your options panel). 
+
+=== Creating a Second Installation With Separate Tables ===
+
+One approach is to make a copy of both the WP file system <b>and</b> the databases on your development site. You'll have to ensure that both <b>wp-config.php</b> files are properly configured (different DB servers and/or tables and/or table prefixes). In addition, you'll have to change the database itself in two entries. If your development site and development homepage are both "http://my.web.zz/dev", then the DB changes you'll have to do are:
+
+<pre>SELECT * FROM wp_options WHERE option_name = "home" OR option_name = "siteurl";
+UPDATE wp_options SET option_value = "http://my.web.zz/dev" WHERE option_name = "home" OR option_name = "siteurl"</pre>
+
+You will have to redo these modifications each time you copy the database from one place to another. 
+
+There's also a simple hack that doesn't require you to make a separate database, which can avoid a lot of synchronization hassle. (This is only a good idea provided you don't expect the development site to wreck the main one's DB.)
+
+==Two WordPresses, One Database==
+
+The crux of what we want is that instead of the true DB values, the development site thinks it gets a modified value for <code>siteurl/home</code>. 
+
+Luckily, all calls to get this information are funneled through calls to <code>get_option()</code>, so we can focus on that. 
+
+=== By Changing Core Code ===
+
+WARNING: It is highly not recommended to change core code because WordPress updates will remove your changes.
+
+If you are okay with hacking your core code, this means adding a little logic at the start of <code>get_option()</code> in <code>wp-includes/option.php</code> is enough. The sample logic below assumes our live site is <code>http://my.web.zz/wordpress/</code> and our dev site is <code>http://my.web.zz/dev/</code>. 
+
+<pre>
+// intercept these options
+if ($option == "siteurl" || $option == "home") {
+   // some sample logic to determine if we're on the dev site
+   if (strcasecmp($_SERVER['REQUEST_URI'], '/dev') == 0
+      || strcasecmp(substr($_SERVER['REQUEST_URI'], 0, 5), '/dev/') == 0) {
+      return "http://my.web.zz/dev";
+   }
+}
+// otherwise act as normal; will pull main site info from db
+</pre>
+
+=== Using a Drop-In ===
+What if we don't want to hack core code? (Which is a good practice for easy upgrading and sharing code.) There is even a filter for this (<code>pre_option_siteurl</code> and <code>pre_option_home</code>) but there's a problem: within <b>wp-settings.php</b>,
+<ul>
+<li>the filter can't be defined until after line 65 when <code>functions.php</code> is included</li>
+<li>WordPress makes calls to <code>get_option</code> on line 155 of (via <code>wp_plugin_directory_constants())</code></li>
+<li>plugins aren't defined until later down around line 194.</li>
+</ul>
+
+However, in between lines 65 and 155, there is something we can use, namely the loading of the drop-in <code>db.php</code>; the filter can be safely defined there. (However, this is perhaps only halfway towards "not core" code.)
+
+Check if you already have an existing wp-content/db.php before trying this technique. It is used by packages like W3 Total Cache for similar reasons. 
+
+<pre>
+<?php
+// paste this in a (new) file, wp-content/db.php
+add_filter ( 'pre_option_home', 'test_localhosts' );
+add_filter ( 'pre_option_siteurl', 'test_localhosts' );
+function test_localhosts( ) {
+  if (... same logic as before to see if on dev site ...) {
+     return "http://my.web.zz/dev";
+  }
+  else return false; // act as normal; will pull main site info from db
+}
+</pre>
+
+
+{{Stub}}
+[[Category:Advanced Topics]]

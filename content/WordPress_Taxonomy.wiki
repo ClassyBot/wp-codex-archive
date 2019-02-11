@@ -1,0 +1,70 @@
+{{Languages|
+{{en|WordPress_Taxonomy}}
+{{es|Taxonomías}}
+{{it|Tassonomia_in_WordPress}}
+{{ja|WordPress_タクソノミー}}
+}}
+
+WordPress 2.3 first introduced the current taxonomy schema. Any plugin that queries against the old WordPress 2.2 table structure will break horribly; plugins that use the category API should be fine.
+
+This new schema replaced the categories, post2cat, and link2cat tables with three new tables that are much more flexible. 
+# wp_terms
+# wp_term_relationships
+# wp_term_taxonomy
+
+==wp_terms==
+The first table is the terms table. It holds the basic information about single terms.
+
+<pre> term_id bigint(20) unsigned NOT NULL auto_increment,
+ name varchar(200) NOT NULL default '',
+ slug varchar(200) NOT NULL default '',
+ term_group bigint(10) NOT NULL default 0,
+ PRIMARY KEY  (term_id),
+ UNIQUE KEY slug (slug),
+ KEY name (name)</pre>
+
+* <code>term_id</code> is a unique ID for the term.
+* <code>name</code> is simply the name of the term.
+* <code>slug</code> is unique and is the name reduced to a URL friendly form.
+* <code>term_group</code> is a means of grouping together similar terms.
+
+==wp_term_taxonomy==
+A term is not a category or tag on its own. It must be given context via the term_taxonomy table.
+
+<pre> term_taxonomy_id bigint(20) unsigned NOT NULL auto_increment,
+ term_id bigint(20) unsigned NOT NULL default 0,
+ taxonomy varchar(32) NOT NULL default '',
+ description longtext NOT NULL,
+ parent bigint(20) unsigned NOT NULL default 0,
+ count bigint(20) NOT NULL default 0,
+ PRIMARY KEY  (term_taxonomy_id),
+ UNIQUE KEY term_id_taxonomy (term_id,taxonomy),
+ KEY taxonomy (taxonomy)</pre>
+
+The term_taxonomy table places a term within a taxonomy. This is what makes a term a category, a tag or part of a custom taxonomy (or in a combination of taxonomies). 
+
+* <code>term_id</code> is the ID of a term in the terms table. 
+* <code>taxonomy</code> designates the taxonomy in which the term resides. The default taxonomies are <code>category</code>, <code>link_category</code>, and <code>post_tag</code>. 
+* <code>term_taxonomy_id</code> is a unique ID for the term+taxonomy pair. 
+
+The rest of the fields provide information about the term in the context of the taxonomy. 
+
+* The <code>parent</code> field keeps track of hierarchical relationships between terms in the taxonomy. 
+* <code>description</code> provides a taxonomy specific description of the term. 
+* <code>count</code> tracks how many objects are associated with the term+taxonomy pair. For example, given a term of the <code>category</code> taxonomy, <code>count</code> tracks how many posts are in that specific category.
+
+==wp_term_relationships==
+The final table, term_relationships, relates objects such as posts or links to a term_taxonomy_id from the term_taxonomy table.
+
+<pre> object_id bigint(20) unsigned NOT NULL default 0,
+ term_taxonomy_id bigint(20) unsigned NOT NULL default 0,
+ term_order int(11) NOT NULL default 0,
+ PRIMARY KEY  (object_id,term_taxonomy_id),
+ KEY term_taxonomy_id (term_taxonomy_id)</pre>
+
+* <code>object_id</code> is the ID of a post or link. 
+* <code>term_taxonomy_id</code> is an ID from the term_taxonomy table designating a particular term+taxonomy pair.
+* <code>term_order</code> allows an ordering of terms for an object (see [http://core.trac.wordpress.org/ticket/5857 ticket #5857])
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

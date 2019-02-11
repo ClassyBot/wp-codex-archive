@@ -1,0 +1,60 @@
+{{Languages|
+{{en|Query Overview}}
+{{it|Panoramica sulle query}}
+{{ja|クエリ概要}}
+}}
+
+This article is an overview for developers of the process WordPress uses to build your blog pages, and how plugins can modify that process. It is aimed at developers of plugins that will do advanced queries and permalinks, and also at developers who want to understand WordPress better, in order to add new features to the core of WordPress or fix WordPress bugs. 
+
+For more details, you'll need to read the WordPress core PHP files and functions mentioned. 
+
+So, here are the steps WordPress uses to decide what posts or pages to display on a page, and display them:
+
+# When a visitor first clicks on or types a URL for a page that is part of your blog, WordPress starts by running a few core files (<tt>wp-config.php</tt>, <tt>wp-settings.php</tt>, etc.) If you are interested in the specifics of the file loading order, start at <tt>index.php</tt> and follow the chain of files as each PHP file includes/requires additional PHP files (or read [http://humanshell.net/wordpress/wordpress-initialization/ this excellent post at humanshell.net])
+# WordPress loads and initializes any plugins you have activated (calls the plugin <tt>init</tt> actions).
+# WordPress loads the "text domain" for internationalization, and the <tt>functions.php</tt> file from the currently active theme.
+# WordPress runs the <tt>wp()</tt> function (in <tt>wp-includes/functions.php</tt>), which calls <tt>$wp->main()</tt> (<tt>$wp</tt> is an object of class <tt>WP</tt>, which is defined in <tt>wp-includes/class-wp.php</tt>). This tells WordPress to:
+## Parse the URL into a query specification using <tt>WP->parse_request()</tt> -- more on that below.
+## Set all the <tt>is_</tt> variables that are used by [[Conditional Tags]] using <tt>$wp_query->parse_query()</tt> (<tt>$wp_query</tt> is an object of class <tt>WP_Query</tt>, which is defined in <tt>wp-includes/query.php</tt>). Note that in spite of this function's name, in this case <tt>WP_Query->parse_query</tt> doesn't actually do any parsing for us, since that is done before-hand by <tt>WP->parse_request()</tt>.
+## Convert the query specification into a MySQL database query, and run the database query to get the list of posts, in function <tt>WP_Query->get_posts()</tt>. Save the posts in the <tt>$wp_query</tt> object to be used in the WordPress Loop.
+## Handle 404 errors.
+## Send the blog's HTTP headers.
+## Set up some variables for the WordPress Loop.
+# WordPress loads your template, figures out which template file to use according to the [[Template Hierarchy]], and runs that file (basically doing whatever your template file says to do). Or, WordPress could run one of the feed files (such as <tt>wp-rss2.php</tt>) instead.
+# Generally, the template or feed file runs the [[The Loop|WordPress Loop]] to print blog posts or a static page. 
+# The template or feed file will also likely print out permalinks to some archives, categories, or posts using built-in WordPress functions.
+
+=== More on <tt>WP->parse_request()</tt> ===
+
+As mentioned above, <tt>WP->parse_request()</tt> (part of class <tt>WP</tt> in <tt>wp-includes/class-wp.php</tt>) parses a URL into a query specification. Here is a summary of the steps it uses to do this:
+# Strips the GET variable section out of the URL (i.e. anything after a "?" in the URL). Also strips out the blog's home URL.
+# Obtains the '''rewrite rules''' that are currently in effect, by calling <tt>$wp_rewrite->wp_rewrite_rules()</tt> (<tt>$wp_rewrite</tt> is an object of class <tt>WP_Rewrite</tt>, which is defined in <tt>wp-includes/rewrite.php</tt>). The rewrite rules are basically a set of pattern matching rules for WordPress permalinks, with a specification of what to do if the pattern matches. For instance, by default there is a rule that would match a stripped permalink like <tt>category/abc</tt>, and its specification says that it means the "abc" category was requested. There is also a rewrite rule for the home page (nothing after the blog URL). 
+# Goes through the rewrite rules in order, until it finds a match between a rewrite rule and the URL. If nothing is found, it's a 404 error. If a match is found, WordPress extracts the information according to the rule specification.
+# Obtains the list of '''query variables''' that is currently in effect. For each query variable, WordPress checks to see if it has been set by permalink parsing, POST submission, or GET submission, and if so, WordPress saves the variable's value into the '''query specification''' array (<tt>$wp->query_vars</tt>, part of class <tt>WP</tt> in <tt>wp-includes/class-wp.php</tt>).
+
+=== What Plugins can Modify ===
+
+Here is an overview of the things a plugin can do to modify the default query and permalink behavior described above. Many of these modifications are described (with examples) in the article [[Custom Queries]].
+
+* Add, modify, or remove rewrite rules, to affect how permalinks are parsed. This is generally not done with filters and actions, but instead by calling functions in <tt>wp-includes/rewrite.php</tt>, such as <tt>add_rewrite_rule</tt>, <tt>add_rewrite_endpoint</tt>, etc. This can be a bit tricky, because <tt>WP_Rewrite->wp_rewrite_rules()</tt> usually just gets the previously-saved set of rewrite rules (they are saved in the WordPress database as option "rewrite_rules"). So if you want to modify rewrite rules, you will need to call <tt>$wp_rewrite->flush_rules()</tt> to force them to recalculate. You'll need to do this in your plugin's <tt>activation/deactivation/uninstall</tt> action, so that it happens early enough in the process. It's extremly important to <em>not</em> do this on every request. Do this only during plugin activation and similar.
+* Add or remove query variables, to affect which variables are saved in the query specification from POST, GET, and permalink requests (<tt>query_vars</tt> filter).
+* Modify the query specification, after variable values are saved  (<tt>request</tt> filter or <tt>parse_request</tt> action; if you want to use conditional tag tests, use the <tt>parse_query</tt> or <tt>pre_get_posts</tt> action, as these run after the <tt>is_</tt> variables are set).
+* Modify the MySQL database query, after it is created from the query specification using the following filters:
+** <tt>posts_where</tt>
+** <tt>posts_join</tt>
+** <tt>posts_groupby</tt>
+** <tt>posts_orderby</tt>
+** <tt>posts_distinct</tt>
+** <tt>posts_fields</tt>
+** <tt>post_limits</tt>
+** <tt>posts_where_paged</tt>
+** <tt>posts_join_paged</tt>
+** <tt>posts_request</tt> 
+* Modify the results of the database query (<tt>the_posts</tt> filter).
+* Override the default template file choice (<tt>template_redirect</tt> action).
+
+== Related ==
+{{Query Tags}}
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

@@ -1,0 +1,83 @@
+As of version 2.3, WordPress lets you manage posts and media files using the Atom Publishing Protocol, or AtomPub. From WordPress 3.5 AtomPub is disabled by default, but you can use the [http://wordpress.org/extend/plugins/atom-publishing-protocol/ Atom Publishing Protocol Plugin].
+
+== Overview ==
+
+AtomPub allows you to connect to your blog with an AtomPub-enabled client and publish, update and delete posts and media files remotely, without needing to log in to the administration section directly.
+
+While remote posting has been possible using a number of protocols, AtomPub is a well defined protocol that should promote interoperability. 
+
+WordPress's AtomPub service address is http&#x3A;//[Blog URL]/wp-app.php/service. Your AtomPub client should be configured to point to that address.
+
+== How AtomPub Works ==
+
+This section provides some background on how AtomPub works. In most cases it will not be necessary to understand this, however it may be useful when addressing problems with your set up. 
+
+AtomPub is an application-level protocol that uses HTTP and XML to manage resources on the Web. Specifically, an AtomPub client sends XML messages to an AtomPub server using HTTP commands using what is known as a RESTful architecture. Resources such as blog posts can be retrieved using an HTTP GET operation, published using an HTTP POST operation, modified using an HTTP PUT operation and deleted using an HTTP DELETE operation.
+
+== Testing and Troubleshooting ==
+
+What functionality you get from WordPress's AtomPub support depends, in part, on how your WordPress blog is configured.  You can enter your blog's service address into the [http://www.tbray.org/ape/ Atom Protocol Exerciser] (APE) to verify your configuration. The APE is a special AtomPub client that is designed to test AtomPub servers. It will test all the functionality that AtomPub gives to your WordPress blog. That is, it will try to retrieve collections of posts and media files, post new resources, update them and delete them. If any of the expected functionality fails, the APE will report an error. The information below is provided to help you understand and fix possible errors.
+
+=== Authentication ===
+
+First, and most basic, only the users that are in your weblog's User List may access your weblog through the AtomPub interface.  For most configurations, this ''just works'', but in the case of PHP run as CGI on top of the Apache web server, additional Apache [http://www.besthostratings.com/articles/http-auth-php-cgi.html configuration] is required. You can check to see if PHP is running as CGI by running the <tt>phpinfo()</tt> function (see [[Finding_Server_Info]]) and looking for the <tt>SERVER_SOFTWARE</tt> entry, which will contain PHP-CGI as well as other server information.
+
+When this is a problem, APE will report:
+*  Retrieval of Service Document failed: Too many redirects
+or
+*  Retrieval of Service Document failed: Can't connect to ''www.example.com'' on port 80: wrong status line: "HTTP/1.1 Credentials required."
+
+=== Firewall ===
+
+While comparatively rare, some client's or server's firewalls are configured to disallow PUT and DELETE operations.  As these requests are denied before Wordpress even sees them, this issue needs to be addressed at the firewall.  Left unaddressed,  this limits your AtomPub usage to the two most common interactions: GET and POST.
+
+When this is a problem, APE will report:
+* Couldn't delete the entry that was posted: Forbidden
+* Can't update mini-entry at http&#x3A;//''your-host''/''your-blog''/wp-app.php/post/5
+* Couldn't delete media link entry
+* Can't update picture at http&#x3A;//''your-host''/''your-blog''/wp-app.php/attachment/file/10
+
+=== Permissions ===
+
+In order to handle uploads of attachments of media resources like images, Wordpress needs to be able to write to your <code>wp-content</code> directory.  If this is a problem, see [[Changing File Permissions]].
+
+When this is a problem, APE will report:
+* Retrieval of media resource: Content-type must be 'image/jpeg', not 'application/atom+xml'
+* Media resource differs from posted picture
+* Fetch image to get ETag failed: Internal Server Error
+* Can't fetch image to get ETag
+
+=== Permalinks ===
+
+Your AtomPub client may allow you to set the ''postname'' (also sometimes known as ''slug'') in your permalinks.  If this is of interest to you, see [[Using Permalinks]].
+
+When this is a problem, APE will report:
+* Client-provided slug 'ape-''nnnnn''' not used in server-generated URI.
+
+=== Sanitization ===
+
+If users are able to post [[Roles_and_Capabilities#unfiltered_html|unfiltered HTML]] they may be able to include malicious code in their posts.  To be sure this doesn't happen, check the [[Roles_and_Capabilities#Capability_vs._Role_Table|capabilities vs. Role Table]].  In general, posting using a Wordpress User which is defined as an '''Author''' eliminates this possibility.
+
+When this is a problem, APE will report:
+* Published entry retains xhtml:script element.
+* Published entry retains 'background' attribute.
+* Published entry retains 'style' attribute.
+* Published entry retains dangerous hyperlink: 'javascript:evil'.
+
+=== Foreign Markup ===
+
+The Atom Publishing Protocol defines an optional facility for including metadata in the form of foreign markup to be attached to your posts.  While this may be supported in some future release of Wordpress, it is not supported in 2.3.  This is mentioned here, as this is one of the things that APE checks for and reports on.  If you see these messages, they are normal and are not something to be concerned about.
+
+The following messages from APE are to be considered '''normal''':
+* Server discarded foreign markup in Returned entry.
+* Server discarded foreign markup in Retrieved entry.
+* Server discarded foreign markup in Entry from collection feed.
+
+What this means is that when perfectly valid Atom 1.0 feed contains XHTML in <code>&lt;content type="xhtml"></code> element, wordpress discards all formatting and treats the input stream as plain text omitting anything XHTML/HTML related (e.g., all EOLs are replaced by <code>&lt;BR /></code> element in the resulting HTML). That means that anything else than plain text cannot be now successfully included in the <code>&lt;content></code> element. See [https://core.trac.wordpress.org/ticket/9513 this ticket] for further information.
+
+== Resources ==
+*[http://tools.ietf.org/html/rfc5023 RFC 5023]
+*[http://www.tbray.org/ape/ Atom Protocol Exerciser]
+*[http://www.atomenabled.org/developers/protocol/ AtomEnabled]
+
+[[Category:Advanced Topics]]

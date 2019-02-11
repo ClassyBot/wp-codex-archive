@@ -1,0 +1,97 @@
+== Descripción ==
+
+'''wp_parse_args''' es una utilidad genérica para unir un array de argumentos con un array de valores por defecto. Si se le da una cadena de interrogación URL también puede convertirla en un array (p.ej. "id=5&status=draft").
+
+Se utiliza en WordPress para evitar preocuparse por la lógica de los valores por defecto en las entradas, y facilita un patrón estable para pasar argumentos. Funciones como [[Template_Tags/query_posts | query_posts]], [[Template_Tags/wp_list_comments | wp_list_comments]] y [[Function_Reference/get_terms | get_terms]] son ejemplos comunes del poder de simplificación de  wp_parse_args.
+
+Las funciones que tienen un parámetro basado en '''$args''' son capaces de expandir infinitamente el número potencial de valores que se pueden pasar entre ellas, evitando las molestias que generan las largas llamadas de función con demasiados argumentos, muchos de los cuales con la única función  de sobreescribir valores que harían un buen valor por defecto en raras ocasiones.
+
+== Uso ==
+'''wp_parse_args()''' se utiliza dentro de una función definida para procesar argumentos de entrada. Debajo tenemos un ejemplo de como wp_parse_args() puede unir un array de defaults con un array de argumentos mezclados.
+
+<pre>
+/**
+ * Define el array de valores por defecto
+ */ 
+$defaults = array(
+	'type' => 'post',
+	'before' => "<nowiki><p></nowiki>",
+	'after' => "<nowiki></p></nowiki> \n",
+	'echo' => TRUE,
+);
+/**
+ *  Convierte el $args entrante en un array y lo mezcla con  $defaults
+ */ 
+$args = wp_parse_args( $args, $defaults );
+
+/**
+ * OPCIONAL: Declare cada elemento en $args como variables separadas p.ej. $type, $before.
+ */ 
+extract( $options, EXTR_SKIP );
+</pre>
+
+== Parámetros ==
+{{Parameter|$args|array/string|Cadena de consulta o array de argumentos mezclados que sustituirán los valores en $defaults. }}
+Puede pasarse en estilo de consulta URL
+ type=post&posts_per_page=5&cat=1
+O como una definición de array
+ array('type'=>'post', 'posts_per_page' => 5, 'cat' => '1')
+ 
+{{Parameter|$defaults|array|Array de los valores por defecto que serán sustituidos por los de $args}}
+
+== Ejemplo ==
+Debajo tenemos un ejemplo de función que utiliza lel sistema wp_parse_args para manejar un único argumento $args, al cual se le puede dar cualquier valor que usted desee. En este caso $args almacena valores detallados para sustituir en presentaciones de información en pantalla, un patrón que se puede encontrar en muchas funciones de WordPress.
+
+<pre>
+/**
+ * Define una nueva función que utiliza $args y wp_parse_args()
+ */
+function explain_parse_args( $args ) {
+	$defaults = array (
+ 		'text' => 'wp_parse_args() merges $args into $defaults',
+ 		'before' => "<nowiki><p></nowiki>",
+ 		'after' => "<nowiki></p></nowiki> \n",
+ 		'echo' => TRUE,
+	);
+	
+	// Analiza el $args entrante y lo convierte en un array que mezclará con $defaults
+	$args = wp_parse_args( $args, $defaults );
+	
+	// OPCIONAL: Declara cada elemento de $args como una variable separada $type, $before.
+	extract( $options, EXTR_SKIP );
+
+	$output = $before . $text . $after;
+	
+	if (!$echo) 
+		return $output;
+	
+	echo $output;
+}
+
+/**
+ * Ejecuta nuestra nueva función utilizando los valores por defecto($args vacío)
+ * Esto mostrará: 
+ * 	<p>wp_parse_args() merges $args into $defaults</p>
+ */
+explain_parse_args();
+
+/**
+ * Ejecuta nuestra función sustituyendo varias opciones con un array
+ * Esto mortrará la salida anterior con los valores modificados :
+ * 	<p class='specialclass'>A better explanation</p>
+ */
+explain_parse_args( array (
+	'text' => "A better explanation",
+	'before' => "<p class='specialclass'>",
+) );
+
+/**
+ * Podemos pasar, también, una consulta de estilo URL y se convertirá 
+ * Esto establecería $args['echo'] a 1 y $args['text'] a 0	
+ */
+explain_parse_args( 'echo=1&text=0' );
+
+</pre>
+
+
+[[Category:Functions]]

@@ -1,0 +1,122 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="https://codex.wordpress.org/fr:Donner_%C3%A0_WordPress_son_Propre_Dossier" title="fr:Donner à WordPress son Propre Dossier">Français</a> • 
+
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Giving">WordPress Its Own Directory 日本語</a> 
+<a href="/index.php?title=pl:Instalacja_WordPressa_w_podkatalogu&amp;action=edit&amp;redlink=1" class="new" title="pl:Instalacja WordPressa w podkatalogu (page does not exist)">Polski</a> • 
+<a href="https://codex.wordpress.org/%D0%A0%D0%B0%D0%B7%D0%BC%D0%B5%D1%89%D0%B0%D0%B5%D0%BC_WordPress_%D0%B2_%D0%BE%D1%82%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D0%BC_%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3%D0%B5" title="Размещаем WordPress в отдельном каталоге">Русский</a> • 
+
+<a href="https://codex.wordpress.org/pt-br:WordPress_em_Diret%C3%B3rio_Pr%C3%B3prio" title="pt-br:WordPress em Diretório Próprio">Português do Brasil</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Moving_a_Root_install_to_its_own_directory"><span class="tocnumber">1</span> <span class="toctext">Moving a Root install to its own directory</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Method_I_.28Without_URL_change.29"><span class="tocnumber">1.1</span> <span class="toctext">Method I (Without URL change)</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Method_II_.28With_URL_change.29"><span class="tocnumber">1.2</span> <span class="toctext">Method II (With URL change)</span></a>
+<ul>
+<li class="toclevel-3 tocsection-4"><a href="#Moving_process"><span class="tocnumber">1.2.1</span> <span class="toctext">Moving process</span></a></li>
+<li class="toclevel-3 tocsection-5"><a href="#.htaccess_modification"><span class="tocnumber">1.2.2</span> <span class="toctext">.htaccess modification</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-6"><a href="#Moving_Specific_WordPress_Folders"><span class="tocnumber">1.3</span> <span class="toctext">Moving Specific WordPress Folders</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<p>Some people want their WordPress URL to coincide with their website's root (e.g. <tt>http://example.com</tt>) but they don't want all of the WordPress files cluttering up their root directory. WordPress allows you to install it into a subdirectory, but have your website served from the website root.
+</p><p>As of <a href="https://codex.wordpress.org/Version_3.5" title="Version 3.5">Version 3.5</a>, Multisite users may use all of the functionality listed below. If you are running a version of WordPress older than 3.5, please update before installing a Multisite WordPress install on a subdirectory.
+</p><p><b>Note to theme/plugin developers:</b> this will not separate your code from  WordPress. Themes and plugins will still reside under wp-content folder.
+</p><p><b>Caveat:</b> <i>Do this at your own risk.</i> For most site owners, it is not recommended to put WordPress in a different directory unless you have a <i>very good reason</i>, and are an <i>experienced and highly skilled WordPress developer</i>, as this can cause issues with a <i>lot</i> of plugins.
+</p>
+<h1><span class="mw-headline" id="Moving_a_Root_install_to_its_own_directory">Moving a Root install to its own directory</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Giving_WordPress_Its_Own_Directory&amp;action=edit&amp;section=1" title="Edit section: Moving a Root install to its own directory">edit</a><span class="mw-editsection-bracket">]</span></span></h1>
+<p>Let's say you've installed wordpress at `example.com`. Now you have two different methods to move wordpress installations into subdirectory: 
+1) Without change of site URL (remains `example.com`) 
+2) With change in site URL (it will redirect to `example.com/subdirectory`)
+</p><p><br />
+</p>
+<h2><span class="mw-headline" id="Method_I_.28Without_URL_change.29">Method I (Without URL change)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Giving_WordPress_Its_Own_Directory&amp;action=edit&amp;section=2" title="Edit section: Method I (Without URL change)">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>1) After Installing the wordpress in root folder, move EVERYTHING from root folder into subdirectory. 
+</p><p>2)  Create a `.htaccess` file in root folder, and put this content inside (just change <tt>example.com</tt> and <tt>my_subdir</tt>):
+</p>
+<pre>
+&lt;IfModule mod_rewrite.c&gt;
+RewriteEngine on
+RewriteCond&#160;%{HTTP_HOST} ^(www.)?example.com$
+RewriteCond&#160;%{REQUEST_URI}&#160;!^/my_subdir/
+RewriteCond&#160;%{REQUEST_FILENAME}&#160;!-f
+RewriteCond&#160;%{REQUEST_FILENAME}&#160;!-d
+RewriteRule ^(.*)$ /my_subdir/$1
+RewriteCond&#160;%{HTTP_HOST} ^(www.)?example.com$
+RewriteRule ^(/)?$ my_subdir/index.php [L] 
+&lt;/IfModule&gt;
+</pre>
+<p>3.) Change the instances of "my_subdir" in lines 4, 7 and 9 to use the name of your subdirectory
+</p><p>4.) Change the instances of "example.com" to match your site's domain name.
+</p><p>5.) Save/upload the file
+</p><p>That's all&#160;:)
+</p>
+<h2><span class="mw-headline" id="Method_II_.28With_URL_change.29">Method II (With URL change)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Giving_WordPress_Its_Own_Directory&amp;action=edit&amp;section=3" title="Edit section: Method II (With URL change)">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Moving_process">Moving process</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Giving_WordPress_Its_Own_Directory&amp;action=edit&amp;section=4" title="Edit section: Moving process">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>(p.s. If you've already installed WP in subdirectory, some steps might be already done automatically).
+</p>
+<ol><li> Create the new location for the core WordPress files to be stored (we will use <tt>/wordpress</tt> in our examples). (On linux, use <tt>mkdir wordpress</tt> from your <tt>www</tt> directory. You'll probably want to use <tt>chown apache:apache</tt> on the <tt>wordpress</tt> directory you created.)</li>
+<li> Go to the <a href="https://codex.wordpress.org/Administration_Screens#Settings" title="Administration Screens">General</a> Screen.</li>
+<li> In <b>WordPress address (URL):</b> set the address of your main WordPress core files. Example: <tt>http://example.com/wordpress</tt></li>
+<li> In <b>Site address (URL):</b> set root directory's URL. Example: <tt>http://example.com</tt></li>
+<li> Click <b>Save Changes</b>. (Do not worry about the errors that happen now! Continue reading)</li>
+<li> Now move your WordPress core files (from root directory) to the subdirectory.</li>
+<li> Copy (NOT MOVE!) the <tt>index.php</tt> and <tt>.htaccess</tt> files from the WordPress directory into the root directory of your site (Blog address). The <tt>.htaccess</tt> file is invisible, so you may have to set your FTP client to <a href="https://codex.wordpress.org/Changing_File_Permissions#Unhide_the_hidden_files" title="Changing File Permissions">show hidden files</a>. If you are not using <a href="https://codex.wordpress.org/Using_Permalinks#Using_.22Pretty.22_permalinks" title="Using Permalinks">pretty permalinks</a>, then you may not have a .<tt>htaccess</tt> file. <i><b>If you are running WordPress on a Windows (IIS) server</b> and are using pretty permalinks, you'll have a <tt>web.config</tt> rather than a <tt>.htaccess</tt> file in your WordPress directory. For the <tt>index.php</tt> file the instructions remain the same, copy (don't move) the index.php file to your root directory. The <tt>web.config</tt> file, must be treated differently than the <tt>.htaccess</tt> file so you must MOVE (DON'T COPY) the <tt>web.config</tt> file to your root directory.</i></li>
+<li> Open your root directory's <tt>index.php</tt> file in a <a href="https://codex.wordpress.org/Glossary#Text_editor" title="Glossary">text editor</a></li>
+<li> Change the following and save the file. Change the line that says:<br /><tt>require( dirname( __FILE__ ) . '/wp-blog-header.php' );</tt><br />to the following, using your directory name for the WordPress core files:<br /><tt>require( dirname( __FILE__ ) . '/wordpress/wp-blog-header.php' );</tt></li>
+<li> Login to the new location. It might now be <tt>http://example.com/wordpress/wp-admin/</tt></li>
+<li> If you have set up <a href="https://codex.wordpress.org/Using_Permalinks" title="Using Permalinks">Permalinks</a>, go to the <a href="https://codex.wordpress.org/Administration_Screens#Permalinks" title="Administration Screens">Permalinks Screen</a> and update your Permalink structure. WordPress will automatically update your <tt>.htaccess</tt> file if it has the appropriate file permissions. If WordPress can't write to your <tt>.htaccess</tt> file, it will display the new rewrite rules to you, which you should manually copy into your <tt>.htaccess</tt> file (in the same directory as the main <tt>index.php</tt> file.)</li></ol>
+<h3><span class="mw-headline" id=".htaccess_modification">.htaccess modification</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Giving_WordPress_Its_Own_Directory&amp;action=edit&amp;section=5" title="Edit section: .htaccess modification">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In some cases, some people like to install separate versions in a subdirectory (such as /2010, /2011, /latest and etc..), and want that website (by default) used the latest version, then Install WordPress in a subdirectory, such as <code>/my_subdir</code> and in your root folder's  .htaccess file add the following  (just change the words as you need):
+</p>
+<pre>
+RewriteEngine On
+RewriteCond&#160;%{HTTP_HOST} ^(www.)?example.com$
+RewriteRule ^(/)?$ my_subdir [L]
+</pre>
+<p><br />
+Now when users go to your root domain (example.com), it will automatically redirect to the subdirectory you specified. 
+</p><p>Note: This code comes from Site 5's post here: <a rel="nofollow" class="external text" href="https://qa.site5.com/advanced/how-to-redirect-your-domain-to-a-subfolder-using-htaccess/">How to Redirect Your Domain to a Subfolder Using .htaccess</a>.
+</p>
+<h2><span class="mw-headline" id="Moving_Specific_WordPress_Folders">Moving Specific WordPress Folders</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Giving_WordPress_Its_Own_Directory&amp;action=edit&amp;section=6" title="Edit section: Moving Specific WordPress Folders">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following links explains how to change specific directories within WordPress:
+</p>
+<ul><li><a href="https://codex.wordpress.org/Editing_wp-config.php#Moving_wp-content_folder" title="Editing wp-config.php">Moving wp-content folder</a></li>
+<li><a href="https://codex.wordpress.org/Editing_wp-config.php#Moving_plugin_folder" title="Editing wp-config.php">Moving Plugin Folder</a></li>
+<li><a href="https://codex.wordpress.org/Editing_wp-config.php#Moving_themes_folder" title="Editing wp-config.php">Moving Themes Folder</a></li>
+<li><a href="https://codex.wordpress.org/Editing_wp-config.php#Moving_uploads_folder" title="Editing wp-config.php">Moving Uploads Folder</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004027
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.044 seconds
+Preprocessor visited node count: 123/1000000
+Preprocessor generated node count: 501/1000000
+Post‐expand include size: 1101/2097152 bytes
+Template argument size: 644/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   18.645      1 - Template:Languages
+100.00%   18.645      1 - -total
+ 23.01%    4.291      1 - Template:pt-br
+ 20.15%    3.757      1 - Template:en
+ 17.92%    3.342      1 - Template:pl
+ 14.96%    2.790      1 - Template:ru
+  6.95%    1.296      1 - Template:ja
+  6.89%    1.285      1 - Template:fr
+-->

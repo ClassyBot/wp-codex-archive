@@ -1,0 +1,94 @@
+Many people have used [[Installing/Updating WordPress with Subversion|Subversion to install WordPress]] or have [[Giving_WordPress_Its_Own_Directory|installed WordPress into its own directory]]. You can combine these techniques to create a "clean"  Subversion installation in which the user's custom files (<tt>wp-config.php</tt> and <tt>wp-content/</tt>) are stored outside of the WordPress application directory, so that user files and files under version control never overlap. (Original credit to '''Sam Bauers''' for presenting these instructions at WordCampUK.) 
+
+In the example below we will use <tt>wordpress</tt> as the directory for the core WordPress files and <tt>wordpress-content</tt> for the new location of the <tt>wp-content</tt> directory; the home directory will be the Document Root (<tt><nowiki>http://example.com</nowiki></tt>). The finished installation will include files in these locations:
+
+<pre>/.htaccess
+/wordpress/
+/wordpress/index.php
+/wordpress-content/
+/wp-config.php</pre>
+
+There are a few basic steps (explained in detail below):
+
+#	Check out a branch or tag of the WordPress application into the <tt>wordpress</tt> directory (and complete a new installation)
+#	Change the <strong>Site address</strong> to the URL of the home directory
+#	In an <tt>.htaccess</tt> file in the home directory, edit WordPress's mod_rewrite rules to pass requests to the <tt>index.php</tt> file in the <tt>wordpress</tt> directory. Remove WordPress's write access to the <tt>.htaccess</tt> file.
+#	Move the new content directory and set <tt>WP_CONTENT_DIR</tt> and <tt>WP_CONTENT_URL</tt> to the new location
+#	Create symbolic links to the Akismet plugin and the default theme in the new content directory
+
+== Check out a working copy and install ==
+
+Create the new location for the core WordPress files to be stored (we will use <tt>/wordpress</tt> in the examples).
+
+Following the [[Installing/Updating_WordPress_with_Subversion|New Install using Subversion instructions]], ''check out'' (Subversion command <tt>co</tt>) the stable version of WordPress you have chosen. Do not type the <tt>$</tt> characters -- they are just indications of the command prompt. Here is the command (assuming the version you want is {{CurrentVersion}}):
+	
+<code>$ svn co <nowiki>http://core.svn.wordpress.org/tags/</nowiki>{{CurrentVersion}} .</code>
+
+When the download is complete, edit the <tt>wp-config.php</tt> (see [[Editing_wp-config.php|editing wp-config.php]]) ignoring the Advanced Options and save the file within the root directory (<nowiki>http://example.com/</nowiki>).
+
+Access your blog URL (<nowiki>http://example.com/wordpress</nowiki>) to complete the installation, as in the [[Installing WordPress|standard WordPress installation instructions]].
+
+== Change <em>Site address</em> ==
+
+Change the <strong>Site address</strong> to the URL of the home directory. This can be done in the Settings panel or in wp-config.
+
+=== In the settings panel ===
+
+#	Go to the [[Administration_Panels#Options_-_Configuration_Settings|Options]] panel.
+#	In the box for '''Site address (URL):''' change the address to the root directory's URL. Example: <tt><nowiki>http://example.com</nowiki></tt>
+#	Click '''Update Options'''. (Do not worry about any error message and do not try to see your blog at this point!)
+
+=== In <tt>wp-config</tt> ===
+
+(This method avoids the error message and is more easily reversible.)
+
+[[Editing_wp-config.php#Blog_address_.28URL.29|Set the WP_HOME constant in wp-config]] like so:
+
+  define( 'WP_HOME', '<nowiki>http://example.com</nowiki>' );
+
+== Edit <tt>.htaccess</tt> ==
+
+Instead of moving WordPress's <tt>index.php</tt> file into the home directory (as in [[Giving_WordPress_Its_Own_Directory]]), we leave it in the application directory and change the mod_rewrite rules to pass requests there.
+
+Set up [[Using Permalinks|Permalinks]] on the [[Administration_Panels#Permalinks|Permalinks panel]] and update your Permalink structure. WordPress will automatically update your <tt>.htaccess</tt> file if it has the appropriate file permissions. Don't worry if WordPress can't write to your <tt>.htaccess</tt> file; we will be overwriting the contents anyway.
+
+If the file exists move the <tt>.htaccess</tt> file from the <tt>wordpress</tt> directory into the root directory of your site (Blog address).
+ 
+Open your root directory's <tt>.htaccess</tt> file in a [[Glossary#Text editor|text editor]] (or create it if necessary).
+
+Edit the contents of the file to match the following lines, using your directory name for the WordPress core files:
+
+<pre># BEGIN WordPress
+<IfModule mod_rewrite.c>
+	# Hey-ho let's go!
+	RewriteEngine On
+	# Base is the URL path of the home directory
+	RewriteBase /
+	# Base goes to WordPress
+	RewriteRule ^$ /wordpress/index.php [L]
+	# Skip real files and directories
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	# Otherwise send it to WordPress
+	RewriteRule .* /wordpress/index.php [L]
+</IfModule>
+# END WordPress</pre>
+
+Edit the <tt>.htaccess</tt> file permissions to ensure WordPress can't overwrite it. 
+
+Note: If working in your development environment on a Windows machine (e.g. using XAMPP), file permissions can be modified by: <tt>right-click => Properties => 'Security' tab.</tt>
+
+You should now be able to view the site via the root URL (<tt><nowiki>http://example.com</nowiki></tt>).
+
+== Move the content directory ==
+
+Create the new location for the <tt>wp-content</tt> directory (we will use <tt>/wordpress-content</tt> in our examples).
+
+In that directory create two further directories called <tt>plugins</tt> and <tt>themes</tt>.
+
+Edit the <tt>wp-config.php</tt> adding the following lines:
+
+  define('WP_CONTENT_DIR', dirname(__FILE__) . '/wordpress-content');
+  define('WP_CONTENT_URL', '<nowiki>http://example.com/wordpress-content</nowiki>');
+
+Create soft links of <tt>wp-content/plugins/akismet/</tt> into <tt>wordpress-content/plugins/</tt> and <tt>wp-content/themes/default/</tt> into <tt>wordpress-content/themes/</tt>. This will ensure that WordPress uses any SVN updates to the default theme or Akismet plugin. Running XAMPP on a Windows machine, you can follow these instructions for creating symlinks: http://www.inkplant.com/code/how-to-create-a-symbolic-link-in-windows-vista.php

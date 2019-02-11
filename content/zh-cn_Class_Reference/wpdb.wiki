@@ -1,0 +1,412 @@
+{{Languages|
+{{en|Class Reference/wpdb}}
+{{it|Riferimento classi/wpdb}}
+{{ja|関数リファレンス/wpdb_Class}}
+{{ru|Class Reference/ru:wpdb_Class}}
+{{zh-cn|Class Reference/wpdb}}
+{{zh-tw|Class Reference/wpdb}}
+}}
+== 数据库接口介绍 ==
+
+WordPress包含一个操作数据库的类——<code>wpdb</code>，该类基于[http://justinvincent.com/ezsql ezSQL]（由[http://www.jvmultimedia.com Justin Vincent]维护的数据库操作项目）编写，包含了其基本的功能。
+
+=== 使用说明 ===
+
+请不要直接调用<code>wpdb</code>类中的方法。WordPress定义了<code>$wpdb</code>的全局变量，所以请直接调用该全局变量<code>$wpdb</code>的实例来操作数据库。（调用之前不要忘了声明引用全局变量<code>$wpdb</code>。参考[http://www.php.net/manual/en/language.variables.scope.php#language.variables.scope.global globalize]）
+
+<code>$wpdb</code>对象可以用来操作WordPress数据库中的每一个表，不仅仅是WordPress自动创建的基本表。例如，你有一个自定义的表叫做mytable，那么可以使用如下语句来查询：
+<code>
+ $myrows = $wpdb->[[#SELECT_Generic_Results|get_results]]( "SELECT id, name FROM mytable" );
+</code>
+
+<code>$wpdb</code>对象可以读取多个表，但是其只针对WordPress的数据库。如果你需要连接其他数据库，那么你应该使用你自己的数据库连接信息，并调用<code>wpdb</code>类来创建一个你自己的数据库操作实例。如果你有多个数据库需要连接，那么你可以考虑使用[http://wordpress.org/extend/plugins/hyperdb/ hyperdb]来替代<code>$wpdb</code>。
+
+== 在数据库上运行任务查询 ==
+
+
+这个查询函数允许你在wordpress的数据库里运行任何SQL查询。当然了，最好能利用如下的特定函数，
+
+%%% <?php $wpdb->query('query'); ?> %%%
+; query : (string) 你需要执行的SQL查询
+
+此函数返回操作/查询的行或列的整数。如果出现了MySQL错误，此函数将返回 <code>FALSE</code>('''注意''': 因为 0 和 FALSE 都可能被返回, 确保你使用了正确的比较运算符：等于 <code>==</code> vs. 一致 <code>===</code>)。
+
+注意：As with all functions in this class that execute SQL queries, you must SQL escape all inputs (e.g., <code>wpdb->escape($user_entered_data_string)</code>).  See the section entitled [http://codex.wordpress.org/wpdb_Class#Protect_Queries_Against_SQL_Injection_Attacks Protect Queries Against SQL Injection Attacks] below.
+
+=== 示例 ===
+删除属于id为13的文章的‘gargle’meta 键和值。
+<pre>
+$wpdb->query("
+	DELETE FROM $wpdb->postmeta WHERE post_id = '13'
+	AND meta_key = 'gargle'");
+</pre>
+''在WordPress中由 <code>[[Function Reference/delete post meta|delete_post_meta()]]</code>执行.''
+
+
+设置页面 [[Pages|Page]] 15 的父级页面为 7.
+<pre>
+$wpdb->query("
+	UPDATE $wpdb->posts SET post_parent = 7
+	WHERE ID = 15 AND post_status = 'static'");
+</pre>
+
+== 选择一个变量 ==
+
+The <code>get_var</code> function returns a single variable from the database.  Though only one variable is returned, the entire result of the query is cached for later use. Returns <tt>NULL</tt> if no result is found.
+
+%%% <?php $wpdb->get_var('query',column_offset,row_offset); ?> %%%
+; query : (string) The query you wish to run.  Setting this parameter to <code>null</code> will return the specified variable from the cached results of the previous query.
+; column_offset : (integer) The desired column ('''0''' being the first).  Defaults to '''0'''.
+; row_offset : (integer) The desired row ('''0''' being the first).  Defaults to '''0'''.
+
+=== 示例 ===
+获取并显示用户数量
+<pre>
+<?php
+$user_count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $wpdb->users;"));
+echo '<p>User count is ' . $user_count . '</p>';
+?>
+</pre>
+
+获取并显示 [[Custom Fields|自定义字段值]] 的总和.
+<pre>
+<?php
+$meta_key = 'miles';//set this to appropriate custom field meta key
+$allmiles=$wpdb->get_var($wpdb->prepare("SELECT sum(meta_value) FROM $wpdb->postmeta WHERE meta_key = %s", $meta_key));
+echo '<p>Total miles is '.$allmiles . '</p>';
+?> 
+</pre>
+
+== 选择一行 ==
+
+To retrieve an entire row from a query, use <code>get_row</code>.  The function can return the row as an object, an associative array, or as a numerically indexed array.  If more than one row is returned by the query, only the specified row is returned by the function, but all rows are cached for later use. Returns NULL if no result is found.
+
+%%% <?php $wpdb->get_row('query', output_type, row_offset); ?> %%%
+; query : (string) The query you wish to run.
+; output_type : One of three pre-defined constants.  Defaults to OBJECT.
+:* OBJECT - result will be output as an object.
+:* ARRAY_A - result will be output as an associative array.
+:* ARRAY_N - result will be output as a numerically indexed array.
+; row_offset : (integer) The desired row ('''0''' being the first).  Defaults to '''0'''.
+
+=== 示例 ===
+获取ID为10的链接的全部信息
+<pre>
+$mylink = $wpdb->get_row("SELECT * FROM $wpdb->links WHERE link_id = 10");
+</pre>
+<code>$mylink</code>对象的属性是SQL查询结果的列名（此例中是所有 <code>$wpdb->links</code>表中的列名）。
+ echo $mylink->link_id; // prints "10"
+
+作为对比, 使用
+ $mylink = $wpdb->get_row("SELECT * FROM $wpdb->links WHERE link_id = 10", ARRAY_A);
+将返回关联数组：
+ echo $mylink['link_id']; // prints "10"
+
+然后
+ $mylink = $wpdb->get_row("SELECT * FROM $wpdb->links WHERE link_id = 10", ARRAY_N);
+将返回索引数组：
+ echo $mylink[1]; // prints "10"
+
+== 选择一列 ==
+
+To SELECT a column, use <code>get_col</code>.  This function outputs a dimensional array.  If more than one column is returned by the query, only the specified column will be returned by the function, but the entire result is cached for later use. Returns an empty array if no result is found. 
+
+%%% <?php $wpdb->get_col('query',column_offset); ?> %%%
+; query : (string) the query you wish to execute.  Setting this parameter to <code>null</code> will return the specified column from the cached results of the previous query.
+; column_offset : (integer) The desired column ('''0''' being the first).  Defaults to '''0'''.
+
+=== 示例 ===
+For this example, assume the blog is devoted to information about automobiles.  Each post describes a particular car (e.g. 1969 Ford Mustang), and three [[Custom Fields]], manufacturer, model, and year, are assigned to each post.  This example will display the post titles, filtered by a particular manufacturer (Ford), and sorted by model and year.  
+
+The '''get_col''' form of the <tt>wpdb Class</tt> is used to return an array of all the post ids meeting the criteria and sorted in the correct order.  Then a ''foreach'' construct is used to iterate through that array of post ids, displaying the title of each post.  Note that the SQL for this example was created by [http://stackoverflow.com/questions/1690762/complicated-mysql-query/1690808#1690808 Andomar].
+
+<pre>
+<?php 
+$meta_key1 = 'model';
+$meta_key2 = 'year';
+$meta_key3 = 'manufacturer';
+$meta_key3_value = 'Ford';
+
+$postids=$wpdb->get_col($wpdb->prepare("
+SELECT      key3.post_id
+FROM        $wpdb->postmeta key3
+INNER JOIN  $wpdb->postmeta key1 
+            on key1.post_id = key3.post_id
+            and key1.meta_key = %s 
+INNER JOIN  $wpdb->postmeta key2
+            on key2.post_id = key3.post_id
+            and key2.meta_key = %s
+WHERE       key3.meta_key = %s 
+            and key3.meta_value = %s
+ORDER BY    key1.meta_value, key2.meta_value",$meta_key1, $meta_key2, $meta_key3, $meta_key3_value)); 
+
+if ($postids) {
+  echo 'List of ' . $meta_key3_value . '(s), sorted by ' . $meta_key1 . ', ' . $meta_key2;
+  foreach ($postids as $id) { 
+    $post=get_post(intval($id));
+    setup_postdata($post);?>
+    <p><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></p>
+    <?php
+  } 
+}
+?>
+</pre>
+
+This example lists all posts that contain a particular custom field, but sorted by the value of a second custom field.
+
+<pre>
+<?php
+//List all posts with custom field Color, sorted by the value of custom field Display_Order
+//does not exclude any 'post_type'
+//assumes each post has just one custom field for Color, and one for Display_Order
+$meta_key1 = 'Color';
+$meta_key2 = 'Display_Order';
+
+$postids=$wpdb->get_col($wpdb->prepare("
+SELECT      key1.post_id
+FROM        $wpdb->postmeta key1
+INNER JOIN  $wpdb->postmeta key2
+            on key2.post_id = key1.post_id
+            and key2.meta_key = %s
+WHERE       key1.meta_key = %s
+ORDER BY    key2.meta_value+(0) ASC",
+         $meta_key2,$meta_key1)); 
+
+if ($postids) {
+  echo 'List of '. $meta_key1  . ' posts, sorted by ' . $meta_key2 ;
+  foreach ($postids as $id) {
+    $post=get_post(intval($id));
+    setup_postdata($post);?>
+    <p><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></p>
+    <?php
+  }
+}
+?>
+</pre>
+
+== 选择通用结果 ==
+
+Generic, mulitple row results can be pulled from the database with <code>get_results</code>.  The function returns the entire query result as an array.  Each element of this array corresponds to one row of the query result and, like <code>get_row</code>, can be an object, an associative array, or a numbered array.
+
+%%% <?php $wpdb->get_results('query', output_type); ?> %%%
+; query : (string) The query you wish to run.  Setting this parameter to <code>null</code> will return the data from the cached results of the previous query.
+; output_type : One of four pre-defined constants.  Defaults to OBJECT.  See [[#SELECT a Row|SELECT a Row]] and its examples for more information.
+:* OBJECT - result will be output as a numerically indexed array of row objects.
+:* OBJECT_K - result will be output as an associative array of row objects, using first column's values as keys (duplicates will be discarded).
+:* ARRAY_A - result will be output as an numerically indexed array of associative arrays, using column names as keys.
+:* ARRAY_N - result will be output as a numerically indexed array of numerically indexed arrays.
+
+Since this function uses the '$wpdb->query()' function all the class variables are properly set. 
+The results count for a 'SELECT' query will be stored in $wpdb->num_rows.
+
+=== 示例 ===
+获取用户 5 发布的草稿的id和标题，并显示标题。
+<pre>
+$fivesdrafts = $wpdb->get_results("SELECT ID, post_title FROM $wpdb->posts
+	WHERE post_status = 'draft' AND post_author = 5");
+
+foreach ($fivesdrafts as $fivesdraft) {
+	echo $fivesdraft->post_title;
+}
+</pre>
+
+获取用户 5 的所有草稿信息
+<pre>
+<?php
+$fivesdrafts = $wpdb->get_results("SELECT * FROM $wpdb->posts
+	WHERE post_status = 'draft' AND post_author = 5");
+if ($fivesdrafts) :
+	foreach ($fivesdrafts as $post) :
+		setup_postdata($post);
+?>
+	<h2><a href="<?php the_permalink(); ?>" rel="bookmark"
+		title="链接到 <?php the_title(); ?>"><?php the_title(); ?></a></h2>
+<?php
+	endforeach;
+else :
+?>
+    <h2> 未找到</h2>
+<?php endif; ?>
+</pre>
+
+== 插入行 ==
+
+插入一行数据到数据表中
+
+%%% <?php $wpdb->insert( $table, $data, $format ); ?> %%%
+; table : (string) 插入数据的数据表名称。
+; data : (array) 插入的数据 (为 column => value 键值对). $data columns 和 $data values 都可以是 "raw" 数据 (neither should be SQL escaped).
+; format : (array|string) (optional) An array of formats to be mapped to each of the value in $data. If string, that format will be used for all of the values in $data. If omitted, all values in $data will be treated as strings unless otherwise specified in wpdb::$field_types.
+
+Possible format values: %s as string; %d as decimal number; and %f as float.
+
+After insert, the ID generated for the AUTO_INCREMENT column can be accessed with:
+ <pre>$wpdb->insert_id</pre>
+
+如果不能插入行，此函数返回false
+
+=== 示例 ===
+
+在一行中插入两列，第一个值为字符串，第二个为数字：
+
+<pre>
+$wpdb->insert( 'table', array( 'column1' => 'value1', 'column2' => 123 ), array( '%s', '%d' ) )
+</pre>
+
+== 更新记录 ==
+
+更新数据库的记录。
+
+%%% <?php $wpdb->update( $table, $data, $where, $format = null, $where_format = null ); ?> %%%
+; table : (string) 要更新的表名称。
+; data : (array) 需要更新的数据（使用格式：column => value）。Both $data columns and $data values should be "raw" (neither should be SQL escaped).
+; where : (array) A named array of WHERE clauses (in column => value pairs). Multiple clauses will be joined with ANDs. Both $where columns and $where values should be "raw".
+; format : (array|string) (optional) An array of formats to be mapped to each of the values in $data. If string, that format will be used for all of the values in $data.
+; where_format : (array|string) (optional) An array of formats to be mapped to each of the values in $where. If string, that format will be used for all of the items in $where.
+
+<strong>Possible format values</strong>: %s as string; %d as decimal number and %f as float. If omitted, all values in $where will be treated as strings.
+
+=== 示例 ===
+
+更新ID为1的行，第一列的值为字符串，第二列的值为数组：
+
+<pre>
+$wpdb->update( 'table', array( 'column1' => 'value1', 'column2' => 'value2' ), array( 'ID' => 1 ), array( '%s', '%d' ), array( '%d' ) )
+</pre>
+
+== 防止SQL查询注入攻击==
+
+For a more complete overview of SQL escaping in WordPress, see [[Data Validation#Database|database Data Validation]].  That [[Data Validation]] article is a '''must-read''' for all WordPress code contributors and plugin authors.
+
+Briefly, though, all data in SQL queries must be SQL-escaped before the SQL query is executed to prevent against SQL injection attacks.  This can be conveniently done with the <code>prepare</code> method, which supports both a [http://php.net/sprintf sprintf()]-like and [http://php.net/vsprintf vsprintf()]-like syntax.
+
+%%%<?php $sql = $wpdb->prepare( 'query' [, value_parameter, value_parameter ... ] ); ?>%%%
+; query : (string) The SQL query you wish to execute, with <code>%s</code> and <code>%d</code> placeholders.  Any other <code>%</code> characters may cause parsing errors unless they are escaped.  All <code>%</code> characters inside SQL string literals, including LIKE wildcards, must be double-% escaped as <code>%%</code>. 
+; value_parameter : (int|string|array) The value to substitute into the placeholder. Many values may be passed by simply passing more arguments in a [http://php.net/sprintf sprintf()]-like fashion. Alternatively the second argument can be an array containing the values as in PHP's [http://php.net/vsprintf vsprintf()] function. Care must be taken not to allow direct user input to this parameter, which would enable array manipulation of any query with multiple placeholders. Values must not already be SQL-escaped.
+
+=== 示例 ===
+Add Meta key => value pair "Harriet's Adages" => "WordPress' database interface is like Sunday Morning: Easy." to Post 10.
+<pre>
+$metakey = "Harriet's Adages";
+$metavalue = "WordPress' database interface is like Sunday Morning: Easy.";
+
+$wpdb->query( $wpdb->prepare( "
+	INSERT INTO $wpdb->postmeta
+	( post_id, meta_key, meta_value )
+	VALUES ( %d, %s, %s )", 
+        10, $metakey, $metavalue ) );
+</pre>
+''Performed in WordPress by <code>[[Function_Reference/add_meta|add_meta()]]</code>.''
+
+The same query using [http://php.net/vsprintf vsprintf()]-like syntax.
+<pre>
+$metakey = "Harriet's Adages";
+$metavalue = "WordPress' database interface is like Sunday Morning: Easy.";
+
+$wpdb->query( $wpdb->prepare( "
+	INSERT INTO $wpdb->postmeta
+	( post_id, meta_key, meta_value )
+	VALUES ( %d, %s, %s )", 
+        array(10, $metakey, $metavalue) ) );
+</pre>
+''Note that in this example we pack the values together in an array. This can be useful when we don't know the number of arguments we need to pass until runtime.''
+
+Notice that you do not have to worry about quoting strings. Instead of passing the variables directly into the SQL query, use a <code>%s</code> placeholder for strings and a <code>%d</code> placedolder for integers. You can pass as many values as you like, each as a new parameter in the <code>prepare()</code> method.
+
+== 显示和隐藏SQL错误 ==
+
+You can turn error echoing on and off with the <code>show_errors</code> and <code>hide_errors</code>, respectively.
+
+%%% <?php $wpdb->show_errors(); ?> 
+ <?php $wpdb->hide_errors(); ?> %%%
+
+You can also print the error (if any) generated by the most recent query with <code>print_error</code>.
+
+%%% <?php $wpdb->print_error(); ?> %%%
+
+== 获取列信息 ==
+You can retrieve information about the columns of the most recent query result with <code>get_col_info</code>.  This can be useful when a function has returned an OBJECT whose properties you don't know.  The function will output the desired information from the specified column, or an array with information on ''all'' columns from the query result if no column is specified.
+
+%%% <?php $wpdb->get_col_info('type', offset); ?> %%%
+; type : (string) What information you wish to retrieve.  May take on any of the following values (list taken from the [http://justinvincent.com/home/docs/ezsql/ez_sql_help.htm ezSQL docs]).  Defaults to '''name'''.
+:*name - column name.  Default.
+:*table - name of the table the column belongs to
+:*max_length - maximum length of the column
+:*not_null - 1 if the column cannot be NULL
+:*primary_key - 1 if the column is a primary key
+:*unique_key - 1 if the column is a unique key
+:*multiple_key - 1 if the column is a non-unique key
+:*numeric - 1 if the column is numeric
+:*blob - 1 if the column is a BLOB
+:*type - the type of the column
+:*unsigned - 1 if the column is unsigned
+:*zerofill - 1 if the column is zero-filled
+; offset : (integer) Specify the column from which to retrieve information (with '''0''' being the first column).  Defaults to '''-1'''.
+:*-1 - Retrieve information from all columns.  Output as array.  Default.
+:*Non-negative integer - Retrieve information from specified column ('''0''' being the first).
+
+== 清除缓存 ==
+
+使用 <code>flush</code> 清除SQL查询结果缓存
+
+%%% <?php $wpdb->flush(); ?> %%%
+
+可以清除 <code>$wpdb->last_result</code>, <code>$wpdb->last_query</code>, 和 <code>$wpdb->col_info</code>的缓存。
+
+== 类变量 ==
+
+; $show_errors : 是否打开 [[#显示或隐藏 SQL 错误|Error echoing]].  默认为 TRUE.
+
+; $num_queries : 已执行的查询的数量
+
+; $last_query : 已执行的最后一条查询
+
+; $queries : You may save all of the queries run on the database and their stop times by setting the SAVEQUERIES constant to TRUE (this constant defaults to FALSE).  If SAVEQUERIES is TRUE, your queries will be stored in this variable as an array.
+
+; $last_result : 最近的查询结果
+
+; $col_info : 最新查询结果的列信息.  查阅 [[#获取列信息|获取列信息]]章节.
+
+; $insert_id : ID自动增长列生成的最近一条插入语句的ID
+
+; $num_rows : 最近一个查询返回的行数
+
+; $prefix : 表前缀
+
+=== 多站点参数 ===
+
+如果你正在使用多站点, 你也可以访问：
+
+; $blogid :  博客ID（多blog环境）
+
+== 数据表 ==
+<!-- will likely not be useful when the database structure is fully described -->
+The WordPress database tables are easily referenced in the <code>wpdb</code> class.
+
+; $posts : 文章表
+
+; $postmeta : The [[Database Description#Table:_wp_postmeta|Meta Content]] (a.k.a. [[Custom Fields]]) table.
+
+; $comments : 评论表
+
+; $commentmeta : The table contains additional comment information.
+
+; $terms : The [[Database Description#Table:_wp_terms|terms]] table contains the 'description' of Categories, Link Categories, Tags.
+
+; $term_taxonomy : The [[Database Description#Table:_wp_term_taxonomy|term_taxonomy]] table describes the various taxonomies (classes of terms).  Categories, Link Categories, and Tags are taxonomies.
+
+; $term_relationships : The [[Database Description#Table:_wp_term_relationships|term relationships]] table contains link between the term and the object that uses that term, meaning this file point to each Category used for each Post.
+
+; $users : 用户表
+
+; $usermeta : The [[Database Description#Table:_wp_usermeta|usermeta]] table contains additional user information, such as nicknames, descriptions and permissions.
+
+; $links : 链接表
+
+; $options : The [[Database Description#Table:_wp_options|Options]] table.
+
+== 相关信息 ==
+
+{{Class Footer}}
+
+[[Category:Classes]]

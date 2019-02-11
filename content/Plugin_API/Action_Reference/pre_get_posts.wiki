@@ -1,0 +1,345 @@
+{{Languages|
+{{en|Plugin API/Action Reference/pre get posts}}
+{{ja|プラグイン API/アクションフック一覧/pre get posts}}
+{{pt-br|Plugin API/Ações e Referências/pre get posts}}
+}}
+
+==Description==
+This hook is called after the query variable object is created, but before the actual query is run.
+
+The '''<tt>pre_get_posts</tt>''' action gives developers access to the <tt>$query</tt> object by reference (any changes you make to <tt>$query</tt> are made directly to the original object - no return value is necessary).
+
+==Usage==
+
+%%%<?php add_action( 'pre_get_posts', 'your_function_name' ); ?>%%%
+
+== Notes ==
+
+====Argument is Passed by Reference====
+The <tt>$query</tt> object is passed to your function '''by reference'''. You do not need to declare globals or return a value. Any changes you make to the object from inside your function are made to the original immediately.
+
+====Page Requests====
+<tt>pre_get_posts</tt> should not be used to alter the query for single Page requests (page templates) because 'is_page', 'is_singular', 'pagename' and other properties (depending if pretty permalinks are used) are already set by the parse_query() method. See: [[Query_Overview|Query Overview]]. 
+
+Similarly, <tt>pre_get_posts</tt> will not work if used in template files (e.g., archive.php), since they are called after the query has been completed.
+
+Unless you are intimately familiar with these settings and are willing to coordinate them, it's suggested that you alter the main query for single page requests by using a [[Class_Reference/WP_Query|new WP_Query]] in the [[Page_Templates|page template]] itself.
+
+You can check out the following post regarding the use of <tt>pre_get_posts</tt> on true pages and static front pages where we alter the pagination through <tt>pre_get_posts</tt> and the filters availble in the <tt>WP_Query</tt> class and using post injection in order to make <tt>pre_get_posts</tt> work
+
+* [http://wordpress.stackexchange.com/a/215027/31545 Using pre_get_posts on pages and static front pages]
+
+====Identifying Target Queries====
+When using <tt>pre_get_posts</tt>, be aware of the query you are changing. One useful function is [[Function_Reference/is_main_query|is_main_query()]], which can help you ensure that the query you are modifying is only the main query. Use it in combination with other [[Conditional_Tags|conditional tags]] to only alter the main query on the pages you want.
+
+====A Warning About Admin Usage====
+This filter can also be used to affect admin screen queries. Be sure to check if your modification is affecting your post edit screens. For example, just checking <tt>[[Function_Reference/is_main_query|is_main_query()]]</tt> and <tt>[[Function_Reference/is_post_type_archive|is_post_type_archive('movie')]]</tt> will also change the query for the <tt>edit.php?post_type=movie</tt> admin screen, unless you also check for <tt>![[Function_Reference/is_admin|is_admin()]]</tt>
+
+====A Warning About Conditional Functions====
+<tt>pre_get_posts</tt> runs '''before''' <tt>[[Class Reference/WP_Query|WP_Query]]</tt> has been set up. Some template tags and conditional functions that rely on WP_Query will not work. For example, <tt>[[Function_Reference/is_front_page|is_front_page()]]</tt> will '''not''' work, although <tt>[[Function_Reference/is_home|is_home()]]</tt>''will'' work. In such cases, you will need to work directly with the query vars, which are passed to the <tt>pre_get_posts</tt> hook as an argument (<tt>$query</tt> in examples on this page).
+
+====Offsets & Pagination====
+Using the <tt>offset</tt> argument in '''any''' WordPress query can break pagination. If you need to use offset and preserve pagination, please keep in mind that you will need to handle pagination manually. Read the codex article [[Making Custom Queries using Offset and Pagination]] for more information.
+
+====Setting Taxonomy Args====
+If <tt>[[Class Reference/WP_Query|WP_Query]]</tt> determines that the result will be singular (<tt>[[Function_Reference/is_singular|is_singular()]]</tt> is <tt>true</tt>), it will ignore the <tt>tax_query</tt> parameter.  To modify <tt>tax_query</tt>, use the <tt>[[Plugin_API/Filter_Reference/posts_clauses|posts_clauses]]</tt> filter to add the required SQL statements.
+
+==Examples==
+===Exclude categories on your main page ===
+This is how you can exclude categories of posts from displaying in your blog. For example, if you have 2 categories of posts (uncategorized '1' and another '1347') that you don't want to display on your 'home' blog page, you can use the following in your plugin or theme to omit these categories:
+
+<pre>
+function exclude_category( $query ) {
+    if ( $query->is_home() && $query->is_main_query() ) {
+        $query->set( 'cat', '-1,-1347' );
+    }
+}
+add_action( 'pre_get_posts', 'exclude_category' );
+</pre>
+
+===Show Only One Category on Home Page===
+
+Place this code in <tt>functions.php</tt> to cause the home page to display posts only from one category.
+
+<pre>
+function my_home_category( $query ) {
+    if ( $query->is_home() && $query->is_main_query() ) {
+        $query->set( 'cat', '123' );
+    }
+}
+add_action( 'pre_get_posts', 'my_home_category' );
+</pre>
+
+Change "123" to the category ID you wish to display.
+
+===Exclude Single Posts by ID From Home Page===
+
+Excludes an array of single post ID's from your home page
+
+<pre>
+function exclude_single_posts_home($query) {
+  if ($query->is_home() && $query->is_main_query()) {
+    $query->set('post__not_in', array(7,11));
+  }
+}
+
+add_action('pre_get_posts', 'exclude_single_posts_home');
+</pre>
+
+===Exclude Pages from Search Results===
+Often when readers of your blog search for something, it is most likely to be in posts rather than pages. So, you might like to exclude pages in your search results. It is possible to create an action hook that limits the search results by showing only results from posts.
+
+The following example demonstrates how to do that:
+
+<pre>
+function search_filter($query) {
+  if ( !is_admin() && $query->is_main_query() ) {
+    if ($query->is_search) {
+      $query->set('post_type', 'post');
+    }
+  }
+}
+
+add_action('pre_get_posts','search_filter');
+</pre>
+
+===Include Custom Post Types in Search Results===
+<pre>
+function search_filter($query) {
+  if ( !is_admin() && $query->is_main_query() ) {
+    if ($query->is_search) {
+      $query->set('post_type', array( 'post', 'movie' ) );
+    }
+  }
+}
+
+add_action('pre_get_posts','search_filter');
+</pre>
+
+===Only Display Search Results After Specific Date===
+
+Uses the date_query from WP_Query. In this example, only returns results after 1/1/2013
+
+<pre>
+add_action( 'pre_get_posts', 'date_search_filter' );
+function date_search_filter($query) {
+
+if ( ! is_admin() && $query->is_main_query() ) {
+    if ($query->is_search) {
+
+$query->set( 'date_query', 
+    [    [
+    'after'     => 'January 1st, 2013',
+    'inclusive' => true,
+    ]    ] 
+    );
+    }
+  }
+}
+</pre>
+
+===Changing the number of posts per page, by post type===
+WordPress includes a single global setting for controlling the number of posts that appear on one loop page (under "Blog pages show at most" in the admin"). It is possible to create an action hook that changes / overrides the posts_per_page setting on a case-by-case basis. Best of all, this is done before the query is even executed (so there is no performance cost)! 
+
+The following example demonstrates how to override the page size ('posts_per_page') for archives of specific post types:
+
+<pre>
+function hwl_home_pagesize( $query ) {
+    if ( is_admin() || ! $query->is_main_query() )
+        return;
+
+    if ( is_home() ) {
+        // Display only 1 post for the original blog archive
+        $query->set( 'posts_per_page', 1 );
+        return;
+    }
+
+    if ( is_post_type_archive( 'movie' ) ) {
+        // Display 50 posts for a custom post type called 'movie'
+        $query->set( 'posts_per_page', 50 );
+        return;
+    }
+}
+add_action( 'pre_get_posts', 'hwl_home_pagesize', 1 );
+</pre>
+
+===Changing the number of posts per page on a feed===
+
+You can override the number of posts to show up in a specific feed using the posts_per_rss setting.
+
+<pre>
+function bdn_feed_set_posts_per_rss( $query ) {
+
+	if( !$query->is_main_query() || !is_feed() )
+		return;
+	
+	//set conditional
+
+	$query->set( 'posts_per_rss', 50 );
+
+}
+</pre>
+
+==Sample WP_Query Object==
+For reference, this is one possible example of the WP_Query object (<tt>$query</tt>) exposed by this hook. For more detail, you can also review the [[Class_Reference/WP_Query|WP_Query]] codex page.
+
+<pre>
+WP_Query Object
+(
+    [query_vars] => Array
+        (
+            [page] => 
+            [pagename] => blog
+            [error] => 
+            [m] => 0
+            [p] => 0
+            [post_parent] => 
+            [post_type] =>
+            [subpost] => 
+            [subpost_id] => 
+            [attachment] => 
+            [attachment_id] => 0
+            [name] => 
+            [static] => 
+            [page_id] => 0
+            [second] => 
+            [minute] => 
+            [hour] => 
+            [day] => 0
+            [monthnum] => 0
+            [year] => 0
+            [w] => 0
+            [category_name] => 
+            [tag] => 
+            [cat] => 
+            [tag_id] => 
+            [author_name] => 
+            [feed] => 
+            [tb] => 
+            [paged] => 0
+            [comments_popup] => 
+            [meta_key] => 
+            [meta_value] => 
+            [preview] => 
+            [s] => 
+            [sentence] => 
+            [fields] => 
+            [category__in] => Array
+                (
+                )
+
+            [category__not_in] => Array
+                (
+                )
+
+            [category__and] => Array
+                (
+                )
+
+            [post__in] => Array
+                (
+                )
+
+            [post__not_in] => Array
+                (
+                )
+
+            [tag__in] => Array
+                (
+                )
+
+            [tag__not_in] => Array
+                (
+                )
+
+            [tag__and] => Array
+                (
+                )
+
+            [tag_slug__in] => Array
+                (
+                )
+
+            [tag_slug__and] => Array
+                (
+                )
+
+        )
+
+    [tax_query] => 
+    [meta_query] => 
+    [post_count] => 0
+    [current_post] => -1
+    [in_the_loop] => 
+    [comment_count] => 0
+    [current_comment] => -1
+    [found_posts] => 0
+    [max_num_pages] => 0
+    [max_num_comment_pages] => 0
+    [is_single] => 
+    [is_preview] => 
+    [is_page] => 
+    [is_archive] => 
+    [is_date] => 
+    [is_year] => 
+    [is_month] => 
+    [is_day] => 
+    [is_time] => 
+    [is_author] => 
+    [is_category] => 
+    [is_tag] => 
+    [is_tax] => 
+    [is_search] => 
+    [is_feed] => 
+    [is_comment_feed] => 
+    [is_trackback] => 
+    [is_home] => 1
+    [is_404] => 
+    [is_comments_popup] => 
+    [is_paged] => 
+    [is_admin] => 
+    [is_attachment] => 
+    [is_singular] => 
+    [is_robots] => 
+    [is_posts_page] => 1
+    [is_post_type_archive] => 
+    [query_vars_hash] => 41032f87127fba65fb6743b1e97d8662
+    [query_vars_changed] => 
+    [thumbnails_cached] => 
+    [query] => Array
+        (
+            [page] => 
+            [pagename] => blog
+        )
+
+    [queried_object] => stdClass Object
+        (
+            [ID] => 16
+            [post_author] => 1
+            [post_date] => 2012-01-31 17:23:57
+            [post_date_gmt] => 2012-01-31 17:23:57
+            [post_content] => 
+            [post_title] => Blog
+            [post_excerpt] => 
+            [post_status] => publish
+            [comment_status] => open
+            [ping_status] => open
+            [post_password] => 
+            [post_name] => blog
+            [to_ping] => 
+            [pinged] => 
+            [post_modified] => 2012-01-31 17:23:57
+            [post_modified_gmt] => 2012-01-31 17:23:57
+            [post_content_filtered] => 
+            [post_parent] => 0
+            [guid] => 
+</pre>
+
+==Related==
+{{Query Tags}}
+
+== Resources == 
+
+* [https://wpsites.net/wordpress-tips/only-show-specific-pages-or-posts-on-home-page/ Only Show Specific Pages or Posts On Home Page - 5 code snippets]
+
+[[Category:Actions]]

@@ -1,0 +1,113 @@
+{{Draft}}
+This article deals with finding where performance overhead exists in WordPress and WordPress Plugins. The first part addresses how to install Xdebug and how to configure Xdebug to produce cachegrind files. The second part walks you through installing and configuring MySQLnd library with the mysql PHP extension.
+
+Testing WordPress performance is always an ongoing task. As new code is added, stripped away, or replaced, performance tests become stale. It is relevant to find out if a patch decreases or increases the performance of WordPress. It is relevant to find out if a WordPress Plugin is causing performance problems.
+
+There are two types of performance, one is perceived and the other is real. Perceived performance is how quickly a page loads. The page might only take 500 milliseconds to execute, but it is takes 3 seconds to show for the user, then the user and owner are going to be upset.
+
+Real performance is not always as easy or simple as perceived performance. Perceived performance might be as simple as compressing images. Real performance is tested by actually looking at how long each individual component of WordPress takes.
+
+It is not as simple, since real performance depends other factors. One server might run WordPress at less than a second and on another, it might take 3 seconds. It depends on many factors during execution and a few are where the file system and database are located. It might even depend on how much load the system is having at the time.
+
+The performance problem might not even be caused by WordPress, but by a Plugin. Only when you have the real statistics of where the overhead is located can you correct the problem.
+
+== Xdebug ==
+
+The [http://www.xdebug.org/ Xdebug] PHP Extension allows for enhanced debugging, function and method tracing, and profiling of PHP applications.
+
+=== Installation ===
+
+''The process of installing Xdebug is for Windows users and assumes that Linux users are experienced enough with following the [http://xdebug.org/docs/install official installation directions].''
+
+# The first step involves going to the [http://xdebug.org/ xdebug] web site and choosing the download for the PHP version you are using. There are only versions available from the website for PHP 5.1.x and up.
+# Move the downloaded file to your PHP '''ext/''' folder. If you are using WAMP 2, then it will be located in the WAMP bin directory and php/php#.#.#/ext/ directory.
+# You will need to modify the php.ini file and if you are using WAMP 2, it will be located in your Apache bin directory of the Apache version directory you are running.
+
+===Enabling the Xdebug Extension ===
+
+The easiest and quickest way to open up the current php.ini file in WAMP 1.x and 2.0 is to click on the WAMP icon in the taskbar, hover over the PHP menu and click on the php.ini.
+
+After you have opened the file, find the "Dynamic Extensions" section. Add the following after the last "extension=..." line.
+
+ zend_extension_ts = FULL_PATH_TO_PHP_EXT_DIRECTORY/PHP_XDEBUG_FILE_NAME
+
+Make sure to include the '''FULL_PATH_TO_PHP_EXT_DIRECTORY / PHP_XDEBUG_FILE_NAME''' in quotes on that line. A full example showing the full path and Xdebug filename in quotes is below.
+
+ zend_extension_ts = "C:/Program Files/wamp/bin/php/php5.2.6/ext/php_xdebug-2.0.3-5.2.5.dll"
+
+The concludes modifying the php.ini to enable Xdebug, the next step is to restart and look at your phpinfo page to make sure that it was installed correctly.
+
+You will need to do additional modifications to the php.ini file, so keep it open for now.
+
+===Configuring Xdebug for Profiling===
+
+[http://www.xdebug.org Xdebug] has many [http://www.xdebug.org/docs/all_settings configuration settings] that add other neat developer features for debugging PHP scripts. If you are interested in further using Xdebug for debugging, then you can start your journey at the [http://www.xdebug.org/docs/ Xdebug Documentation] to learn more.
+
+[http://www.xdebug.org/docs/profiler Profiling PHP using Xdebug] has a few configuration settings, but only a couple are needed. For it to be easier to find and update the Xdebug configuration settings, it might be useful to put the configuration settings at the end of the file.
+
+The most important step is to enable the Xdebug profiling, which is off by default. You may turn it on by setting the value to '''1'''.
+
+ xdebug.profiler_enable = 1
+
+The next step is to set the output directory for the cachegrind files. The '''xdebug.profiler_output_dir''' setting handles that. You may put this anywhere Apache and PHP have access to, which if you are on Windows will be anywhere.
+
+ xdebug.profiler_output_dir = "C:/cachegrind/"
+
+It would be easier to put the directory in an easy to remember and find place, so that you can use the files later.
+
+Finally and optionally, you can set the file output name using escape codes. You may leave the default, but it is advised to change the output filename, so that you can have multiple cachegrind files for profiling different WordPress pages.
+
+The '''xdebug.profiler_output_name''' setting is used for the cachegrind file name and uses [http://www.xdebug.org/docs/all_settings#trace_output_name format specifiers] for dynamically creating the file name.
+
+The suggested setting value includes request URI to inform you what page was profiled and the timestamp. The timestamp is for tracking page requests at different times and useful for tracking deviations.
+
+ xdebug.profiler_output_name = %R.%t.out
+
+===Looking at the Cachgrind Files===
+
+Instructions on the Xdebug site discuss KCacheGrind and WinCacheGrind, but there is also [https://github.com/jokkedk/webgrind webgrind] and a Google Summer of Code WordPress project that allow you to view the cachegrind files online.
+
+''Future additions to this section will include how to install the Google Summer of Code Performance Plugin and looking at the cachegrind files from the Plugin Administration Panels.''
+
+== MySQLnd ==
+
+[http://dev.mysql.com/downloads/connector/php-mysqlnd/ MySQLnd] is a MySQL library developed using the PHP Engine. This enhances the speed and makes it possible to provide accurate memory management. The important enhancements relevant to WordPress Performance is the ability to profile SQL queries.
+
+MySQLnd will most likely be the database driver for both the PDO MYSQL extension and mysqli extension in PHP 5.3. It is still under development, but there are currently releases for the mysqli extension.
+
+===Installation===
+
+''This section again assumes that you are using Windows and xAMP installation. For instructions on how to install mysqlnd on Linux, go to the official [http://dev.mysql.com/downloads/connector/php-mysqlnd/ mysqlnd] site.''
+
+For Windows users, there is a precompiled binary for the mysqli PHP extension. The binary supports PHP 5.2.1 and must be used with that version. The binary is experimental, since the mysqlnd isn't stable.
+
+# Go to the [http://dev.mysql.com/get/Downloads/Connector-PHP-mysqlnd/php_5.2.1-mysqlnd-5.0.1-beta.zip/from/pick#mirrors mysqlnd download] page and choose your mirror.
+# Like the Xdebug PHP extension, the file in the download goes in the '''ext/''' folder in your PHP directory. Rename the current '''php_mysqli.dll''' file, so that you can restore to it later and copy the extracted '''php_mysqli.dll''' to the folder.
+
+The binary from the mysql.com web site will not work with WAMP 5 2.0. Most likely you will need to download the version from the php.net web site and move the extension to that web site. Support for this is not available here. Once PHP 5.3 is released, updated instructions on how to easily install mysqlnd will be available here.
+
+If you are going to activate it in the '''php.ini''' file, then you can search for the php_mysqli.dll in that file and remove the '';'' character at the beginning of the line. If it doesn't exist, then you don't have to do anything except restart Apache and PHP.
+
+Test for the new extension by going to your phpinfo page and checking for the library. If the mysqlnd is successfully installed and configured, under the pdo_mysql section, you should see Client API version as "mysqlnd 5.0.10"...
+
+===Configuring===
+
+''Might not be applicable depending on whether profiling needs to be enabled or not.''
+
+===Profiling SQL Queries===
+
+''There are resources already on what profiling feature are available. Might need to dig into the driver code to find out more information. Some is already online, so can use as much of those sources as possible.''
+
+While the default driver provides some information, a modified version the default database driver available in [http://wordpress.org/extend/plugins/wp-mysql-profiler/ WP MySQL Profiler] (wordpress plugin) which should be used for more comprehensive profiling. It can not only give MySQL query performance info but locate the function where the query originated at.
+
+===Additional Information===
+
+Most of what is discussed for MySQLnd is for PHP 5.3, but [http://blog.felho.hu/what-is-new-in-php-53-part-3-mysqlnd.html What is new in PHP 5.3 Part 3] has a nice overview of just MySQLnd features and information.
+
+The [http://forge.mysql.com/wiki/PHP_PDO_MYSQLND MySQL Forge Wiki] has a page with development progress and bug tracking for the MySQLnd driver for PDO.
+
+Most of the profiling statistics are listed on Ulf's [http://blog.ulf-wendel.de/2007/php-59-tuning-screws-for-mysqlnd/ PHP: 59 tuning screws for mysqlnd] blog post.
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Optimization]]
+{{Copyedit}}

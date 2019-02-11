@@ -1,0 +1,162 @@
+{{Languages|
+{{en|Function Reference/wp_update_user}}
+{{ja|関数リファレンス/wp_update_user}}
+{{ko|Function Reference/wp_update_user}}
+}}
+
+== Description ==
+This function updates a single user in the database. This update can contain multiple pieces of user metadata as an array, however it will not update custom user meta fields. The meta fields that can be updated with this function are the same those allowed by the function [[Function_Reference/wp_insert_user|wp_insert_user()]]
+
+To update a single piece of user metadata, use [[Function_Reference/update_user_meta|update_user_meta()]] instead.
+
+To create a ''new'' user or make an update without sending a password change email, use [[Function_Reference/wp_insert_user|wp_insert_user()]] instead.
+
+'''Note:''' If current user's password is being updated, then the cookies will be cleared!
+
+===Special Note===
+<del>If <tt>$userdata</tt> does not contain an 'ID' key, then a new user will be created and the new user's ID will be returned.</del> Since version 3.6 this is no longer the case, but this behavior may be restored in the future. See [https://core.trac.wordpress.org/ticket/16731 ticket #16731].
+
+== Usage ==
+%%%<?php wp_update_user( $userdata ) ?>%%%
+
+== Parameters ==
+{{Parameter|$userdata|mixed|An array of user data, stdClass or [[Class_Reference/WP_User|WP_User]] object.}}
+
+== Return Values ==
+; <tt>(mixed)</tt> : If successful, returns the user_id, otherwise returns a [[Class_Reference/WP_Error|WP_Error]] object.
+
+== Examples ==
+
+Below is an example showing how to update a user's website profile field:
+
+<pre>
+<?php
+
+$user_id = 1;
+$website = 'http://wordpress.org';
+
+$user_id = wp_update_user( array( 'ID' => $user_id, 'user_url' => $website ) );
+
+if ( is_wp_error( $user_id ) ) {
+	// There was an error, probably that user doesn't exist.
+} else {
+	// Success!
+}		
+</pre>
+
+ == Notes ==
+* Uses: [[Function_Reference/get_userdata|<tt>get_userdata()</tt>]]
+* Uses: [[Function_Reference/wp_hash_password|<tt>wp_hash_password()</tt>]]
+* Uses: [[Function_Reference/wp_insert_user|<tt>wp_insert_user()</tt>]] Used to update existing user or add new one if user doesn't exist already
+* Uses: [[Function_Reference/wp_get_current_user|<tt>wp_get_current_user()</tt>]]
+* Uses: [[Function_Reference/wp_clear_auth_cookie|<tt>wp_clear_auth_cookie()</tt>]]
+* Uses: [[Function_Reference/wp_set_auth_cookie|<tt>wp_set_auth_cookie()</tt>]]
+
+{| border="0" cellspacing="5" summary="User data array fields."
+|+ The <tt>$userdata</tt> array can contain the following fields
+|-
+! style="font-weight:bold" | Field Name
+! Description
+! [[Plugin_API/Filter_Reference#Database_Writes_4|Associated Filter]]
+|-valign="top"
+| style="font-weight:bold" | ID
+| An integer that will be used for updating an existing user.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | user_pass
+| A string that contains the plain text password for the user.
+| <tt>pre_user_pass</tt>
+|-valign="top"
+| style="font-weight:bold" | user_login
+| A string that contains the user's username for logging in. Please note that the function cannot alter this field, since WordPress does not allow usernames to be changed.
+| <tt>pre_user_login</tt>
+|-valign="top"
+| style="font-weight:bold" | user_nicename
+| A string that contains a URL-friendly name for the user. The default is the user's username.
+| <tt>pre_user_nicename</tt>
+|-valign="top"
+| style="font-weight:bold" | user_url
+| A string containing the user's URL for the user's web site.
+| <tt>pre_user_url</tt>
+|-valign="top"
+| style="font-weight:bold" | user_email
+| A string containing the user's email address.
+| <tt>pre_user_email</tt>
+|-valign="top"
+| style="font-weight:bold" | display_name
+| A string that will be shown on the site. Defaults to user's username. It is likely that you will want to change this, for both appearance and security through obscurity (that is if you dont use and delete the default admin user).
+| <tt>pre_user_display_name</tt>
+|-valign="top"
+| style="font-weight:bold" | nickname
+| The user's nickname, defaults to the user's username.
+| <tt>pre_user_nickname</tt>
+|-valign="top"
+| style="font-weight:bold" | first_name
+| The user's first name.
+| <tt>pre_user_first_name</tt>
+|-valign="top"
+| style="font-weight:bold" | last_name
+| The user's last name.
+| <tt>pre_user_last_name</tt>
+|-valign="top"
+| style="font-weight:bold" | description
+| A string containing content about the user.
+| <tt>pre_user_description</tt>
+|-valign="top"
+| style="font-weight:bold" | rich_editing
+| A string for whether to enable the rich editor or not. False if not empty.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | user_registered
+| The date the user registered. Format is Y-m-d H:i:s.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | role
+| A string used to set the user's role.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | jabber
+| User's Jabber account.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | aim
+| User's AOL IM account.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | yim
+| User's Yahoo IM account.
+| (none)
+|-valign="top"
+| style="font-weight:bold" | show_admin_bar_front
+| Show the WP admin bar on the front-end.
+| (none)
+|}
+
+Remember, <tt>user_pass</tt> should be the plain text password as it will be automatically hashed by WordPress.
+
+Please keep in mind that if the user_pass is updated an e-mail notification will be sent to that user.
+
+Please keep in mind that in order to set <tt>show_admin_bar_front</tt> to <tt>false</tt> you need to pass string value 'false' and not boolean <tt>false</tt>.
+
+== Change Log ==
+* [[Version_3.5|3.5.0]]: Now accepts stdClass or [[Class Reference/WP_User|WP_User]] object.
+* Since: [[Version 2.0|2.0.0]]
+
+== Source File ==
+<tt>wp_update_user()</tt> is located in {{Trac|wp-includes/user.php}}.
+
+== Related ==
+{{Current User Tags}}
+, <tt>get_user_meta()</tt>
+
+<!--
+    To Do:
+    Need to find related functions.
+    Need to create groups of functions and create templates to add them to a page quickly.
+    Some functions may be related to many groups of functions.
+-->
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

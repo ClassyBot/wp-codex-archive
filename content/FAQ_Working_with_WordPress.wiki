@@ -1,0 +1,504 @@
+{{Languages|
+{{en|FAQ Working with WordPress}}
+{{ja|FAQ Working with WordPress}}
+{{zh-cn|使用 WordPress 的常见问题}}
+{{zh-tw|使用WordPress的常見問題}}
+}}
+
+[[FAQ|Back to FAQ]]
+
+__TOC__
+
+==Administration==
+===Can my posts have URL instead of  /index.php?p=76?===
+See:
+* [[Using Permalinks]]
+
+===How can I find out if I have mod_rewrite?===
+To get information about your server, you can use the <tt>phpinfo()</tt> function:
+
+1. Paste this into [[Glossary#Text editor|text editor]]
+
+ <tt><?php phpinfo(); ?></tt>
+
+2. Save as '''info.php'''
+3. Upload to server. Visit in your browser (www.example.com/info.php)
+
+The '''info.php''' file returns a page outlining the details of your PHP installation. You can see if [[Glossary#mod_rewrite| mod_rewrite]] is loaded. Under the '''apache''' header, look in the '''Loaded Modules''' section and see if mod_rewiite is listed.
+
+===How do I change file and folder permissions?===
+See:
+* [[Changing File Permissions]]
+
+===How long is the release cycle of WordPress?===
+A major release of WordPress happens every 6 months or so. Suggest and vote on ideas for future releases at [https://wordpress.org/ideas/ the WordPress Extend Ideas site].
+
+Also refer [[WordPress Versions]] for the chronologically listed versions of WordPress along with the Change Log information on new features and improvements in each version. There are the future releases and links to their respective milestones in the bug tracker.
+
+===How do I turn on Permalinks, and what do I do about the errors?===
+See:
+* [[Using Permalinks]]
+
+===What are Roles for and what permissions do different Roles have?===
+See:
+* [[Roles_and_Capabilities|Roles and Capabilities]]
+
+===Does the ''644'' permissions on ''wp-config.php'' compromise the username and password to all other users on my shared server?===
+This is a limitation of the way PHP is set up on your server. If you previously used Movable Type, Perl was probably set up with suexec so Movable Type executed as your user. In this case, PHP is running as the web server user, which is why it has to be at least 444. There is phpsuexec but it seems many hosts don’t use it.
+
+However this is often not an issue on modern shared hosts because even though the file is “world" readable each account is set up with a "jailshell" which keeps people locked in their home directory, and PHP can be easily modified with an open_basedir restriction to keep people from writing PHP scripts to read your files. If you are really concerned, you should contact your host to see what measures they are taking.
+
+===How do I redirect users back to my blog's main page after they login?===
+
+By default, WordPress reroutes a registered user to the [[Administration Screens]] after they log into the blog. To change the page, there are WordPress Plugins that can handle the redirect, or you can set the Theme function to handle it. See [[Function_Reference/wp_login_url]].
+
+===How do I change permissions for my files so I can edit them using the Theme Editor?===
+See:
+* [[Changing File Permissions]]
+
+===How do I prevent my images from being hot-linked by another website?===
+You can use your .htaccess file to protect images from being hot linked, or, in other words, being linked-to from other websites. This can be a drain on your bandwidth, because if someone links directly to the image on your site, then you lose the bandwidth.
+
+===How do I backup and restore my WordPress database using phpMyadmin?=== 
+See:
+* [[Backing Up Your Database]] and [[Restoring Your Database From Backup]]
+
+===How do I prevent comment flooding?===
+Comment flooding is when a lot of comments (probably spam) are posted to your website in a very short duration of time. This is only one aspect of the broader problem of [[Comment Spam|comment spam]] in general, but it can quickly overwhelm a moderator's ability to manually delete the offending comments.
+
+WordPress manages the worst floods automatically by default. Any commenters from the same IP or e-mail address (other than registered users with <tt>manage_options</tt> [[Roles and Capabilities#Capabilities|capabilities]]) that post within 15 seconds of their last comment gets their comment discarded. The time setting can be changed by a [https://wordpress.org/plugins/search.php?q=comment+flood number of plugins] that extend this functionality. You might also consider one of the many broader spam blocking plugins, such as [https://wordpress.org/plugins/akismet/ Akismet], or even turning your comment system over to [https://wordpress.org/plugins/disqus-comment-system/ Disqus].
+
+You could also just change the time setting by inserting the following filter into <tt>functions.php</tt> of your current theme. Or you may create and install a very basic plugin and insert the following code:
+
+<pre>
+function dam_the_flood( $dam_it, $time_last, $time_new ) {
+	if ( ($time_new - $time_last) < 300 ) // time interval is 300
+		return true;                  // seconds
+	return false;
+}
+add_filter('comment_flood_filter', 'dam_the_flood', 10, 3);
+</pre>
+
+[[Writing a Plugin|Creating plugins]] can be very easy, the above code actually has most of the work done for you.
+
+===Why can't I delete the ''uncategorized'' Category?===
+Deleting a category does not delete the posts in that category. Instead, posts that were only assigned to the deleted category are set to the ''uncategorized'' category. Also, '''all''' [[Pages|Pages]] are assigned the ''uncategorized'' Category.
+
+The ''uncategorized'' category cannot be deleted, however you can specify your default categories for posts on the ''Settings'' - ''Writing'' screen of the [[Administration Screens]].
+
+===Why is there no Page Template option when writing or editing a Page?===
+If there is no Page Template option when writing or editing a [[Pages|Page]] it may because there is no [[Stepping Into Templates|template file]] with the proper structure.  For the Page Template box to be available to assign to a [[Pages|Page]] there must be a least one template file in your theme that has a structure at the beginning of the template file that looks like this:
+
+<pre>
+<?php
+/*
+Template Name: My Custom Page
+*/
+?>
+</pre>
+
+Create a new PHP file with any name under the theme directory and put above codes into the file. You will see the Page Template box appears that includes "My Custom Page" option in the Page Edit Screen. For more detail about Custom Page Template, refer [[Page Templates]].
+
+===How can I have a static front page and posts display on a page as Web site top page?===
+
+See:
+*[[Creating a Static Front Page]]
+
+This is the example Page Template if you want to display one latest post, instead of the Page content, on your static front page. 
+
+<pre>
+<?php
+/*
+Template Name: MyFront
+*/
+get_header(); ?>
+
+	<div id="primary" class="content-area">
+		<main id="main" class="site-main" role="main">
+
+		<?php
+		$args = array('posts_per_page' => 1, 'cat' => 1);
+		$the_query = new WP_Query( $args );
+
+		// The Loop
+		while ( $the_query->have_posts() ) : $the_query->the_post();
+
+				get_template_part( 'content', get_post_format() );
+
+		// End the loop.
+		endwhile;
+		?>		
+
+		</main><!-- .site-main -->
+	</div><!-- .content-area -->
+
+<?php get_footer(); ?>
+</pre>
+
+See also:
+* [[Stepping Into Templates]]
+* [http://wordpress.org/support/topic/237267 Forum thread showing this in action]
+
+===How do I determine a Post, Page, Category, Tag, or User ID?===
+Sometimes it is necessary to know the ID of a particular Post, Page, Category, Tag, or User.  To determine that ID, use one of these method:
+:*Look in your browser status bar for the ID:
+:# Visit the related list table screen in your Administration Screen. For instance in the case of Posts visit Posts->All Posts, for Pages visit Pages->All Pages, and for Categories visit Posts->Categories.
+:# Now hover your mouse over the 'item' you need the ID. In the case of Pages, hover over that particular Page's title in the Title column and for Categories hover over the Categories Name in the Name column.  
+:# Look at the status bar (at the bottom of your browser) and the you will find at the end of the line something like "post=123" or "tag_ID=67". In these cases, 123 is the Page ID, and 67 is the Category ID.
+:*Install a plugin: 
+:# Install and activate [https://wordpress.org/plugins/reveal-ids-for-wp-admin-25/ Reveal IDs for WP Admin] or [https://wordpress.org/plugins/showid-for-postpagecategorytagcomment/ ShowID for Post/Page/Category/Tag/Comment].
+:# Find the ID displayed with each item.
+
+== Configuration ==
+
+===How can I change how the date and / or time is displayed?===
+See:
+* [[Formatting Date and Time]]
+
+===How can I control comments people make?===
+See:
+* [[Comment Moderation]]
+
+===What do the Discussion Options mean?===
+See:
+* [[Settings Discussion Screen|Discussion Screen]]
+
+===How do I install plugins?===
+See:
+* [[Managing Plugins]]
+
+===How can I change what appears between Categories when I post in more than one Category?===
+
+In [[Twenty Fifteen]] theme, the post's multiple categories are displayed with commas between them. To configure the way the categories display, 
+1. Create a [[Child Themes]] of [[Twenty Fifteen]] theme.
+2. Copy <tt>twentyfifteen_entry_meta()</tt> function from parent's <tt>inc/template-tags.php</tt> to child theme's <tt>functions.php</tt>.
+<pre>
+function twentyfifteen_entry_meta() {
+	if ( is_sticky() && is_home() && ! is_paged() ) {
+		:
+	}
+}
+</pre>
+3. Replace ', ' in the argument of <tt>get_the_category_list</tt> call in <tt>twentyfifteen_entry_meta()</tt> function.
+<pre>
+$categories_list = get_the_category_list( _x( ', ', 'Used between list items, there is a space after the comma.', 'twentyfifteen' ) );
+</pre>
+If you change it by ' > ', ' &amp;bull; ' or ' | ' then you will see an arrow, a bullet or "pipe" (|) between the categories.
+4. Activate the child theme.
+
+===Why are all the comments being moderated?===
+Go to the [[Administration_Screens#Settings|Settings]] > [[Administration_Screens#Discussion|Discussion]] screen and make sure that '''Comment must be manually approved''' is unchecked. With that option selected, all comments are sent to the moderation queue to await approval.  
+Make sure that '''Hold a comment in the queue if it contains x or more links.''' is not blank and contains a number higher than zero.  If this value is blank or zero, all comments containing links will be moderated.  
+If the option mentioned above is unchecked, the link moderation value is higher than zero, and you still have this problem, your [[Spam Words]] list probably has blank lines, punctuation marks, or single letters between the information in the list.  There should be spaces between the listed items or each item must be on its own line. If you have done this, then upgrade the comment spam plugins you have installed. If this continues to be a problem, deactivate the comment spam plugins one by one to determine the culprit and contact the plugin author for help.
+
+===How do I disable comments?===
+First, uncheck '''Allow people to post comments on new articles''' on the [[Administration_Screens#Settings|Settings]] > [[Administration_Screens#Discussion|Discussion]] screen. This will only disable comments on ''future posts''. 
+Next, to completely disable comments, you will have to edit each past post and uncheck '''Allow Comments''' from the [[Writing Posts|Edit Post]] screen. Use Bulk Edit to disable multiple posts at once.
+# In the [[Posts_Screen]], check the checkbox in the Table's title to select all Posts in a given table.
+# From Bulk Actions box, select Edit and click Apply.
+# In the Bulk Edit Screen, select Do not allow option from Comments box
+# Click Update.
+[[Image:posts-bulk-edit-screen.jpg|640px||Posts Bulk Edit Screen]]
+
+Alternatively, you could run below MySQL query from the command line on a shell account or using [[phpMyAdmin]], or through a [[wp-cli]] `wp db query`:
+<pre>
+UPDATE wp_posts SET comment_status = 'closed';
+</pre>
+
+If your goal is to permanently remove comments, then follow the next steps. This is the example of [[Twenty Fifteen]] theme customization.
+1. Create a [[Child Themes]] of [[Twenty Fifteen]] theme.
+2. Copy <tt>twentyfifteen_entry_meta()</tt> function from parent's <tt>inc/template-tags.php</tt> to child theme's <tt>functions.php</tt>.
+3. Comment out the if block that contains <tt>comments-link</tt>.
+<pre>
+function twentyfifteen_entry_meta() {
+	if ( is_sticky() && is_home() && ! is_paged() ) {
+		:
+	}
+
+	// if ( ! is_single() && ! post_password_required() && ( comments_open() || get_comments_number() ) ) {
+	// 	echo '<span class="comments-link">';
+	// 	/* translators: %s: post title */
+	// 	comments_popup_link( sprintf( __( 'Leave a comment<span class="screen-reader-text"> on %s</span>', 'twentyfifteen' ), get_the_title() ) );
+	// 	echo '</span>';
+	// }
+}
+</pre>
+It removes the number of comments or "Leave a comment" message from bottom of each post.
+4. Newly create <tt>comments.php</tt> under the Child Theme's directory without any contents. It removes the comment area of exsiting posts.
+5. Activate the Child Teheme.
+
+===How do I disable trackbacks and pingbacks?===
+First, uncheck '''Allow link notifications from other blogs (pingbacks and trackbacks) on new articles''' on the [[Administration_Screens#Settings|Settings]] > [[Administration_Screens#Discussion|Discussion]] screen. This will only disable trackbacks and pingbacks on ''future posts''. 
+Next, to completely disable trackbacks and pingbacks, you will have to edit each past post and uncheck '''Allow trackbacks and pingbacks on this page''' from the [[Writing Posts|Edit Post]] screen. Use Bulk Edit to disable multiple posts at once. See also above image.
+# In the [[Posts_Screen]], check the checkbox in the Table's title to select all Posts in a given table.
+# From Bulk Actions box, select Edit and click Apply.
+# In the Bulk Edit Screen, select Do not allow option from Pings box.
+# Click Update.
+Alternatively, you could run this MySQL query from the command line on a shell account or using [[phpMyAdmin]], or through a [[wp-cli]] `wp db query`:
+<pre>
+UPDATE wp_posts SET ping_status = 'closed';
+</pre>
+
+===How do I change the ''site admin'' name?===
+To change your Admin Name, in the [[Administration_Screens|Administration Screens]], choose the '''Users->Your Profile''' menu.  Make your changes there. However, you are not able to change the username from within the Administration screen. In order to do this you must directly edit the MySQL database, however this is not recommended as your username is not often seen by other users.
+
+See:
+* [[Users Your Profile Screen]]
+
+===How do I find the absolute path I need for uploading images?===
+1. Open the below page from your Browser
+<pre>http://(site URL)/wp-admin/options/php</pre>
+2. Refer <tt>upload_url_path</tt> option value.
+If the value is blank, then the directory <tt>wp-content/upload</tt> is the default destination to save.
+
+===Which files do I change to alter the way my blog looks?===
+See:
+* [[Theme Development]]
+
+
+===Can I have popup comments?===
+'''Note:''' This popup comments is the old function and <tt>comments-popup.php</tt> is provided only for the backwards compatibility with old themes and will be removed in a future version. You also have to modify many appearances of it to suit the other pages. You should consider to customize the exisiting comment design with CSS.
+
+How to enable popup comments function and where is theme dependent. For your main page's comments links, converting them to a popup style is typically just a matter of adding the function call <tt>comments_popup_script()</tt> to your headers.php template <tt><head></tt> section.
+
+The best place to add it is just above the <tt>wp_head()</tt> call that should be right at the end of the <tt><head></tt> section.
+<pre>
+<?php comments_popup_script() ?>
+<?php wp_head(); ?>
+</head>
+</pre>
+
+You will also need the <tt>comments-popup.php</tt> template in your theme directory. In WordPress [[Version 4.3]], copy it from the <tt>(your WordpPress root)/wp-includes/theme-compat</tt> directory. Or copy the zip file from [https://wordpress.org/download/release-archive/ release archive] and extract it. For example, [[Version 2.7]] includes the file under the <tt>wp-content/themes/default</tt> directory.
+
+When you copied <tt>comments-popup.php</tt> from the <tt>(your wordpress root)/wp-includes/theme-compat</tt>, you have to comment out <tt>_deprecated_file()</tt> fucntion call at the beginning of the file.
+<pre>
+// _deprecated_file( sprintf( __( 'Theme without %1$s' ), basename(__FILE__) ), '3.0', null, sprintf( __('Please include a %1$s template in your theme.'), basename(__FILE__) ) );
+?>
+</pre>
+
+If you want popup links on the single page as well, you'll need to locate the <tt>comments_template()</tt> call for the current comments, usually on the <tt>single.php</tt> template. Comment that call out and insert <tt>comments_popup_link();</tt> right above it.
+<pre>
+<?php comments_popup_link(); ?>
+<?php /* php comments_template( '', true ); */ ?>
+</pre>
+
+
+===How do I upload images?===
+See:
+[[Inserting Media into Posts and Pages]]
+
+
+===Can I change the "Error establishing database connection" message to something more descriptive?===
+Just simply create a file to reside at ''wp-content/db-error.php'', and in that file put the message you want displayed to users when WordPress determines the database connection is not available.  That file will be used in place of "Error establishing database connection" message.  You could even use the ''db-error.php'' to redirect users elsewhere.  Here's an example for ''db-error.php'':
+
+<pre>
+<?php
+  echo '<h2> This site is currently experiencing a problem with the database server.</h2>  Press your browser Reload button to try again!';
+?>
+</pre>
+
+== Modifying ==
+
+===Can I change the Smilies?===
+See:
+* [[Using Smilies]]
+
+===How do I edit files?===
+See:
+* [[Editing Files]]
+
+===What is ''The Loop''?===
+See:
+* [[The Loop]] and [[The Loop in Action]]
+
+===How can I change the URL-structure for my posts?===
+See:
+* [[Using Permalinks]]
+
+===How can I change URL-structure for my posts on a Windows server?===
+See:
+* [[Using_Permalinks#Using_Permalinks_Without_mod_rewrite|Using Permalinks Without mod rewrite]]
+
+===How do I use WordPress Template Tags to change what is displayed on the blog?===
+See:
+* [[Template Tags]]
+
+===How do I get ''All'' links to open in a new window?===
+Put this inside the <tt><head></tt> section of your Theme's [[Theme_Development#Template_Files|template header.php]] file:
+ <tt><base target="_blank" /></tt>
+
+See:
+* [[Using Themes]]
+* [http://www.w3schools.com/tags/tag_base.asp W3 Schools base tag explanation]
+
+===How can I add an image to my RSS feed?===
+See:
+* [http://wordlog.com/archives/2004/08/01/add-an-image-to-your-rss-20-field/ Add an image to your RSS 2.0 feed at wordlog.com]
+
+===If I turn off comments, it says "Comments Off" on the weblog. so how do I remove that?===
+Depending on your theme, some other message of similar intent may be displayed. The specifics of how to remove this message is theme dependent. You should be able to find the offending text in your theme's <tt>comments.php</tt> file. If it's displayed by a PHP function, comment out the function with slash-asterisks '<tt>/*</tt>' and '<tt>*/</tt>' <em>(without quotes)</em> on either end of the function:
+<pre><?php /* _e( 'Comments are closed.' , 'twentytwelve' ); */ ?></pre>
+
+If it's simply HTML, comment out the enclosing HTML tags by adding '<tt>&lt;!-- </tt>' and '<tt> --&gt;</tt>' <em>(not including the quotes, note the space after the first and before the last comment symbols)</em>:
+<pre><!-- <p class="nocomments">Comments are closed.</p> --></pre>
+
+If you decide later to restore the message, you can simply remove the comment symbols.
+
+===How do I change what is shown when I password protect a post?===
+Hook the filters '<tt>the_title</tt>' and '<tt>the_password_form</tt>'. Your filter function is passed exactly what the filter names imply. Use the <tt>str_replace()</tt> function to search out the offending text and replace it with your preference (or nothing).
+Note the '<tt>the_title</tt>' filter fires for every single title, not just password protected posts, so you need to use the existence of the <tt>post_password</tt> property to know whether to apply the string replace function or not. 
+Some themes may also have additional locations where content needs to be canged. Next example works with [[Twenty Fifteen]] Theme.
+
+<pre>
+add_filter('the_title', 'replace_protected', 10, 2);
+function replace_protected( $title, $id ) {
+	$post = get_post( $id );
+	if ( ! empty( $post->post_password ) ) {
+		$title = str_replace('Protected:', 'Hidden:', $title);
+	}
+	return $title;
+}
+add_filter('the_password_form', 'replace_message');
+function replace_message( $form ) {
+	return str_replace('This post is password protected. To view it please enter your password below:',
+		'Enter you password below to see the surprise:', $form);
+}
+</pre>
+
+===How can I allow certain HTML tags in my comments?===
+Use a custom filter in your themes <tt>functions.php</tt> or plugin [http://davidebenini.it/2010/04/29/how-to-allow-tags-in-wordpress-comments-unobtrusively/ as explained here]:
+
+<pre>
+add_filter('preprocess_comment','fa_allow_tags_in_comments');
+ 
+function fa_allow_tags_in_comments($data) {
+	global $allowedtags; 
+	$allowedtags['span'] = array('style'=>array());
+	$allowedtags['p'] = array();   
+	return $data;
+}
+</pre>
+
+===How can I add advanced search ability to WordPress?===
+See:
+*[http://weblogtoolscollection.com/archives/2004/06/07/advanced-contextual-search-for-wordpress/ Advanced Contextual Search for Wordpress at Weblog Tools Collection]
+
+==Posts==
+
+===How do I upload an image and display it in a post?===
+* [[Inserting Media into Posts and Pages]]
+
+===What is pingback?===
+See:
+* [[Introduction_to_Blogging#Pingbacks|Introduction to Blogging, Pingbacks]]
+
+===What is trackback?===
+See:
+* [[Introduction_to_Blogging#Trackbacks|Introduction to Blogging, Trackbacks]]
+
+===Where is the permalink to my post?===
+See:
+* [[Linking Posts Pages and Categories|Linking Posts, Pages, and Categories]]
+
+===Can I use desktop blogging software?===
+See:
+*[[Weblog Client]]
+
+===Can I blog by email?===
+See:
+*[[Post to your blog using email]]
+
+== Spam, Spammers, Comments ==
+===What can I do to stop comment spam?===
+See:
+* [[Combating Comment Spam]]
+
+===More Information on Comment Spam===
+See:
+* [[Comment Spam]]
+
+===What Spam words do I need?===
+See:
+* [[Spam Words]]
+
+== Importing and Exporting ==
+===How do I Import a WordPress WXR file when it says it is too large to import?===
+If a WordPress WXR file, an XML file exported from WordPress, is too large to import, there are several things you might try to overcome that limit.
+
+* Edit ''php.ini'''. Some hosts may not allow this settings.
+<pre>
+memory_limit = 300M
+post_max_size = 200M
+upload_max_filesize = 100M
+max_execution_time = 600
+</pre>
+:* memory_limit: Maximum amount of memory in bytes that a PHP script is allowed to allocate.
+:* post_max_size: Maximum size of post data allowed.
+:* upload_max_filesize: Maximum size of an uploaded file.
+:* max_execution_time: Maximum time in seconds a PHP script is allowed to run before it is terminated by the parser.
+'''Note:''' memory_limit should be larger than post_max_size, and post_max_size must be larger than upload_max_filesize.
+
+* Edit ''.htaccess''. Some hosts may not allow this settings.
+<pre>
+php_value memory_limit 300M
+php_value post_max_size 200M
+php_value upload_max_filesize 100M
+</pre>
+
+* Edit ''wp-config.php''
+<pre>
+define('WP_MEMORY_LIMIT', '64MB');
+</pre>
+See also [[Editing_wp-config.php#Increasing_memory_allocated_to_PHP|Increasing memory allocated to PHP]].
+
+* In multisite environment, configure following settings
+:# From Network Admin dashboard, select Settings > Network Settings and increase the values of 'Site upload space' and 'Max upload file size'.
+:# From Network Admin dashboard, select Sites > All Sites and click Edit menu under your site. Click Settings tab and incease the value of 'Site Upload Space Quota' or leave it blank for network default
+
+* GZip the file. On some hosting services, a gzipped file can be automatically expanded in the background, without WordPress ever knowing the difference. This can allow you to make the file small enough to be fit into the maximum upload size constraints.
+:# On Windows, use 7Zip to create a gz archive out of the WXR file.
+:# On Linux, use the gzip command line.
+:# Make sure that the resulting file has the file extension of ".gz" before uploading it, as this is often necessary.
+:# This is not guaranteed to work, as it highly depends on the hosting configuration. If this fails, then try another method instead.
+
+*Break the WordPress WXR file into smaller pieces by separating the data between posts and pasting the header/footer into each file.
+:: 1. Always have the header
+<pre>
+<rss version="2.0"
+	xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:wp="http://wordpress.org/export/1.2/"
+>
+<channel>
+including all info like category, tags, etc to just before the first  <item>
+</pre>
+:: 2. Always have the footer
+<pre>
+</channel>
+</rss>
+</pre>
+
+:: 3.  In between, add the posts start with ''<item>'' end with ''</item>'' and check to see whether the XML file you're creating is less than or equal to 2MB. You'll get the hang of it.
+
+:: 4. As always, before importing the new XML's, backup the database of the blog you are importing the XML files to and might as well export XML file of that blog as well for good measure.
+
+See:
+* [[Importing Content]]
+* [[Editing_wp-config.php#Increasing_memory_allocated_to_PHP|Editing wp-config.php]]
+* [http://wordpress.org/support/topic/367059 Forum discussion on program that helps with splitting the file into pieces]
+
+WXR Splitter Utilities:
+* [http://bit.ly/b5NhEH WordPress WXR File Splitter utility for Windows]
+* [http://suhastech.com/wordpress-wxr-xmlfile-splitter-for-mac-os-x/ WordPress WXR File Splitter utility for Mac OS X]
+
+===How do I import links (blogroll) from another WordPress blog?===
+See:
+* [[Importing Content]]
+
+[[FAQ|Back to FAQ]]
+
+[[Category:Getting Started]]
+[[Category:Troubleshooting]]
+[[Category:WordPress Help]]

@@ -1,0 +1,115 @@
+{{Languages|
+{{en|Adding Contextual Help to Administration Menus}}
+}}
+
+== Introduction ==
+Ever since WordPress [[Version 3.0]], every built-in [[Administration Panels#Help|Administration Panel]] has contained a contextual help section providing additional information to the user on how to navigate the various settings displayed in that admin panel. This helps WordPress keep the main part of the admin panel clear and concise by eliminating unnecessary text that regular users don't need to see on a regular basis.
+
+If your plugin adds additional Administration Panels to WordPress, you can improve support by providing contextual help for your menus.
+
+For information, see [[Adding Administration Menus]] and the [[Plugin API]] functions for a basic overview of how to add Administration Menus to WordPress with a Plugin.
+
+== Every Plot Needs a Hook ==
+
+To register a function with WordPress to add a new administration menu, the code is:
+
+<pre>
+<?php
+add_action('admin_menu', 'my_plugin_menu');
+
+function my_plugin_menu() {
+
+ 	add_options_page('My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options');
+
+}
+?>
+</pre>
+
+In order for your contextual help menu to know which admin screen it should go to, it needs a way of knowing which panel you want. Fortunately, when we add our admin panel, WordPress is able to return a ''hook'' -- a unique identifier for your panel. To use this, just modify the previous function:
+
+<pre>
+<?php
+add_action('admin_menu', 'my_plugin_menu');
+
+function my_plugin_menu() {
+
+ 	global $my_plugin_hook;
+ 	$my_plugin_hook = add_options_page('My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options');
+
+}
+?>
+</pre>
+
+Notice that we have globalized the hook, because you'll need to use it later on outside of this function.
+
+== Adding The Contextual Help Tabs (post 3.3) ==
+As of WordPress 3.3, contextual help was moved into [[Class_Reference/WP_Screen/|WPScreen]] and can be added in by [[Class_Reference/WP_Screen/add_help_tab|add_help_tab()]].
+
+<pre>
+<?php
+function my_plugin_add_help()
+{
+	// We are in the correct screen because we are taking advantage of the load-* action (below)
+
+	$screen = get_current_screen();
+	//$screen->remove_help_tabs();
+	$screen->add_help_tab( array(
+		'id'       => 'my-plugin-default',
+		'title'    => __( 'Default' ),
+		'content'  => 'This is where I would provide tabbed help to the user on how everything in my admin panel works. Formatted HTML works fine in here too'
+	));
+	//add more help tabs as needed with unique id's
+
+	// Help sidebars are optional
+	$screen->set_help_sidebar(
+		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
+		'<p><a href="http://wordpress.org/support/" target="_blank">' . _( 'Support Forums' ) . '</a></p>'
+	);
+}
+
+//global $my_plugin_hook;
+if ( $my_plugin_hook ) {
+	add_action( 'load-' . $my_plugin_hook, 'my_plugin_add_help' );
+}
+?>
+</pre>
+
+== Adding The Contextual Help Function (deprecated) ==
+
+As of WordPress 3.0, contextual help menus require three parameters to be passed to it. The first parameter, <tt>$contextual_help</tt>, will be replaced by our function with the contents of our contextual help to be outputted to the browser. The other two parameters, <tt>$screen_id</tt> and <tt>$screen</tt> are used to identify the page that we're on.
+
+<pre>
+<?php
+function my_plugin_help($contextual_help, $screen_id, $screen) {
+
+	global $my_plugin_hook;
+	if ($screen_id == $my_plugin_hook) {
+
+		$contextual_help = 'This is where I would provide help to the user on how everything in my admin panel works. Formatted HTML works fine in here too.';
+	}
+	return $contextual_help;
+}
+
+add_filter('contextual_help', 'my_plugin_help', 10, 3);
+?>
+</pre>
+
+By globalizing <tt>$my_plugin_hook</tt> from earlier, you can check if it matches <tt>$screen_id</tt>. If these don't match, then the user is not viewing this admin panel, so it simply passes along the <tt>$contextual_help</tt> value to the next hooked function.
+
+Also notice that the function has three parameters passed to it, so add <tt>10, 3</tt> to our <tt>add_action()</tt> call so that WordPress is aware of the extra parameters.
+
+(In WordPress 3.3 and later, the contextual help function will still work. It renders as a single help tab with the name "Default."
+
+== Other Usages ==
+
+If your Administration Panel features a number of different screens during its operation (for example, you have one screen for viewing items, another for adding them, editing them, deleting them, etc.), use additional logic within this function (such as testing for values of <tt>$_POST</tt> or <tt>$_GET</tt>) to provide different versions of help for your panel. If you do this, you may want to offload your help content to a separate PHP file within your Plugin, which you can include within your help function and refer to.
+
+It has also been noted that if you were to use object-oriented programming (OOP) in your Plugin and all of your hook functions were part of a class, you could simply make your admin panel hook be a property of your class, thus eliminating the need to globalize it twice.
+
+[[Category:New_page_created]] [[Category:Administration]] [[Category:Plugins]] [[Category:Advanced Topics]]
+
+== Resources and References ==
+
+=== External Resources & Tutorials ===
+
+* [http://wpdevel.wordpress.com/2011/12/06/help-and-screen-api-changes-in-3-3/ Help and screen API changes in 3.3] - New Help and Screen usage example. On the official WPDevel blog, by Nacin (core team member)

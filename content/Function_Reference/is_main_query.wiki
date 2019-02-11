@@ -1,0 +1,59 @@
+{{Languages|
+{{en|Function Reference/is_main_query}}
+{{ja|関数リファレンス/is_main_query}}
+{{es|Referencia de la funcion/is_main_query}}
+}}
+
+==Description==
+The <code>is_main_query()</code> function is a [[Conditional Tags|'''conditional function''']] that can be used to evaluate whether the current query (such as within the loop) is the "main" query (as opposed to a secondary query).
+
+This function is most commonly used within hooks to distinguish WordPress' '''main''' query (for a page, post, or archive) from a custom/secondary query.
+
+<code>is_main_query()</code> may be used with both front-end queries (theme templates, plugins, etc.), as well as admin queries. It will return <code>true</code> if the current query is the main query, and <code>false</code> if not.
+
+==Usage==
+
+<pre>&lt;?php
+if ( is_main_query() ) {
+    // do stuff
+}
+</pre>
+
+==Under the Hood==
+
+This function does not accept any parameters. Instead, it automatically compares the <tt>$wp_query</tt> object (i.e., the "current query") with the <tt>$wp_the_query</tt> object (the "main query")
+
+This function is an alias for the method <tt>WP_Query::is_main_query()</tt>. In filter or action hook callbacks that are passed the WP_Query object, such as '[[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]]', it is circular to call this function. Instead, directly call the passed object's method. For example, if your filter callback assigns the passed WP_Query object to <tt>$query</tt>, you would call the method like so:
+%%%$query->is_main_query()%%%
+See the [[Function_Reference/is_main_query#Examples|example]] below for usage in a conditional if statement.
+
+==Return Values==
+
+; <tt>(boolean)</tt> : True on success, false on failure.
+
+==Examples==
+
+<pre>
+add_action( 'pre_get_posts', 'foo_modify_query_exclude_category' );
+function foo_modify_query_exclude_category( $query ) {
+    if ( ! is_admin() && $query->is_main_query() && ! $query->get( 'cat' ) )
+        $query->set( 'cat', '-5' );
+}
+</pre>
+
+==Change Log==
+
+Since: 3.3
+
+== Source File ==
+<tt>is_main_query()</tt> is located in {{Trac|wp-includes/query.php|tags/{{CurrentVersion}}|719}}, starting line 719.
+
+<tt>WP_Query::is_main_query()</tt> is located in {{Trac|wp-includes/query.php|tags/{{CurrentVersion}}|3816}}, starting line 3816.
+
+==Related==
+{{Query Tags}}
+
+===Conditional Tags===
+{{Conditional Tags}}
+
+[[Category:Functions]]

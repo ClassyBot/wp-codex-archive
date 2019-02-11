@@ -1,0 +1,47 @@
+==Description==
+This action is located inside of [[Function_Reference/wp_signon|wp_signon]]. In contrast to the wp_login action, it is executed before the WordPress authentication process.
+*This action hook is not to be confused with the [[Function_Reference/wp_authenticate|wp_authenticate pluggable function]].
+
+==Location==
+Located in /wp-includes/user.php.
+
+==Example==
+You can use wp_authenticate to use a custom login mechanism before you involve WordPress.
+
+%%%<?php
+add_action( 'wp_authenticate' , 'check_custom_authentication' );
+
+function check_custom_authentication ( $username ) {
+        global $wpdb;
+
+     	if ( ! username_exists( $username ) ) {
+		return;
+	}
+        $userinfo = get_user_by( 'login', $username );
+        $property = $wpdb->prefix . 'capabilities';
+        $caps = $userinfo->$property;
+        foreach ( $caps as $role ) {
+              if ( 'special_authenticator' == $role ) {
+                    wpExternalLoginProcess( $username, $_POST['pwd'] );
+              }
+        }
+}
+?>%%%
+
+You can also use email to authenticate users in WordPress.
+
+%%%<?php
+add_action( 'wp_authenticate', 'wp_authenticate_by_email' );
+// user name is passed in by reference 
+function wp_authenticate_by_email( &$username ) {
+    $user = get_user_by( 'email', $username );
+
+    if ( ! $user ) {
+        $username = $user->user_login;
+    }
+
+}
+?>%%%
+
+{{Stub}}
+[[Category:Actions]]

@@ -1,0 +1,360 @@
+{{Languages|
+{{en|Function Reference/register_taxonomy}}
+{{zh-cn|函数参考/register_taxonomy}}
+{{ja|関数リファレンス/register_taxonomy}}
+}}
+== Description ==
+
+This function adds or overwrites a [[Taxonomies|taxonomy]].  It takes in a name, an object name that it affects, and an array of parameters. It does not return anything.
+
+Care should be used in selecting a taxonomy name so that it does not conflict with other taxonomies, post types, and [http://core.trac.wordpress.org/browser/trunk/wp-includes/class-wp.php reserved WordPress public and private query variables].  A complete list of those is described in the [[#Reserved Terms|Reserved Terms section]]. In particular, capital letters should be avoided (This was allowed in 3.0, but not enforced until 3.1 with the "Cheatin'" error).
+
+== Usage ==
+
+%%% <?php register_taxonomy( $taxonomy, $object_type, $args ); ?> %%%
+
+'''Use the <tt>init</tt> action to call this function.''' Calling it outside of an action can lead to troubles. See [http://core.trac.wordpress.org/ticket/15568 #15568] for details.
+
+Better '''be safe than sorry''' when registering custom taxonomies for custom post types. Use [[Function Reference/register_taxonomy_for_object_type|register_taxonomy_for_object_type()]] right after the function to interconnect them. Else you could run into minetraps where the post type isn't attached inside filter callback that run during <code>parse_request</code> or <code>pre_get_posts</code>.
+
+== Parameters ==
+
+{{Parameter|$taxonomy|string|The name of the taxonomy.  Name should only contain lowercase letters and the underscore character, and not be more than 32 characters long (database structure restriction).}}
+{{Parameter|$object_type|array/string|Name of the object type for the taxonomy object. Object-types can be built-in [[Post Type]] or any [[Post_Types#Custom_Types|Custom Post Type]] that may be registered.}}
+:Built-in Post Types:
+:* '''<tt>post</tt>'''
+:* '''<tt>page</tt>'''
+:* '''<tt>attachment</tt>'''
+:* '''<tt>revision</tt>'''
+:* '''<tt>nav_menu_item</tt>'''
+:* '''<tt>custom_css</tt>'''
+:* '''<tt>customize_changeset</tt>'''
+:Custom Post Types:
+:* '''<tt>{custom_post_type}</tt>''' - Custom Post Type names must be all in lower-case and without any spaces.
+:* '''<tt>null</tt>''' - Setting explicitly to <tt>null</tt> registers the taxonomy but doesn't associate it with any objects, so it won't be directly available within the Admin UI. You will need to manually register it using the 'taxonomy' parameter (passed through $args) when registering a custom post_type (see [[Function_Reference/register_post_type|register_post_type()]]), or using [[Function_Reference/register_taxonomy_for_object_type|register_taxonomy_for_object_type()]].
+
+{{Parameter|$args|array/string|An array of [[#Arguments|Arguments]].|optional}}
+
+=== Arguments ===
+{{Parameter|label|string|A '''plural''' descriptive name for the taxonomy marked for translation.|optional|overridden by ''$labels->name''}}
+
+{{Parameter|labels|array|labels - An array of labels for this taxonomy. By default tag labels are used for non-hierarchical types and category labels for hierarchical ones.|optional|if empty, name is set to label value, and singular_name is set to name value}}
+:* ''''name'''' - general name for the taxonomy, usually plural. The same as and overridden by $tax->label. Default is <code>_x( 'Post Tags', 'taxonomy general name' )</code> or <code>_x( 'Categories', 'taxonomy general name' )</code>.  When internationalizing this string, please use a [[I18n_for_WordPress_Developers#Disambiguation_by_context|gettext context]] matching your post type. Example: <code>_x('Writers', 'taxonomy general name');</code>
+:* ''''singular_name'''' - name for one object of this taxonomy. Default is <code>_x( 'Post Tag', 'taxonomy singular name' )</code> or <code>_x( 'Category', 'taxonomy singular name' )</code>.  When internationalizing this string, please use a [[I18n_for_WordPress_Developers#Disambiguation_by_context|gettext context]] matching your post type. Example: <code>_x('Writer', 'taxonomy singular name');</code>
+:* ''''menu_name'''' - the menu name text. This string is the name to give menu items. If not set, defaults to value of ''name'' label. 
+:* ''''all_items'''' - the all items text.  Default is <code>__( 'All Tags' )</code> or <code>__( 'All Categories' )</code>
+:* ''''edit_item'''' - the edit item text. Default is <code>__( 'Edit Tag' )</code> or <code>__( 'Edit Category' )</code>
+:* ''''view_item'''' - the view item text, Default is <code>__( 'View Tag' )</code> or <code>__( 'View Category' )</code>
+:* ''''update_item'''' - the update item text.  Default is <code>__( 'Update Tag' )</code> or <code>__( 'Update Category' )</code>
+:* ''''add_new_item'''' - the add new item text.  Default is <code>__( 'Add New Tag' )</code> or <code>__( 'Add New Category' )</code>
+:* ''''new_item_name'''' - the new item name text.  Default is <code>__( 'New Tag Name' )</code> or <code>__( 'New Category Name' )</code>
+:* ''''parent_item'''' - the parent item text.  This string is not used on non-hierarchical taxonomies such as post tags. Default is null  or <code>__( 'Parent Category' )</code>
+:* ''''parent_item_colon'''' - The same as <code>parent_item</code>, but with colon <code>:</code> in the end null, <code>__( 'Parent Category:' )</code>
+:* ''''search_items'''' - the search items text.  Default is <code>__( 'Search Tags' )</code> or <code>__( 'Search Categories' )</code> 
+:* ''''popular_items'''' - the popular items text.  This string is not used on hierarchical taxonomies.  Default is <code>__( 'Popular Tags' )</code> or null
+:* ''''separate_items_with_commas'''' - the separate item with commas text used in the taxonomy meta box.  This string is not used on hierarchical taxonomies. Default is <code>__( 'Separate tags with commas' )</code>, or null
+:* ''''add_or_remove_items'''' - the add or remove items text and used in the meta box when JavaScript is disabled.  This string is not used on hierarchical taxonomies.  Default is <code>__( 'Add or remove tags' )</code> or null
+:* ''''choose_from_most_used'''' - the choose from most used text used in the taxonomy meta box. This string is not used on hierarchical taxonomies. Default is <code>__( 'Choose from the most used tags' )</code> or null
+:* ''''not_found'''' (3.6+) - the text displayed via clicking 'Choose from the most used tags' in the taxonomy meta box when no tags are available and (4.2+) - the text used in the terms list table when there are no items for a taxonomy. Default is <code>__( 'No tags found.' )</code> or <code>__( 'No categories found.' )</code>
+:*  ''''back_to_items'''' - the text displayed after a term has been updated for a link back to main index. Default is <code>__( '&larr; Back to tags' )</code> or <code>__( '&larr; Back to categories' )</code>
+
+{{Parameter|public|boolean|Whether a taxonomy is intended for use publicly either via the admin interface or by front-end users. The default settings of `$publicly_queryable`, `$show_ui`, and `$show_in_nav_menus` are inherited from `$public`.|optional|true}}
+
+{{Parameter|publicly_queryable|boolean|Whether the taxonomy is publicly queryable.|optional|$public}}
+
+{{Parameter|show_ui|boolean|Whether to generate a default UI for managing this taxonomy.|optional|if not set, defaults to value of ''public'' argument. As of [[Version_3.5|3.5]], setting this to <strong>false</strong> for attachment taxonomies will hide the UI.}}
+
+<div id="show_in_menu">
+{{Parameter|show_in_menu|boolean|Where to show the taxonomy in the admin menu. <tt>show_ui</tt> must be <tt>true</tt>.|optional|value of show_ui argument}}
+:* 'false' - do not display in the admin menu
+:* 'true' - show as a submenu of associated object types
+</div>
+
+{{Parameter|show_in_nav_menus|boolean|true makes this taxonomy available for selection in navigation menus.|optional|if not set, defaults to value of ''public'' argument}}
+
+{{Parameter|show_in_rest|boolean|Whether to include the taxonomy in the REST API.|optional|false}}
+
+{{Parameter|rest_base|string|To change the base url of REST API route.|optional|$taxonomy}}
+
+{{Parameter|rest_controller_class|string|REST API Controller class name.|optional|[[Class_Reference/WP_REST_Terms_Controller|WP_REST_Terms_Controller]]}}
+
+{{Parameter|show_tagcloud|boolean|Whether to allow the Tag Cloud widget to use this taxonomy.|optional|if not set, defaults to value of ''show_ui'' argument}}
+
+{{Parameter|show_in_quick_edit|boolean|Whether to show the taxonomy in the quick/bulk edit panel. (Available since [[Version 4.2|4.2]])|optional|if not set, defaults to value of ''show_ui'' argument}}
+
+{{Parameter|meta_box_cb|callback|Provide a callback function name for the meta box display. (Available since [[Version 3.8|3.8]])|optional|null
+'''Note:''' Defaults to the categories meta box (<tt>post_categories_meta_box()</tt> in <tt>meta-boxes.php</tt>) for hierarchical taxonomies and the tags meta box (<tt>post_tags_meta_box()</tt>) for non-hierarchical taxonomies. No meta box is shown if set to false.}}
+
+{{Parameter|show_admin_column|boolean|Whether to allow automatic creation of taxonomy columns on associated post-types table. (Available since [[Version 3.5|3.5]])|optional|false}}
+
+{{Parameter|description|string|Include a description of the taxonomy.|optional|""}}
+
+{{Parameter|hierarchical|boolean|Is this taxonomy hierarchical (have descendants) like categories or not hierarchical like tags.|optional|false}}
+
+'''Note:''' Hierarchical taxonomies will have a list with checkboxes to select an existing category in the taxonomy admin box on the post edit page (like default post categories). Non-hierarchical taxonomies will just have an empty text field to type-in taxonomy terms to associate with the post (like default post tags).
+
+{{Parameter|update_count_callback|string|A function name that will be called when the count of an associated ''$object_type'', such as post, is updated. Works much like a hook.|optional|None - but see Note, below.}}
+
+'''Note:''' While the default is <tt><nowiki>''</nowiki></tt>, when actually performing the count update in <tt>wp_update_term_count_now()</tt>, if the taxonomy is only attached to <tt>post</tt> types (as opposed to other WordPress objects, like <tt>user</tt>), the built-in <tt>_update_post_term_count()</tt> function will be used to count only published posts associated with that term, otherwise <tt>_update_generic_term_count()</tt> will be used instead, that does no such checking.
+
+This is significant in the case of '''attachments'''. Because an attachment is a type of <tt>post</tt>, the default <tt>_update_post_term_count()</tt> will be used. However, this may be undesirable, because this will only count attachments that are actually attached to another post (like when you insert an image into a post). This means that attachments that you simply upload to WordPress using the Media Library, but do not actually attach to another post will '''not''' be counted. If your intention behind associating a taxonomy with attachments was to leverage the Media Library as a sort of Document Management solution, you are probably more interested in the counts of unattached Media items, than in those attached to posts. In this case, you should force the use of <tt>_update_generic_term_count()</tt> by setting '_update_generic_term_count' as the value for <tt>update_count_callback</tt>.
+
+Another important consideration is that <tt>_update_post_term_count()</tt> only counts '''published''' posts. If you are using custom statuses, or using custom post types where being published is not necessarily a consideration for being counted in the term count, then you will need to provide your own callback that doesn't include the <tt>post_status</tt> portion of the <tt>where</tt> clause.
+
+{{Parameter|query_var|boolean or string|False to disable the query_var, set as string to use custom query_var instead of default which is $taxonomy, the taxonomy's "name". True is not seen as a valid entry and will result in 404 issues.|optional|$taxonomy}}
+
+'''Note:''' The query_var is used for direct queries through WP_Query like <code>new WP_Query(array('people'=>$person_name))</code> and URL queries like <code>/?people=$person_name</code>. Setting query_var to false will disable these methods, but you can still fetch posts with an explicit WP_Query taxonomy query like <code>WP_Query(array('taxonomy'=>'people', 'term'=>$person_name))</code>.
+
+{{Parameter|rewrite|boolean/array|Set to false to prevent automatic URL rewriting a.k.a. "pretty permalinks". Pass an ''$args'' array to override default URL settings for permalinks as outlined below:|optional|true}}
+:* ''''slug'''' - Used as pretty permalink text (i.e. /tag/) - defaults to $taxonomy (taxonomy's name slug)
+:* ''''with_front'''' - allowing permalinks to be prepended with front base - defaults to true
+:* ''''hierarchical'''' - true or false allow hierarchical urls (implemented in [[Version 3.1]]) - defaults to false
+:* ''''ep_mask'''' - (Required for pretty permalinks) Assign an endpoint mask for this taxonomy - defaults to EP_NONE. If you do not specify the EP_MASK, pretty permalinks will not work. For more info see [http://make.wordpress.org/plugins/2012/06/07/rewrite-endpoints-api/ this Make WordPress Plugins summary of endpoints].
+
+'''Note:''' You may need to flush the rewrite rules after changing this. You can do it manually by going to the Permalink Settings page and re-saving the rules -- you don't need to change them -- or by calling <tt>$wp_rewrite->flush_rules()</tt>. You should only flush the rules once after the taxonomy has been created, not every time the plugin/theme loads.
+
+{{Parameter|capabilities|array|An array of the capabilities for this taxonomy.|optional}}
+:* ''''manage_terms'''' - 'manage_categories'
+:* ''''edit_terms'''' - 'manage_categories'
+:* ''''delete_terms'''' - 'manage_categories'
+:* ''''assign_terms'''' - 'edit_posts'
+
+{{Parameter|sort|boolean|Whether this taxonomy should remember the order in which terms are added to objects.|optional}}
+
+{{Parameter|_builtin|boolean|Whether this taxonomy is a native or "built-in" taxonomy. '''Note: this Codex entry is for documentation - core developers recommend you don't use this when registering your own taxonomy'''|not for general use|false}}
+
+== Example ==
+An example of registering a two taxonomies, genres and writers, for the post type called "book" (uses [[Version 3.1]] arguments):
+
+Note: You can define custom taxonomies in a themes's <code>functions.php</code> template file:
+
+<pre>
+<?php
+// hook into the init action and call create_book_taxonomies when it fires
+add_action( 'init', 'create_book_taxonomies', 0 );
+
+// create two taxonomies, genres and writers for the post type "book"
+function create_book_taxonomies() {
+	// Add new taxonomy, make it hierarchical (like categories)
+	$labels = array(
+		'name'              => _x( 'Genres', 'taxonomy general name', 'textdomain' ),
+		'singular_name'     => _x( 'Genre', 'taxonomy singular name', 'textdomain' ),
+		'search_items'      => __( 'Search Genres', 'textdomain' ),
+		'all_items'         => __( 'All Genres', 'textdomain' ),
+		'parent_item'       => __( 'Parent Genre', 'textdomain' ),
+		'parent_item_colon' => __( 'Parent Genre:', 'textdomain' ),
+		'edit_item'         => __( 'Edit Genre', 'textdomain' ),
+		'update_item'       => __( 'Update Genre', 'textdomain' ),
+		'add_new_item'      => __( 'Add New Genre', 'textdomain' ),
+		'new_item_name'     => __( 'New Genre Name', 'textdomain' ),
+		'menu_name'         => __( 'Genre', 'textdomain' ),
+	);
+
+	$args = array(
+		'hierarchical'      => true,
+		'labels'            => $labels,
+		'show_ui'           => true,
+		'show_admin_column' => true,
+		'query_var'         => true,
+		'rewrite'           => array( 'slug' => 'genre' ),
+	);
+
+	register_taxonomy( 'genre', array( 'book' ), $args );
+
+	// Add new taxonomy, NOT hierarchical (like tags)
+	$labels = array(
+		'name'                       => _x( 'Writers', 'taxonomy general name', 'textdomain' ),
+		'singular_name'              => _x( 'Writer', 'taxonomy singular name', 'textdomain' ),
+		'search_items'               => __( 'Search Writers', 'textdomain' ),
+		'popular_items'              => __( 'Popular Writers', 'textdomain' ),
+		'all_items'                  => __( 'All Writers', 'textdomain' ),
+		'parent_item'                => null,
+		'parent_item_colon'          => null,
+		'edit_item'                  => __( 'Edit Writer', 'textdomain' ),
+		'update_item'                => __( 'Update Writer', 'textdomain' ),
+		'add_new_item'               => __( 'Add New Writer', 'textdomain' ),
+		'new_item_name'              => __( 'New Writer Name', 'textdomain' ),
+		'separate_items_with_commas' => __( 'Separate writers with commas', 'textdomain' ),
+		'add_or_remove_items'        => __( 'Add or remove writers', 'textdomain' ),
+		'choose_from_most_used'      => __( 'Choose from the most used writers', 'textdomain' ),
+		'not_found'                  => __( 'No writers found.', 'textdomain' ),
+		'menu_name'                  => __( 'Writers', 'textdomain' ),
+	);
+
+	$args = array(
+		'hierarchical'          => false,
+		'labels'                => $labels,
+		'show_ui'               => true,
+		'show_admin_column'     => true,
+		'update_count_callback' => '_update_post_term_count',
+		'query_var'             => true,
+		'rewrite'               => array( 'slug' => 'writer' ),
+	);
+
+	register_taxonomy( 'writer', 'book', $args );
+}
+?>
+</pre>
+
+== Basic Example ==
+
+<pre>
+<?php
+add_action( 'init', 'create_book_tax' );
+
+function create_book_tax() {
+	register_taxonomy(
+		'genre',
+		'book',
+		array(
+			'label' => __( 'Genre' ),
+			'rewrite' => array( 'slug' => 'genre' ),
+			'hierarchical' => true,
+		)
+	);
+}
+?>
+</pre>
+
+Note: If you want to ensure that your custom taxonomy behaves like a tag, you must add the option 'update_count_callback' => '_update_post_term_count'.  Not doing so will result in multiple comma-separated items added at once being saved as a single value, not as separate values. This can cause undue stress when using get_the_term_list and other term display functions.
+
+
+== Example Private Taxonomy ==
+
+If you do not want your taxonomy to be exposed publicly, you can use the 'public' and 'rewrite' parameters to suppress it. It will be available to use internally by your plugin or theme, but will not generate a url of it's own.
+
+<pre>
+<?php
+add_action( 'init', 'create_private_book_tax' );
+
+function create_private_book_tax() {
+    register_taxonomy(
+        'genre',
+        'book',
+        array(
+            'label' => __( 'Genre' ),
+            'public' => false,
+            'rewrite' => false,
+            'hierarchical' => true,
+        )
+    );
+}
+?>
+</pre>
+
+==Reserved Terms==
+
+Avoiding the following reserved terms is particularly important if you are passing the term through the $_GET or $_POST array.  Doing so can cause WordPress to respond with a 404 error without any other hint or explanation.  
+
+* attachment
+* attachment_id
+* author
+* author_name
+* calendar
+* cat
+* category
+* category__and
+* category__in
+* category__not_in
+* category_name
+* comments_per_page
+* comments_popup
+* customize_messenger_channel
+* customized
+* cpage
+* day
+* debug
+* error
+* exact
+* feed
+* fields
+* hour
+* link_category
+* m
+* minute
+* monthnum
+* more
+* name
+* nav_menu
+* nonce
+* nopaging
+* offset
+* order
+* orderby
+* p
+* page
+* page_id
+* paged
+* pagename
+* pb
+* perm
+* post
+* post__in
+* post__not_in
+* post_format
+* post_mime_type
+* post_status
+* post_tag
+* post_type
+* posts
+* posts_per_archive_page
+* posts_per_page
+* preview
+* robots
+* s
+* search
+* second
+* sentence
+* showposts
+* static
+* subpost
+* subpost_id
+* tag
+* tag__and
+* tag__in
+* tag__not_in
+* tag_id
+* tag_slug__and
+* tag_slug__in
+* taxonomy
+* tb
+* term
+* theme
+* type
+* w
+* withcomments
+* withoutcomments
+* year
+
+== Changelog ==
+* [[Version_4.7|4.7.0]]: 
+** Introduced `<tt>show_in_rest</tt>`, '<tt>rest_base</tt>' and '<tt>rest_controller_class</tt>' arguments to register the Taxonomy in REST API.
+* [[Version_4.5|4.5.0]]: 
+** Add '<tt>publicly_queryable</tt>' argument.
+* [[Version_4.4|4.4.0]]:
+** The '<tt>public</tt>' argument now controls whether the taxonomy can be queried on the front end..
+** The '<tt>show_ui</tt>' argument is now enforced on the term editing screen.
+* [[Version_4.2|4.2.0]]: 
+** Introduced'<tt>show_in_quick_edit</tt>' argument.
+* [[Version_3.5|3.5.0]]:
+** Setting '<tt>show_ui</tt>' to false hides UI for attachment taxonomies.
+** Add '<tt>show_admin_column</tt>' to allow automatic creation of taxonomy columns on associated post types.
+* Since: [[Version_2.3|2.3.0]]
+
+== Source File ==
+
+<tt>register_taxonomy()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== Resources ==
+
+* [https://metabox.io/plugins/custom-taxonomy/ MB Custom Taxonomy plugin: Create and manage custom taxonomies with UI]
+* [https://generatewp.com/taxonomy/ WordPress Taxonomy Generator]
+* [https://wordpress.org/plugins/taxonomy-terms-order/ Create custom sorting for terms]
+
+== Related ==
+[http://codex.wordpress.org/Function_Reference/register_post_type register_post_type()]  
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

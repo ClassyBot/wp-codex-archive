@@ -1,0 +1,215 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Migrating">Plugins and Themes to 2.7/Enhanced Comment Display 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Introduction"><span class="tocnumber">1</span> <span class="toctext">Introduction</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Code_Changes_For_comments.php"><span class="tocnumber">2</span> <span class="toctext">Code Changes For comments.php</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Detecting_WordPress_2.7"><span class="tocnumber">2.1</span> <span class="toctext">Detecting WordPress 2.7</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Password_Protection_Check"><span class="tocnumber">2.2</span> <span class="toctext">Password Protection Check</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#The_Comments_Loop"><span class="tocnumber">2.3</span> <span class="toctext">The Comments Loop</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Comments_Paging_Links"><span class="tocnumber">2.4</span> <span class="toctext">Comments Paging Links</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Javascript_Comment_Functionality"><span class="tocnumber">2.5</span> <span class="toctext">Javascript Comment Functionality</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#CSS_Styling"><span class="tocnumber">2.6</span> <span class="toctext">CSS Styling</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Custom_Comment_Layout.2FFormat"><span class="tocnumber">2.7</span> <span class="toctext">Custom Comment Layout/Format</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Comment_tags_New_in_Version_2.7"><span class="tocnumber">2.8</span> <span class="toctext">Comment tags New in Version 2.7</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#References"><span class="tocnumber">2.9</span> <span class="toctext">References</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Introduction">Introduction</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=1" title="Edit section: Introduction">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Starting with <a href="https://codex.wordpress.org/Version_2.7" title="Version 2.7">Version 2.7</a>, WordPress has built-in support for both comment threading and paging. <b>While no theme modifications should be required for your theme to work with WordPress 2.7</b>, you will not be able to make use of these new comment features unless you update your theme. This article will serve as a guide on how to do just that.
+</p><p>This article was heavily based on Otto's excellent <a rel="nofollow" class="external text" href="http://ottopress.com/2008/wordpress-2-7-comments-enhancements/">WordPress 2.7 Comments Enhancements</a> post.
+</p>
+<h2><span class="mw-headline" id="Code_Changes_For_comments.php">Code Changes For comments.php</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=2" title="Edit section: Code Changes For comments.php">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>For a working example, make sure to check out the default theme's comments.php file.
+</p>
+<h3><span class="mw-headline" id="Detecting_WordPress_2.7">Detecting WordPress 2.7</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=3" title="Edit section: Detecting WordPress 2.7">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If you want your theme to be backward compatible as well, then there's a simple way to do it. Just check for the <a href="https://codex.wordpress.org/Template_Tags/wp_list_comments" title="Template Tags/wp list comments" class="mw-redirect">wp_list_comments()</a> function, like so:
+</p>
+<pre>if ( function_exists('wp_list_comments') )&#160;:
+// new comments.php stuff
+else&#160;:
+// old comments.php stuff
+endif;
+</pre>
+<p>While checking for the version number of WordPress is one technique, this method is better because it simply looks for the actual function you’re going to use anyway. Never make assumptions based on version number.
+</p><p>One of the more interesting ways to use this is to have the "old comments" php in a separate file entirely, which is then included. This preserves backwards compatibility for your theme in a simple way. Here's a quick example code for that approach:
+</p>
+<pre>&lt;?php
+add_filter( 'comments_template', 'legacy_comments' );
+function legacy_comments( $file ) {
+	if (&#160;!function_exists('wp_list_comments') )
+		$file = TEMPLATEPATH . '/legacy.comments.php';
+	return $file;
+}
+?&gt;
+</pre>
+<p>Adding this code to a theme's <a href="https://codex.wordpress.org/Theme_Development#Functions_File" title="Theme Development">functions.php file</a> will make the theme use the "legacy.comments.php" for older non-2.7 installations. That way, you can simply rename your old comments.php and then make a new one based on the new functionality. Clever.
+</p>
+<h3><span class="mw-headline" id="Password_Protection_Check">Password Protection Check</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=4" title="Edit section: Password Protection Check">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Put this code at the top of your comments.php file. This is what lets it support the post password functionality. 
+</p><p>Note that this code is quite similar to the previous way that it was done (by checking the cookie directly), but now WordPress has a specific function to do it. You should use this function in case the functionality changes in the future, your code will be forward compatible:
+</p>
+<pre>if ( post_password_required() ) {
+	echo '&lt;p class="nocomments"&gt;This post is password protected. Enter the password to view comments.&lt;/p&gt;';
+	return;
+}
+</pre>
+<h3><span class="mw-headline" id="The_Comments_Loop">The Comments Loop</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=5" title="Edit section: The Comments Loop">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The Comments Loop used to look similar to this (much simplified from a real one - pre-WordPress 2.7):
+</p>
+<pre>if ($comments)&#160;:
+&lt;?php $comment_count = get_comment_count($post-&gt;ID); echo $comment_count['approved'];&#160;?&gt; Comments
+&lt;ul class="commentlist"&gt;
+&lt;?php foreach( $comments as $comment )&#160;:
+// stuff to display the comment in an LI here
+endforeach;
+?&gt;&lt;/ul&gt;
+&lt;?php else&#160;:
+if ('open' == $post-&gt;comment_status)&#160;:
+	// If comments are open, but there are no comments.
+else&#160;:
+	// comments are closed
+endif;
+endif;
+</pre>
+<p>Basically, the comments loop went through the comments manually and output all the necessary pieces. Easy, but very manual. This code also had the problem of being very inconsistent and hard to manage for your theme editors, especially if it was heavily customized.
+</p><p>The new comments loop is much simpler, and much more like a normal post Loop:
+</p>
+<pre>if ( have_comments() )&#160;:&#160;?&gt;
+&lt;h4 id="comments"&gt;&lt;?php comments_number('No Comments', 'One Comment', '% Comments' );?&gt;&lt;/h4&gt;
+&lt;ul class="commentlist"&gt;
+	&lt;?php wp_list_comments();&#160;?&gt;&lt;/ul&gt;
+&lt;div class="navigation"&gt;
+&lt;div class="alignleft"&gt;&lt;?php previous_comments_link()&#160;?&gt;&lt;/div&gt;
+&lt;div class="alignright"&gt;&lt;?php next_comments_link()&#160;?&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;?php else&#160;: // this is displayed if there are no comments so far&#160;?&gt;
+	&lt;?php if ( comments_open() )&#160;:
+		// If comments are open, but there are no comments.
+	else&#160;: // comments are closed
+	endif;
+endif;
+</pre>
+<p>That new one is, in fact, a complete comments loop. No simplification at all. Unless you want something displayed for "no comments" or "comments closed", of course.
+</p><p>There are three important pieces to note here:
+</p>
+<ul><li> The have_comments() function replaces the check on the global $comments variable.</li>
+<li> The <a href="https://codex.wordpress.org/Template_Tags/wp_list_comments" title="Template Tags/wp list comments" class="mw-redirect">wp_list_comments()</a> function now outputs all the comments. It does threading, the classes, everything new.</li>
+<li> There's a new navigation section to do comment paging.</li></ul>
+<h3><span class="mw-headline" id="Comments_Paging_Links">Comments Paging Links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=6" title="Edit section: Comments Paging Links">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Also added to the comments system in 2.7 is the ability to easily break comments into pages so that you dont' end up with hundreds of comments all loading on every pageview. 
+</p><p>The easiest way to do so is with the following function, which prints out a link to the next and previous comment pages, as well as a numbered list of all the comment pages. 
+</p>
+<pre>paginate_comments_links($args);
+</pre>
+<p>See the <a href="https://codex.wordpress.org/Function_Reference/paginate_comments_links" title="Function Reference/paginate comments links">paginate_comments_links</a> function reference for more details.
+</p><p>If you want more control, you can also use the simpler next and previous functions: <a href="https://codex.wordpress.org/Function_Reference/next_comments_link" title="Function Reference/next comments link">next_comments_link</a> and <a href="https://codex.wordpress.org/Function_Reference/previous_comments_link" title="Function Reference/previous comments link">previous_comments_link</a>
+</p>
+<h3><span class="mw-headline" id="Javascript_Comment_Functionality">Javascript Comment Functionality</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=7" title="Edit section: Javascript Comment Functionality">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To allow full JavaScript functionality with the comment features in WordPress 2.7, the following changes must be made within the WordPress Theme template files.
+</p><p>To support the new JavaScript functionality with comment threading, add the following in the <code>header.php</code> immediately before the call to <code>wp_head()</code>:
+</p>
+<pre>if ( is_singular() ) wp_enqueue_script( 'comment-reply' );
+</pre>
+<p>That code adds the comment-reply JavaScript to the single post pages, letting the comment reply links work correctly. It moves the comment form to just below the comment when you click on a "reply" link. WordPress specifically does NOT do this itself as the use of this script requires certain naming conventions and parameters in the comment form, which must be added.
+</p><p>To the comment form, add the following new function:
+</p>
+<pre>&lt;?php comment_id_fields();&#160;?&gt;
+</pre>
+<p>This adds a bit of code to the comment form to make it display two hidden inputs: <code>comment_post_ID</code> and <code>comment_parent</code>. If the form featured the <code>comment_post_ID</code>, you must remove it. The <code>comment_parent</code> is to identify which comment is being replied to, so that replies to comments get threaded properly.
+</p><p>In the comment textarea, it MUST have an <code>id="comment"</code>. The JavaScript expects it for focus purposes. If you used anything else, change it. Note that because of this, no other element on your page can have the "comment" ID.
+</p><p>In order to make the comment area link from other sources, and the JavaScript to work properly, the entire comment form MUST be surrounded by a DIV with an <code>id="respond"</code>. In some previous themes (including the default ones), there would be an anchor tag like this:
+</p>
+<pre>&lt;a id="respond"&gt;&lt;/a&gt;
+</pre>
+<p>This allowed the link from the front page to go directly to the respond section when there were no comments already. That still happens, but now there's a double purpose. The JavaScript moves the comment form to where the reply link is, so instead of it being an anchor, it needs to be a DIV that surrounds the comment form.
+</p><p>Remove that anchor and add a DIV with an <code>id="respond"</code> around the entire comment form. The link from the front page still works this way with all modern browsers, and the JavaScript can now move the form around on the page as needed.
+</p><p>Next, replace the call to your normal "Leave a Comment" text with something like this:
+</p>
+<pre>&lt;h3&gt;&lt;?php comment_form_title();&#160;?&gt;&lt;/h3&gt;
+</pre>
+<p>This makes a comment form title of "Leave a Reply" which will change to "Leave a Reply to Whomever" when somebody is replying directly to another person if JavaScript is disabled. You can customize this, if you like, with two parameters:
+</p>
+<pre>&lt;?php comment_form_title( 'Leave a Reply', 'Leave a Reply to&#160;%s' );&#160;?&gt;
+</pre>
+<p>The&#160;%s will be replaced with the person's name if you don't have the comment-reply JavaScript enqueued or if JavaScript is disabled.
+</p><p>Finally, when somebody clicks "reply" and the comment form appears there, they may decide to cancel instead. So, a "cancel" link needs to be in your respond section. Here's the code to do that&#8212; just put it right below your "Leave a Reply" header in the comment form area:
+</p>
+<pre>&lt;div id="cancel-comment-reply"&gt;
+	&lt;small&gt;&lt;?php cancel_comment_reply_link()&#160;?&gt;&lt;/small&gt;&lt;/div&gt;
+</pre>
+<p>With the new code that links to the JavaScript functionality of WordPress 2.7, the new features on the <a href="https://codex.wordpress.org/Settings_Discussion_SubPanel" title="Settings Discussion SubPanel" class="mw-redirect">Settings Discussion SubPanel</a> will work. You can modify this somewhat as needed for your theme.
+</p>
+<h3><span class="mw-headline" id="CSS_Styling">CSS Styling</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=8" title="Edit section: CSS Styling">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>With the new code for comments in place, you can style the comments area on the WordPress Theme with more design integration than previously. 
+</p><p>The new comments loop automatically puts every comment into an <code>&lt;li&gt;</code> tag, and threads them as well, with embedded <code>&lt;ul&gt;</code> and <code>&lt;li&gt;</code> tags. It adds classes on all <code>&lt;li&gt;</code>s which surround every comment in this fashion:
+</p>
+<ul><li> comment, trackback, pingback classes get added depending on the type of the comment.</li>
+<li> byuser gets added if the comment is by a registered user of the site.</li>
+<li> comment-author-authorname gets added for specific registered users.</li>
+<li> bypostauthor gets added if the comment is by the author of the post the comment is attached to.</li>
+<li> odd and even classes are added to odd and even numbered comments</li>
+<li> alt is added to every other comment</li>
+<li> thread-odd, thread-even, and thread-alt classes are the same as the odd/even/alt classes, but these only apply to the top level of each set of comments and replies</li>
+<li> depth-1 is added to the top level comments, depth-2 to the next level, and so on.</li>
+<li> children class is added to all threaded comments below the parent list</li></ul>
+<p>A comment_class filter is provided to allow you to add your own classes. Here's an example of that. 
+</p><p>This example function adds a microid to every comment with the microid for the comment authors given URL and email address. This sort of thing could be done in a Plugin or a Theme's functions.php file.
+</p>
+<pre>// add a microid to all the comments
+function comment_add_microid($classes) {
+	$c_email=get_comment_author_email();
+	$c_url=get_comment_author_url();
+	if (!empty($c_email) &amp;&amp;&#160;!empty($c_url)) {
+		$microid = 'microid-mailto+http:sha1:' . sha1(sha1('mailto:'.$c_email).sha1($c_url));
+		$classes[] = $microid;
+	}
+	return $classes;
+}
+add_filter('comment_class','comment_add_microid');
+</pre>
+<p>It just adds the class to the given array of classes and lets the comment display functions take care of the rest.
+</p>
+<h3><span class="mw-headline" id="Custom_Comment_Layout.2FFormat">Custom Comment Layout/Format</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=9" title="Edit section: Custom Comment Layout/Format">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>By default, WordPress uses an internal function with a default comment format to display each comment. If you'd like display your comments in a custom format with your own HTML structure, set the "callback" parameter in <a href="https://codex.wordpress.org/Template_Tags/wp_list_comments" title="Template Tags/wp list comments" class="mw-redirect">wp_list_comments()</a>.
+</p>
+<h3><span class="mw-headline" id="Comment_tags_New_in_Version_2.7">Comment tags New in Version 2.7</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=10" title="Edit section: Comment tags New in Version 2.7">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Template_Tags/wp_list_comments" title="Template Tags/wp list comments" class="mw-redirect"> wp_list_comments</a></li>
+<li> <a href="https://codex.wordpress.org/Template_Tags/comment_reply_link" title="Template Tags/comment reply link" class="mw-redirect"> comment_reply_link</a></li>
+<li> <a href="https://codex.wordpress.org/Template_Tags/cancel_comment_reply_link" title="Template Tags/cancel comment reply link" class="mw-redirect"> cancel_comment_reply_link</a></li>
+<li> <a href="https://codex.wordpress.org/Template_Tags/comment_form_title" title="Template Tags/comment form title" class="mw-redirect"> comment_form_title</a></li>
+<li> <a href="https://codex.wordpress.org/Template_Tags/comment_id_fields" title="Template Tags/comment id fields" class="mw-redirect"> comment_id_fields</a></li></ul>
+<h3><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Migrating_Plugins_and_Themes_to_2.7/Enhanced_Comment_Display&amp;action=edit&amp;section=11" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a rel="nofollow" class="external text" href="http://ottopress.com/2008/wordpress-2-7-comments-enhancements/">Otto's original guide for WordPress 2.7 comments</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.narga.org/2009/02/17/thiet-ke-cac-phan-hoi-bai-viet-tuong-thich-voi-wordpress-2-7/">Thiết kế các phản hồi bài viết tương thích với WordPress 2.7.x</a></li>
+<li> <a rel="nofollow" class="external text" href="http://sivel.net/2008/10/wp-27-comment-separation/">Separating Pings from Comments in WordPress 2.7</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004044
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.022 seconds
+Preprocessor visited node count: 71/1000000
+Preprocessor generated node count: 205/1000000
+Post‐expand include size: 649/2097152 bytes
+Template argument size: 296/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.400      1 - Template:Languages
+100.00%    3.400      1 - -total
+ 31.62%    1.075      1 - Template:ja
+ 29.79%    1.013      1 - Template:en
+-->

@@ -1,0 +1,253 @@
+These XML-RPC methods are for interacting with taxonomies and terms.
+
+To retrieve or change the terms assigned to a post, see the <tt>terms</tt> field in [[XML-RPC_WordPress_API/Posts#wp.getPost|wp.getPost]], [[XML-RPC_WordPress_API/Posts#wp.newPost|wp.newPost]], and [[XML-RPC_WordPress_API/Posts#wp.editPost|wp.editPost]].
+
+== wp.getTaxonomy ==
+
+Retrieve information about a taxonomy.
+
+Note: This method does not return the terms in the taxonomy. See [[#wp.getTerms]].
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* string <tt>taxonomy</tt>
+
+=== Return Values ===
+
+* struct: See [[Function_Reference/get_taxonomy|get_taxonomy]].
+** string <tt>name</tt>
+** string <tt>label</tt>
+** bool <tt>hierarchical</tt>
+** bool <tt>public</tt>
+** bool <tt>show_ui</tt>
+** bool <tt>_builtin</tt>
+** struct <tt>labels</tt><sup>1</sup>
+** struct <tt>cap</tt><sup>2</sup>
+** array <tt>object_type</tt><sup>3</sup>
+
+<sup>1</sup> <tt>labels</tt> meta-field<br>
+<sup>2</sup> <tt>cap</tt> meta-field.<br>
+<sup>3</sup> <tt>object_type</tt> meta-field.<br>
+
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#assign_terms|assign_terms]]</tt> cap for this taxonomy.
+* 403
+** If invalid taxonomy name is specified.
+
+=== Filters ===
+
+==== xmlrpc_prepare_taxonomy ====
+
+Immediately before returning the prepared taxonomy data, the value is passed through the <tt>xmlrpc_prepare_taxonomy</tt> filter. The filter has two parameters:
+
+# The prepared taxonomy data about to be returned
+# The original taxonomy data array, see [[Function_Reference/get_taxonomy|get_taxonomy]].
+
+== wp.getTaxonomies ==
+
+Retrieve a list of taxonomies.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* array
+** struct: See [[#wp.getTaxonomy]].
+
+==== Notes ====
+
+* Response will only contain taxonomies where the user has the <tt>[[Roles_and_Capabilities#assign_terms|assign_terms]]</tt> cap.
+
+=== Filters ===
+
+Supports same filters as [[#wp.getTaxonomy]].
+
+== wp.getTerm ==
+
+Retrieve a taxonomy term.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* string <tt>taxonomy</tt>
+* int <tt>term_id</tt>
+
+=== Return Values ===
+
+* struct: See [[Function_Reference/get_term|get_term]].
+** string <tt>term_id</tt>
+** string <tt>name</tt>
+** string <tt>slug</tt>
+** string <tt>term_group</tt>
+** string <tt>term_taxonomy_id</tt>
+** string <tt>taxonomy</tt>
+** string <tt>description</tt>
+** string <tt>parent</tt>
+** int <tt>count</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#assign_terms|assign_terms]]</tt> cap for this taxonomy.
+* 403
+** If invalid taxonomy name is specified.
+* 404
+** If no term with that <tt>term_id</tt> exists.
+
+=== Filters ===
+
+==== xmlrpc_prepare_term ====
+
+Immediately before returning the prepared term data, the value is passed through the <tt>xmlrpc_prepare_term</tt> filter. The filter has two parameters:
+
+# The prepared term data about to be returned
+# The original term data array, see [[Function_Reference/get_term|get_term]].
+
+== wp.getTerms ==
+
+Retrieve list of terms in a taxonomy.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* string <tt>taxonomy</tt>
+* struct <tt>filter</tt>: Optional.
+** int <tt>number</tt>
+** int <tt>offset</tt>
+** string <tt>orderby</tt>
+** string <tt>order</tt>
+** bool <tt>hide_empty</tt>: Whether to return terms with <tt>count=0</tt>.
+** string <tt>search</tt>: Restrict to terms with names that contain (case-insensitive) this value.
+
+=== Return Values ===
+
+* array
+** struct: See [[#wp.getTerm]].
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#assign_terms|assign_terms]]</tt> cap for this taxonomy.
+* 403
+** If invalid taxonomy name is specified.
+
+=== Filters ===
+
+Supports same filters as [[#wp.getTerm]].
+
+== wp.newTerm ==
+
+Create a new taxonomy term.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>content</tt>
+** string <tt>name</tt>
+** string <tt>taxonomy</tt>
+** string <tt>slug</tt>: Optional.
+** string <tt>description</tt>: Optional.
+** int <tt>parent</tt>: Optional.
+
+=== Return Values ===
+
+* string <tt>term_id</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#manage_terms|manage_terms]]</tt> cap for this taxonomy.
+* 403
+** If invalid taxonomy name is specified.
+** If the term name is empty.
+** If <tt>parent</tt> is set but the taxonomy is not hierarchical.
+** If no term with that <tt>parent</tt> ID exists.
+
+== wp.editTerm ==
+
+Edit an existing taxonomy term.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>term_id</tt>
+* struct <tt>content</tt>
+** string <tt>taxonomy</tt>
+** string <tt>name</tt>: Optional.
+** string <tt>slug</tt>: Optional.
+** string <tt>description</tt>: Optional.
+** int <tt>parent</tt>: Optional.
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#edit_terms|edit_terms]]</tt> cap for this taxonomy.
+* 403
+** If invalid taxonomy name is specified.
+** If the term name is empty.
+** If <tt>parent</tt> is set but the taxonomy is not hierarchical.
+** If no term with that <tt>parent</tt> ID exists.
+* 404
+** If no term with that <tt>term_id</tt> ID exists.
+
+== wp.deleteTerm ==
+
+Delete an existing taxonomy term.
+
+Added in WordPress 3.4.
+
+=== Parameters ===
+
+* int <tt>blog_id</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* string <tt>taxonomy</tt>
+* int <tt>term_id</tt>
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 403
+** If invalid taxonomy name is specified.
+** If the user does not have the <tt>[[Roles_and_Capabilities#delete_terms|delete_terms]]</tt> cap for this taxonomy.
+* 404
+** If no term with that <tt>term_id</tt> ID exists.
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Feeds]]

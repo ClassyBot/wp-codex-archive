@@ -1,0 +1,54 @@
+{{Languages|
+{{en|Function_Reference/add_option}}
+{{ru|Справочник_по_функциям/add_option}}
+}}
+
+== Description ==
+
+A safe way of adding a named option/value pair to the options database table. It does nothing if the option already exists. After the option is saved, it can be accessed with [[Function_Reference/get_option|get_option()]], changed with [[Function_Reference/update_option|update_option()]], and deleted with [[Function_Reference/delete_option|delete_option()]].
+
+You do not need to serialize values. If the value needs to be serialized, then it will be serialized before it is inserted into the database. You can create options without values and then add values later.
+
+Calling <tt>add_option</tt> first checks whether the option has already been added, and returns false if an option with the same name exists. Next, it checks to make sure the option name is not one of the protected names ''alloptions'' or ''notoptions'', and dies with an error message if attempting to overwrite a protected option. If the option name is not protected, and does not already exist, the option will be created.
+
+'''''Note:''''' ''<tt>add_option</tt> uses <tt>get_option</tt> to determine whether the option already exists, and since <tt>get_option</tt> returns '''false''' as the default value, if you set an option to '''false''' in the database (e.g. via <tt>update_option($option_name, false)</tt>), then a subsequent call to <tt>add_option</tt> will change the value, because it will seem to <tt>add_option</tt> that the option does '''not''' exist.''
+
+=== vs. update_option() ===
+
+If you are trying to ensure that a given option is created, use [[Function_Reference/update_option|update_option()]] instead, which bypasses the option name check and updates the option with the desired value whether or not it exists.
+
+Until version 4.2 ([https://core.trac.wordpress.org/changeset/31640 trac]), you could not specify autoload='no' if you use update_option(). If you need to specify autoload='no', and you are not sure whether the option already exists, then call delete_option() first before calling add_option().
+
+== Usage ==
+%%%<?php add_option( $option, $value, $deprecated, $autoload ); ?>%%%
+== Parameters ==
+
+{{Parameter|$option|string|Name of the option to be added. Must not exceed 64 characters. Use underscores to separate words, and do not use uppercase—this is going to be placed into the database.}}
+{{Parameter|$value|mixed|Value for this option name. Limited to 2^32 bytes of data|optional|''Empty string''}}
+{{Parameter|$deprecated|string|Deprecated in WordPress [[Version 2.3]].|optional|''Empty string''}}
+{{Parameter|$autoload|string|Should this option be automatically loaded by the function [[Function Reference/wp_load_alloptions|wp_load_alloptions()]] (puts options into object cache on each page load)? Valid values: '''yes''' or '''no'''.|optional|yes}}
+
+== Return Value ==
+{{Return||boolean|False if option was not added and true if option was added}}
+
+== Example ==
+
+<pre>
+<?php add_option( 'myhack_extraction_length', '255', '', 'yes' ); ?>
+</pre>
+
+== Change Log ==
+
+Since: [[Version 1.0|1.0.0]]
+
+== Source File ==
+
+<tt>add_option()</tt> is located in {{Trac|wp-includes/option.php}}.
+
+== Related ==
+
+{{Option Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

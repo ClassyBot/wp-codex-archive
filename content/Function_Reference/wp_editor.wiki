@@ -1,0 +1,137 @@
+{{Languages|
+{{en|Function_Reference/wp_editor}}
+{{ja|関数リファレンス/wp_editor}}
+}}
+==Description==
+
+This function renders an editor in a page in the typical fashion used in Posts and Pages.
+
+==Usage==
+
+%%% <?php wp_editor( $content, $editor_id, $settings = array() ); ?> %%%
+
+==Parameters==
+
+{{Parameter|$content|string|Initial content for the editor.}}
+{{Parameter|$editor_id|string|HTML <tt>id</tt> attribute value for the textarea and TinyMCE. May only contain lowercase letters and underscores. Hyphens will cause the editor to display improperly.}}
+{{Parameter|$settings|array|An array of arguments.|optional|<tt>array()</tt>}}
+
+=== Arguments ===
+
+{{Parameter|wpautop|boolean|Whether to use wpautop for adding in paragraphs. Note that the paragraphs are added automatically when wpautop is false.|optional|<tt>true</tt>}}
+
+{{Parameter|media_buttons|boolean|Whether to display media insert/upload buttons|optional|<tt>true</tt>}}
+
+{{Parameter|textarea_name|string|The name assigned to the generated textarea and passed parameter when the form is submitted. May include <tt>[]</tt> to pass data as array.)|optional|<tt>$editor_id</tt>}}
+
+{{Parameter|textarea_rows|integer|The number of rows to display for the textarea|optional|<tt>get_option('default_post_edit_rows', 10)</tt>}}
+
+{{Parameter|tabindex|integer|The tabindex value used for the form field|optional}}
+
+{{Parameter|editor_css|string|Additional CSS styling applied for both visual and HTML editors buttons, needs to include <tt><style></tt> tags, can use "scoped"|optional}}
+
+{{Parameter|editor_class|string|Any extra CSS Classes to append to the Editor textarea|optional|Empty string}}
+
+{{Parameter|editor_height|integer|The height to set the editor in pixels. If set, will be used instead of textarea_rows. ('''since WordPress 3.5''')|optional}}
+
+{{Parameter|teeny|boolean|Whether to output the minimal editor configuration used in PressThis|optional|<tt>false</tt>}}
+
+{{Parameter|dfw|boolean|Whether to replace the default fullscreen editor with DFW. Requires specific DOM elements and CSS.|optional|false}}
+
+{{Parameter|tinymce|array|Load TinyMCE, can be used to pass settings directly to TinyMCE using an array|optional|<tt>true</tt>}}
+
+{{Parameter|quicktags|array|Load Quicktags, can be used to pass settings directly to Quicktags using an array. Set to false to remove your editor's Visual and Text tabs.|optional|<tt>true</tt>}}
+
+{{Parameter|drag_drop_upload|boolean|Enable Drag & Drop Upload Support ('''since WordPress 3.9''')|optional|<tt>false</tt>}}
+
+== Return Values ==
+
+This function does not return a value.
+
+== Examples ==
+
+Display an empty editor using the default settings:
+
+<pre>
+<?php
+
+$content = '';
+$editor_id = 'mycustomeditor';
+
+wp_editor( $content, $editor_id );
+
+?>
+</pre>
+
+Fill an editor with the content for a particular post:
+
+<pre>
+<?php
+
+$post_id = 51;
+$post = get_post( $post_id, OBJECT, 'edit' );
+
+$content = $post->post_content;
+$editor_id = 'editpost';
+
+wp_editor( $content, $editor_id );
+
+?>
+</pre>
+
+We can also pass an array of one or more settings if the defaults don't suit our needs. For example, if we wanted to hide the insert media buttons, we would do this:
+
+<pre>
+<?php
+
+$settings = array( 'media_buttons' => false );
+
+wp_editor( $content, $editor_id, $settings );
+
+?>
+</pre>
+
+We can also modify the default quicktags using a custom list of buttons including a custom list of quicktags.
+
+An exhaustive list of the available default quicktags can be found at [https://codex.wordpress.org/Quicktags_API#Default_Quicktags](https://codex.wordpress.org/Quicktags_API#Default_Quicktags). Use the Quicktag's ID in the list you pass as the quicktags setting.
+
+<pre>
+<?php
+
+$settings = array( 
+	'quicktags' => array( 'buttons' => 'strong,em,del,ul,ol,li,close' ), // note that spaces in this list seem to cause an issue
+);
+
+wp_editor( $content, $editor_id, $settings );
+
+?>
+</pre>
+
+== Notes ==
+
+* Note that the ID that is passed to the <tt>wp_editor()</tt> function can only be composed of lower-case letters.  No underscores, no hyphens.  Anything else will cause the WYSIWYG editor to malfunction. (As of 3.6.1 you can use underscores in the ID.)
+
+* Once instantiated, the WYSIWYG editor cannot be moved around in the DOM.  What this means in practical terms, is that you cannot put it in meta-boxes that can be dragged and placed elsewhere on the page. Instead use <tt>'edit_page_form'</tt> (for pages) or <tt>'edit_form_advanced'</tt> (for other post types):
+<pre>
+add_action( 'edit_page_form', 'my_second_editor' );
+function my_second_editor() {
+	// get and set $content somehow...
+	wp_editor( $content, 'mysecondeditor' );
+}
+</pre>
+
+* When saving wp_editor data using $wpdb use [[wp_kses_post]] to allow html tags
+
+== Change Log ==
+
+* Since [[Version 3.3|3.3]]
+
+== Source Code ==
+
+<code>wp_editor()</code> is located in {{Trac|wp-includes/general-template.php}}
+
+== Related ==
+
+{{Editor Tags}}
+
+[[Category:Functions]]

@@ -1,0 +1,113 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Post_Status_Transitions">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#transition_post_status_Hook"><span class="tocnumber">1</span> <span class="toctext">transition_post_status Hook</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#.7Bold_status.7D_to_.7Bnew_status.7D_Hook"><span class="tocnumber">2</span> <span class="toctext">{old_status}_to_{new_status} Hook</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#.7Bstatus.7D_.7Bpost_type.7D_Hook"><span class="tocnumber">3</span> <span class="toctext">{status}_{post_type} Hook</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Not_Deprecated_Hooks"><span class="tocnumber">4</span> <span class="toctext">Not Deprecated Hooks</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Deprecated_Hooks"><span class="tocnumber">5</span> <span class="toctext">Deprecated Hooks</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">7</span> <span class="toctext">Source File</span></a></li>
+</ul>
+</div>
+<a href="https://codex.wordpress.org/Version_2.3" title="Version 2.3">WordPress 2.3</a> introduced some new actions that plugins can use to hook into post status transitions. Prior to Version 2.3, WordPress had a <tt>private_to_published</tt> (deprecated) action that only announced when a post transitioned from private to published. As of Version 2.3, there are actions for every possible transition.
+<p>There are three kinds of post status transition action hooks:
+</p>
+<ul><li> <tt><a href="/index.php?title=Plugin_API/Action_Reference/transition_post_status&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/transition post status (page does not exist)">transition_post_status </a></tt></li>
+<li> <tt>{old_status}_to_{new_status}</tt></li>
+<li> <tt>{status}_{post_type}</tt></li></ul>
+<p>All three actions are called by <tt><a href="https://codex.wordpress.org/Function_Reference/wp_transition_post_status" title="Function Reference/wp transition post status">wp_transition_post_status()</a></tt> in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/post.php#L0">wp-includes/post.php</a></code>.
+</p><p>The available post statuses are:
+</p>
+<ul><li> <tt>new</tt> – When there’s no previous status (this means these hooks are always run whenever "save_post" runs.</li>
+<li> <tt>publish</tt> – A published post or page.</li>
+<li> <tt>pending</tt> – A post pending review.</li>
+<li> <tt>draft</tt> – A post in draft status.</li>
+<li> <tt>auto-draft</tt> – A newly created post with no content.</li>
+<li> <tt>future</tt> – A post scheduled to publish in the future.</li>
+<li> <tt>private</tt> – Not visible to users who are not logged in.</li>
+<li> <tt>inherit</tt> – A revision or attachment (see <a href="https://codex.wordpress.org/Function_Reference/get_children" title="Function Reference/get children">get_children()</a>).</li>
+<li> <tt>trash</tt> – Post is in the trash (added with <a href="https://codex.wordpress.org/Version_2.9" title="Version 2.9">Version 2.9</a>).</li></ul>
+<h3><span class="mw-headline" id="transition_post_status_Hook">transition_post_status Hook</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_Status_Transitions&amp;action=edit&amp;section=1" title="Edit section: transition post status Hook">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><tt><a href="/index.php?title=Plugin_API/Action_Reference/transition_post_status&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/transition post status (page does not exist)">transition_post_status</a></tt> is a generic action that is called every time a post changes status. When <a href="https://codex.wordpress.org/Function_Reference/do_action" title="Function Reference/do action">do_action()</a> is called for <tt>transition_post_status</tt>, three arguments are passed to it: <tt>$new_status</tt>, <tt>$old_status</tt> and the <tt>$post</tt> object. Therefore, these are also available to be used in the callback function. In the <tt><a href="https://codex.wordpress.org/Function_Reference/add_action" title="Function Reference/add action">add_action()</a></tt> call, the action priority may be set between 0 and 20 (default is 10) and it is necessary to specify the number of arguments <tt>do_action()</tt> should pass to the callback function.
+</p>
+<pre>function on_all_status_transitions( $new_status, $old_status, $post ) {
+    if ( $new_status&#160;!= $old_status ) {
+        // A function to perform actions any time any post changes status.
+    }
+}
+add_action(  'transition_post_status',  'on_all_status_transitions', 10, 3 );</pre>
+<pre>function post_unpublished( $new_status, $old_status, $post ) {
+    if ( $old_status == 'publish'  &amp;&amp;  $new_status&#160;!= 'publish' ) {
+        // A function to perform actions when a post status changes from publish to any non-public status.
+    }
+}
+add_action( 'transition_post_status', 'post_unpublished', 10, 3 );</pre>
+<p>Don’t confuse the <tt>transition_post_status</tt> action hook with the <tt><a href="https://codex.wordpress.org/Function_Reference/wp_transition_post_status" title="Function Reference/wp transition post status">wp_transition_post_status()</a></tt> function or the private function <tt><a href="https://codex.wordpress.org/Function_Reference/_transition_post_status" title="Function Reference/ transition post status">_transition_post_status()</a></tt>. The function <tt>wp_transition_post_status()</tt> is used to call the post status transition actions and can be found in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/post.php#L0">wp-includes/post.php</a></code>. This function would be useful if your plugin directly modifies the database, thereby bypassing the usual post status transition action hooks. If you want to transition the status of a post, rather than perform actions when a post status is transitioned, use <a href="https://codex.wordpress.org/Function_Reference/wp_update_post" title="Function Reference/wp update post">wp_update_post()</a> or <a href="https://codex.wordpress.org/Function_Reference/wp_publish_post" title="Function Reference/wp publish post">wp_publish_post()</a>.
+</p>
+<h3><span class="mw-headline" id=".7Bold_status.7D_to_.7Bnew_status.7D_Hook">{old_status}_to_{new_status} Hook</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_Status_Transitions&amp;action=edit&amp;section=2" title="Edit section: {old status} to {new status} Hook">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>An <tt>{old_status}_to_{new_status}</tt> action will execute when a post transitions from <tt>{old_status}</tt> to <tt>{new_status}</tt>. The action is accompanied by the <tt>$post</tt> object. In the <tt><a href="https://codex.wordpress.org/Function_Reference/add_action" title="Function Reference/add action">add_action()</a></tt> function call, the action priority may be set between 0 and 20 (default is 10) and it is necessary to specify the number of arguments <tt>do_action()</tt> should pass to the callback function.
+</p>
+<pre>function on_publish_pending_post( $post ) {
+    // A function to perform when a pending post is published.
+}
+add_action(  'pending_to_publish',  'on_publish_pending_post', 10, 1 );</pre>
+<h3><span class="mw-headline" id=".7Bstatus.7D_.7Bpost_type.7D_Hook">{status}_{post_type} Hook</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_Status_Transitions&amp;action=edit&amp;section=3" title="Edit section: {status} {post type} Hook">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A <tt>{status}_{post_type}</tt> action will execute when a post of type <tt>{post_type}</tt> transitions to <tt>{status}</tt> from any other status. For example, when a post is published, a <tt>publish_post</tt> action is triggered. The action is accompanied by the post ID and <tt>$post</tt> object. Default values for <a href="https://codex.wordpress.org/Post_Types" title="Post Types">post type</a> are <i>post</i>, <i>page</i>, <i>attachment</i>, <i>revision</i>, <i>navigation</i>. Additionally, custom post types may also be used.
+</p>
+<pre>function on_post_publish( $ID, $post ) {
+    // A function to perform actions when a post is published.
+}
+add_action(  'publish_post',  'on_post_publish', 10, 2 );</pre>
+<pre>function on_post_scheduled( $ID, $post ) {
+    // A function to perform actions when a post is scheduled to be published.
+}
+add_action(  'future_post',  'on_post_scheduled', 10, 2 );</pre>
+<h3><span class="mw-headline" id="Not_Deprecated_Hooks">Not Deprecated Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_Status_Transitions&amp;action=edit&amp;section=4" title="Edit section: Not Deprecated Hooks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The <tt>publish_post</tt> and <tt>publish_page</tt> actions had been identified as deprecated on the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference" title="Plugin API/Action Reference">Action Reference</a> page and the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/publish_post" title="Plugin API/Action Reference/publish post">publish_post</a> and <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/publish_page" title="Plugin API/Action Reference/publish page">publish_page</a> action pages. <b>This was not correct.</b> Prior to <a href="https://codex.wordpress.org/Version_2.3" title="Version 2.3">WordPress 2.3</a>, the callback function for <tt>publish_post</tt> took only the post ID as an argument and no other arguments were passed to the action by default. Since Version 2.3, both the post ID and the <tt>$post</tt> object are passed to the action and the <tt>add_action()</tt> call should specify the action priority and the number of arguments the action accepts. If called correctly, <tt>publish_post</tt> and <tt>publish_page</tt> are still legitimate action hooks.
+</p>
+<h3><span class="mw-headline" id="Deprecated_Hooks">Deprecated Hooks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_Status_Transitions&amp;action=edit&amp;section=5" title="Edit section: Deprecated Hooks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><tt>private_to_published</tt> is deprecated but may be replaced with <tt>private_to_publish</tt>.
+</p><p><tt>publish_future_post</tt> is deprecated but may be replaced with <tt>future_to_publish</tt>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_Status_Transitions&amp;action=edit&amp;section=6" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/index.php?title=Plugin_API/Action_Reference/transition_post_status&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/transition post status (page does not exist)">transition_post_status </a><br />
+<a href="https://codex.wordpress.org/Function_Reference/wp_transition_post_status" title="Function Reference/wp transition post status">wp_transition_post_status()</a><br />
+<a href="https://codex.wordpress.org/Plugin_API/Action_Reference/publish_post" title="Plugin API/Action Reference/publish post">publish_post</a><br />
+<a href="https://codex.wordpress.org/Plugin_API/Action_Reference/publish_page" title="Plugin API/Action Reference/publish page">publish_page</a><br />
+<a href="https://codex.wordpress.org/Post_Types" title="Post Types">Post Types</a><br />
+<a href="https://codex.wordpress.org/Function_Reference/add_action" title="Function Reference/add action">add_action()</a><br />
+<a href="https://codex.wordpress.org/Function_Reference/wp_update_post" title="Function Reference/wp update post">wp_update_post()</a><br />
+<a href="https://codex.wordpress.org/Function_Reference/wp_publish_post" title="Function Reference/wp publish post">wp_publish_post()</a>
+</p>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_Status_Transitions&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>See <tt>wp_transition_post_status()</tt> in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/post.php#L0">wp-includes/post.php</a></code>.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004111
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.023 seconds
+Preprocessor visited node count: 129/1000000
+Preprocessor generated node count: 377/1000000
+Post‐expand include size: 858/2097152 bytes
+Template argument size: 268/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    6.726      1 - -total
+ 51.56%    3.468      1 - Template:Languages
+ 39.47%    2.655      3 - Template:Trac
+ 16.19%    1.089      1 - Template:ja
+ 15.45%    1.039      1 - Template:en
+ 12.70%    0.854      3 - Template:CurrentVersion
+-->

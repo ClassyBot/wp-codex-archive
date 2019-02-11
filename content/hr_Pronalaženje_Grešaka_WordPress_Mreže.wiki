@@ -1,0 +1,87 @@
+{{Languages|
+{{en|Debugging a WordPress Network}}
+{{hr|Pronalaženje Grešaka WordPress Mreže}}
+{{ja|Debugging a WordPress Network}}
+{{pt-br|Depurando uma Rede WordPress}}
+{{zh-cn|调试 WordPress 站点网络}}
+}}
+
+== Pronalaženje Grešaka WordPress Mreže ==
+
+Ako ste došli na ovu stranicu onda ste vjerojatno dobili poruku o grešci u vašoj [[Glossary#Network|WordPress Mreži]]. Ovaj propust se pojavljuje kada WordPress ne može pronaći jednu ili više globalnih tablica za mrežu u [[Database Description|bazi podataka]].
+
+Na nekim shared webhostinzima, host je onemgućio uporabu funkcije. Uvijek je najbolje provjeriti sa vašim webhostom '''prije''' [[Create A Network|kreiranja mreže]] kako bi se uvjerili da vaš webhost račun ispunjava tehničke potrebe.
+
+== Ako ste upravo instalirali vašu mrežu == 
+
+Provjerite vašu [[Editing wp-config.php|wp-config.php]] datoteku za:
+* točne detalje baze podataka
+* <<code>SUBDOMAIN_INSTALL</code> konstantu
+* <code>MULTISITE</code> konstantu
+* <code>$base</code> varijablu
+* prefiks tablice
+* Nebi trebali imati napisano ništa poslije
+
+<pre>
+/* To je sve, ne morate više ništa mijenjati! Sretno bloganje. */
+
+/** WordPress apsolutna putanja do WordPress direktorija. */
+if ( !defined('ABSPATH') )
+	define('ABSPATH', dirname(__FILE__) . '/');
+
+/** Postavke za WordPress varijable i već uključene datoteke. */
+require_once(ABSPATH . 'wp-settings.php');
+</pre>
+
+Pomaknite bilo koji kod koji se nalazi iza <pre>require_once(ABSPATH . 'wp-settings.php');</pre> iznad retka o prestanku uređivanja.
+
+
+
+=== Mod_rewrite ne funkcionira ===
+
+Glavna Web stranica (mrežno mjesto) radi ali se pojavljuju 404 erorri prilikom pristupanja dodanoj stranici na poddomeni. Ubuntu 10.04 LAMP apache2 instalaciji potrebni su ovi koraci:
+   sudo a2enmod rewrite
+   sudo nano /etc/apache2/sites-avail/default
+i promijeniti na dva mjesta 'AllowOveride None' u 'AllowOveride all'
+   /etc/init.d/apache2 restart
+za restart apache2
+
+=== Provjera baze podataka ===
+
+Pretpostavljajući da je sve ispravno, provjerite bazu podataka i provjerite jesu li [[Database Description#Multisite Table Overview|sve dodatne mrežne tablice]] kreirane. To su tablice:
+
+*wp_blogs 
+*wp_blog_versions
+*wp_registration_log 
+*wp_signups  
+*wp_site 
+*wp_sitemeta
+
+== Ako je kreiranje novih web stranica odjednom prestalo funkcionirati ==
+
+Molimo provjerita vašu bazu podataka kako je navedeno iznad. Napravite dvostruku provjeru da se lokacija servera baze podataka nije promijenila, ili ako jest, da ste ažurirali vašu <code>wp-config.php</code> datoteku.
+
+== Drugi manje poznati problemi == 
+
+Provjerite da korisnik baze podataka ima SVE dozvole za rad sa bazom podataka.
+
+Također, na nekoliko nadogradnji sa WordPressMU na 3.0 i više, mali broj korisnika je iskusio problem sa kreiranjem novih web stranica i primio poruke o greškama. Ispostavilo se da ja uzrok tomu collation baze podataka.
+
+Provjerite da .htaccess instrukcije ne prijavljuju greške u apache dnevnicima (log).
+
+Poput ovog:
+
+ Options FollowSymLinks or SymLinksIfOwnerMatch is off which implies that RewriteRule directive is forbidden:
+
+Ovo će rezultirati tako da će Mrežna instalacija biti prikazana kao neuspjela i možda će prikazati greške poput 
+
+ One or more database tables are unavailable. The database may need to be repaired.
+
+== Srodni Članci ==
+* [[Create A Network]]
+
+== Vanjske Poveznice ==
+* [http://wordpress.org/support/forum/multisite WordPress › Support » Multisite]
+
+[[Category:hr:Network]]
+[[Category:hr:UI Link]]

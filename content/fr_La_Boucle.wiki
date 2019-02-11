@@ -1,0 +1,343 @@
+{{Languages|
+{{en|The Loop}}
+{{fr|La Boucle}}
+{{it|Il Loop}}
+{{ja|The Loop}}
+{{pt-br|O Loop}}
+{{ru|Цикл WordPress}}
+{{zh-cn|循环}}
+{{zh-tw|迴圈}}
+}}
+
+{{French Header}}
+__TOC__
+'''La Boucle''' (The Loop) est utilisée par WordPress pour afficher chacun de vos Articles.  Par l'utilisation de La Boucle, WordPress traite tous les Articles devant être affichés sur la page active et adapte leur présentation en utilisant les critères décrits par les marqueurs de La Boucle.  Tous les morceaux de code [[Glossary#HTML|HTML]] ou [[Glossary#PHP|PHP]] placés entre le début et la fin de La Boucle seront exécutés pour chaque Article. Quand la documentation de WordPress déclare que "Ce Marqueur doit être inséré dans La Boucle", comme pour les [[fr:Marqueurs_de_Modele|Marqueurs de Modèle]] spécifiques ou des plugins, c'est de '''La Boucle''' dont on parle.
+
+Par exemple, dans WordPress 1.5, parmi les informations affichées par défaut par La Boucle, on trouve : le titre (<tt>[[fr:Marqueurs_de_Modele/the_title|the_title()]]</tt>), l'heure (<tt>[[Template Tags/the_time|the_time()]]</tt>), et les Catégories (<tt>[[fr:Marqueurs_de_Modele/the_category|the_category()]]</tt>) de chaque Article.  D'autres informations peuvent être affichées pour chaque Article en utilisant les [[fr:Marqueurs_de_Modele|Marqueurs de Modèle]] appropriés, ou (pour les utilisateurs avancés) en accédant à la variable <tt>$post</tt>, qui contient les informations de l'Article quand La Boucle est en cours d'exécution.
+
+Pour les débutants, un aperçu de La Boucle est disponible ici : [[fr:La Boucle En Action]].
+
+== Utilisation de La Boucle ==
+
+La Boucle doit être présente dans <tt>index.php</tt> et dans tous les fichiers du Thème affichant des Articles. Elle est légèrement différente selon votre version de WordPress.  En premier lieu, vous devriez "[[WordPress_Versions#Finding_your_version|trouver quelle version de WordPress vous utilisez]]".
+
+=== WordPress 2.0 et plus récents ===
+
+Elle est (probablement) la même que pour WordPress 1.5
+
+=== WordPress 1.5 ===
+
+Assurez-vous que l'appel à l'entête (header) du modèle est réalisé au début de votre modèle de [[Theme Development|Thème]].  Si vous utilisez La Boucle dans une de vos créations (et que ce n'est pas un modèle), mettez <tt>WP_USE_THEMES</tt> à <tt>false</tt>.
+
+<pre><?php define('WP_USE_THEMES', false); get_header(); ?></pre>
+
+La Boucle commence ici :
+
+ <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+
+et finit là :
+
+ <?php endwhile; else: ?>
+ &lt;p&gt;<?php _e('Sorry, no posts matched your criteria.'); ?>&lt;/p&gt;
+ <?php endif; ?>
+
+=== WordPress 1.2 ===
+
+Assurez-vous que l'appel du fichier wp-blog-header.php est fait au début de votre page index.  N'oubliez pas que le chemin d'accès du fichier wp-blog-header.php doit être le même que celui du fichier wp-blog-header.php :
+
+ <?php /* Don't remove this line. */ require('./wp-blog-header.php'); ?>
+
+La Boucle commence ici :
+
+ <?php if ( $posts ) : foreach ( $posts as $post ) : start_wp(); ?>
+
+et finit là :
+
+ <?php endforeach; else: ?>
+ &lt;p&gt;<?php _e('Sorry, no posts matched your criteria.'); ?>&lt;/p&gt; 
+ <?php endif; ?>
+
+== Exemples de Boucles ==
+
+
+=== Affichage des Articles Différents selon les Catégories ===
+
+''Pour WordPress v1.5 seulement''
+
+Cet exemple, utilisant la [[#WordPress 1.5|syntaxe pour version 1.5]], affiche chaque Article avec son Titre (qui est utilisé comme lien vers le [[Using Permalinks|Permalien]] de l'Article), ses Catégories, et son Contenu.  C'est un exemple très simple, et vos thèmes utiliseront probablement plus d'informations dont l'affichage sera grandement facilité par l'utilisation de styles [[Glossary#CSS|CSS]].
+
+Cependant, afin d'être un peu plus didactique, cet exemple permet l'utilisation d'un style différent pour les Articles de la Catégorie 3. Pour cela, le [[fr:Marqueurs_de_Modele|Marqueur de Modèle]] <tt>[[fr:Marqueurs_de_Modele/in_category|in_category()]]</tt> est utilisé.
+
+La balise <tt><nowiki><!-- --></nowiki></tt> est un commentaire HTML qui ne sera pas utilisé par les navigateurs si vous utilisez cet exemple.  Elle ne sert qu'à annoter le code.
+ <nowiki>
+ <!-- Début de la Boucle. -->
+ <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+
+ <!-- Ce qui suit teste si l'Article en cours est dans la Catégorie 3. -->
+ <!-- Si c'est le cas, le bloc div reçoit la classe CSS "post-cat-three". -->
+ <!-- Sinon, le bloc div reçoit la classe CSS "post". -->
+ <?php if ( in_category('3') ) { ?>
+           <div class="post-cat-three">
+ <?php } else { ?>
+           <div class="post">
+ <?php } ?>
+
+ <!-- Affiche le Titre en tant que lien vers le Permalien de l'Article. -->
+ <h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
+
+ <!-- Affiche la Date. -->
+ <small><?php the_time('F jS, Y'); ?></small>
+
+ <!-- Affiche le corps (Content) de l'Article dans un bloc div. -->
+ <div class="entry">
+   <?php the_content(); ?>
+ </div>
+
+ <!-- Affiche une liste des Catégories des Articles séparées par des virgules. -->
+ <p class="postmetadata">Posted in <?php the_category(', '); ?></p>
+ </div> <!-- Fin du premier bloc div -->
+
+ <!-- Fin de La Boucle (mais notez le "else:" - voir la suite). -->
+ <?php endwhile; else: ?>
+
+ <!-- Le premier "if" testait l'existence d'Articles à afficher. Cette -->
+ <!-- partie "else" indique que faire si ce n'est pas le cas. -->
+ <p>Sorry, no posts matched your criteria.</p>
+
+ <!-- Fin REELLE de La Boucle. -->
+ <?php endif; ?></nowiki>
+
+'''Note :''' Chaque partie de code [[Glossary#HTML|HTML]] ''doit'' être située en dehors des balises <tt><?php &nbsp;?></tt>.  De même, tout code [[Glossary#PHP|PHP]] (même les plus petit éléments comme les accolades : <tt>}</tt> ) ''doit'' être inclus dans des balises <tt><?php &nbsp;?></tt>.  Vous pouvez ainsi entremêler un code PHP et un code HTML code, même au sein d'éléments tels que <tt>if</tt> et <tt>else</tt>, comme vous avez pu le voir dans l'exemple ci-dessus.
+
+=== Exclure Les Articles De Certaines Catégories ===
+
+''Pour WordPress v1.5 et versions ultérieures''
+
+Cet exemple permet d'exclure une Catégorie spécifique de l'affichage.  Il est basé sur l'exemple [[#Affichage des Articles Différant selon les Catégories|ci-dessus]]. 
+
+ <nowiki>
+ <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+
+ <!-- Si l'Article est dans la Catégorie que nous souhaitons exclure, nous passons à l'Article suivant. -->
+ <?php if (in_category('3')) continue; ?>
+ 
+ <div class="post">
+ 
+  <h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
+ 
+  <small><?php the_time('F jS, Y'); ?></small>
+ 
+  <div class="entry">
+    <?php the_content(); ?>
+  </div>
+
+  <p class="postmetadata">Posted in <?php the_category(', '); ?></p>
+ </div> <!-- fin du premier bloc div -->
+
+ <?php endwhile; else: ?>
+ <p>Sorry, no posts matched your criteria.</p>
+ <?php endif; ?></nowiki>
+
+'''Note''' : Si vous utilisez cet exemple pour votre page principale, vous devez utiliser un [[Templates|Modèle (thème)]] différent pour les archives de vos Catégories.  Sinon, WordPress excluera tous les Articles de la Catégorie 3, y compris dans l'affichage de cette Catégorie ! 
+
+Cependant, si vous souhaitez utiliser le même modèle, vous pouvez éviter cela par l'utilisation du marqueur <tt>is_home()</tt> :
+
+ ...
+ <?php if (in_category('3') && is_home() ) continue; ?>
+ ...
+
+De cette manière, les Articles de la Catégorie 3 ne seront exclus de l'affichage que sur la page principale. Il existe d'autres [[Conditional Tags|Marqueurs conditionnels]] qui peuvent être utilisés pour gérer l'affichage en fonction de certaines conditions liées aux pages affichées.
+
+A noter : bien que l'Article n'est pas affiché, il est cependant compté par WordPress comme ayant été montré, ce qui signifie que si vous avez paramétré Wordpress pour qu'il n'affiche que sept Articles et que deux des sept derniers proviennent de la Catégorie 3, alors la page principale ne contiendra que cinq Articles. Si cela pose un problème, il existe une manière plus complexe de faire qui est décrite dans la [[FAQ Layout and Design|Layout and Design FAQ]] ou bien, vous pouvez utiliser le marqueur [[Template_Tags/query_posts | query_posts]] si vous souhaitez simplement exclure une catégorie de la boucle.
+
+==Boucles Multiples==
+
+Cette section traite de l'utilisation avancée de The Loop.  C'est un peu technique, mais cela ne doit pas vous effrayer.  Nous allons commencer par le plus facile et développer à partir de là. Avec un peu de bon sens, de patience et d'enthousiasme, vous aussi vous pourrez utiliser des boucles multiples.
+
+Tout d'abord, <b>"pourquoi voudriez-vous utiliser une Boucle multiple ?"</b>  En général, la réponse est que vous souhaitez réaliser <i>quelquechose</i> avec le premier groupe d'Article, et <i>quelquechose d'autre</i> avec un autre groupe, <u>mais afficher les deux groupes sur la même page</u>.  Quelquechose peut vouloir dire à peu près n'importe quoi; les seules limites sont vos talents en PHP et votre imagination.  
+
+Nous allons voir des exemples plus bas, mais auparavant, vous devriez vous familiariser avec les bases. Prenez une Boucle simple, elle consiste en :
+
+      <?php if (have_posts()) : ?>
+                <?php while (have_posts()) : the_post(); ?>    
+      &lt;!-- faire des trucs ... --&gt;
+      <?php endwhile; ?>
+
+En français, (Les pros du PHP et ceux qui sont familiers de la programmation peuvent sauter ce paragraphe), le code ci-dessus se lirait ainsi : Si nous allons afficher des Articles, alors récupérons-les un par un. Pour chacun des Articles de la liste, affichons-le en utilisant <tt>&lt;!-- faire des trucs ... --&gt;</tt>.  Quand ce sera fait avec le dernier Article, stop.  Les lignes contenues dans <tt>faire des trucs</tt> dépendent du modèle utilisé.  
+
+Note sur <tt>Faire des trucs</tt> :  dans cet exemple, c'est un emplacement du code dans lequel on pourra déterminer comment formater et afficher chaque Article sur une page. Ce code variera en fonction du thème utilisé. Si vous regardez dans le fichier index.php du thème Kubrick (livré avec WordPress), la section <tt>Faire des trucs</tt> ira de la ligne :
+
+ <?php while (have_posts()) : the_post(); ?>
+A la ligne :
+ <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?>
+
+
+Explication pour les programmeurs :
+Les marqueurs <tt>have_posts()</tt> et <tt>the_post()</tt> permettent de manipuler l'objet global <tt>$wp_query</tt> qui contient toutes les actions. <tt>$wp_query</tt> est appelé dans l'entête du blog (balises <head>) et alimente les arguments provenant de <tt>GET</tt> et <tt>PATH_INFO</tt>. <tt>$wp_query</tt> récupère les arguments et construit puis exécute une requête à la base de données dont le résultat est un tableau d'Articles.  Ce tableau est sauvegardé dans l'objet et retourné vers l'entête où il est stocké dans le tableau global <tt>$posts</tt> (ceci afin de maintenir la compatibilité ascendante avec les anciennes versions).
+
+Une fois que WordPress a fini de charger l'entête du blog et avance dans l'exécution du modèle, nous arrivons à notre Boucle d'Articles.  <tt>have_posts()</tt> charge <tt>$wp_query->have_posts()</tt> qui vérifie s'il reste des Articles dans le tableau $posts avec un simple compteur.  Et <tt>the_post()</tt> appelle <tt>$wp_query->the_post()</tt> qui incrémente ce compteur et initialise la variable globale <tt>$post</tt> et les données globales de l'Article.  Quand la Boucle sera finie, <tt>have_posts()</tt> renverra <i>false</i> et c'en sera fini.
+
+==== Exemples de Boucles====
+
+Voici ci-après deux exemples de Boucles multiples.  La clé pour l'utilisation de Boucles multiples est que <tt>$wp_query</tt> ne peut être appelé qu'une fois.  Pour contourner cela, il est possible de ré-utiliser la requête en utilisant <tt>rewind_posts()</tt> ou en créant un nouvel objet. C'est ce qui est montré dans l'exemple 1. L'exemple 2 montre l'utilisation d'une variable pour stocker les résultats d'une requête. L'exemple 3 explique l'utilisation de la fonction <tt>update_post_caches();</tt> qui permet d'éviter certains problèmes habituels liés aux plugins. Enfin, ‘multiple loops in action’ donne quelques idées permettant d'utiliser les Boucles multiples afin de mettre en évidence les Articles appartenant à une Catégorie définie sur la page d'accueil de votre blog.
+
+=====Boucles Multiples Exemple 1=====
+
+<tt>rewind_posts()</tt> est appelé afin de créer une Boucle sur la même requête une seconde fois.  Cela va ré-initialiser le compteur et permettre la réalisation d'une nouvelle Boucle.  
+
+   <?php rewind_posts(); ?>
+  
+   <?php while (have_posts()) : the_post(); ?>
+     &lt;!-- Faire des trucs... --&gt;
+   <?php endwhile; ?>
+
+Si le traitement des Articles de la requête d'origine est terminé, et que vous voulez utiliser une requête différente, vous pouvez ré-utiliser l'objet <tt>$wp_query</tt> en appelant <tt>query_posts()</tt> qui lancera une nouvelle requête, construira un nouveau tableau d'Articles et ré-initialisera le compteur, vous permettant de relancer une nouvelle Boucle.
+
+   // Récupère les 10 derniers Articles dela Catégorie special_cat.
+   <?php query_posts('category_name=special_cat&showposts=10'); ?>
+ 
+   <?php while (have_posts()) : the_post(); ?>
+     &lt;!-- Faire des trucs pour special_cat... --&gt;
+   <?php endwhile;?>
+
+Si vous avez besoin de conserver la requête originale, vous pouvez créer un nouvel objet.
+
+ <?php $my_query = new WP_Query('category_name=special_cat&showposts=10'); ?>
+ 
+ <?php while ($my_query->have_posts()) : $my_query->the_post(); ?>
+   &lt;!-- Faire des trucs pour special_cat... --&gt;
+ <?php endwhile; ?>
+
+L'objet de requête <tt>my_query</tt> est utilisé ici puisqu'on ne peut utiliser <tt>have_posts()</tt> et <tt>the_post()</tt> qui utilisent l'objet <tt>$wp_query</tt>.  A la place, les éléments du nouvel objet <tt>my_query</tt> seront utilisés.
+
+=====Boucles Multiples Exemple 2=====
+
+Une autre manière d'utiliser les Boucles multiples propose une réponse différente à l'impossibilité d'utiliser <tt>have_posts()</tt> et <tt>the_post()</tt>.  Pour cela, vous devez stocker la requête initiale dans une variable, et la rappeler quand une nouvelle Boucle commence. De cette manière, vous pouvez utiliser toutes les fonctions standard qui s'appuient sur les variables globales.
+
+Par exemple :
+
+ // on commence ici
+ <?php $temp_query = $wp_query; ?>
+ &lt;!-- Faire des trucs... --&gt;
+ 
+ <?php query_posts('category_name=special_cat&showposts=10'); ?>
+ 
+ <?php while (have_posts()) : the_post(); ?>
+   &lt;!-- Faire des trucs de special_cat... --&gt;
+ <?php endwhile; ?>
+ 
+ // retour au cheminement normal du programme
+ <?php $wp_query = $temp_query; ?>
+
+'''Note :''' En PHP 5, l'opérateur "=" référence les objets au lieu de les copier comme en php4. Pour que l'exemple 2 fonctionne en php5, vous devrez utiliser le code suivant :
+
+<pre>
+ // on commence ici
+ <?php $temp_query = clone $wp_query; ?>
+ &lt;!-- Faire des trucs... --&gt;
+ 
+ <?php query_posts('category_name=special_cat&showposts=10'); ?>
+ 
+ <?php while (have_posts()) : the_post(); ?>
+   &lt;!-- Faire des trucs de special_cat... --&gt;
+ <?php endwhile; ?>
+ 
+ // retour au cheminement normal du programme
+ <?php $wp_query = clone $temp_query; ?>
+</pre>
+
+Néanmoins, ce deuxième exemple ne fonctionne pas avec WordPress 2.1
+
+=====Boucles Multiples Exemple 3 - Plugins=====
+
+Certains plugins ne gèrent pas correctement les boucles multiples. C'est parfois le cas de plugins qui manipulent les mots-clé et les marqueurs des Articles et qui ne fonctionnent que pour la première occurence d'une boucle dans une page où cette boucle consiste en un sous-ensemble d'Articles. Si cela vous arrive, il vous est possible d'utiliser la forme suivante de la boucle de base qui ajoute l'utilisation de la fonction <tt>update_post_caches($posts)</tt>. Cette fonction ré-initialise le cache des Articles et n'est pas encore documentée. Cette implémentation ne doit être utilisée sur la seconde boucle d'une page que si la première boucle ne ramène qu'un sous-ensemble d'Articles.
+
+Remplacer simplement :
+
+ <?php if (have_posts()) : ?>
+       <?php while (have_posts()) : the_post(); ?>    
+   &lt;!-- Faire des trucs... --&gt;
+ <?php endwhile; ?>
+
+Par :
+
+ <?php if (have_posts()) : ?>
+       <?php while (have_posts()) : the_post(); update_post_caches($posts); ?>
+   &lt;!-- Faire des trucs... --&gt;
+ <?php endwhile; ?>
+
+====Boucles Multiples en Action====
+
+La meilleure façon de comprendre le fonctionnement des boucles multiples est d'en montrer un exemple réel. L'utilisation probablement la plus courante de boucles multiples est l'affichage sur une page de deux ou plus listes d'Articles.  C'est souvent le cas quand un webmestre veut mettre en avant les derniers Articles rédigés et les Articles d'une Catégorie spécifique.
+
+En laissant de côté tous les problèmes de formattage et de CSS, nous partirons donc de l'hypothèse que nous souhaitons afficher deux listes d'Articles. La première contiendra les Articles les plus récents (les 10 derniers Articles rédigés), et la seconde contiendra un Article de la Catégories 'featured'.  L'Article de la Catégorie ‘featured’ doit apparaître en premier suivi de la seconde liste d'Articles (la liste 'standard').  <b>Le truc est qu'aucun Article ne doit apparaître dans les deux listes à la fois.</b>
+
+<b>Step 1.</b>  Récupérer un seul Article de la Catégorie ‘featured’.
+
+   <?php $my_query = new WP_Query('category_name=featured&showposts=1');
+   while ($my_query->have_posts()) : $my_query->the_post();
+   $do_not_duplicate = $post->ID; ?>
+     &lt;!-- Faire des trucs... --&gt;
+   <?php endwhile; ?>
+
+En français, le code ci-dessus se lirait ainsi : 
+
+Charger dans <tt>$my_query</tt> le résultat de la requête ramenant tous les Articles de la Catégorie appelée 'featured' et d'ailleurs, ne ramener qu'un Article. Puis, mettre dans la variable <tt>$do_not_duplicate</tt> le numéro d'ID de l'Article ramené.  Rappelez-vous que les lignes <tt>Faire des trucs</tt> contiennent toutes les options d'affichage associées à l'Article ramené.
+
+Notez que nous aurons besoin de la valeur de <tt>$do_not_duplicate</tt> dans les étapes suivantes pour nous assurer que cet Article n'apparaîtra pas dans la seconde liste. 
+
+<b>Step 2</b>.  La seconde Boucle, qui ramène les X derniers Articles (sauf un).
+
+Le code suivant ramène les X derniers Articles (comme défini dans les Options WordPress), sépare celui déjà affiché dans la première boucle et affiche les autres en utilisant les lignes <tt>Faire des trucs</tt>.
+
+   <?php if (have_posts()) : while (have_posts()) : the_post(); 
+   if( $post->ID == $do_not_duplicate ) continue; update_post_caches($posts); ?>
+    &lt;!-- Faire des trucs... --&gt;
+   <?php endwhile; endif; ?>
+
+En français, le code ci-dessus se lirait ainsi : 
+
+Ramèner tous les Articles, si on tombe sur un Article égal à <tt>$do_not_duplicate</tt>, ne rien faire (<tt>continue</tt>), sinon, afficher tous les autres Articles en utilisant <tt>Faire des trucs</tt>.  En même temps, mettre à jour le cache pour que les marqueurs et les mots-clé fonctionnent correctement avec les plugins.  Rappelez-vous, la variable <tt>$do_not_duplicate</tt> contient l'ID de l'Article déjà affiché.
+
+<b>Le Résultat Final</b>
+
+Voici quelle sera l'allure finale de notre morceau de code, toujours <u>sans aucun élément de mise en page</u> :
+
+   <?php $my_query = new WP_Query('category_name=featured&showposts=1');
+   while ($my_query->have_posts()) : $my_query->the_post();
+   $do_not_duplicate = $post->ID;?>
+     &lt;!-- Faire des trucs... --&gt;
+   <?php endwhile; ?>
+     &lt;!-- Faire d'autres trucs... --&gt;
+   <?php if (have_posts()) : while (have_posts()) : the_post(); 
+   if( $post->ID == $do_not_duplicate ) continue; update_post_caches($posts); ?>
+    &lt;!-- Faire des trucs... --&gt;
+   <?php endwhile; endif; ?>
+
+En final, on obtiendra une page avec deux listes. La première liste ne contiendra qu'un Article -- le dernier de la Catégorie 'featured'.  La seconde contiendra les X derniers Articles (comme défini dans les Options WordPress) <i>à l'exception</i> de l'Article déjà affiché dans la première liste.  Ainsi, dès qu'un nouvel Article 'featured' est publié, il prendra la place dans la première liste, et celui qui y apparaissait apparaîtra dans la seconde liste (enfin, cela dépend évidemment du nombre d'article que vous affichez et s'il fait toujours partie des X derniers publiés).  Cette technique (ou une technique similaire) est souvent utilisée en conjonction avec des éléments de [http://codex.WordPress.org/Template_Hierarchy Hiérarchie de Modèles] (en anglais) qui permettent de créer des mises en pages différentes pour home.php et index.php.  Voir les ressources supplémentaires au bas de cette page.
+
+<h3>Sources:</h3> This article on multiple loops is a combination of [http://boren.nu Ryan Boren] and [http://www.alexking.org Alex King's] [http://comox.textdrive.com/pipermail/hackers/2005-January/003578.html discussion] about the Loop on the [[Mailing Lists#Hackers|Hackers Mailing List]] as well as the tutorial written at [http://www.maxpower.ca/wordPress-hack-sticky-adhesive-kubrick/2005/05/03/ MaxPower].
+ 
+ 
+==Ressources Supplémentaires sur les Boucles==
+
+Pour en apprendre plus sur la Boucle WordPress, et les différents marqueurs de modèle qui ne fonctionnent que dans la Boucle, voici des ressources supplémentaires (en anglais).
+
+* [[The Loop in Action]] (en français: [[fr:La Boucle En Action]])
+* [[Template Tags]]
+* [[Templates|Using the Loop in Template Files]]
+
+===Resources===
+
+* [http://mattread.com/archives/2005/04/wordpress-is-not-php/ Matt Read Loop Article]
+* [http://www.maxpower.ca/wordPress-hack-sticky-adhesive-kubrick/2005/05/03/ MaxPower Dynamic Sticky Tutorial]
+* [http://shaunandrews.com/2006/07/14/wordpress-sticky-posts/ Shaun Andrews' Sticky Posts that disappear after a few days]
+* [http://www.ifelse.co.uk/archives/2005/04/08/query_posts-redux/ IfElse Query_post Redux]
+* [http://www.optiniche.com/blog/15/the-wordpress-loop-and-adding-content-outside-of-it/ The Loop and Adding Content Outside of It]
+* [http://www.obeattie.com/2006/05/02/wordpress-the-loop/ oBeattie : The Loop]
+* [http://rhymedcode.net/1001-wordpression-loops/ 1001 WordPression Loops]
+
+
+[[Category:Design and Layout]]
+[[Category:Advanced Topics]]
+{{Copyedit}}

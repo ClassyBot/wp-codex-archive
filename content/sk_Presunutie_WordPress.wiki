@@ -1,0 +1,152 @@
+{{Languages|
+{{en|Moving WordPress}}
+{{ja|Moving WordPress}}
+{{ru|Перемещение WordPress}}
+{{sk|Presunutie WordPress}}
+{{zh-cn|WordPress博客搬家}}
+}}
+
+
+Môže nastať situácia, keď potrebujete presunúť WordPress buď v rámci jedného servera, alebo z jedného servera na druhý. Nie je potrebné preinštalovanie, WordPress je dostatočne flexibilný aby takéto situácie s ľahkosťou zvládol. 
+
+Jednoduché odpovede pre väčšinu inštalácii: 
+* Ak databáza a URL zostávajú rovnaké, môžete WordPress presunúť jednoduchým skopírovaním vašich súborov a databázy.  
+* Ak sa mení názov databázy alebo užívateľ, je potrebné nové hodnoty pridať do  <tt>wp-config.php</tt>. 
+* Ak WordPress potrebujete otestovať pred zapnutím, musíte dočasne zmeniť <b>siteurl</b> a <b>home</b> vo ''wp_options'' tabuľke databázy (cez phpMyAdmin alebo podobne). Ak ste vykonali nejaké zmeny v nastaveniach trvalých odkazov, je potrebné zablokovať .htaccess a prekonfigurovať trvalé odkazy predtým, ako váš WordPress nahodíte znovu online.  
+
+ 
+==Presun WordPress v rámci vašej stránky==
+
+Presun súborov WordPress z jednej lokácie na druhú v rámci servera – zmena URL – si vyžaduje špeciálny postup
+
+Tu je návod krok za krokom:
+
+# Vytvorte novú lokáciu s použitím jednej z týchto dvoch možností:
+## Ak budete presúvať vaše [[WordPress Files| súbory jadra WordPress]]  do nového adresára, vytvorte nový adresár.
+## Ak chcete presunúť WordPress do vášho koreňového adresára, uistite sa že všetky súbory [[WordPress Files|index.php]], [[Glossary#.htaccess|.htaccess]], a ostatné súbory ktoré môžu byť  prepísané sú zálohované alebo presunuté, a že koreňový adresár je pripravený na nové WordPress súbory.  
+# Prihláste sa na váš blog.
+# Prejdite na panel [[Administration Panels|Administrácia]] > [[Administration_Panels#Options_-_Configuration_Settings|Nastavenia]] > [[Settings_General_SubPanel|Všeobecné]].
+# V okne pre '''Adresu WordPress (URI):''' zmeňte adresu na nové umiestnenie vašich hlavných súborov jadra WordPress. 
+# V okne pre  '''Adresu stránky(URI):''' zmeňte adresu na nové umiestnenie, ktoré by malo byť totožné s WordPress adresou (URI). 
+# Kliknite na '''Uložiť zmeny'''.
+# (Neskúšajte teraz otvoriť/prezrieť si váš blog!)
+# ''Iba pre WordPress 2.0:'' Vymažte zložku ''wp-content/cache''.
+# Presuňte vaše súbory jadra WordPress do nového umiestnenia. Toto zahrňuje súbory v rámci pôvodného adresára, ako napríklad <tt><nowiki> http://priklad.com/wordpress</nowiki></tt>, a všetkých podadresárov.
+# Ak používate [[Using Permalinks|trvalé odkazy]], prejdite do  [[Administration Panels|Administrácia]] > [[Administration_Panels#Options_-_Configuration_Settings|Nastavenia]] > [[Settings_Permalinks_SubPanel| Trvalé odkazy]] panelu a aktualizujte štruktúru vašich trvalých odkazov  vo vašom [[Glossary#.htaccess|.htaccess]] súbore, ktorý by mal byť v rovnakom adresári ako hlavný  <tt>index.php</tt> súbor.
+# Ak sa vyskytne problém s chýbajúcimi nahratými obrázkami, je potrebné zmeniť cestu (adresu) k obrázkom v každom príspevku priamo vo vašej  SQL databáze. Pri tomto sa môžete riadiť návodom na  [http://www.tamba2.org.uk/wordpress/move3 http://www.tamba2.org.uk/wordpress/move3"].
+# Tiež skontrolujte a zmeňte zložku „store uploads“ pod Nastavenia – Rôzne , pretože inak všetky vaše nové nahrávania pôjdu naďalej do starej zložky. 
+# Už existujúce obrázkové/ multimediálne odkazy budú  odkazovať na starú zložku, a musia byť aktualizované v rámci nového umiestnenia.  
+
+Je dôležité aby ste nastavili URI  umiestnenie PRED presunom súborov. 
+
+=== Ak zabudnete zmeniť umiestnenia ===
+
+'''V prípade, že ste omylom presunuli súbory predtým ako ste zmenili URI: máte dve možnosti.'''
+
+'''MOŽNOSŤ 1.'''
+Predpokladajme že súbory boli pôvodne v /cesta/do/staré/ a presunuli ste ich do /cesta/do/nové predtým ako ste zmenili URI. Opravíte to vytvorením „symlinku“ (pre užívateľov Windows, „symlink“ je ekvivalentom  "skratky") z  /cesta/do/staré/ do /cesta/do/nové, napr.
+<pre>ln -s /cesta/do/nové /cesta/do/staré/</pre>
+ a potom bežným nasledovaním [[sk:Presunutie_WordPress#Presun WordPress v rámci vašej stránky | vyššie uvedených]] inštrukcií. Ak chcete, po skončení môžete „symlink“ odstrániť.
+
+'''MOŽNOSŤ 2.'''
+Ak zabudnete zmeniť WordPress adresu a adresu blogu, nebude možné ich zmeniť s použitím rozhrania WordPress. Dá sa to však opraviť, ak máte prístup do databázy. Prejdite do databázy vášho blogu a nájdite tabuľku  wp_options. Táto tabuľka obsahuje všetky nastavenia ktoré sa dajú zmeniť v rozhraní.  WordPress adresa a adresa blogu sú uložené ako „siteurl“ a „home“ ( pole the option_name). Všetko čo je potrebné urobiť, je zmeniť pole the option_value na správnu URL pre záznamy s option_name=’siteurl‘ alebo option_name=’home‘.
+
+'''V prípade že ste omylom zmenili URI na také, kde nemôžete presunúť súbory. (ale stále máte prístup k prihlasovaniu, cez presmerovanie alebo inak)'''
+
+<tt>wp-login.php</tt> môže byť použité na  (pre-)nastavenie  URI:
+<pre>
+//FIXME: do comment/remove these hack lines. (once the database is updated)
+update_option('siteurl', 'http://your.domain.name/the/path' );
+update_option('home', 'http://your.domain.name/the/path' );
+</pre>
+
+
+To je všetko.  Otestujte svoju stránku aby ste sa uistili že pracuje správne. Ak zmena zahŕňa novú adresu pre váš blog, uistite sa že o novej adrese užívateľov včas informujete, a zvážte pridanie pokynov k presmerovaniu do vášho <tt>.htaccess</tt> súboru, pre odkázanie návštevníkov k novému umiestneniu.  
+
+[[Zmena URL stránky]] tiež poskytuje podrobnosti tohto procesu!
+
+== Zaradenie WordPress do vlastného adresára pri ponechaní WordPress indexového súboru v koreňovom adresári==
+Pozrite si prosím článok, [[Giving_WordPress_Its_Own_Directory|Zaradenie WordPress do vlastného adresára]], pre podrobný návod.
+
+==Presunutie WordPress na nový server==
+
+Ak presúvate WordPress z jedného serveru na druhý, začnite zálohovaním vašich dát. Toto zahŕňa zálohovanie vašej WordPress databázy ako aj  súborov jadra, obrázkov, modulov a iných súborov na vašej stránke. Pozrite [[zálohovanie WordPress]] a [[zálohovanie vašej databázy]] pre detailnejší opis. 
+
+*Poznámka: Ak meníte server ale doména zostáva rovnaká, všetko čo potrebujete urobiť je upraviť  wp-config.php a nahrať všetko tak ako to je na váš nový server.
+
+'''Ak je vám jedno či váš starý blog naďalej funguje'''
+
+#Stiahnite kópiu hlavných WordPress súborov z vášho STARÉHO blogu na váš pevný disk a upravte wp-config.php tak aby zodpovedalo novému serveru.
+#Vráťte sa na váš STARÝ blog a prejdite na  [[Administration_Panels|Administrácia]] > [[Administration_Panels#General|Nastavenia]] > [[Settings_General_SubPanel|Všeobecné]] a zmeňte URL  (obidve) na zodpovedajúce vašej novej stránke.
+#Znovu, stiahnite vašu databázu  (ale pre istotu si stále ponechajte vašu starú), nahrajte túto novú databázu a kópiu WordPress jadrových súborov s upraveným  wp-config.php na váš nový server. 
+
+'''Ak chcete aby váš starý blog naďalej fungoval'''
+
+Pozor: Uistite sa že máte zálohovanú WordPress databázu vášho starého blogu pred ďalším postupom!
+
+''Časť A – Aktivácia vášho nového blogu''
+#Stiahnite si vašu celú WordPress inštaláciu na pevný disk. Vhodne novú zložku pomenujte, tak aby bolo jasné že ide o inštaláciu vášho STARÉHO blogu.
+#Vráťte sa na váš starý blog, otvorte možnosti  a zmeňte url (obidve) na zodpovedajúce vašej novej stránke.
+#Znovu,  stiahnite si vašu celú WordPress inštaláciu na pevný disk. Vhodne novú zložku pomenujte, tak aby bolo jasné že ide o inštaláciu vášho NOVÉHO blogu.
+#Stiahnite si vašu databázu ešte raz (ale ponechajte si starú). Nahrajte túto databázu na váš nový server.  Najjednoduchšie bude ak na vašom novom serveri nazvete databázu rovnako a vytvoríte užívateľa s rovnakými prihlasovacími údajmi ako na vašom starom serveri.  
+# Ak ste použili iný názov databázy a/alebo užívateľa (pozri predchádzajúci krok), upravte náležite wp-config.php v inštalácii vášho NOVÉHO blogu. 
+#Nahrajte zložku inštalácie NOVÉHO blogu na vašu novú stránku.  Váš nový blog by mal pracovať!
+
+''Časť B – Obnovenie vášho starého blogu''
+#Na pôvodnom servere, odstráňte databázu STARÉHO blogu (na vašom lokálnom počítači by ste mali mať kópiu ktorú ste urobili hneď na začiatku).
+#Nahrajte zložku databázy vášho STARÉHO blogu na váš pôvodný server, prepísaním súborov ktoré sa na ňom momentálne nachádzajú (tiež môžete vymazať inštalačnú zložku z pôvodného servera a jednoducho nahrať súbory STARÉHO blogu)
+#Nahrajte databázu vášho STARÉHO blogu z vášho lokálneho počítača na server. 
+
+
+Iný jednoduchý postup pre vytváranie kópii príspevkov, komentárov, strán, kategórii a vlastného poľa (status príspevku, dáta, trvalé odkazy...):  
+# Nainštalujte nový WordPress blog
+# Prejdite do administrátorského panelu starého blogu. Tu, v  Manage > Export vyberte "all" v menu Restrict Author.
+# Kliknite na „Download Export File“
+# V novom blogu prejdite na Manage > Import, vyberte položku Wordpress.
+# Na strane ktorá sa zobrazí vyberte práve exportovaný súbor. Kliknite na Nahrať súbor (Upload file) a Importovať (Import). 
+#Zobrazí sa stránka. V „Priradiť Autorov“ (Assign authors), priraďte autorstvo už existujúcim užívateľom alebo vytvorte nových.  
+#Kliknite na „Zadať“ (Submit).
+#Na konci, kliknite na „Have fun“. 
+
+Poznámka: ak boli už v  blogu nejaké články (napr. úvodná stránka), s použitím tejto metódy nebudú vymazané, články sa len pridávajú. S použitím predchádzajúcej metódy sa články v novom blogu vymažú. 
+
+==Presun WordPress na nový server so službou Fantastico==
+
+Niektorí prevádzkovatelia webhostingu používajú službu [http://netenberg.com/fantastico.php Fantastico], ktorá nainštaluje WordPress webstránku len s niekoľkými kliknutiami. Váš blog môžete preniesť tiež na jednu z týchto webstránok, no postup je trochu iný. 
+
+Začnite zálohovaním vašich dát. Toto zahŕňa zálohovanie vašej WordPress databázy, tak ako aj  súborov jadra,  obrázkov,  modulov a ostatných súborov na vašej stránke. Pozri [[ WordPress zálohovania]] a [[zálohovanie vašej data´bázy] pre viac detailov. 
+
+'''Vytvorte kópiu vašej databázy. Budete musieť zmeniť súbor  <code>.sql</code>, a v prípade chyby je dôležité aby ste pracovali s kópiou.'''
+
+Začnite proces, prácou s kópiami z vášho zálohovania. 
+
+#'''Ak''' ste zmenili doménu, upravte náležite zálohované súbory databázy. Jednoduchý spôsob ako to urobiť je:
+## S použitím  [[Glossary#Text editor|textového editora]], otvorte '''kópiu''' databázového súboru <code>.sql</code>.
+## S použitím funkcií vyhľadať a nahradiť, nájdite všetky zmienky o  [[Glossary#URL|URL]] starého blogu, a nahraďte ich novým URL. 
+## Opakujte postup s vašou starou emailovou adresou. (Napríklad nahradenie <tt>ktosi@priklad.com</tt> s <tt>ktosi@navod.com</tt>)
+##Uložte zmeny.
+#Nahrajte moduly a témy z vašej starej stránky na novú. 
+#Vymažte tabuľky databázy z predinštalovanej stránky Fantastico. 
+#[[Restoring Your Database From Backup|Obnovte databázu]].
+
+Keď ste pripravený skontrolovať vašu stránku, ustite sa že ste
+[[I Make Changes and Nothing Happens|vyčistili cache]] a cookies aby ste videli zmeny vo vašom prehliadači.
+
+[[Category:Getting Started]]
+[[Category:Advanced Topics]]
+[[Category:Troubleshooting]]
+[[Category:Installation]]
+
+== Doplnkové informácie ==
+* [http://www.tamba2.org.uk/wordpress/ Podz' WordPress Guides]
+* [http://www.mydigitallife.info/2007/10/01/how-to-move-wordpress-blog-to-new-domain-or-location/ How to move WordPress to a new domain or location]
+* [http://www.velvetblues.com/web-development-blog/how-to-move-a-wordpress-blog-or-website/ How to move a WordPress Blog or Website]
+* [http://www.prelovac.com/vladimir/how-to-move-wordpress-site-to-another-server-with-zero-downtime How to move WordPress site to another server with zero downtime]
+* [http://www.problogger.net/archives/2009/01/03/how-to-move-from-wordpresscom-to-wordpressorg/ Moving a blog from wordpress.com to self-hosted blog]
+* [http://sltaylor.co.uk/blog/moving-wordpress-new-domain-server/ Moving WordPress to a new domain or server]
+
+* Trasferire Wordpress su un altro server [http://www.nemoprincess.it/wordpress/diario-di-bordo/trasferire-wordpress-su-un-nuovo-server.html Come trasferire Wordpress su un altro server]
+* Italian version of this article - [http://www.valent-blog.eu/2007/09/14/trasferire-wordpress/ Versione italiana dell'articolo] 
+* German version of this article - [http://blogs-optimieren.de/2008/01/13/wordpress-korrekt-umziehen/]
+
+{{Copyedit}}

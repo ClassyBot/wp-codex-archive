@@ -1,0 +1,66 @@
+==Introduction==
+
+The <code>posts_clauses</code> filter runs before the query gets executed and is essentially the sum of all filters that run immediately before it. So it should be used if you don't intend to let another plugin override it, or if you need to alter several different parts of the query at once. If you're only modifying a particular clause, you should probably use one of these clause-specific filters:
+
+<pre>
+ * posts_where_paged
+ * posts_groupby
+ * posts_join_paged
+ * posts_orderby
+ * posts_distinct
+ * post_limits
+ * posts_fields
+</pre>
+
+Note: If you're working on a caching plugin, use the <code>posts_clauses_request</code> filter instead. It's basically the same filter, but it runs later (and after <code>posts_selection</code>), specifically so that "regular" plugins can execute their filters ''before'' your caching plugin does anything.
+
+==Example==
+
+In the following example, you can see how you can inspect the current query.
+
+<pre>
+<?php
+/**
+ * Alter different parts of the query
+ * 
+ * @param array $pieces
+ * 
+ * @return array $pieces
+ */
+function intercept_query_clauses( $pieces )
+{
+	echo '<style>#post-clauses-dump { display: block; background-color: #777; color: #fff; white-space: pre-line; }</style>';
+	// >>>> Inspect & Debug the Query 
+	// NEVER EVER show this to anyone other than an admin user - unless you're in your local installation
+	if ( current_user_can( 'manage_options' ) )
+	{
+		$dump = var_export( $pieces, true );
+		echo "< PRE id='post-clauses-dump'>{$dump}</ PRE >";
+	}
+
+	return $pieces;
+}
+add_filter( 'posts_clauses', 'intercept_query_clauses', 20, 1 );
+</pre>
+
+If you need to alter anything, simply set the <code>$pieces['whatever_part']</code> string to what you need. Be sure to use appropriate [[Class_Reference/wpdb|$wpdb]] properties and methods (e.g. $wpdb->prefix, $wpdb->prepare()) in your SQL to prevent injection attacks, handle table prefix variations, and so forth.
+
+== Example Output ==
+
+''This would be the output on the Admin "All Posts" example.com/wp-admin/edit.php screen.''
+
+<pre>
+array (
+	'where' => ' AND wp_posts.post_type = \'post\' AND (wp_posts.post_status = \'publish\' OR wp_posts.post_status = \'future\' OR wp_posts.post_status = \'draft\' OR wp_posts.post_status = \'pending\' OR wp_posts.post_status = \'private\')',
+	'groupby' => '',
+	'join' => '',
+	'orderby' => 'wp_posts.post_date DESC',
+	'distinct' => '',
+	'fields' => 'wp_posts.*',
+	'limits' => 'LIMIT 0, 20',
+)
+</pre>
+
+Return to [[Plugin API/Filter Reference]]
+
+[[Category:Filters]]

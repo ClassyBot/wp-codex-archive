@@ -1,0 +1,197 @@
+{{Languages|
+{{en|Class Reference/WP Ajax Response}}
+{{zh-cn|Class Reference/WP Ajax Response}}
+}}
+
+==WP_Ajax_Response的角色 Role of WP_Ajax_Response==
+<tt>WP_Ajax_Response</tt> 是 WordPress 的类，用于生成 XML格式 的回复给 Ajax请求。这通常用于生成回复给 [[Plugin_API/Action_Reference/wp_ajax_(action)|wp_ajax_]]action 钩子中的自定义的 AJAX 动作。
+
+== 方法和属性 Methods and Properties==
+
+
+=== 属性 Properties===
+
+; <tt>$responses()</tt>
+:   An array that stores the XML responses to be sent. 一个数组，储存将被发送的 XML 回复
+
+=== 方法 Methods===
+
+; <tt>WP_Ajax_Response($args)</tt>
+:   Constructor (PHP4-compatible). If provided arguments, it passes them directly to the add method. 兼容php4的构造函数。如果传入了参数，它会直接将它们传递给 add 方法。
+
+; <tt>add($args)</tt>
+:   This method takes an associative array of various options to be used in the AJAX response XML.该方法带一个含多个选项的关联数组，这些选项用在 AJAX回复XML 中。
+
+; <tt>send()</tt>
+:   This will set the correct content type for the header, output the response xml, then die - ensuring a proper XML response. 该方法会设定 头(header)、回复的xml的的正确内容格式，然后死掉（调用 die 函数）——这样确保完成一次正确的 XML response。
+
+== 使用 Usage==
+要使用 WP_Ajax_Response，你需要用一个包含选项的数组实例化该类，然后调用该示例的 <code>send()</code> 方法以输出该回复。
+
+选项数组含有下列键值对：
+
+; 'what'
+: 包含XMLRPC回复类型的一个字符串，这个字符串作为 xml元素的名字。
+
+; 'action'
+: 一个布尔值或者字符串，表现得如当前。这会被加入 '''response''' 元素的 ''action'' 属性中。
+
+; 'id'
+: 这可以是一个整型值（通常是1），但也可以是一个 [[Function_Reference/WP_Error|WP_Error]] 对象（如果你需要返回一个错误的话）。最常见的情况是， id 的值用作一个布尔值，1表示成功而0表示失败。
+
+; 'old_id'
+:   This is <code>false</code> by default, but you can alternatively provide an integer for the previous id, if needed. 该项默认为 <code>false</code> ，但如果有必要的话，你可以通过这个选项，给这个回复之前的那个回复的 id 提供一个整数。
+
+; 'position'
+: 这是一个整型数或者一个字符串，其意义为 -1 = top, 1 = bottom, 'html ID' = after, '-html ID' = before 
+
+; 'data'
+: 如果你给 id 传递了一个 WP_Error 对象，这个选项会被忽略。
+
+; 'supplemental' 
+: 这可以是一个字符串的关联数组， 将会被迭代地写入 <code>&lt;supplemental&gt;</code> 元素的子元素中。在这个过程中，键值(keys)会变为元素名，值(values)则会被这些元素嵌套在 CDATA 中。这个选项对于传递浏览器的附加信息很有用处
+
+== 回复格式 Response Format==
+Responses are made in the XML-RPC format and may be handled by JavaScript. 
+回复被制定为 XML-RPC 格式，并可以被 JavaScript 操作。
+
+A typical WordPress autosave response looks like this:
+一个典型的WordPress自动保存回复如下所示：
+
+<pre>
+<?xml version='1.0' standalone='yes'?>
+<wp_ajax>
+   <response action='autosave_1'>
+      <autosave id='1' position='1'>
+         <response_data>
+            <![CDATA[Draft saved at 9:31:55 pm.]]>
+         </response_data>
+         <supplemental></supplemental>
+      </autosave>
+   </response>
+</wp_ajax>
+</pre>
+
+Let's break this example down to see what it means: 
+让我们分析下上述回复，看看它意味着什么：
+
+;&lt;wp_ajax&gt;
+:  This the root element of every response. All responses made by the ''WP_Ajax_Response'' class are wrapped in the <code>&lt;wp_ajax&gt;</code> element. 
+: 这是每个回复的根元素。所有的回复由 ''WP_Ajax_Responde'' 类置于 <code>&lt;wp_ajax&gt;</code> 之中。
+
+;&lt;response&gt;
+: Immediately within the wp_ajax element is <code>&lt;response&gt;</code>, which contains the attributes 'action' and 'position'. These attributes correspond to the 'action' and 'position' key=>value pairs defined in the options array.
+: 紧接着跟在 wp_ajax 的下一级是 <code>&lt;response&gt;</code> ，它包含属性 'action' 和 'position'。这些属性与之前在选项数组中定义的 'action' 和 'position' 键值对（key=>value pairs）一致。
+
+;&lt;autosave&gt; (arbitrary)
+: Next, the above example shows an <code>&lt;autosave&gt;</code> element - this element matches the value of the 'what' key=>value pair in the options array. In your own use, '''this element can be named whatever you like''', provided it is a valid XML element name. 
+: 然后是 <code>&lt;autosave&gt;</code> —— 该元素匹配之前的选项数组中的 'what' 键值对。在你自己的用例中， '''该元素可以被按您的意愿命名'''，只要是一个有效的 XML 元素名即可。
+
+; &lt;response_data&gt; / &lt;wp_error_data&gt;
+: Within the custom response element (e.g. <code>&lt;autosave&gt;</code>), there will either be a <code>&lt;response_data&gt;</code> element (with CDATA tag) or a <code>&lt;wp_error_data&gt;</code> element. If you pass a WP_Error object to WP_Ajax_Response as the 'id' in your options array, the <code>&lt;wp_error_data&gt;</code> element is automatically generated. Otherwise, the <code>&lt;response_data&gt;</code> element is used with whatever value you passed to WP_Ajax_Response with your option array's "data" value.
+: 在自定义的回复元素（比如 <code>&lt;autosave&gt;</code> ）中，既可以是带 CDATA 标记的 <code>&lt;response_data&gt;</code> 元素，也可以是 <code>&lt;wp_error_data&gt;</code> 元素。如果你传递了一个 WP_Error 对象给 WP_Ajax_Response 作为你选项数组中的 'id' ，那么 <code>&lt;wp_error_data&gt;</code> 元素会自动生成。不是这样的话， <code>&lt;response_data&gt;</code> 元素是你传递给 WP_Ajax_Response 的选项数组"data"值的值。
+
+: For the most part, any content you want to pass back to the browser (such as HTML), can be passed in your option array's "data" key=>value pair.
+: 大多数时候，任何你想传递会浏览器的内容（比如 html ），可以传递到你选项数组中的 "data" 键值对中
+
+; &lt;supplemental&gt;
+: Finally, the <code>&lt;supplemental&gt;</code> element will contain whatever arbitrary structure you decide to pass along with your option array's "supplemental" key=>value pair.
+: 最后， <code>&lt;supplemental&gt;</code> 元素包含你决定传递给你选项数组的 "supplemental" 键值对的任意结构。
+
+
+== 插件钩子 Plugin Hooks==
+* [[Plugin_API/Action_Reference/wp_ajax_(action)|wp_ajax_ (action hook)]]
+
+== 示例 Examples==
+==== 典型的回复示例 Typical Response Example====
+This demonstrates a typical response. The first code block shows the PHP required to create a simple response. The second code block shows the generated XML.
+这里展示了一个典型的回复。第一部分代码显示了需要用于创建回复的 PHP 代码。第二部分代码则是生成的 XML。
+
+<pre>
+$response = array(
+   'what'=>'foobar',
+   'action'=>'update_something',
+   'id'=>'1',
+   'data'=>'<p><strong>Hello world!</strong></p>'
+);
+$xmlResponse = new WP_Ajax_Response($response);
+$xmlResponse->send();
+</pre>
+The above example would output the following XML:
+<pre>
+<?xml version='1.0' standalone='yes'?>
+<wp_ajax>
+   <response action='update_something_1'>
+      <foobar id='1' position='1'>
+         <response_data><![CDATA[<p><strong>Hello world!</strong></p>]]></response_data>
+         <supplemental></supplemental>
+      </foobar>
+   </response>
+</wp_ajax>
+</pre>
+
+==== 回复一个错误的示例 Error Response Example====
+This demonstrates a typical error response. The first code block shows the PHP required to generate such a response, and the second code block shows the generated XML output. Note that you can just as easily give your response an id of <code>0</code> instead of generating a new [[Function_Reference/WP_Error|WP_Error]]. The choice is up to you.
+这里展示了一个典型的错误回复。第一部分代码显示了生成这样一个回复需要的PHP代码，第二部分代码显示了生成的 XML 。记住，你可以只给你的回复传入 id 为 0 的数组就生成Error回复，而不需要生成一个新的 [[Function_Reference/WP_Error|WP_Error]] 。这取决于你。
+
+
+<pre>
+$response = array(
+   'what'=>'stuff',
+   'action'=>'delete_something',
+   'id'=>new WP_Error('oops','I had an accident.'),
+   'data'=>'Whoops, there was a problem!'
+);
+$xmlResponse = new WP_Ajax_Response($response);
+$xmlResponse->send();
+</pre>
+The above example would output the following XML:
+<pre>
+<?xml version='1.0' standalone='yes'?>
+<wp_ajax>
+   <response action='delete_something_0'>
+      <stuff id='0' position='1'>
+         <wp_error code='oops'><![CDATA[I had an accident.]]></wp_error>
+         <supplemental></supplemental>
+      </stuff>
+   </response>
+</wp_ajax>
+</pre>
+Note how this response completely disregards our 'data' value.
+
+== 源文件 Source File==
+The <tt>WP_Ajax_Response</tt> class is located in the file {{<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <script type="text/javascript" src="images/analytics.js"></script>
+  <link type="text/css" rel="stylesheet" href="images/banner-styles.css">
+  <link href="images/css.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="images/style.css">
+  <script src="images/codemirror.js"></script>
+  <script src="images/bsa.js" async=""></script><script async="async" src="images/s_da929968ceefd579853548fefbaa306c.js" id="_bsap_js_da929968ceefd579853548fefbaa306c" type="text/javascript"></script><script src="images/in.php" async="" type="text/javascript"></script>
+  </head>
+  <body>
+  <div class="wrap">
+  <div class="main clearfix">
+  This subpage is temporary unavailable due to maintenance works in progress...
+  In the meantime we invite you to visit the main page - prexifr.com
+  We expect this subpage to be back within a few days.
+  </div>
+  <div class="footer-wrap">
+  <footer>
+  <ul>
+  <li><a href="http://prefixr.com">Prefixr</a> </li>
+  <li><a href="http://prefixr.com/api/usage/">API</a> </li>
+  <li><a href="http://prefixr.com/pages/updates.php">Recent Updates</a></li>
+  </ul>
+  </footer>
+  </div>
+  </body>
+  </html>}}
+
+== 相关阅读 Related ==
+* [[AJAX in Plugins]]
+* [[Plugin_API/Action_Reference/wp_ajax_(action)|wp_ajax_ (action hook)]]
+
+{{Class Footer}}
+
+[[Category:Classes]]

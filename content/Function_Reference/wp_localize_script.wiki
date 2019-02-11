@@ -1,0 +1,87 @@
+== Description ==
+
+Localizes a registered script with data for a JavaScript variable. 
+
+This lets you offer properly localized translations of any strings used in your script. This is necessary because WordPress currently only offers a [[L10n |localization API in PHP]], not directly in JavaScript (but see ticket [https://core.trac.wordpress.org/ticket/20491 #20491]).
+
+Though localization is the primary use, it can be used to make any data available to your script that you can normally only get from the server side of WordPress.
+
+== Usage ==
+
+%%% <?php wp_localize_script( $handle, $name, $data ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$handle|string|The registered script handle you are attaching the data for.}}
+{{Parameter|$name|string|The name of the variable which will contain the data. Note that this should be unique to both the script and to the plugin or theme. Thus, the value here should be properly prefixed with the slug or another unique value, to prevent conflicts. However, as this is a JavaScript object name, it cannot contain dashes. Use underscores or camelCasing.}}
+{{Parameter|$data|array|The data itself. The data can be either a single- or multi- (as of 3.3) dimensional array. Like <tt>[http://php.net/json_encode json_encode()]</tt>, the data will be a JavaScript object if the array is an associate array (a map), otherwise the array will be a JavaScript array.}}
+
+== Example ==
+
+<pre>
+<?php
+
+// Register the script
+wp_register_script( 'some_handle', 'path/to/myscript.js' );
+
+// Localize the script with new data
+$translation_array = array(
+	'some_string' => __( 'Some string to translate', 'plugin-domain' ),
+	'a_value' => '10'
+);
+wp_localize_script( 'some_handle', 'object_name', $translation_array );
+
+// Enqueued script with localized data.
+wp_enqueue_script( 'some_handle' );
+</pre>
+
+You can access the variables in JavaScript as follows:
+<pre>
+<script>
+// alerts 'Some string to translate'
+alert( object_name.some_string);
+</script> 
+</pre>
+
+'''Note:''' The data in the resulting JavaScript call will be passed as text (see ticket [https://core.trac.wordpress.org/ticket/25280 #25280]).  If you are trying to pass integers you will need to call the JavaScript <tt>[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt parseInt()]</tt> function.
+<pre>
+<script>
+// Call a function that needs an int.
+FinalZoom = map.getBoundsZoomLevel( bounds ) - parseInt( object_name.a_value, 10 ); 
+</script>
+</pre>
+<hr>
+Another example in case you need the plugins URL, which might be handy:<br>
+'''PHP:'''<pre>
+wp_enqueue_script('my-script', get_stylesheet_directory_uri() . '/js/my-script.js');
+wp_localize_script('my-script', 'myScript', array(
+    'pluginsUrl' => plugins_url(),
+));
+</pre>
+Now you will have access to myScript.pluginsUrl in your script file:<br>
+'''Javascript:'''<pre>
+var href = myScript.pluginsUrl + '/path/to/resource';
+</pre>
+
+== Notes ==
+
+'''IMPORTANT!''' <tt>wp_localize_script()</tt> MUST be called ''after'' the script has been registered using <tt>[[Function_Reference/wp_register_script | wp_register_script()]]</tt> or <tt>[[Function_Reference/wp_enqueue_script | wp_enqueue_script()]]</tt>.
+
+Furthermore, the actual output of the JavaScript <code>&lt;script&gt;</code> tag containing your localization variable occurs ''at the time that the enqueued script is printed (output/included on the page)''. This has some significant repercussions if you enqueue your script as you should using the appropriate actions (<tt>[[Plugin_API/Action_Reference/wp_enqueue_scripts|wp_enqueue_scripts]]</tt> and <tt>[[Plugin_API/Action_Reference/admin_enqueue_scripts|admin_enqueue_scripts]]</tt>), but wish to localize later using data that is not available at enqueue time.
+
+In this case, consider enqueueing your script with the <tt>in_footer</tt> argument set to <tt>true</tt>, to delay the printing of your script include until much later in the page build (ie: <code>wp_enqueue_script( $slug, $URL, $deps, $ver, true ); </code>). The last chance to localize your script would then be on the <tt>[[Plugin_API/Action_Reference/wp_print_footer_scripts | 'wp_print_footer_scripts']]</tt> hook.
+
+== Source File ==
+
+<tt>wp_localize_script()</tt> is located in {{Trac|wp-includes/functions.wp-scripts.php}}.
+
+==Resources==
+*[http://pippinsplugins.com/use-wp_localize_script-it-is-awesome/ Use wp_localize_script, It Is Awesome]
+
+== Related ==
+{{Enqueue Functions Related}}
+
+{{Tag Footer}}
+{{Copyedit}}
+
+[[Category:Functions]]

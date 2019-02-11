@@ -1,0 +1,546 @@
+{{Languages|
+{{en|Function Reference/wp_register_script}}
+{{pt-br|Function Reference/wp_register_script}}
+{{ko|Function Reference/wp_register_script}}
+}}
+
+== Descrição ==
+
+Resgistrar um arquivo de script no WordPress para ser adicionado em uma página mais tarde usando a função <tt>[[Function_Reference/wp_enqueue_script|wp_enqueue_script()]]</tt>, que lida com a segurança e dependência dos scripts.
+
+Scripts que tenham sido pre-registrados usando <tt>wp_register_script()</tt> '''não''' precisam ser enfileirados manualmente usando <tt>wp_enqueue_script()</tt> se eles são listados como uma dependência de outro script que já foi enfileirado. WordPress irá automaticamente incluir o script registrado como dependência antes dele ser incluir o script enfileirado. Veja as notas para obter mais informação.
+
+== Uso ==
+
+%%%<?php wp_register_script( $handle, $src, $deps, $ver, $in_footer ); ?>%%%
+Veja [[#Notes|Notes]] para informações sobre qual action [[Glossary#Hook|hooks]] deva ser usada para chamar a função, bem como algumas idéias sobre a razão de usar esta função.
+
+== Parâmetros ==
+
+{{Parameter|$handle|string| Nome do script. Deve ser único, uma vez que é usado como indentificador para ser usado posteriormente pela função <tt>[[Function_Reference/wp_enqueue_script|wp_enqueue_script()]]</tt>.}}
+
+{{Parameter|$src|string|URL para o script, exemplo. ''http://<nowiki/>example.com/wp-content/themes/my-theme/my-theme-script.js''. Você nunca deve codificar URLs para scripts locais. Para obter uma URL de um script local, use <tt>[[Function Reference/plugins_url|plugins_url()]]</tt> para [[Glossary#Plugin|plugins]] e <tt>[[Function Reference/get_template_directory_uri|get_template_directory_uri()]]</tt> para [[Glossary#Themes|themes]]. Scripts Remotos podem ser especificados com um protocolo de URL agnostica, exemplo. ''//otherdomain.com/js/their-script.js''.}}
+
+{{Parameter|$deps|array|Array of the handles of all the registered scripts that this script depends on, that is, the scripts that must be loaded before this script. These scripts will automatically be enqueued when this script is enqueued with <tt>[[Function_Reference/wp_enqueue_script|wp_enqueue_script()]]</tt>. Set ''false'' if there are no dependencies.|optional|array()}}
+
+{{Parameter|$ver|string|String specifying the script version number, if it has one, which is concatenated to the end of the path as a query string. If no version is specified or set to ''false'', then WordPress automatically adds a version number equal to the current version of WordPress you are running. If set to ''null'' no version is added. This parameter is used to ensure that the correct version is sent to the client regardless of caching, and so should be included if a version number is available and makes sense for the script.|optional|false}}
+
+{{Parameter|$in_footer|boolean|Normally scripts are placed in the <tt><head></tt> section. If this parameter is true the script is placed at the bottom of the <tt><body></tt>. This requires the theme to have the [[Plugin API/Action Reference/wp footer|wp_footer()]] hook in the appropriate place. Note that you have to enqueue your script before <code>wp_head</code> is run, even if it will be placed in the footer. (New in WordPress 2.8) |optional|false}}
+
+== Return Values ==
+
+{{Return||void|This function does not return a value.}}
+
+== Examples ==
+
+See [[Function_Reference/wp_enqueue_script#Link Scripts Only on a Plugin Administration Screen|Examples on <tt>wp_enqueue_script()]]</tt>.
+
+== Handles and Their Script Paths Registered by WordPress ==
+
+By default, WordPress installation includes many popular scripts commonly used by web developers besides the scripts used by WordPress itself. Below is a list of the handles and paths of these scripts. "This list has been updated for 3.8." Source: {{Trac|wp-includes/script-loader.php}}.
+
+{| class="wikitable" style="width:100%;"
+|-
+! width="26%" | '''Handle'''
+! width="64%" | '''Path in WordPress'''
+|-
+| utils
+| ''/wp-includes/js/utils.js''
+|-
+| common
+| ''/wp-admin/js/common.js''
+|-
+| sack
+| ''/wp-includes/js/tw-sack.js''
+|-
+| quicktags
+| ''/wp-includes/js/quicktags.js''
+|-
+| colorpicker
+| ''/wp-includes/js/colorpicker.js''
+|-
+| editor
+| ''/wp-admin/js/editor.js''
+|-
+| wp-fullscreen
+| ''/wp-admin/js/wp-fullscreen.js''
+|-
+| wp-ajax-response
+| ''/wp-includes/js/wp-ajax-response.js''
+|-
+| wp-pointer
+| ''/wp-includes/js/wp-pointer.js''
+|-
+| autosave
+| ''/wp-includes/js/autosave.js''
+|-
+| heartbeat
+| ''/wp-includes/js/heartbeat.js''
+|-
+| wp-auth-check
+| ''/wp-includes/js/wp-auth-check.js''
+|-
+| wp-lists
+| ''/wp-includes/js''/wp-lists.js''
+|-
+| colspan="2" | &nbsp;
+|-
+| prototype
+| external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js
+|-
+| scriptaculous-root
+| external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js
+|-
+| scriptaculous-builder
+| external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/builder.js
+|-
+| scriptaculous-dragdrop
+| external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/dragdrop.js
+|-
+| scriptaculous-effects
+| external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/effects.js
+|-
+| scriptaculous-slider
+| external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/slider.js
+|-
+| scriptaculous-sound
+| external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/sound.js
+|-
+| scriptaculous-controls
+| external:  //ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/controls.js
+|-
+| scriptaculous
+|  scriptaculous-dragdrop, scriptaculous-slider, scriptaculous-controls
+|-
+| cropper
+| ''/wp-includes/js/crop/cropper.js''
+|-
+| colspan="2" | &nbsp;
+|-
+| jquery (v1.10.2 as of WP 3.8)
+| jquery-core, jquery-migrate
+|-
+| jquery-core
+| ''/wp-includes/js/jquery/jquery.js''
+|-
+| jquery-migrate
+| ''/wp-includes/js/jquery/jquery-migrate.js'' (v1.10.2 as of WP 3.8)
+|-
+| jquery-ui-core
+| ''/wp-includes/js/jquery/ui/jquery.ui.core.min.js''
+|-
+| jquery-effects-core
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect.min.js''
+|-
+| jquery-effects-blind
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-blind.min.js''
+|-
+| jquery-effects-bounce
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-bounce.min.js''
+|-
+| jquery-effects-clip
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-clip.min.js''
+|-
+| jquery-effects-drop
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-drop.min.js''
+|-
+| jquery-effects-explode
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-explode.min.js''
+|-
+| jquery-effects-fade
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-fade.min.js''
+|-
+| jquery-effects-fold
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-fold.min.js''
+|-
+| jquery-effects-highlight
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-highlight.min.js''
+|-
+| jquery-effects-pulsate
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-pulsate.min.js''
+|-
+| jquery-effects-scale
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-scale.min.js''
+|-
+| jquery-effects-shake
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-shake.min.js''
+|-
+| jquery-effects-slide
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-slide.min.js''
+|-
+| jquery-effects-transfer
+| ''/wp-includes/js/jquery/ui/jquery.ui.effect-transfer.min.js''
+|-
+| jquery-ui-accordion
+| ''/wp-includes/js/jquery/ui/jquery.ui.accordion.min.js''
+|-
+| jquery-ui-autocomplete
+| ''/wp-includes/js/jquery/ui/jquery.ui.autocomplete.min.js''
+|-
+| jquery-ui-button
+| ''/wp-includes/js/jquery/ui/jquery.ui.button.min.js''
+|-
+| jquery-ui-datepicker
+| ''/wp-includes/js/jquery/ui/jquery.ui.datepicker.min.js''
+|-
+| jquery-ui-dialog
+| ''/wp-includes/js/jquery/ui/jquery.ui.dialog.min.js''
+|-
+| jquery-ui-draggable
+| ''/wp-includes/js/jquery/ui/jquery.ui.draggable.min.js''
+|-
+| jquery-ui-droppable
+| ''/wp-includes/js/jquery/ui/jquery.ui.droppable.min.js''
+|-
+| jquery-ui-menu
+| ''/wp-includes/js/jquery/ui/jquery.ui.menu.min.js''
+|-
+| jquery-ui-mouse
+| ''/wp-includes/js/jquery/ui/jquery.ui.mouse.min.js''
+|-
+| jquery-ui-position
+| ''/wp-includes/js/jquery/ui/jquery.ui.position.min.js''
+|-
+| jquery-ui-progressbar
+| ''/wp-includes/js/jquery/ui/jquery.ui.progressbar.min.js''
+|-
+| jquery-ui-resizable
+| ''/wp-includes/js/jquery/ui/jquery.ui.resizable.min.js''
+|-
+| jquery-ui-selectable
+| ''/wp-includes/js/jquery/ui/jquery.ui.selectable.min.js''
+|-
+| jquery-ui-slider
+| ''/wp-includes/js/jquery/ui/jquery.ui.slider.min.js''
+|-
+| jquery-ui-sortable
+| ''/wp-includes/js/jquery/ui/jquery.ui.sortable.min.js''
+|-
+| jquery-ui-spinner
+| ''/wp-includes/js/jquery/ui/jquery.ui.spinner.min.js''
+|-
+| jquery-ui-tabs
+| ''/wp-includes/js/jquery/ui/jquery.ui.tabs.min.js''
+|-
+| jquery-ui-tooltip
+| ''/wp-includes/js/jquery/ui/jquery.ui.tooltip.min.js''
+|-
+| jquery-ui-widget
+| ''/wp-includes/js/jquery/ui/jquery.ui.widget.min.js''
+|-
+| jquery-form
+| ''/wp-includes/js/jquery/jquery.form.js''
+|-
+| jquery-color
+| ''/wp-includes/js/jquery/jquery.color.min.js''
+|-
+| suggest
+| ''/wp-includes/js/jquery/suggest.js''
+|-
+| schedule
+| ''/wp-includes/js/jquery/jquery.schedule.js''
+|-
+| jquery-query
+| ''/wp-includes/js/jquery/jquery.query.js''
+|-
+| jquery-serialize-object
+| ''/wp-includes/js/jquery/jquery.serialize-object.js''
+|-
+| jquery-hotkeys
+| ''/wp-includes/js/jquery/jquery.hotkeys.js''
+|-
+| jquery-table-hotkeys
+| ''/wp-includes/js/jquery/jquery.table-hotkeys.js''
+|-
+| jquery-touch-punch
+| ''/wp-includes/js/jquery/jquery.ui.touch-punch.js''
+|-
+| jquery-masonry
+| ''/wp-includes/js/jquery/jquery.masonry.min.js''
+|-
+| colspan="2" | &nbsp;
+|-
+| thickbox
+| ''/wp-includes/js/thickbox/thickbox.js''
+|-
+| jcrop
+| ''/wp-includes/js/jcrop/jquery.Jcrop.js''
+|-
+| swfobject
+| ''/wp-includes/js/swfobject.js''
+|-
+| plupload
+| ''/wp-includes/js/plupload/plupload.js''
+|-
+| plupload-html5
+| wp-includes/js/plupload/plupload.html5.js''
+|-
+| plupload-flash
+| ''/wp-includes/js/plupload/plupload.flash.js''"
+|-
+| plupload-silverlight
+| ''/wp-includes/js/plupload/plupload.silverlight.js''
+|-
+| plupload-html4
+| ''/wp-includes/js/plupload/plupload.html4.js''
+|-
+| plupload-all
+| plupload, plupload-html5, plupload-flash, plupload-silverlight, plupload-html4
+|-
+| plupload-handlers
+| ''/wp-includes/js/plupload/handlers.js''
+|-
+| wp-plupload
+| ''/wp-includes/js/plupload/wp-plupload.js''
+|-
+| swfupload
+| ''/wp-includes/js/swfupload/swfupload.js''
+|-
+| swfupload-swfobject
+| ''/wp-includes/js/swfupload/plugins/swfupload.swfobject.js''
+|-
+| swfupload-queue
+| ''/wp-includes/js/swfupload/plugins/swfupload.queue.js''
+|-
+| swfupload-speed
+| ''/wp-includes/js/swfupload/plugins/swfupload.speed.js''
+|-
+| swfupload-all
+| ''/wp-includes/js/swfupload/swfupload-all.js''
+|-
+| swfupload-handlers
+| ''/wp-includes/js/swfupload/handlers.js''
+|-
+| comment-reply
+| ''/wp-includes/js/comment-reply.js''
+|-
+| json2
+| ''/wp-includes/js/json2.js''
+|-
+| underscore
+| ''/wp-includes/js/underscore.min.js''
+|-
+| backbone
+| ''/wp-includes/js/backbone.min.js''
+|-
+| wp-util
+| ''/wp-includes/js/wp-util.js''
+|-
+| wp-backbone
+| ''/wp-includes/js/wp-backbone.js''
+|-
+| revisions
+| ''/wp-admin/js/revisions.js''
+|-
+| imgareaselect
+| ''/wp-includes/js/imgareaselect/jquery.imgareaselect.js''
+|-
+| mediaelement
+| /wp-includes/js/mediaelement/mediaelement-and-player.min.js
+|-
+| wp-mediaelement
+| /wp-includes/js/mediaelement/wp-mediaelement.js
+|-
+| zxcvbn-async
+| /wp-includes/js/zxcvbn-async.js
+|-
+| password-strength-meter
+| ''/wp-admin/js/password-strength-meter.js''
+|-
+| user-profile
+| ''/wp-admin/js/user-profile.js''
+|-
+| user-suggest
+| ''/wp-admin/js/user-suggest.js''
+|-
+| admin-bar
+| ''/wp-includes/js/admin-bar.js''
+|-
+| wplink
+| ''/wp-includes/js/wplink.js''
+|-
+| wpdialogs
+| ''/wp-includes/js/tinymce/plugins/wpdialogs/js/wpdialog.js''
+|-
+| wpdialogs-popup
+| ''/wp-includes/js/tinymce/plugins/wpdialogs/js/popup.js'' 
+|-
+| word-count
+| ''/wp-admin/js/word-count.js''
+|-
+| media-upload
+| ''/wp-admin/js/media-upload.js''
+|-
+| hoverIntent
+| ''/wp-includes/js/hoverIntent.js''
+|-
+| customize-base
+| ''/wp-includes/js/customize-base.js''
+|-
+| customize-loader
+| 
+|-
+| customize-preview
+| 
+|-
+| customize-controls
+| 
+|-
+| accordion
+| 
+|-
+| shortcode
+| 
+|-
+| media-models
+| 
+|-
+| media-views
+| 
+|-
+| media-editor
+| 
+|-
+| mce-view
+| 
+|-
+| admin-tags
+| 
+|-
+| admin-comments
+| 
+|-
+| xfn
+| 
+|-
+| postbox
+| 
+|-
+| post
+| 
+|-
+| link
+| 
+|-
+| comment
+| 
+|-
+| admin-gallery
+| 
+|-
+| admin-widgets
+| 
+|-
+| theme
+| 
+|-
+| theme-install
+| 
+|-
+| inline-edit-post
+| 
+|-
+| inline-edit-tax
+| 
+|-
+| plugin-install
+| 
+|-
+| farbtastic
+| 
+|-
+| iris
+| 
+|-
+| wp-color-picker
+| 
+|-
+| dashboard
+| 
+|-
+| list-revisions
+| 
+|-
+| media
+| 
+|-
+| image-edit
+| 
+|-
+| set-post-thumbnail
+| 
+|-
+| nav-menu
+| 
+|-
+| custom-header
+| 
+|-
+| custom-background
+|
+|-
+| media-gallery
+| 
+|-
+| svg-painter
+| 
+|-
+|}
+
+== Notes ==
+
+* The function should be called using the [[Plugin API/Action Reference/wp_enqueue_scripts|wp_enqueue_scripts]] action [[Glossary#Hook|hook]] if you want to call it on the front-end of the site. To call it on the [[Administration Screens|administration screens]], use the [[Plugin_API/Action_Reference/admin_enqueue_scripts|admin_enqueue_scripts]] action hook. For the [[Login Screen|login screen]], use the [[Plugin_API/Action_Reference/login_enqueue_scripts|login_enqueue_scripts]] action hook. Calling it outside of an action hook can lead to problems, see the [http://core.trac.wordpress.org/ticket/11526 ticket #11526] for details. Also see [[Function_Reference/wp_enqueue_script#Notes|Notes on <tt>wp_enqueue_script()</tt>]] for more details about the proper hooks.
+* If you try to register or enqueue an already registered handle with different parameters, the new parameters will be ignored. Instead, use <tt>[[Function_Reference/wp_deregister_script|wp_deregister_script()]]</tt> and register the script again with the new parameters.
+* jQuery UI Effects is '''not''' included with the ''jquery-ui-core'' handle.
+* Uses: <tt>WP_Scripts::add()</tt> and <tt>WP_Scripts::add_data()</tt>.
+* Uses global: (<tt>unknown type</tt>) <tt>$wp_scripts</tt>.
+==== Usage Rationale ====
+*Technically, you never have to register anything if you don't want to. The register functions are there and can be valuable if you want a central location that defines scripts and styles that will be used in your plugin/theme. You can then simply use the enqueue functions while referring to just the handle in order to enqueue the script or style for inclusion in the head.
+*If the handle of a registered script is listed in the <tt>$deps</tt> array of dependencies of another script that is enqueued with <tt>wp_enqueue_script()</tt>, that script will be '''automatically loaded''' prior to loading the enqueued script. This greatly simplifies the process of ensuring that a script has all the dependencies it needs. See below for a simple example.
+*So, the main purpose of the register functions is to allow you to simplify your code by removing the need to duplicate code if you enqueue the same script or style in more than one section of code. The benefits of this are many and probably don't need to be listed here.
+
+==== Example of Automatic Dependency Loading ====
+This example demonstrates how a registered script is automatically loaded when listed as the dependency of an enqueued script:
+
+<pre>
+// Always use wp_enqueue_scripts action hook to both enqueue and register scripts
+add_action( 'wp_enqueue_scripts', 'enqueue_and_register_my_scripts' );
+
+function enqueue_and_register_my_scripts(){
+
+    // Use `get_stylesheet_directoy_uri() if your script is inside your theme or child theme.
+    wp_register_script( 'my-script', get_stylesheet_directory_uri() . '/js/my-script.js' );
+
+    // Let's enqueue a script only to be used on a specific page of the site
+    if ( is_page( 'careers' ) ){
+
+        // Enqueue a script that has both jQuery (automatically registered by WordPress)
+        // and my-script (registered earlier) as dependencies.
+        wp_enqueue_script( 'my-careers-script', get_stylesheet_directory_uri() . '/js/my-careers-script.js', array( 'jquery', 'my-script' ) );
+    }
+}
+</pre>
+
+Note how, in the example above, `my-script.js` does not actually have to be enqueued. It is automatically loaded before `my-careers-script.js` by virtue of the fact that it was registered.
+
+It's also interesting to note that, given how the `wp_enqueue_scripts` action works, the order in which scripts are enqueued or registered is quite inconsequential. Really.
+
+== Change Log ==
+
+* Since: [[Version 2.6|2.6]] (BackPress version: r16)
+
+== Source File ==
+
+<tt>wp_register_script()</tt> is located in {{Trac|wp-includes/functions.wp-scripts.php}}.
+
+== Resources ==
+* [http://generatewp.com/register_script/ WordPress Script Registration Generator]
+
+== Related ==
+
+{{Enqueue Functions Related}}
+
+{{Tag Footer}}
+{{Copyedit}}
+
+[[Category:Functions]]

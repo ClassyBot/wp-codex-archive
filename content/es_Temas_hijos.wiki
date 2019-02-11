@@ -1,0 +1,176 @@
+{{Languages|
+{{en|Child Themes}}
+{{it|Temi Child}}
+{{ja|Child Themes}}
+{{ko|Child Themes}}
+{{es|Temas hijos}}
+{{nl|Child Thema's}}
+{{fr|Thèmes Enfant}}
+{{pt-br|Temas Filhos}}
+{{ru|Дочерние темы}}
+{{sk|Odvodené témy}}
+{{th|Child Themes}}
+{{zh-hans|子主题}}
+{{zh-tw|子主題}}
+{{mk|Дете теми}}
+}}
+
+Un "tema hijo" en WordPress es un tema que hereda la funcionalidad de otro tema, llamado "tema padre". Los temas hijos permiten modificar o añadir las funcionalidades del tema padre. Un tema hijo es la forma más segura y fácil de modificar un tema existente, tanto si se quiere hacer pequeños cambios como otros más amplios. En lugar de modificar los archivos del tema directamente, es posible crear un tema hijo y hacerlo prevalecer sobre el tema padre.
+
+== ¿Por qué usar un tema hijo? ==
+
+Ahí van unas cuantas razones:
+
+* Si modificas un tema existente y se actualiza, tus cambios se perderán. Con un tema hijo, puedes subir el tema padre (que puede ser importante por cuestiones de seguridad o funcionalidad) y seguir manteniendo los cambios.
+* Puede acelerar el tiempo de desarrollo.
+* Es una buena forma de empezar si se está empezando a aprender sobre desarrollo de temas WordPress.
+
+== Cómo crear un tema hijo ==
+
+* [[Image:child-theme-directory-structure.jpg|right|Estructura de al carpeta del tema hijo]]Crea una carpeta en tu carpeta de temas para albergar el tema hijo. La carpeta de temas está en wp-content/themes. Debes nombrar la carpeta sin ningún espacio como parte del nombre, y es habitual usar el nombre del tema padre seguido de "-hijo" (o "-child" en inglés) adjunto a él. Por ejemplo, si estás haciendo un hijo del tema twentyfourteen, el nombre de tu carpeta debería ser twentyfourteen-hijo (o bien, twentyfourteen-child).
+
+*En la carpeta del tema hijo, crea un archivo que se llame style.css. Este es el único archivo requerido para hacer un tema hijo. La hoja de estilos debe empezar con las siguientes líneas:
+<pre>
+/*
+ Theme Name:   Twenty Fourteen Child
+ Theme URI:    http://example.com/twenty-fourteen-child/
+ Description:  Twenty Fourteen Child Theme
+ Author:       John Doe
+ Author URI:   http://example.com
+ Template:     twentyfourteen
+ Version:      1.0.0
+ License:      GNU General Public License v2 or later
+ License URI:  http://www.gnu.org/licenses/gpl-2.0.html
+ Tags:         light, dark, two-columns, right-sidebar, responsive-layout, accessibility-ready
+ Text Domain:  twenty-fourteen-child
+*/
+/* =Aquí empieza la personalización de tu tema
+-------------------------------------------------------------- */
+</pre>
+
+
+Puedes cambiar cada una de estas líneas para customizar tu <em>Theme</em>. Las líneas que sólo requieren cambios  son el nombre del <em>Theme</em>, la Plantilla. 
+
+La Plantilla es el nombre del directorio del <em>Theme</em> principal. En este caso, el <em>Theme</em> de los <em>Parents</em> (Padres) es el <em>Theme</em> Twenty Fourteen, por lo que la Plantilla es twentyfourteen, que es el nombre del directorio donde se encuentra el tema Twenty Fourteen. Si quieres hacer que un <em>Child</em> de un <em>Theme</em> con el nombre del directorio ejemplo-theme-nombre, entonces deberías usar Plantilla: ejemplo-theme-nombre. 
+
+@import no debe utilizarse para importar la hoja de estilos de los <em>Parents</em> en el <em>Theme</em> de los <em>Child</em>. El método correcto es utilizar wp_enqueue_style () para poner en cola la hoja de estilos de los <em>Parents</em>, el uso de este código en "functions.php" a su <em>Child</em> de <em>Theme</em>. Tendrás que crear un archivo functions.php en la carpeta raíz de su <em>Child</em> el <em>Theme</em> (Se trata de los dos únicos archivos necesarios para crear un <em>Theme</em> <em>Child</em>). Justo al comienzo, en la primera línea, se debe añadir una etiqueta de apertura de PHP. Todo otro código estará después de esta etiqueta de apertura de PHP.
+
+== Archivos de plantilla ==
+
+Si quieres cambiar algo más que la hoja de estilos, tu tema hijo puede sobrescribir cualquier archivo del tema padre: simplemente incluye un archivo del mismo nombre en la carpeta del tema hijo y sobrescribirá el archivo equivalente en la carpeta del tema padre. Por ejemplo, si quieres cambiar el código PHP para la cabecera (header), puedes incluir un header.php en la carpeta de tu tema hijo. De este modo, este archivo se usará en lugar del header.php del tema padre.
+
+También puedes incluir en el tema hijo archivos que no estén incluidos en el tema padre. Por ejemplo, puede que quieras crear una plantilla más específica que la que se encuentra en el tema padre, como una plantilla para una página específica o categoría de archivo. Echa un vistazo a [[Template Hierarchy]] para más información sobre cómo WordPress decide qué plantilla usar.
+
+=== Uso de functions.php ===
+
+A diferencia de ''style.css'', el ''functions.php'' de un tema hijo no sobrescribe el tema padre. En lugar de eso, '''se carga en adición a ''functions.php'' del tema padre''' (especificamente, se carga justo ''antes'' del tema padre).
+
+En este sentido, el ''functions.php'' de un tema hijo proporciona un método inteligente y libre de problemas para modificar la funcionalidad del tema padre. Digamos que quieres agregar una función PHP a tu tema. La forma más rápida podría ser abrir su archivo ''functions.php'' y poner la función ahí. Pero no es lo más inteligente: la próxima vez que tu tema se actualice, esa función desaparecerá. Pero hay una forma alternativa que es la forma inteligente: puedes crear un tema hijo, añadir un archivo ''functions.php'' en él y añadir la función en ese archivo. La función hará exactamente el mismo trabajo desde ahí, con la ventaja de que no será afectada por próximas actualizaciones del tema padre. No copies todo el contenido de functions.php del tema padre en functions.php del tema hijo.
+
+La estructura de ''functions.php'' es simple: una etiqueta PHP de inicio, una etiqueta PHP de cerrar al final y, entre ellas, tus bits de PHP. En él puedes poner tantas o tan pocas funciones como desees. El ejemplo de abajo muestra un archivo elemental ''functions.php'' que hace una simple cosa: añade un enlace de favicon al elemento <code>head</code> (cabecera) de las páginas HTML.
+
+<pre>
+<?php //Etiqueta PHP de inicio
+
+// Funcion a nuestro gusto que queramos incluir
+function favicon_link() {
+    echo '<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />' . "\n";
+}
+add_action( 'wp_head', 'favicon_link' );
+
+?> //Etiqueta PHP de cierre
+</pre>
+
+CONSEJO A DESARROLLADORES DE TEMAS. El hecho de que el ''functions.php'' del tema hijo se cargue primero significa que puedes convertir las funciones de tu tema en conectables —es decir, sustituirlas por el tema hijo— anunciándolas condicionalmente. Por ejemplo:
+
+<pre>
+if ( ! function_exists( 'theme_special_nav' ) ) {
+    function theme_special_nav() {
+        //  Hacer algo.
+    }
+}
+</pre>
+
+En este sentido, un tema hijo puede sustituir una función PHP del padre simplemente llamándola de antemano.
+
+=== Referenciando / Incluyendo archivos en tu tema hijo ===
+
+Cuando necesites incluir archivos que residen dentro de la estructura de directorios de tu tema hijo, se utilizará get_stylesheet_directory (). Al ser sustituido el ''style.css'' del tema padre por el ''style.css'' de tu tema hijo y residir tu ''style.css'' en la raíz del subdirectorio de tu tema hijo, get_stylesheet_directory () apunta al directorio de tu tema hijo (no al directorio del tema padre).
+
+He aquí un ejemplo, utilizando require_once, que muestra cómo se puede utilizar get_stylesheet_directory al hacer referencia a un archivo almacenado dentro de la estructura de directorios de tu tema hijo.
+
+<pre>
+require_once( get_stylesheet_directory() . '/my_included_file.php' );
+</pre>
+
+== Otra información útil ==
+
+=== Usando formatos de post ===
+
+Un tema hijo hereda [[Post Formats|post formats]] definidos por el tema padre.  Pero cuando se crean temas hijos, tenga cuidado al usar ''add_theme_support('post-formats')'' el cual '''sobreescribirá''' los formatos definidos por el tema padre, no los adicionará.
+
+=== Soporte RTL ===
+Para agregar soporte a lenguajes RTL (Right-to-left, de derecha a izquierda), incluye el archivo '''rtl.css''' en tu tema hijo:
+
+<pre>
+/*
+Theme Name: Twenty Fourteen Child
+Template: twentyfourteen
+*/
+
+@import url("../twentyfourteen/rtl.css");
+</pre>
+
+WordPress sólo carga el archivo rtl.css si [[Function Reference/is rtl|is_rtl()]] es verdadero.
+
+Es recomendable agregar el archivo rtl.css a tu tema hijo, incluso si el tema padre no lo tiene.
+
+=== Internacionalización ===
+
+Temas Child, al igual que otras extensiones, se pueden preparar para ser traducido a otros idiomas mediante el uso de funciones de gettext. For an overview, please see [[I18n for WordPress Developers]]. This section will address special considerations regarding internationalization of child themes.
+
+* Start by adding a languages directory. Something like <code>my-theme/languages/</code> works rather well.
+* Remember that your filenames have to be <code>fr_FR.po</code> & <code>fr_FR.mo</code> (depending on your language) and not <code>domain-fr_FR.xx</code> like the plugins do.
+* Next, a textdomain needs to be loaded. load_child_theme_textdomain() can be used in functions.php during the after_setup_theme action. The following should illustrate:
+
+<pre>
+<?php
+/**
+ * Setup My Child Theme's textdomain.
+ *
+ * Declare textdomain for this child theme.
+ * Translations can be filed in the /languages/ directory.
+ */
+function my_child_theme_setup() {
+	load_child_theme_textdomain( 'my-child-theme', get_stylesheet_directory() . '/languages' );
+}
+add_action( 'after_setup_theme', 'my_child_theme_setup' );
+?>
+</pre>
+
+At this point, hardcoded strings in the child theme are ready to be prepared to be translated. Here is a simple example of echoing the phrase "Code is Poetry":
+
+<pre>
+<?php
+_e( 'Code is Poetry', 'my-child-theme' );
+?>
+</pre>
+
+The text domain defined in load_child_theme_textdomain() should be used to translate all strings in the child theme. In the event that a template file from the parent has been included, the textdomain should be changed from the one defined in the parent to the one defined by the child.
+
+== Recursos ==
+
+* [[Theme Development]]
+* [http://themeshaper.com/modify-wordpress-themes/ How to Modify WordPress Themes the Smart Way] - four-part series on child themes  
+* [https://managewp.com/how-to-create-a-child-theme How to Create a Child Theme]
+* [http://www.hongkiat.com/blog/wordpress-child-themes-dev/ Guide to WordPress Child Theme Development]
+* [http://theme.fm/2011/07/how-to-create-a-child-theme-based-on-twenty-eleven-791/ How to: Create a Child Theme Based on Twenty Eleven]
+* [http://wpmu.org/customizing-your-wordpress-theme-using-firebug/ Customizing Your WordPress Theme Using Firebug]
+* [http://wp.tutsplus.com/tutorials/theme-development/child-themes-basics-and-creating-child-themes-in-wordpress/ Tutorial: Child Themes Basics and Creating Child Themes in WordPress]
+* [http://wp.tutsplus.com/tutorials/creative-coding/how-to-modify-the-parent-theme-behavior-within-the-child-theme/ How to Modify the Parent Theme Behavior Within the Child Theme]
+* [http://wordpress.org/extend/plugins/child-themify/ Child Themify] - a plugin for creating a child theme
+* [http://wordpress.org/plugins/orbisius-child-theme-creator/ Orbisius Child Theme Creator] - create a child theme with a single click, customize child theme info, double ajax theme editor
+
+
+[[Category:es:Design and Layout]]
+[[Category:es:UI Link]]<!-- link from wp-admin/update-core.php -->

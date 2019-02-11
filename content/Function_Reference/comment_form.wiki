@@ -1,0 +1,203 @@
+{{Languages|
+{{en|Template Tags/comment_form}}
+{{ja|テンプレートタグ/comment_form}}
+}}
+
+{{Stub}}
+
+== Description ==
+
+This tag outputs a complete commenting form for use within a [[Templates|template]].
+
+Most strings and form fields may be controlled through the [[#$args|$args]] array passed into the function, while you may also choose to use the <code>comment_form_default_fields</code> [[Plugin API|filter]] to modify the [[#$args|array of default fields]] if you'd just like to add a new one or remove a single field. All fields are also individually passed through a filter of the form <code>comment_form_field_''$name''</code> where <code>$name</code> is the key used in the array of fields.
+
+Please note, that although most parameters are marked as optional, not including them all in your code will produce errors when using <code>define('WP_DEBUG', true);</code>
+
+== Usage ==
+
+%%%<?php comment_form( $args, $post_id ); ?>%%%
+
+=== Default Usage ===
+
+%%%<?php comment_form(); ?>%%%
+
+[[Image:twentytendefault6.png|thumb]]
+As seen in the popular twentyten theme - called here: {{Trac|wp-content/themes/twentyten/comments.php}}
+
+== Parameters ==
+
+{{Parameter|[[#$args|args]]|array|Options for strings, fields etc in the form.|optional|([[#$args|See below]])}}
+{{Parameter|post_id|mixed|Post ID to generate the form for, uses the current post if null|optional|null (the current post)}}
+
+=== $args ===
+'''Note:''' If you change the $defaults in your comments template using $new_defaults, you must declare the $new_defaults BEFORE you call <code>comment_form($new_defaults);</code>, otherwise, they won't take effect.
+
+Default values:
+{{Parameter|fields|array|Input fields: 'author', 'email', 'url', 'cookies'.|optional|<code>apply_filters( 'comment_form_default_fields', [[#$fields|$fields]] )</code>}}
+{{Parameter|comment_field|string|The textarea and the label of comment body.|optional|<pre>'<p class="comment-form-comment"><label for="comment">' . _x( 'Comment', 'noun' ) . '</label><textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>'</pre>}}
+{{Parameter|must_log_in|string|<!--description-->|optional|<pre>'<p class="must-log-in">' .  sprintf( __( 'You must be <a href="%s">logged in</a> to post a comment.' ), wp_login_url( apply_filters( 'the_permalink', get_permalink( ) ) ) ) . '</p>'</pre>}}
+{{Parameter|logged_in_as|string|<!--description-->|optional|<pre>'<p class="logged-in-as">' . sprintf( __( 'Logged in as <a href="%1$s">%2$s</a>. <a href="%3$s" title="Log out of this account">Log out?</a>' ), admin_url( 'profile.php' ), $user_identity, wp_logout_url( apply_filters( 'the_permalink', get_permalink( ) ) ) ) . '</p>'</pre>}}
+{{Parameter|comment_notes_before|string|Text or HTML to be displayed before the set of comment form fields if the user is not logged in.|optional|<pre>'<p class="comment-notes">' . __( 'Your email address will not be published.' ) . ( $req ? $required_text : '' ) . '</p>'</pre>}}
+{{Parameter|comment_notes_after|string|Text or HTML to be displayed after the set of comment fields (and before the submit button)|optional|<pre>'<p class="form-allowed-tags">' . sprintf( __( 'You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes: %s' ), ' <code>' . allowed_tags() . '</code>' ) . '</p>'</pre>}}
+{{Parameter|id_form|string|value of the <code>id</code> attribute of <code>form</code> element (<code><nowiki><form></nowiki></code> tag).|optional|'commentform'}}
+{{Parameter|class_form|string|value of the <code>class</code> attribute of <code>form</code> element (<code><nowiki><form></nowiki></code> tag).|optional|'comment-form'}}
+{{Parameter|id_submit|string|value of the <code>id</code> attribute of submit button.|optional|'submit'}}
+{{Parameter|class_submit|string|value of the <code>class</code> attribute of submit button.|optional|'submit'}}
+{{Parameter|title_reply|string|The title of comment form (when not replying to a comment, see [[Function_Reference/comment_form_title|comment_form_title]]).|optional|[[Function Reference/_2|__]]( 'Leave a Reply' )}}
+{{Parameter|title_reply_to|string|The title of comment form (when replying to a comment, see [[Function_Reference/comment_form_title|comment_form_title]]).|optional|[[Function Reference/_2|__]]( 'Leave a Reply to %s' )}}
+
+{{Parameter|title_reply_before|string|Text or HTML to be displayed before the reply title.|optional|<pre>'<h3 id="reply-title" class="comment-reply-title">'</pre>}}
+
+{{Parameter|title_reply_after|string|Text or HTML to be displayed after the reply title.|optional|<pre>'</h3>'</pre>}}
+
+{{Parameter|cancel_reply_before|string|Text or HTML to be displayed before the cancel reply link.|optional|<pre>'<small>'</pre>}}
+
+{{Parameter|cancel_reply_after|string|Text or HTML to be displayed after the cancel reply link.|optional|<pre>'</small>'</pre>}}
+
+{{Parameter|cancel_reply_link|string|link label to cancel reply.|optional|[[Function Reference/_2|__]]( 'Cancel reply' )}}
+{{Parameter|label_submit|string|the name of submit button.|optional|[[Function Reference/_2|__]]( 'Post Comment' )}}
+
+=== $fields ===
+
+Default form fields:
+<pre>
+$fields =  array(
+
+  'author' =>
+    '<p class="comment-form-author"><label for="author">' . __( 'Name', 'domainreference' ) .
+    ( $req ? '<span class="required">*</span>' : '' ) . '</label>' .
+    '<input id="author" name="author" type="text" value="' . esc_attr( $commenter['comment_author'] ) .
+    '" size="30"' . $aria_req . ' /></p>',
+
+  'email' =>
+    '<p class="comment-form-email"><label for="email">' . __( 'Email', 'domainreference' ) .
+    ( $req ? '<span class="required">*</span>' : '' ) . '</label>' .
+    '<input id="email" name="email" type="text" value="' . esc_attr(  $commenter['comment_author_email'] ) .
+    '" size="30"' . $aria_req . ' /></p>',
+
+  'url' =>
+    '<p class="comment-form-url"><label for="url">' . __( 'Website', 'domainreference' ) . '</label>' .
+    '<input id="url" name="url" type="text" value="' . esc_attr( $commenter['comment_author_url'] ) .
+    '" size="30" /></p>',
+);
+</pre>
+
+As of 4.9.6, if "Show comments cookies opt-in checkbox." is checked in Discussion Settings, a cookie consent checkbox will be added to the array:
+
+<pre>
+$fields['cookies'] =  '<p class="comment-form-cookies-consent"><input id="wp-comment-cookies-consent" name="wp-comment-cookies-consent" type="checkbox" value="yes"' . $consent . ' />' . '<label for="wp-comment-cookies-consent">' . __( 'Save my name, email, and website in this browser for the next time I comment.' ) . '</label></p>';
+</pre>
+
+Note: To use the variables present in the above code in a custom callback function, you must first set these variables within your callback using:
+
+<pre>
+$commenter = wp_get_current_commenter();
+$req = get_option( 'require_name_email' );
+$aria_req = ( $req ? " aria-required='true'" : '' );
+
+$consent = empty( $commenter['comment_author_email'] ) ? '' : ' checked="checked"';
+</pre>
+
+=== Default $args array ===
+<code><pre>
+$args = array(
+  'id_form'           => 'commentform',
+  'class_form'      => 'comment-form',
+  'id_submit'         => 'submit',
+  'class_submit'      => 'submit',
+  'name_submit'       => 'submit',
+  'title_reply'       => __( 'Leave a Reply' ),
+  'title_reply_to'    => __( 'Leave a Reply to %s' ),
+  'cancel_reply_link' => __( 'Cancel Reply' ),
+  'label_submit'      => __( 'Post Comment' ),
+  'format'            => 'xhtml',
+
+  'comment_field' =>  '<p class="comment-form-comment"><label for="comment">' . _x( 'Comment', 'noun' ) .
+    '</label><textarea id="comment" name="comment" cols="45" rows="8" aria-required="true">' .
+    '</textarea></p>',
+
+  'must_log_in' => '<p class="must-log-in">' .
+    sprintf(
+      __( 'You must be <a href="%s">logged in</a> to post a comment.' ),
+      wp_login_url( apply_filters( 'the_permalink', get_permalink() ) )
+    ) . '</p>',
+
+  'logged_in_as' => '<p class="logged-in-as">' .
+    sprintf(
+    __( 'Logged in as <a href="%1$s">%2$s</a>. <a href="%3$s" title="Log out of this account">Log out?</a>' ),
+      admin_url( 'profile.php' ),
+      $user_identity,
+      wp_logout_url( apply_filters( 'the_permalink', get_permalink( ) ) )
+    ) . '</p>',
+
+  'comment_notes_before' => '<p class="comment-notes">' .
+    __( 'Your email address will not be published.' ) . ( $req ? $required_text : '' ) .
+    '</p>',
+
+  'comment_notes_after' => '<p class="form-allowed-tags">' .
+    sprintf(
+      __( 'You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes: %s' ),
+      ' <code>' . allowed_tags() . '</code>'
+    ) . '</p>',
+
+  'fields' => apply_filters( 'comment_form_default_fields', $fields ),
+);
+</pre></code>
+
+== Return ==
+void
+
+== Examples ==
+Simple example how to change some comment form fields.
+<pre>
+$comments_args = array(
+        // change the title of send button 
+        'label_submit'=>'Send',
+        // change the title of the reply section
+        'title_reply'=>'Write a Reply or Comment',
+        // remove "Text or HTML to be displayed after the set of comment fields"
+        'comment_notes_after' => '',
+        // redefine your own textarea (the comment body)
+        'comment_field' => '<p class="comment-form-comment"><label for="comment">' . _x( 'Comment', 'noun' ) . '</label><br /><textarea id="comment" name="comment" aria-required="true"></textarea></p>',
+);
+
+comment_form($comments_args);
+</pre>
+
+== Uses filter hooks ==
+* [[Plugin API/Filter Reference/comment_form_default_fields|comment_form_default_fields]]
+* [[Plugin API/Filter Reference/the_permalink|the_permalink]]
+* [[Plugin API/Filter Reference/comment_form_defaults|comment_form_defaults]]
+* [[Plugin API/Filter Reference/comment_form_logged_in|comment_form_logged_in]]
+* [[Plugin API/Filter Reference/comment_form_field_$name|comment_form_field_{$name}]]
+* [[Plugin API/Filter Reference/comment_form_field_comment|comment_form_field_comment]]
+
+== Pluggable actions ==
+* [[Plugin_API/Action_Reference/comment_form_before|comment_form_before]]
+* [[Plugin_API/Action_Reference/comment_form_must_log_in_after|comment_form_must_log_in_after]]
+* [[Plugin_API/Action_Reference/comment_form_top|comment_form_top]]
+* [[Plugin_API/Action_Reference/comment_form_logged_in_after|comment_form_logged_in_after]]
+* [[Plugin_API/Action_Reference/comment_form_before_fields|comment_form_before_fields]]
+* [[Plugin_API/Action_Reference/comment_form_after_fields|comment_form_after_fields]]
+* [[Plugin API/Action Reference/comment_form|comment_form]]
+* [[Plugin API/Action Reference/comment_form_after|comment_form_after]]
+* [[Plugin_API/Action_Reference/comment_form_comments_closed|comment_form_comments_closed]]
+
+== Changelog ==
+
+* Since [[Version 3.0|3.0.0]]
+
+== Source Code ==
+
+<code>comment_form()</code> is located in {{Trac|wp-includes/comment-template.php|tags/{{CurrentVersion}}|2108}}.
+
+== Related ==
+
+[[Function_Reference/comments_template|comments_template()]]
+
+{{Comments Tags}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]
+[[Category:New page created]]

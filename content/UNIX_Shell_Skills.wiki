@@ -1,0 +1,294 @@
+{{Languages|
+{{en|UNIX_Shell_Skills}}
+{{zh-cn|UNIX_Shell_技巧}}
+}}
+
+<div style="border:blue 1px solid; background:#E5F2FF; text-align:center; margin:5px; padding:10px">'''Note''': This article covers an advanced topic.</div>
+
+
+__TOC__
+If you have recently moved to [[WordPress]] from a hosted blogging solution like Blogger or TypePad, you may be unfamiliar with the tasks of managing a webspace as well as a blog.  WordPress is based on [[Glossary#PHP|PHP]]; many [[Hosting WordPress|hosting services]] use servers running Linux and Apache; many web hosts offer not only web-based [[Wikipedia:Control panel|control interfaces]] to their customers but also [[Wikipedia:Operating system shell|shell access]] or [[Wikipedia:Command line interface|command-line interfaces]]. Many WordPress users may not be familiar with using the [[Wikipedia:Operating system shell|shell]] to manage their file systems. This article explains the more commonly-used UNIX commands and demonstrates how a routine administrative task, namely a minor WordPress upgrade, is carried out in the shell.
+
+=== wp-cli ===
+[http://wp-cli.org/ wp-cli] is "a command line interface for WordPress". It's a great tool that can save you a lot of time if you know more about using shells.
+
+=== The bash shell ===
+
+The shell offered by your web host is likely to be [[Wikipedia:Bash|bash]], which stands for "Bourne Again Shell" after [[Wikipedia:Stephen_Bourne|Stephen Bourne]] who wrote the [[Wikipedia:Bourne_shell|original modern Unix shell]].  [[Wikipedia:Bash|bash]] is distributed by the [http://www.gnu.org/ Free Software Foundation]. There are a number of different Unix shells. The commands briefly described below apply to almost all of them.
+
+=== ssh, the secure shell ===
+
+The [[Wikipedia:Secure Shell|Secure Shell]] (ssh) is a complete set of tools for remote administration of your website. It includes [[Wikipedia:SSH_file_transfer_protocol|SFTP]] (Secure File Transfer Protocol) for the uploading of files to your host. The main benefit of using [[Wikipedia:Secure Shell|ssh]] to interface with a remote server is increased security. With other server access tools, your login password may be transferred over the Internet in plain text, which may be intercepted.
+
+'''To use [[Wikipedia:Secure Shell|ssh]] under Windows''', use [http://www.chiark.greenend.org.uk/~sgtatham/putty/ PuTTY] or [http://www.cygwin.com/ Cygwin], a UNIX-like environment for Windows. The [http://filezilla.sourceforge.net FileZilla] [[FTP Clients|ftp client]] also supports sftp via ssh-2.
+
+'''To use [[Wikipedia:Secure Shell|ssh]] on a Mac running OS X''', use the Terminal-based SSH program supplied with Mac OS X or download [http://rsug.itd.umich.edu/software/fugu/ Fugu].
+
+'''On Linux or UNIX-based operating systems''', you can use the text-based SSH and SFTP clients from terminals such as Konsole, Gnome Terminal or xterm. Graphical FTP clients such as [http://kbear.sourceforge.net/ KBear] and [http://gftp.seul.org/ gFTP] also support [[Wikipedia:SSH_file_transfer_protocol|sftp]].
+
+Your hosting company will provide the username and host details  (the "shell account") necessary to use these. They may be different from the ones you use with your control panel. To use, at the Terminal prompt type <pre>ssh username@host</pre> or <pre>sftp username@host</pre>
+
+If the SSH server you're connecting to is running on a non standard port, use the <strong> -p </strong> argument, followed by the port number. So, for example, if the remote server SSH was running on port 1000 you would type <pre> ssh username@host -p 1000 </pre>
+
+To use sftp to connect to a remote server on a non-standard port use the <strong> -oPort=</strong> argument. So, for example, to connect to a remote server using sftp on port 1000 you would type <pre>sftp -oPort=1000 user@host</pre>
+
+== Terminology ==
+
+Before we get started with some UNIX commands, let's review some terminology.  
+
+;'''Directories? Folders?''' 
+:A Directory is the same thing as a folder. Directories can contain subdirectories.
+* A dot (period or full stop) refers to the current directory; two dots represent the directory above the current directory.  
+* The tilde character (~) refers to your home directory.
+* The tilde followed by a user's name (as in <tt style="font-weight:bold; color:#036">~username</tt>) refers to that user's home directory.
+:Both the dot symbols and the tilde can be treated as directory names.  For example, <tt style="font-weight:bold; color:#036">../config.php</tt> refers to the file <tt style="font-weight:bold; color:#036">config.php</tt> in the directory above the current one. The directory <tt style="font-weight:bold; color:#036">./functions.php</tt> refers to <tt style="font-weight:bold; color:#036">functions.php</tt> in the current directory. And <tt style="font-weight:bold; color:#036">~/public_html</tt> or <tt style="font-weight:bold; color:#036">~/htdocs</tt> are (usually) the names of your main web directory, which is likely to be a subdirectory of your home directory. The domain [[Glossary#URI|URI]] shown in your web browser's address bar refers to the main web directory, not to the site owner's home directory.
+
+;'''The forward slash (/)''' 
+:The forward slash fulfils the same role it does in a website URI: it shows the item after to be in a subdirectory or the directory before it. A forward slash on its own refers to the root directory, which is at the <em>top</em> of the file system.
+
+;'''Directory Name Character Rules and Spaces''' 
+:A file or directory name can contain any standard character except a forward slash &mdash; including white spaces. However, when entering shell commands, you separate commands, parameters, and files with spaces. If you have a space in a file or directory name, you need to use a backslash in front of it or put quotation marks round the name.  A directory called <tt style="font-weight:bold; color:#036">My Pictures</tt> would be entered as <pre>"My Pictures"</pre> or as <pre>My\ Pictures</pre>
+
+
+'''The * and ? Symbols''': The <tt style="font-weight:bold; color:#036">*</tt> and <tt style="font-weight:bold; color:#036">?</tt> symbols are called [[Wikipedia:Wildcard_character|wildcards]] and can be used in any command which deals with files.  The <tt style="font-weight:bold; color:#036">*</tt> represents any number of characters. The <tt style="font-weight:bold; color:#036">?</tt> represents just one. Note that Linux filenames are case-sensitive &mdash; the norm is lowercase.  All commands are lowercase.<br /><br />
+
+
+'''Command Options''': Commands usually accept options or parameters, which are given in a sequence beginning with a hyphen (-). If you would want to set options <tt style="font-weight:bold; color:#036">b</tt>, <tt style="font-weight:bold; color:#036">r</tt> and <tt style="font-weight:bold; color:#036">f</tt> for a command, type <pre>command -brf</pre> Other specifications, like file names, go after the options.
+
+
+== Shell Commands ==
+
+Here's a brief introduction to some useful UNIX shell commands.
+
+
+=== ls ===
+
+This command displays a listing of a directory's contents. Unmodified, the command displays the contents of the current directory; you can also specify another directory's content to list. Some useful options are:
+
+* <tt style="font-weight:bold; color:#036">ls -l</tt>
+:If the list is long, you can display the list in pages. To do this, type <pre>ls -l |less</pre> 
+: (Note: The vertical bar <tt style="font-weight:bold; color:#036">|</tt> is also known as a UNIX ''pipe''). The pipe bar means that the output from <tt style="font-weight:bold; color:#036">ls -l</tt> is submitted to the program <tt style="font-weight:bold; color:#036">less</tt>, which displays pages of whatever input it receives. You can press space to view the next page, or the arrow keys to go up and down.  
+
+* <tt style="font-weight:bold; color:#036">ls -la</tt>
+:Includes hidden files (i.e. files that begin with a dot, like [[Glossary#.htaccess|.htaccess]])in the directory listing.
+
+* <tt style="font-weight:bold; color:#036">ls -l g*</tt>
+:Specifies any other directory or file group to list after the options, and in this example would list all the files beginning with g, while <tt style="font-weight:bold; color:#036">ls public_html</tt> would list the contents of public_html.
+
+
+
+=== cd ===
+
+The <tt style="font-weight:bold; color:#036">cd</tt> command changes the current directory. To switch from the current directory into a sub-directory, put the sub-directory's name after the command. To change into a sub-directory <tt style="font-weight:bold; color:#036">wp-content</tt>, you'd type
+<pre>
+cd wp-content
+</pre>
+
+To move up into the directory above the current directory, type
+
+<pre>
+cd ..
+</pre>
+
+To change from the current directory to your home directory, type
+
+<pre>
+cd
+</pre>
+
+
+=== mkdir ===
+
+The <tt style="font-weight:bold; color:#036">mkdir</tt> command creates a new directory inside the current one. To create a directory named <tt style="font-weight:bold; color:#036">audio</tt> inside the current directory, type
+<pre>
+mkdir audio
+</pre>
+
+To remove an empty directory, type <tt style="font-weight:bold; color:#036">rmdir directoryname</tt> for example:
+<pre>
+rmdir audio
+</pre>
+
+If you want to create a directory, and one or more sub-directories within it, with a single command you can use the <tt style="font-weight:bold; color:#036>'-p'</tt> argument with the <tt style="font-weight:bold; color:#036>mkdir</tt> command. 
+
+For example, to create the directory 'maindir' and 3 sub-directories named 'sub1', 'sub2' and 'sub3' within it use the following command:
+
+<pre>
+mkdir -p maindir/sub1 maindir/sub2 maindir/sub3
+</pre>
+
+=== rm ===
+
+The <tt style="font-weight:bold; color:#036">rm</tt> command deletes ('removes') a file, a group of files, or a directory. When using this command, use extreme caution, as once you remove the file there is no good or consistent way to recover it.
+
+To remove a single file use:
+
+ <tt style="font-weight:bold; color:#036">rm filename</tt>
+
+You can remove multiple files by naming them one after another on the line:
+
+ <tt style="font-weight:bold; color:#036">rm filename.php filename.html</tt>
+
+You can also a group of files that have similar names with the use of a well place '*', and it will prompt you to type 'yes' to confirm each deletion:
+
+ <tt style="font-weight:bold; color:#036">rm filename*</tt>
+
+To remove files without it prompting for confirmation, use the '-f' flag:
+
+ <tt style="font-weight:bold; color:#036">rm -f filename*</tt>
+
+To remove an entire directory and its contents in one go, type:
+
+ <tt style="font-weight:bold; color:#036">rm -rf /path/to/directoryname</tt>. 
+
+Beware &mdash; once something is removed in this way, it is gone forever. 
+
+=== exit ===
+
+The <tt style="font-weight:bold; color:#036">exit</tt> command ends your shell session.
+
+
+=== mv ===
+
+The <tt style="font-weight:bold; color:#036">mv</tt> command moves files from one place to a another; it is also used to rename files. Type 
+<pre>mv file new-location</pre>  
+If the <tt style="font-weight:bold; color:#036">new-location</tt> parameter is a (valid) directory in the current filesystem, the file is moved into that directory; if it isn't (and if it doesn't clash with an existing filename), the <tt style="font-weight:bold; color:#036">file</tt> will be renamed as <tt style="font-weight:bold; color:#036">new-location</tt>. You can also move and rename a file with one command:
+<pre>mv file ~/path/to/new-file-name</pre>
+
+
+=== cp ===
+
+The <tt style="font-weight:bold; color:#036">cp</tt> command copies files or directories.  To copy a directory and its entire contents, use
+
+<pre>cp -rf source-file destination</pre>
+
+
+=== ln ===
+
+The <tt style="font-weight:bold; color:#036">ln</tt> command creates links. The links relevant to our purposes are "symbolic links" or ''symlinks'' &mdash; files which "point" to other files or directories in the filesystem. When you access a symlink, you are actually accessing the original file. If you want to change the location of your WordPress directory from, say, <tt style="font-weight:bold; color:#036">/wordpress/</tt> to <tt style="font-weight:bold; color:#036">/blog/</tt>, you could create a symlink as follows:
+<pre>ln -s wordpress blog</pre>
+Access will then be through either the file or directory's actual name &mdash; <tt style="font-weight:bold; color:#036">wordpress</tt> &mdash; or through the link name &mdash; <tt style="font-weight:bold; color:#036">blog</tt>. In the [[Administration_Panels#Options_-_Configuration_Settings|Options]] panel in the Wordpress [[Administration Panels]], set the "Blog address (URI)" field to show the symlink rather than the name of the directory.
+
+
+=== tar and unzip ===
+
+The <tt style="font-weight:bold; color:#036">tar</tt> and <tt style="font-weight:bold; color:#036">unzip</tt> commands are used to compress and decompress "archive" files. Archives are files or folders that have been "compressed" &mdash; i.e. reduced in file-size &mdash; and are commonly used for distribution and backup purposes. The <tt style="font-weight:bold; color:#036">unzip</tt> command is used for files ending with <tt style="font-weight:bold; color:#036">.zip</tt>; the <tt style="font-weight:bold; color:#036">tar</tt> command is used for files ending with <tt style="font-weight:bold; color:#036">.tgz</tt> or <tt style="font-weight:bold; color:#036">.tar.gz</tt>. 
+
+'''Unzipping files''': If the file is a <tt style="font-weight:bold; color:#036">.tar.gz</tt> archive, type <pre>tar -zxvf file.tar.gz</pre> 
+If it's a <tt style="font-weight:bold; color:#036">zip</tt> archive, you may need to create a temporary directory into which you'd unzip its contents (its files might be unzipped into the current directory otherwise).
+
+If the file is a <tt style="font-weight:bold; color:#036">.tar.bz2</tt> (bzip2) archive, use the following command to extract its contents <pre> tar -xjvf file.tar.bz2 </pre>
+
+=== chmod and file permissions ===
+
+The <tt style="font-weight:bold; color:#036">chmod</tt> command changes the permissions on a given file. UNIX file permissions specify who can do what with a given file. The <tt style="font-weight:bold; color:#036">ls -l</tt> command will tell you what permissions a file or directory has:
+
+<pre style="font-size: 0.82em">
+ -rw-r--r--      1 domain60 vweb     840   Feb 21 06:38 wp-config-sample.php
+ -rw-r--r--      1 domain60 vweb     826   Jun 29 20:31 wp-config.php
+ drwxr-xr-x      4 domain60 vweb     4096  Jun 29 20:30 wp-content
+ -rw-r--r--      1 domain60 vweb     762   Mar 29 16:05 wp-feed.php
+ drwxr-xr-x      3 domain60 vweb     4096  Jun 29 18:46 wp-images
+ drwxr-xr-x      2 domain60 vweb     4096  Jun 29 18:46 wp-includes
+</pre>
+
+The permissions are displayed in the string of letters in the first column. The very first letter of that column indicates whether it is a file, a link, or a directory.  A <tt style="font-weight:bold; color:#036">d</tt> denotes a directory, a <tt style="font-weight:bold; color:#036">l</tt> denotes a link, a hyphen denotes a file.
+
+The permissions are declared with the following nine letters, which are shown in groups of three.  The first group of three concerns the owner, the second the group he belongs to (this is unlikely to concern you as a web host user), and the third concerns everyone else.  Note that people with root access (administrators) have access to all files on the system.
+
+The letters <tt style="font-weight:bold; color:#036">r</tt>, <tt style="font-weight:bold; color:#036">w</tt> and <tt style="font-weight:bold; color:#036">x</tt> stand for read, write and execute; if the file is a directory, executable means traversible, that is, that you can move into that directory with the <tt style="font-weight:bold; color:#036">cd</tt> command. Where a hyphen is shown in the permissions list, the permission is absent.
+
+You change permissions with the <tt style="font-weight:bold; color:#036">chmod</tt> command. You may, in fact, not have to change the permissions at all; some hosts automatically set certain permissions on any file in the web directory. Your host may also tell you what permissions need to be set on your server.
+
+The <tt style="font-weight:bold; color:#036">chmod</tt> command can be used to set permissions in two ways: with letters or with numbers. If you use letters, you could type <pre>chmod o+w filename</pre>  
+This grants write privileges to everyone with access to the system. The first letter can be u (user), g (group) or o (other), or a combination; the + (grant) can also be - (withhold), and the third can also be r or x (read or execute).
+
+If you use numbers, all permissions for a file are set in one go. An example: 
+<pre>chmod 755 wp-images</pre> 
+sets the permssions of the <tt style="font-weight:bold; color:#036">wp-images</tt> directory to 755, whereby the first number (the "hundreds") is for the user, the second (the "tens") is for the group and the third (the "units") is for everyone else.
+
+'''More about numerical permissions settings:''' To add 4 in any of the fields grants read privileges; to add 2 grants write and to add 1 grants executability; each combination has a unique number. The directories in the example above have the permission set 755, which is common for web-available directories, in which the user has full privileges while others have read and execute only; the files in the example have the permission set 644, in which the user can read and write while others can only read.
+
+<pre style="font-size: 0.9em">
+   6  4  4
+  420400400
+ -rw-r--r--  1 domain60 vweb  840  Feb 21 06:38 wp-config-sample.php
+
+   7  5  5
+  421401401
+ drwxr-xr-x  2 domain60 vweb  4096 Jun 29 18:46 wp-includes
+</pre>
+
+
+=== wget ===
+
+
+The <tt style="font-weight:bold; color:#036">wget</tt> command downloads a file if you put a web location (URI) after it. To download the latest WordPress release type <pre>wget http://wordpress.org/latest.tar.gz</pre>
+
+=== GNU screen ===
+
+The <tt style="font-weight:bold; color:#036">screen</tt> command allows you run multiple console-based applications with in a single Terminal session. If GNU screen is installed on your server, you can use the following command to start it:
+<pre>screen</pre>
+When <tt style="font-weight:bold; color:#036"> screen </tt> starts, a welcome message should be displayed. Just press <strong>Return</strong> to get rid of this message and you should now see a shell prompt. This will be the first session window and is numbered <strong>0</strong>. Each subsequent new session you open will be given a number, starting from 1 for the second session window. 
+
+To create a new session window press <strong>CTRL-a </strong> then <strong> C </strong> 
+
+To switch between currently open session windows press: <strong>CTRL-a </strong> followed by the number corresponing to the session window you want to access.
+
+To get a list of all the session windows that are currently open press: <strong>CTRL-a</strong>
+
+To exit <tt style="font-weight:bold; color:#036">screen</tt> altogether, stop all running programs and type <strong> exit </strong> at the shell prompts in <strong>all the session windows you have opened (including window '0')</strong>. <tt style="font-weight:bold; color:#036">screen</tt> will terminate when there are no more programs running in any open session windows.
+
+== Upgrading WordPress from the Shell ==
+
+Let's use the example of upgrading WordPress using the command line. First, establish the location of your WordPress on your web server's filesystem. This example assumes it is located at <tt style="font-weight:bold; color:#036">~/public_html/blog</tt>.
+
+<ol>
+<li>Download the current version of WordPress to your shell account's home directory and unzip it: <pre>wget http://wordpress.org/latest.tar.gz
+tar -zxvf latest.tar.gz</pre>
+The WordPress archive will be unpacked into a new directory named <tt style="font-weight:bold; color:#036">/wordpress</tt>.</li>
+<li>Enter the new directory with the following command: <pre>cd wordpress</pre></li>
+<li>Remove <tt style="font-weight:bold; color:#036">wp-config-sample.php</tt>: <pre>rm wp-config-sample.php</pre> (We will use our current <tt style="font-weight:bold; color:#036">wp-config.php</tt> instead)</li>
+<li>Remove the entire <tt style="font-weight:bold; color:#036">/wp-content</tt> directory from the new directory (we will replace it with the one from our WordPress blog directory): <pre>rm -rf wp-content</pre></li>
+<li>Copy the blog's <tt style="font-weight:bold; color:#036">wp-config.php</tt> and <tt style="font-weight:bold; color:#036">.htaccess</tt> file to the new directory: <pre>cp ~/public_html/blog/wp-config.php .
+cp ~/public_html/blog/.htaccess .</pre> Note: Don't forget the dot at the end of both commands!</li>
+<li>Copy the <tt style="font-weight:bold; color:#036">wp-content</tt> directory to the new directory (it contains all our themes and plugins): <pre>cp -rf ~/public_html/blog/wp-content/ .</pre> Again, note the dot at the end of the command.</li>
+<li>Remove the entire contents of your WordPress blog directory: <pre>rm -rf ~/public_html/blog/*</pre></li>
+<li>Finally, copy the entire contents of the new directory to your main blog directory: <pre>cp -rf * ~/public_html/blog</pre></li>
+</ol>
+
+== SFTP Shell Commands ==
+
+SFTP stands for Secure File Transfer Protocol.  It is an encrypted replacement for FTP, and as with FTP, you may use a shell-based client or one of the graphical clients mentioned at the top of this article. If your host supports SSH, it also supports SFTP.
+
+
+=== Shell-identical commands ===
+
+Shell-type SFTP clients support commands similar to those used in bash.  These include <tt style="font-weight:bold; color:#036">cd</tt>, <tt style="font-weight:bold; color:#036">ls</tt>, <tt style="font-weight:bold; color:#036">mkdir</tt>, <tt style="font-weight:bold; color:#036">rm</tt> and <tt style="font-weight:bold; color:#036">rmdir</tt>. It also supports <tt style="font-weight:bold; color:#036">ln</tt>, with the difference that you do not need to use the <tt style="font-weight:bold; color:#036">-s</tt> option to create symlinks; in sftp, the <tt style="font-weight:bold; color:#036">ln</tt> command makes symlinks by default. All of these work on files on your host's system.
+
+
+=== put and mput ===
+
+These two commands transfer to your host (i.e. upload) a single file (<tt style="font-weight:bold; color:#036">put</tt>) or any files that match the pattern you supply (<tt style="font-weight:bold; color:#036">mput</tt>); the wildcards <tt style="font-weight:bold; color:#036">*</tt> and <tt style="font-weight:bold; color:#036">?</tt> described above can be used here.
+
+
+=== get and mget ===
+
+These two commands transfer from your host to your local computer (i.e. download) a single file (<tt style="font-weight:bold; color:#036">get</tt>) or any files that match the supplied pattern (<tt style="font-weight:bold; color:#036">mget</tt>).  As with <tt style="font-weight:bold; color:#036">mput</tt>, <tt style="font-weight:bold; color:#036">*</tt> and <tt style="font-weight:bold; color:#036">?</tt> can be used.
+
+
+=== cd, mkdir, ls ===
+
+These commands are identical to their bash shell counterparts: change the current directory, make a new directory, and list the contents of the current directory. To do the same things within SFTP on your own machine, add an <tt style="font-weight:bold; color:#036">l</tt> to the front of the commands: <tt style="font-weight:bold; color:#036">lcd</tt>, <tt style="font-weight:bold; color:#036">lmkdir</tt>, <tt style="font-weight:bold; color:#036">lls</tt>.
+
+
+
+== See also ==
+
+[[Changing File Permissions]]
+
+[[htaccess for subdirectories]]
+
+
+[[Category:Advanced Topics]]
+{{Copyedit}}

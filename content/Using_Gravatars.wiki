@@ -1,0 +1,139 @@
+{{Languages|
+{{en|Using Gravatars}}
+{{ja|Gravatar の使い方}}
+{{pt-br|Usando o Gravatar}}
+{{zh-tw|使用Gravatar}}
+}}
+
+Gravatars are '''Globally Recognized Avatars'''.  Integrated into WordPress, Gravatars are an avatar or gravatar is an icon, or representation, of a user in a shared virtual reality, such as a forum, chat, website, or any other form of online community in which the user(s) wish to have something to distinguish themselves from other users. 
+
+[[Image:gravatars-in-comments.png|frame|right|Gravatars in blog post comments]]Created by Tom Werner, gravatars make it possible for a person to have one avatar across the entire web. Avatars are usually an 80px by 80px image that the user will create themselves.  
+
+A Gravatar is essentially the same thing, but they are all hosted on a single server and are called up by encrypting the users' email address via the MD5 algorithm.  So instead of having one avatar on one forum you visit, and another at a blog you visit, you could have the same avatar at both.
+
+Gravatars are now integrated into WordPress. The following is a historical reference for Gravatars in WordPress. For information on how to use and customize gravatars, see [[How to Use Gravatars in WordPress]].
+
+==How a Gravatar is Constructed==
+A Gravatar is a dynamic image resource that is requested from a server. The request URL is presented here, broken into its segments. The URL always begins with:
+
+ <nowiki>http://www.gravatar.com/avatar/</nowiki>
+
+The next part is a hashed version of the user's email address. The email address MUST be lower-cased first, then have all whitespace removed, before md5 hashing it.
+
+ 279aa12c3326f87c460aa4f31d18a065
+
+An optional <tt>rating</tt> (or <tt>r</tt>) parameter may follow with a value of <tt>[ G | PG | R | X ]</tt> which determines the highest rating (inclusive) that will be returned.
+
+ ?r=R
+
+An optional <tt>size</tt> (or <tt>s</tt>) parameter may follow that specifies the desired width and height of the Gravatar. Valid values are from 1 to 512 inclusive. Any size other than 80 will cause the original Gravatar image to be resampled using bicubic resampling before output.
+
+ &s=120
+
+An optional <tt>default</tt> (or <tt>d</tt>) parameter may follow that specifies the full [[Glossary#URL|URL]], encoded URL, protocol included, of a GIF, JPEG, or PNG image that should be returned if either the requested email address has no associated gravatar, or that Gravatar has a rating higher than is allowed by the <tt>rating</tt> parameter. It may also contain one of the following options:
+
+* '404' (return a 404)
+* 'mm' (mysteryman)
+* 'identicon' (unique, generated image)
+* 'monsterid' (unique, generated image)
+* 'wavatar' (unique, generated image)
+
+ &d=http%3A%2F%2Fwww.somesite.com%2Fsomeimage.jpg
+
+== Gravatars in WordPress ==
+[[Image:gravatarCWE.gif|frame|right|An example of a Gravatar]]As of WordPress 2.5, Gravatars are built-in and require no additional Plugins for basic usage and management.
+
+WordPress 2.5 marries theme authors and casual WordPress users together with support for Gravatars in the WordPress Administration Panels. Theme authors have an option to include Gravatars in their designs, and are recommended to do so. WordPress users can easily control their Gravatar usage in the '''Settings > Discussion''' Administration Panel.
+
+WordPress users can change:
+* Whether Avatars (aka, Gravatars) are displayed or not.
+* Which rating of Avatars are shown.
+
+=== Theme Support for WordPress 2.5+ ===
+The function to add Gravatars to your theme is called: <code>[[Function_Reference/get_avatar|get_avatar]]</code>. The function returns a complete image HTML tag of the Avatar.
+
+The function is called as follows:
+   <nowiki><?php 
+   echo get_avatar( $id_or_email, $size = '96', $default = '<path_to_url>' ); 
+   ?></nowiki>
+
+The parameters are:
+* id_or_email '''(required)''': Author’s User ID (an integer or string), an E-mail Address (a string) or the comment object from the comment loop. ''Note: with most comment templates you can use <code>$comment</code> here, in order to display the gravatar of the commenter. In other templates within The Loop (for WordPress 2.7 and lower), you can use <code>get_the_author_id()</code> (deprecated in WordPress 2.8). For WordPress 2.8, please use <code>get_the_author_meta('user_email')</code>''.
+* size '''(optional)''': Avatar display size (max is 512).
+* default '''(optional)''': Absolute location of the default avatar to use (used when the person has no email address associated with them). If this is left blank then the gravatar you see [http://www.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536 here] will be used as the default avatar.
+
+Some things to note here:
+* The default Avatar size is 96x96 if you do not set the size using the size paramater.
+* The default Avatar is Gravatar
+* The Avatars will show only if the user allows them in the WP Admin Panel (enabled by default).
+* The Avatars will only show based on the rating the user has selected in the WordPress Administration Panels.
+
+Code output:
+
+The default output is when using the above function is listed below. Various classes are applied to img element to help you with element styling.
+
+<pre>
+<img alt='' src='http://gravatarurl_or_default'
+class='avatar avatar-$size' height='$size' width='$size' />
+</pre>
+
+If the gravatar reverts to the default image due to a lack of an e-mail address (i.e. a pingback or trackback), whether you have specified a default or not, the <code>img</code> element will also be given a CSS class of <code>avatar-default</code>.
+
+=== Backwards Compatibility ===
+
+If you wish to develop a WordPress Theme with Avatars for 2.5 and below, add a check for the Gravatar function to the code: 
+
+    <nowiki>if (function_exists('get_avatar')) {
+      echo get_avatar($email);
+   } else {
+      //alternate gravatar code for < 2.5
+      $grav_url = "http://www.gravatar.com/avatar/" . 
+         md5(strtolower($email)) . "?d=" . urlencode($default) . "&s=" . $size;
+      echo "<img src='$grav_url'/>";
+   }</nowiki>
+
+==Checking for the Existence of a Gravatar==
+If you request a Gravatar image and the email you request doesn't have an account in the Gravatar system it returns a default image to you. 
+
+In some cases this might not be what you want, instead, you might want to know whether you will get back a real gravatar or if it will just be the default.
+
+Example situations:
+* you want to show local avatars if the user has no gravatar
+* you want to warn users that they have no gravatar that they should sign up for one, but you don't want to bother users who are already signed up. 
+
+WARNING: You need to understand PHP to make use of the information below.
+
+The trick to do this is to specify "404" as the default. In this case, the gravatar service will return a 404 error if no gravatar exists, instead of returning some default image. A real image will get a 200 code. It is best to check for 200, as some other errors might be returned as well, for other cases.
+
+Here is an simple example validation function using HTTP headers. You will need to modify it for your needs:
+
+ function validate_gravatar($email) {
+ 	// Craft a potential url and test its headers
+ 	$hash = md5(strtolower(trim($email)));
+ 	$uri = 'http://www.gravatar.com/avatar/' . $hash . '?d=404';
+ 	$headers = @get_headers($uri);
+ 	if (!preg_match("|200|", $headers[0])) {
+ 		$has_valid_avatar = FALSE;
+ 	} else {
+ 		$has_valid_avatar = TRUE;
+ 	}
+ 	return $has_valid_avatar;
+ }
+
+A more full featured validation function that uses the [[HTTP API]] and [[Class_Reference/WP_Object_Cache|Object Cache]] can be found [https://gist.github.com/justinph/5197810 here].
+
+==Resources==
+
+* [http://www.gravatar.com/ Gravatar]
+* [[How to Use Gravatars in WordPress]]
+* [http://www.gravatar.com/implement.php Gravatars Implement Page]
+* [http://wpsites.net/wordpress-tips/how-to-get-the-url-to-a-gravatar-image/ Get The URL To a Gravatar Image]
+* [http://txfx.net/code/wordpress/gravatar-signup/ Gravatar Signup Plugin]
+* [http://weblogtoolscollection.com/archives/2008/03/03/gravatars-and-wordpress-25/ Gravatars & WordPress 2.5]
+* [http://www.themelab.com/2008/05/09/add-gravatar-support-to-your-wordpress-comments/ Add Gravatar Support to Your WordPress Comments]
+* [http://wordpress.org/support/topic/190660?replies=13 WP Forum post about checking for existence of Gravatars]
+
+==See Also==
+[[Function_Reference/get_avatar|get_avatar]]
+
+[[Category:Design and Layout]]

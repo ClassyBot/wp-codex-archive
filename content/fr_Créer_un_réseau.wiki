@@ -1,0 +1,131 @@
+{{French Header}}
+
+Depuis [[Version 3.0|WordPress 3.0]], vous avez la possibilité de créer un [[Glossary#Network|réseau]]  (en anglais) de [[Glossary#Site|sites]] (en anglais) en utilisant la fonctionnalité [[Glossary#Multisite|multisite]] (en anglais). Cet article contient les instructions pour créer un réseau multisite.
+
+Un réseau multisite est très similaires à votre propre version de WordPress.com. Les utilisateurs de votre réseau peuvent créer leurs propres sites à la demande, tout comme les utilisateurs finaux de WordPress.com peuvent créer des blogs à la demande. Si vous n'avez pas besoin de permettre aux utilisateurs finaux de créer leurs propres sites à la demande, vous pouvez créer un réseau multisite dans lequel seul vous, l'administrateur, peut ajouter de nouveaux sites.
+
+Un réseau multisite est une collection de sites qui partagent tous la même installation de WordPress. Ils peuvent également partager des extensions et des thèmes. Les différents sites du réseau sont des sites ''virtuels'' dans le sens où ils ne disposent pas de leurs propres répertoires sur votre serveur, même s'ils ont des répertoires distincts pour le téléchargement des médias au sein de l'installation partagée, ils ont des tables séparées dans la base de données.
+
+
+{{Note|Si vous utilisez actuellement [[WPMU|WordPress MU]], vous <strong>N'AVEZ PAS</strong> besoin de suivre ces étapes. Votre réseau est déjà activé. Une fois après être passé à la branche 3.x, vous serez invité à mettre à jour les règles de votre .htaccess pour le multisite. À partir de WordPress 3.1, vous devez mettre à jour ''manuellement'' WPMU. Vous ne pouvez plus utiliser l'outil de mise à jour automatique pour passer de WPMU à WordPress multisite.}}
+
+{{Note|[[Multisite_Network_Administration#Network_Admin_Link_Location|Impossible de trouver le menu administration du réseau après avoir fait la mise à jour.]]}}
+
+
+== Étape 0 : Avant de Commencer ==
+
+__TOC__
+
+Comparé à la normale, une installation unique de WordPress, il y a plus de choses à prendre en considération lorsque l'on créé un réseau. Vous devez décider si vous utilisez les sous-domaines ou les sous-répertoires pour votre installation et aussi comment vous allez les gérer. Le fonctionnement d'un réseau possède également quelques différences dans l'installation des thèmes et des extensions (chaque site peut individuellement les activer, mais pas les installer).
+
+Ce guide décrit comment installer manuellement WordPress multisite dans votre installation courante de WordPress. Il est également disponible dans [http://codex.wordpress.org/User:Beltranrubo/BitNami_Multisite ready-to-run packages] de BitNami (en anglais).
+
+<strong>Merci de lire [[Before You Create A Network|Avant de créer votre réseau]] dans son intégralité avant de continuer.</strong> (en anglais)
+
+== Étape 1 : Préparer Votre WordPress ==
+Votre site existant WordPress sera mis à jour de lors de la création d'un réseau. Sauf s'il s'agit d'une nouvelle installation et que vous n'avez rien à perdre, s'il vous plaît, faîtes une [[fr:WordPress_Backups| sauvegarde de votre base de données et de vos fichiers]].
+
+Désactivez également toutes les extensions actives. Vous pourrez les réactiver après la création du réseau.
+
+Si vous envisagez de faire fonctionner [[fr:Donner_à_WordPress_son_Propre_Dossier| WordPress en dehors de son propre répertoire]], faîtes cela <em>avant</em> l'activation du multisite.
+
+== Étape 2: Autoriser le Multisite ==
+Pour activer l'option Configuration du réseau dans le menu, vous devez d'abord définir le  multisite dans le fichier [[fr:Modifier_wp-config.php|<code>wp-config.php</code>]].
+
+Ouvrez le fichier <code>wp-config.php</code> ajoutez cette ligne '''au-dessus''' de celle disant :<code>/* C'est tout, ne touchez pas à ce qui suit ! Bon blogging ! */</code>. Si vous ne voyez pas cette phrase dans dans le fichier, alors ajoutez la ligne quelque part au-dessus de la première ligne qui commence par <code>require</code> ou <code>include</code> :
+
+ /* Multisite */
+ define('WP_ALLOW_MULTISITE', true);
+
+Vous avez besoin de rafraîchir votre navigateur pour continuer.
+
+== Étape 3 : Installer un Réseau ==
+L'étape précédente active les '''Réglages du réseau'''  dans votre menu. Utilisez cette entrée du menu pour accéder à la page '''Créer un réseau'''.
+
+[[Image:network-create.png|thumb|écran de réglage du réseau]]
+
+Pour voir un exemple de page de création d'un réseau de sites WordPress, jetez un œil dans [[Administration Screens|Tableau de bord]] > [[Administration Screens#Tools| Outils]] > [[Tools Network Screen|Réglages du réseau]] (en anglais). La page n'est pas toujours identique en fonction des circonstances. L'exemple présenté, repose sur une installation en <code>localhost</code>, ce qui restreint les options disponibles.
+
+''' Adresses des Sites Dans Votre Réseau '''
+
+Il vous est donné le choix entre les sous-domaines et les sous-répertoires, sauf lorsque la [[Before_You_Create_A_Network#WordPress_Settings_Requirements|configuration existante]] (en anglais) restreint votre choix.
+
+Vous devez choisir l'un ou l'autre. Vous pouvez reconfigurer votre réseau pour utiliser l'autre choix après l'installation, en dépit du conseil affiché, mais la reconfiguration ne sera pas facile.
+
+Vous avez juste besoin d'un DNS générique pour les sites à la demande basés sur le domaine, en dépit du conseil affiché.
+
+Encore une fois, regardez [http://codex.wordpress.org/Before_You_Create_A_Network Avant de créer un réseau] (en anglais).
+
+:* '''Sous-domaines''' &mdash; un réseau basé sur le domaine dans lequel les sites à la demande utilisent les sous-domaines.
+:* '''Sous-répertoires''' &mdash; un réseau basé sur le chemin dans lequel les sites à la demande utilisent les sous-répertoires.
+
+''' Détails du Réseau '''
+
+Ils sont automatiquement remplis, mais vous pouvez les modifier.
+:; Adresse du Serveur 
+:: L'URL du domaine que vous utilisez pour accéder à votre installation WordPress.
+:; Nom du réseau 	
+:: Le nom de votre réseau dans son ensemble.
+:; Adresse de contact de l’administrateur du réseau
+:: Votre adresse e-mail en tant que super-administrateur de votre réseau dans son ensemble.
+
+Faîtes une double vérification des paramètres puis appuyez sur le bouton '''Installer'''.
+
+'''Note:''' L'installateur peut effectuer une vérification des sous-domaines génériques lorsque vous ne les avez pas encore configuré, ou lorsque vous n'avez pas besoin du tout. Ignorez l'avertissement s'il ne s'applique pas à votre réseau. Voir la section [http://codex.wordpress.org/Before_You_Create_A_Network#Server_Requirements pré-requis du serveur] [[Before You Create A Network|Avant de créer un Réseau]] (en anglais) pour plus d'informations sur les sous-domaines génériques.
+
+== Étape 4 : Activer le Réseau ==
+[[Image:tools-network-created.png|thumb|Création du réseau terminée]]
+
+Pour activer votre réseau, suivez les instructions présentes sur la page de Création du réseau WordPress. Les instructions que vous voyez sont personnalisés pour votre installation. Ils pourraient être différents de ceux des exemples que vous voyez ici.
+
+Sauvegardez vos fichiers <code>wp-config.php</code> et <code>.htaccess</code> existant, sauf dans le cas d'une nouvelle installation et que vous n'avez rien à perdre.
+
+Il y a trois étapes :
+
+;1. Créez un répertoire pour le téléchargement de fichiers médias
+: Ce répertoire doit être [[fr:Modifier_les_Permissions_sur_les_Fichiers|accessible en écriture]] par le serveur Web, tout comme votre répertoire <code>wp-content</code>.
+
+;2. Ajouter les lignes spécifiées dans votre fichier [[fr:Modifier_wp-config.php|<code>wp-config.php</code> file]].
+: Les lignes supplémentaires vont juste après l'endroit où vous avez ajouté la ligne dans [[#Étape 1 : Préparer Votre WordPress|Étape 1 : Préparer Votre WordPress]].
+
+;3. Ajouter les lignes spécifiées dans votre fichier <code>.htaccess</code>.
+: Si vous n'avez pas de fichier <code>.htaccess</code>, alors créez-le dans le même répertoire que votre fichier <code>wp-config.php</code>.
+: Dans certains cas, vous pouvez également avoir à ajouter Options FollowSymLinks au début du fichier.
+
+Après avoir suivi ces étapes, connectez-vous à nouveau en utilisant le lien fourni. Vous pourriez avoir à vider la mémoire cache de votre navigateur et les cookies pour vous reconnecter.
+
+== Étape 5 : Paramètres d’Administration du Réseau ==
+
+[[Image:network-admin-link.png|left|Admin du réseau]]
+
+À gauche de votre barre d'outils WordPress, <b>Mes sites</b> est maintenant votre second élément. Là, tous vos sites y sont répertoriés, avec des menus déroulant pratiques tout comme l'entrée '''Admin du réseau'''. Sous '''Admin du réseau''' vous pouvez utiliser l'élément '''Tableau de bord''' pour aller dans le tableau de bord du réseau.
+
+Allez dans la page [[Network Admin#Settings|Réglages]] (en anglais) pour configurer les options de votre réseau, et la page [[Network Admin#Sites|Sites]] (en anglais) pour gérer vos sites.
+
+Pour plus d'informations voir : [[Network Admin]] (en anglais)
+
+[[File:icon_question.gif‎|alt=?]] [[Multisite_Network_Administration#Network Admin Link Location|Impossible de trouver le menu Admin du réseau après une mise à jour ?]] (en anglais)
+
+== Step 6 : Administration ==
+Il y a des informations supplémentaires que vous devrez connaître sur l'administration avancée du réseau, en raison de la complexité accrue d'un multisite. Même si vous êtes familier avec WordPress, l'emplacement et le comportement de l'administration du réseau multisite peut être déroutant.
+
+Lisez [[Multisite Network Administration]] pour plus d'informations.
+
+Pour vous aider en cas de problème :
+
+* [[Debugging a WordPress Network|Débogage d'un réseau WordPress]] (en anglais)
+* [[Migrating Multiple Blogs into WordPress 3.0 Multisite|Migrer plusieurs blogs dans un WordPress 3.0 multisite]] (en anglais)
+
+== Articles Complémentaires ==
+
+* [http://wordpress.org/extend/plugins/wordpress-mu-domain-mapping/ Mise en place domaines en utilisant l'extension Domain Mapping] (en anglais)
+* [http://lauragentry.com/blog/2010/07/30/how-to-create-a-wordpress-3-0-multisite-network-on-a-windows-server-using-sub-directories/ Obtenir la configuration sur les serveurs Windows] (en anglais)
+* [[fr:Heberger_WordPress|Héberger WordPress]]
+* [[Installing Multiple Blogs|Installer plusieurs blogs]] (en anglais)
+
+[[fr:Accueil|Retour Page d'accueil]]
+
+[[Category:fr:WPMS]]
+[[Category:fr:Network]]
+[[Category:fr:UI Link]]
+[[Category:fr:Hosting]]

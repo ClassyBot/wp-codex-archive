@@ -1,0 +1,90 @@
+{{Languages|
+{{en|Debugging in WordPress}}
+{{es|Depurar en WordPress}}
+{{hr|Ispitivanje kvarova u WordPressu}}
+{{it|Debug in WordPress}}
+{{pt-br|Depuração no WordPress}}
+}}
+
+Depurar código PHP forma parte de cualquier proyecto, pero WordPress viene equipado con sistemas de depuración específicos para simplificar el proceso también como parar estandarizar el código por todo el núcleo, plugins y temas. Esta página describe las varias herramientas de depuración de WordPress y cómo ser más productivo en tu programación tan bien como incrementar la calidad global y la interoperatividad de tu código. 
+
+{{Note|Dado que no es obligatorio rendir cuentas a <tt>WP_DEBUG</tt> en plugins y temas es '''altamente recomendado''' que los desarrolladores de plugins y temas usen el modo <tt>WP_DEBUG</tt> mientras que trabajen en el código que pretendan entregar públicamente. Si tu plugin o tema no es compatible entonces los errores, notificaciones y avisos que lanza harán imposible que otros desarrolladores usen tu plugin/tema mientras que tengan activo <tt>WP_DEBUG</tt> y tu tema no será nominable para su promoción vía las herramientas oficiales de [[Theme_Review#PHP.2C_JS.2C_CSS.2C_HTML|WordPress]].}}
+
+== WP_DEBUG ==
+
+[[WP_DEBUG]] es una constante de PHP (una variable global permanente) que al ser establecida como verdadera (true) activa el modo de "depuración" en WordPress. Su valor predeterminado es falso (false) y el archivo recomendado para establecer su valor es [[Editing_wp-config.php|wp-config.php]] (situado en la raíz del sitio) de alguna de las siguientes formas:
+
+ define('WP_DEBUG', true);
+ define('WP_DEBUG', false);
+
+No se recomienda utilizar <tt>WP_DEBUG</tt>, al igual que las demás herramientas de depuración, de forma permanente en sitios Web de producción (sitios Web accesibles al público) ya que estos errores, graves o no, serían mostrados en pantalla a todos los usuarios del sitio. Esto no es deseable. La finalidad de estas herramientas es la depuración de código en entornos de prueba previamente a la apertura del sitio al público.
+
+===Errores, avisos y noticias de PHP===
+El comportamiento por defecto de PHP es mostrar en pantalla solo los errores más graves, errores fatales, y/o enseñar una pantalla vacía cuando éstos ocurren. Sin embargo activar <tt>WP_DEBUG</tt> causará que todos los errores, avisos y noticias de PHP, fatales o leves, sean dirigidos a la salida HTML provocando el efecto antes mencionado.
+
+Mostrar todas los errores, avisos y noticias de PHP con frecuencia resulta en mostrar en pantalla mensajes de error que no son realmente graves. Estos errores pueden ser simplemente secuencias de código que no siguen las convenciones de validación de código de PHP pero que no por ello paralizan el funcionamiento del sistema. Estos avisos facilitan la identificación de estos fragmentos de código erróneo y colaboran en el proceso de depurar este código que una vez corregido será más resistente a fallos y fácil de mantener.
+
+===Funciones y argumentos descatalogados===
+Activar <tt>WP_DEBUG</tt> también causara avisos acerca de funciones descatalogadas y argumentos dentro de WordPress que están siendo usados en tu sitio. Éstas son funciones o argumentos que aún no han sido retirados del núcleo del código pero que están declarados para su borrado en un futuro próximo. Los avisos de descatalogación a menudo indican la nueva función que debería usarse en su lugar.
+
+== WP_DEBUG_LOG==
+
+<tt>WP_DEBUG_LOG</tt> es compañera de <tt>WP_DEBUG</tt> lo que causa que todos los errores sean también salvados a un fichero de registro <tt>debug.log</tt> dentro del directorio <tt>/wp-content/</tt>. Ésto es útil cuando quieres revisar todas las notificaciones más tarde o necesitas ver notificaciones generadas en diferido (p.ej. durante una petición [[AJAX_in_Plugins|AJAX]] o ejecución [[Function_Reference/wp_schedule_event|wp-cron]]). 
+
+ define('WP_DEBUG_LOG', true);
+
+==WP_DEBUG_DISPLAY==
+
+<tt>WP_DEBUG_DISPLAY</tt> es otra compañera de WP_DEBUG que controla si los mensajes de depuración se muestran dentro de las páginas HTML o no. Por defecto es 'cierto' lo cual muestra errores y avisos según se generan. Establecer ésta a falso esconderá todos los errores. Debería usarse conjuntamente con <tt>WP_DEBUG_LOG</tt> para que los errores puedan ser revisados luego. 
+
+ define('WP_DEBUG_DISPLAY', false);
+
+== SCRIPT_DEBUG==
+
+<tt>SCRIPT_DEBUG</tt> es una constante relacionada que forzará a WordPress a usar las versiones "dev" de los archivos centrales de CSS y Javascript en vez de las versiones minificadas que normalmente se cargan. Ésta es útil cuando estás comprobando modificaciones para cualquier fichero interno .js or .css . Su valor por defecto es false.
+
+ define('SCRIPT_DEBUG', true);
+
+== SAVEQUERIES==
+
+La definición <tt>SAVEQUERIES</tt> salva las consultas a la base de datos en un array y ese array puede ser mostrado para ayudar a analizar tales consultas. La constante definida como cierta causará que cada consulta sea guardada, cuánto tiempo tardó en ejecutarse, y que función la llamó.
+
+ define('SAVEQUERIES', true);
+
+El array se almacena en la global <tt>$wpdb->queries</tt>.
+
+NOTA: Ésto tendrá un impacto de rendimiento en tu sitio, así que asegúrate de apagarla cuando no estés depurando.
+
+== Ejemplo de wp-config.php para depuración ==
+El siguiente código, insertado en tu fichero [[Editing_wp-config.php|wp-config.php]] registrará todos los errores noticias y avisos a un fichero llamado debug.log en el directorio wp-content. También esconderá los errores para que no interrumpan la generación de página. 
+
+ <nowiki> // Activar modo WP_DEBUG
+define('WP_DEBUG', true);
+
+// Activar registro de depuración al fichero /wp-content/debug.log
+define('WP_DEBUG_LOG', true);
+
+// Desactiva mostrar los errores y avisos 
+define('WP_DEBUG_DISPLAY', false);
+@ini_set('display_errors',0);
+
+// Usa versiones dev de ficheros centrales JS y CSS (solo necesario si estás modificando esos ficheros centrales)
+define('SCRIPT_DEBUG', true);</nowiki>
+
+== Plugins de depuración==
+
+Existen muchos [http://wordpress.org/extend/plugins/search.php?q=debug&sort= plugins de calidad] para la depuración de WordPress que brindan información detallada tanto del sistema en general como de componentes específicos. Algunos de estos plugins son [http://wordpress.org/extend/plugins/debug-bar/ Barra de depuración (Debug Bar)] con [http://wordpress.org/extend/plugins/debug-bar-console/ Consola de Barra de depuración (Debug Bar Console)] y [http://wordpress.org/extend/plugins/log-deprecated-notices/ Alerta sobre funciones obsoletas (Log Deprecated Notices)].
+
+==Historia==
+
+Previa a la version WordPress 3.1 la constante STYLE_DEBUG se comportaba similarmente a SCRIPT_DEBUG pero afectaba a ficheros CSS en vez de a los Javascript. En 3.1 las dos constantes se fusionaron en una sola SCRIPT_DEBUG, la cual ahora afecta a ambos tipos de ficheros miniaturizados.
+
+== Recursos externos ==
+* [http://generatewp.com/wp-config/ WordPress 'wp-config.php' Generador de ficheros]
+* [http://wordpress.org/extend/plugins/wp-bug-tracker/ Gestor de vulnerabilidades de WordPress]
+
+[[Category:Spanish Codex]]
+[[Category:es:Temas_Avanzados]]
+[[Category:es:Desarrollo de WordPress]]
+
+[[Category:New_page_created]]

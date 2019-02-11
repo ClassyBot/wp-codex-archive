@@ -1,0 +1,213 @@
+{{Languages|
+{{en|Function Reference/add_meta_box}}
+{{ja|関数リファレンス/add_meta_box}}
+{{pt-br|add_meta_box}}
+}}
+
+== Descrição ==
+
+A função <tt>add_meta_box()</tt> foi introduzida na [http://codex.wordpress.org/Version_2.5/ Versão 2.5] (em inglês).  Ela permite que desenvolvedores de plugin adicionem meta boxes na interface de administração.
+
+== Uso ==
+
+%%%<?php
+   add_meta_box( $id, $title, $callback, $post_type, $context,
+         $priority, $callback_args );
+?>%%%
+
+== Parâmetros ==
+
+{{Parameter|$id|string|O atributo 'id' do HTML da seção na tela de edição.}}
+{{Parameter|$title|string|Título da seção na tela de edição, visível para o usuário.}}
+{{Parameter|$callback|callback|Função que imprime o HTML para a seção na tela de edição. Aceita uma string com o nome da função ou, se dentro de uma classe, um array que chame um dos métodos dessa classe. O callback aceita até dois argumentos, veja em [[#Argumentos de callback|Argumentos de callback]]. Veja o segundo c;odigo dentro da seção [[#Exemplos|Exemplos]] abaixo.}}
+{{Parameter|$post_type|string|O tipo de post que receberá a seção (<tt>'post'</tt>, <tt>'page'</tt>, <tt>'link'</tt>, <tt>'attachment'</tt> ou <tt>'custom_post_type'</tt>, onde <tt>'custom_post_type'</tt> é o slug do <em>post type</em>.)}}
+{{Parameter|$context|string|A parte da página onde a seção será mostrada (<tt>'normal'</tt>, <tt>'advanced'</tt>, or <tt>'side'</tt>). (Note que <tt>'side'</tt> não existe antes da versão 2.7)|opcional|'advanced'}}
+{{Parameter|$priority|string|A prioridade dentro do contexto em que as meta boxes serão mostradas (<tt>'high'</tt>, <tt>'core'</tt>, <tt>'default'</tt> or <tt>'low'</tt>)|opctional|'default'}}
+{{Parameter|$callback_args|array|Argumentos que serão passados para a sua função de callback. Ela receberá o objeto <tt>$post</tt> e quaisquer outros parâmetros que forem passados através dessa variável.|opcional|null}}
+
+== Valor de retorno ==
+Nenhum.
+
+== Exemplos ==
+
+Este exemplo adiciona uma seção personalizada para as telas de edição de Post e de Página: 
+
+<pre>
+<?php
+/* Define a meta box */
+
+add_action( 'add_meta_boxes', 'myplugin_add_custom_box' );
+
+// Compatibilidade para  WP < 3.0
+// add_action( 'admin_init', 'myplugin_add_custom_box', 1 );
+
+/* Faça algo com os dados inseridos */
+add_action( 'save_post', 'myplugin_save_postdata' );
+
+/* Adiciona uma meta box na coluna principal das telas de edição de Post e Página */
+function myplugin_add_custom_box() {
+    $screens = array( 'post', 'page' );
+    foreach ($screens as $screen) {
+        add_meta_box(
+            'myplugin_sectionid',
+            __( 'My Post Section Title', 'myplugin_textdomain' ),
+            'myplugin_inner_custom_box',
+            $screen
+        );
+    }
+}
+
+/* Imprime o conteúdo da meta box */
+function myplugin_inner_custom_box( $post ) {
+
+  // Faz a verificação através do nonce
+  wp_nonce_field( plugin_basename( __FILE__ ), 'myplugin_noncename' );
+
+  // Os campos para inserção dos dados
+  // Use get_post_meta para para recuperar um valor existente no banco de dados e usá-lo dentro do atributo HTML 'value' 
+  $value = get_post_meta( $post->ID, '_my_meta_value_key', true );
+  echo '<label for="myplugin_new_field">';
+       _e("Description for this field", 'myplugin_textdomain' );
+  echo '</label> ';
+  echo '<input type="text" id="myplugin_new_field" name="myplugin_new_field" value="'.esc_attr($value).'" size="25" />';
+}
+
+/* Quando o post for salvo, salvamos também nossos dados personalizados */
+function myplugin_save_postdata( $post_id ) {
+
+  // É necessário verificar se o usuário está autorizado a fazer isso
+  if ( 'page' == $_POST['post_type'] ) {
+    if ( ! current_user_can( 'edit_page', $post_id ) )
+        return;
+  } else {
+    if ( ! current_user_can( 'edit_post', $post_id ) )
+        return;
+  }
+
+  // Agora, precisamos verificar se o usuário realmente quer trocar esse valor
+  if ( ! isset( $_POST['myplugin_noncename'] ) || ! wp_verify_nonce( $_POST['myplugin_noncename'], plugin_basename( __FILE__ ) ) )
+      return;
+
+  // Por fim, salvamos o valor no banco
+
+  // Recebe o ID do post
+  $post_ID = $_POST['post_ID'];
+
+  // Remove caracteres indesejados
+  $mydata = sanitize_text_field( $_POST['myplugin_new_field'] );
+
+  // Adicionamos ou atualizados o $mydata 
+    update_post_meta($post_ID, '_my_meta_value_key', $mydata);
+}
+?>
+</pre>
+
+Este é um exemplo de como adicionar uma meta box através de uma classe:
+
+<pre>
+/**
+ * Chama a classe na tela de edição do post
+ */
+function call_someClass() 
+{
+    return new someClass();
+}
+if ( is_admin() )
+    add_action( 'load-post.php', 'call_someClass' );
+
+/** 
+ * A classe
+ */
+class someClass
+{
+    const LANG = 'some_textdomain';
+
+    public function __construct()
+    {
+        add_action( 'add_meta_boxes', array( &$this, 'add_some_meta_box' ) );
+    }
+
+    /**
+     * Adiciona a meta box
+     */
+    public function add_some_meta_box()
+    {
+        add_meta_box( 
+             'some_meta_box_name'
+            ,__( 'Some Meta Box Headline', self::LANG )
+            ,array( &$this, 'render_meta_box_content' )
+            ,'post' 
+            ,'advanced'
+            ,'high'
+        );
+    }
+
+
+    /**
+     * O conteúdo da meta box
+     */
+    public function render_meta_box_content() 
+    {
+        echo '<h1>TESTE - esta mensagem estará dentro da meta box</h1>';
+    }
+}
+</pre>
+
+=== Argumentos de callback ===
+
+O <em>array</em> <code>$callback_args</code> será passado para a função de callback como um segundo argumento. O primeiro é o objeto <tt>$post</tt>.
+
+<pre>
+// Esta função adiciona uma meta box com a função de callback my_metabox_callback()
+function add_my_meta_box() {
+     $var1 = 'this';
+     $var2 = 'that';
+     add_meta_box( 
+           'metabox_id',
+           'Metabox Title',
+           'my_metabox_callback',
+           'page',
+           'normal',
+           'low', 
+           array( 'foo' => $var1, 'bar' => $var2)
+      );
+}
+
+// $post é um objeto que contém o post atual
+// $metabox é um arrau com o ID da metabox, o título, a função de callback e seus argumentos
+// Os argumentos formam um array com as variáveis passadas dentro de $callback_args
+
+function my_metabox_callback ( $post, $metabox ) {
+     echo 'Last Modified: '.$post->post_modified;        // mostra a última vez que o post foi modificado
+     echo $metabox['args']['foo'];                         // mostra 'isto'
+     echo $metabox['args']['bar'];                         // mostra 'aquilo'
+     echo get_post_meta($post->ID,'my_custom_field',true); // mostra o valor do campo personalizado
+}
+</pre>
+
+== Arquivo fonte ==
+
+A função <code>add_meta_box()</code> está localizada em {{Trac|wp-admin/includes/template.php}}.
+
+== Leituras relacionadas ==
+
+* [[Migrating Plugins and Themes]] (em inglês)
+* [[Function Reference]] (em inglês)
+* [[Creating Tables with Plugins]] (em inglês)
+* [[Function Reference/remove_meta_box | remove_meta_box()]] (em inglês)
+* [[Function Reference/update post meta | update_post_meta()]] (em inglês)
+* [[Function Reference/add post meta | add_post_meta()]] (em inglês)
+
+== Recursos externos ==
+* [https://gist.github.com/1880770 Classe para criação rápida de meta boxes] (em inglês) - Permite que você facilmente declare uma meta box e defina seus valores em algumas linhas.
+
+* [http://andrewferguson.net/2008/09/26/using-add_meta_box/ Usando add_meta_box() em seu plugin] (em inglês) - Como usar meta boxes na página de administração do seu plugin.
+* [http://wefunction.com/2008/10/tutorial-creating-custom-write-panels-in-wordpress/ Tutorial: criando painéis personalizados no WordPress]
+* [http://farinspace.com/2010/03/page-specific-wordpress-meta-box/ Como limitar uma meta box a uma página específica] (em inglês)
+* [http://wpengineer.com/1991/example-how-to-add-meta-boxes-to-edit-area/ Como adicionar meta boxes] (em inglês) - Um plugin funcional de exemplo.
+* [http://wordpress.org/support/topic/add_meta_box-callback-with-arguments add_meta_box() $callback_args parameter ] (em inglês) - Como usar o parâmetro <tt>$callback_args</tt>.
+* [http://www.wproots.com/complex-meta-boxes-in-wordpress/ Meta boxes e hooks] (em inglês) - Como construir e usar meta boxes nas telas de administração.
+
+{{Tag Footer}}
+
+[[Category:Functions]]

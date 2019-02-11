@@ -1,0 +1,664 @@
+{{Languages|
+{{en|Class Reference/wpdb}}
+{{it|Riferimento classi/wpdb}}
+{{ja|関数リファレンス/wpdb_Class}}
+{{ru|Class Reference/ru:wpdb_Class}}
+{{zh-cn|Class Reference/wpdb}}
+{{zh-tw|Class Reference/wpdb}}
+{{ko|클래스 레퍼런스/wpdb}}
+}}
+
+== 데이터베이스에 대한 이야기: ''wpdb'' 클래스 ==
+
+워드프레스는 이른바 ''wpdb'' 로 불리는 하나의 클래스를 규정했습니다. 이것은 데이터베이스와 함께 상호작용하는 하나의 세트를 포함하는 것입니다. 이것의 주된 목적은 워드프레스 데이터베이스에 인터페이스를 제공하는 것입니다. 그러나 또다른 적절한 데이터베이스와 상호작용하는 대에도 이용될 수 있습니다. 클래스의 소스코드는 대략적으로 [http://justinvincent.com/ezsql ezSQL] 클래스에 기반합니다. 그러나 [http://www.jvmultimedia.com Justin Vincent] 에 의하여 쓰여졌으며 관리됩니다.
+
+=== ''$wpdb'' 개체의 사용 ===
+
+'''주의: <code>wpdb()</code> 클래스 안에서 메소드들은 직접적으로 불려져서는 안됩니다. global <code>$wpdb</code> 개체를 대신 사용하세요!''' 
+
+워드프레스는 하나의 전역변수 <code>$wpdb</code>를 제공합니다. 이것은[https://core.trac.wordpress.org/browser/trunk/src/wp-includes/wp-db.php /wp-includes/wp-db.php] 안에서 정의되어진 하나의 ''wpdb'' 클래스의 인스턴스 생성입니다. 기본적으로, <code>$wpdb</code> 는 워드프레스 데이터베이스와 대화하기 위해서 인스턴스화 되어집니다. 워드프레스 PHP코드 안에서 <code>$wpdb</code> 에 접근하기 위해서, 하나의 전역변수로써 <code>[http://www.php.net/manual/en/language.variables.scope.php#language.variables.scope.global global keyword]</code>를 사용하는 <code>$wpdb</code>를 선언하거나 다음과 같은 방법안에서 [http://www.php.net/manual/en/language.variables.superglobals.php superglobal <code>$GLOBALS</code>]를 사용하세요.:
+<code>
+ // 첫번째 방법 - $wpdb 를 전역변수로 선언하세요 그리고 PHP object 를 반환하는 SQL query 를 실행하기 위해서 사용하세요.
+ 
+ global $wpdb;
+ $results = $wpdb->get_results( 'SELECT * FROM wp_options WHERE option_id = 1', OBJECT );
+ 
+ // 2번째 방법 - $GLOBALS 슈퍼 글로벌 변수를 활용하세요. 글로벌 키워드를 필요로 하지는 않지만 최선의 방법은 아닙니다.
+ 
+ $results = $GLOBALS['wpdb']->get_results( 'SELECT * FROM wp_options WHERE option_id = 1', OBJECT );
+</code>
+<code>$wpdb</code> 는 워드프레스에 의해서 생성되어진 기본 테이블들에 대해서 제한적이지 않습니다. 이것은 워드프레스의 어떤 테이블의 데이터도 읽어들일 수 있음을 의미합니다. (가령 커스텀 플러그인 테이블들도 포함) 예를들면 이른바 "mytable"로 불리는 커스텀 테이블로부터 일부 정보를 선택해내기 위해서, 다음과 같이 할 수 있습니다.
+
+<code>
+ $myrows = $wpdb->[[#SELECT_Generic_Results|get_results]]( "SELECT id, name FROM mytable" );
+</code>
+<code>$wpdb</code> 개체는 다수의 테이블과 함께 활용될 수 있습니다. 그러나 기본적으로 워드프레스 데이터베이스에 의해서, 한번에 한 데이터베이스에만 접근 가능합니다. 아주 드문 경우, 또다른 데이터베이스에 연결해야만 합니다. 아마도 자신의 데이터베이스 커넥션 정보와 함께 <code>wpdb</code> 클래스로부터 자기 자신의 개체를 인스턴스화 시킬 것입니다. [http://wordpress.org/extend/plugins/hyperdb/ hyperdb] 를 사용하는 것을 고려해보세요.
+
+=== 주의 ===
+
+'''이 클래스 안에서 일부 함수들은 SQL statement 를 입력으로써 가집니다.. SQL 인젝션 공격들을 방해하기 위해서 SQL query 속으로 조화되어지지 않는 불신뢰되는 모든 SQL을 제거해야만 합니다. 
+SQL 이스케이프들을 사용하기 위해서 함수를 계획중이라면, 혹은 전의 이스케이프들이 있는것에 예상한다면 문서를 체크하세요.'''
+
+워드프레스 안에서 SQL 이스케이핑에 대해 조금더 원한다면, 아래를 참조하세요. [[#Protect_Queries_Against_SQL_Injection_Attacks|Protect Queries Against SQL Injection Attacks]] .
+
+== 변수 선택하기 ==
+
+<code>get_var</code> 함수는 데이터베이스로부터 단일 변수를 리턴시킵니다. 하나의 변수가 리턴되어질지라도, 쿼리의 전체 결과는 이후의 사용에 대해서 캐시되어집니다. 만약 결과를 찾을 수 없다면, <tt>NULL</tt>을 리턴합니다.
+
+%%% <?php $wpdb->get_var( 'query', column_offset, row_offset ); ?> %%%
+; query : (string) 가동하길 원하는 쿼리입니다.  파라메터를 <code>null</code> 로 설정하는 것은 이전의 쿼리의 결과들로부터 캐쉬되어진 것들로터 특정한 변수들을 리턴시킬 것입니다.
+; column_offset : (integer) 처음에는 '''0''' 으로 고안되어져 있는 column 입니다. 기본값은 '''0''' 입니다.
+; row_offset : (integer) 처음에는 '''0''' 로 고안되어져 있는 row 입니다 기본값은 '''0''' 입니다..
+
+=== 예제 ===
+다수의 유저들을 보여주거나 반환합니다.. 
+<pre>
+<?php
+$user_count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->users" );
+echo "<p>User count is {$user_count}</p>";
+?>
+</pre>
+
+[[Custom Fields|Custom Field value]] 의 요약을 보여주거나 반환합니다.
+<pre>
+<?php
+// 적절한 커스텀 필드 메타키로 메타키를 설정하세요 
+$meta_key = 'miles';
+$allmiles = $wpdb->get_var( $wpdb->prepare( 
+	"
+		SELECT sum(meta_value) 
+		FROM $wpdb->postmeta 
+		WHERE meta_key = %s
+	", 
+	$meta_key
+) );
+echo "<p>Total miles is {$allmiles}</p>";
+?> 
+</pre>
+
+== 행 선택하기 ==
+
+쿼리로부터 전체 행을 반환하기 위해서 <code>get_row</code>를 사용하세요. 이 함수는 하나의 오브젝트로써 행, 관련된 배열 혹은 다수의 인덱스된 배열을 반환시킬 수 있습니다. 만약 쿼리에의해서 하나 이상의 행이 반환되어진다면, 오직 특정하게 명시된 행이 함수에 의해서 리턴될 것입니다. 그러나 모든 행들은 이후 사용에 대해서 캐시되어집니다. 만약 결과를 찾을 수 없다면 <tt>NULL</tt> 를 반환합니다. 인자들 안에서 반환되는 값들을 사용할 때, 아래의 예제를 사용하세요.
+
+%%% <?php $wpdb->get_row('query', output_type, row_offset); ?> %%%
+; query : (string) 실행하길 원하는 쿼리입니다.. 
+; output_type : 사전 정의된 속성들 3개중 하나입니다. 기본값은 OBJECT 입니다. 
+:* OBJECT - 결과는 하나의 오브젝트로써의 출력일 것입니다.
+:* ARRAY_A - 결과는 관련되어진 배열들로써의 출력일 것입니다. 
+:* ARRAY_N - 결과는 다수의 인덱스가 되어진 배열들로써의 출력일 것입니다. 
+; row_offset : (integer) 처음에는 '''0''' 로 고안되어진 행입니다. '''0'''가 기본값 입니다..
+
+=== 예제 ===
+링크 10에 대해서 모든 정보를 가져옵니다. 
+
+ $mylink = $wpdb->get_row( "SELECT * FROM $wpdb->links WHERE link_id = 10" );
+
+<code>$mylink</code> 개체의 속성은 SQL 쿼리로부터 기인하는 열의 이름입니다. ( 이 예제에서는 <code>$wpdb->links</code> 테이블로부터 모든 열들이 있습니다. 그러나 아마도 특정하게 명시된 열들을 사용하게 될겁니다.)
+ echo $mylink->link_id; // prints "10"
+
+이와는 반대로 사용하는 것은
+ $mylink = $wpdb->get_row( "SELECT * FROM $wpdb->links WHERE link_id = 10", ARRAY_A );
+관련된 배열을 만들어낼 것입니다:
+ echo $mylink['link_id']; // prints "10"
+
+그리고
+ $mylink = $wpdb->get_row( "SELECT * FROM $wpdb->links WHERE link_id = 10", ARRAY_N );
+는 다수의 인덱스화가 이루어진 배열을 초래시킵니다:
+ echo $mylink[1]; // prints "10"
+
+만약 링크 테이블안에서 ID 10번과 함께 기록이 존재하지 않는다면, <code>null</code> 가 리턴되어질 것입니다. 뒤따르는 것은 false 일 것입니다.:
+
+<pre>
+if ( null !== $mylink ) {
+  // do something with the link 
+  return true;
+} else {
+  // no link found
+  return false;
+}
+</pre>
+
+== 열 선택하기 ==
+
+열을 선택하기 위해서 <code>get_col</code>를 사용하세요. 이 함수는 하나의 1차원 배열을 출력할 것입니다. 만약 하나 이상의 열들이 쿼리로부터 반환되어 진다면, 오직 특정하게 명시된 열이 함수에 의해서 리턴되어질 것입니다. 그러나 전체적인 결과는 이후 사용에 대해서 캐쉬되어집니다.  만약 결과가 없다면 빈 배열을 리턴시킵니다.
+
+%%% <?php $wpdb->get_col( 'query', column_offset ); ?> %%%
+; query : (string) 실행하길 원하는 쿼리입니다. 이 파라메터를 <code>null</code> 로 설정하는 것은 이전의 쿼리의 캐쉬된 결과들로부터 특정한 열을 리턴시킬 것입니다.
+; column_offset : (integer) 처음에는 '''0''' 로 고안되어진 열입니다. 기본값은 '''0''' 입니다.
+
+=== 예제 ===
+이 예제의 경우, 자동차들에 대한 정보에 대해서 헌신적인 블로그로부터 가정되었습니다. 각각의 포스트들은 특정한 자동차들을 설명합니다 (예를들면 1969 포트 무스탕), 그리고 3개의 [[Custom Fields]], 제조사들, 모델, 그리고 년식이며 이것은 각각의 포스트에 배정되었습니다. 이 예제는 특정한 제조자들 (포드) 에 의해서 필터된 글 제목들을 보여줄 것입니다. 그리고 모델과 년식에 의해서 정렬되어질 것입니다.
+
+<tt>wpdb Class</tt>의 '''get_col''' 폼은 특정한 조건을 만족시키는 모든 포스트 아이디들의 배열을 리턴시키기 위해서 사용되어지며 정확한 순서들 안에서 정렬되어집니다. 그리고 나서 ''foreach'' 구조는 포스트 아이디들의 배열들 속으로 각각의 포스트들의 제목을 보여주기 위해서 반복하며 사용되어집니다. 이 예제에 대한 SQL 은[http://stackoverflow.com/questions/1690762/complicated-mysql-query/1690808#1690808 Andomar] 에 의해서 생성되어졌습니다.
+
+<pre>
+<?php 
+$meta_key1		= 'model';
+$meta_key2		= 'year';
+$meta_key3		= 'manufacturer';
+$meta_key3_value	= 'Ford';
+
+$postids=$wpdb->get_col( $wpdb->prepare( 
+	"
+	SELECT      key3.post_id
+	FROM        $wpdb->postmeta key3
+	INNER JOIN  $wpdb->postmeta key1 
+	            ON key1.post_id = key3.post_id
+	            AND key1.meta_key = %s 
+	INNER JOIN  $wpdb->postmeta key2
+	            ON key2.post_id = key3.post_id
+	            AND key2.meta_key = %s
+	WHERE       key3.meta_key = %s 
+	            AND key3.meta_value = %s
+	ORDER BY    key1.meta_value, key2.meta_value
+	",
+	$meta_key1, 
+	$meta_key2, 
+	$meta_key3, 
+	$meta_key3_value
+) ); 
+
+if ( $postids ) 
+{
+	echo "List of {$meta_key3_value}(s), sorted by {$meta_key1}, {$meta_key2}";
+	foreach ( $postids as $id ) 
+	{ 
+		$post = get_post( intval( $id ) );
+		setup_postdata( $post );
+		?>
+		<p>
+			<a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>">
+				<?php the_title(); ?>
+			</a>
+		</p>
+		<?php
+	} 
+}
+?>
+</pre>
+
+이 예제는 특정한 커스텀 필드를 포함시크는 모든 포스트들을 리스트화시킵니다. 그러나 두번째 커스텀 필드의 값에 의해서 정렬되어집니다.
+
+<pre>
+<?php
+// 커스텀 필드 Color 과 함께 모든 포스트들을 리스트화시키며, Display_Order 커스텀 필드의 값에 의해서 정렬합니다.
+// 'post_type' 을 버리지 않습니다.
+// 각각의 포스트들은 색상에 대한 하나의 커스텀 필드와 하나의 Display_Order 를 가지고 있다는 것을 추측할 수 있습니다.
+$meta_key1 = 'Color';
+$meta_key2 = 'Display_Order';
+
+$postids = $wpdb->get_col( $wpdb->prepare( 
+	"
+	SELECT      key1.post_id
+	FROM        $wpdb->postmeta key1
+	INNER JOIN  $wpdb->postmeta key2
+	            ON key2.post_id = key1.post_id
+	            AND key2.meta_key = %s
+	WHERE       key1.meta_key = %s
+	ORDER BY    key2.meta_value+(0) ASC
+	",
+        $meta_key2,
+	$meta_key1
+) ); 
+
+if ( $postids ) 
+{
+	echo "List of {$meta_key1} posts, sorted by {$meta_key2}";
+	foreach ( $postids as $id ) 
+	{
+		$post = get_post( intval( $id ) );
+		setup_postdata( $post );
+		?>
+		<p>
+			<a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>">
+				<?php the_title(); ?>
+			</a>
+		</p>
+		<?php
+	}
+}
+?>
+</pre>
+
+== Generic 결과들을 선택하기 ==
+ 
+
+Generic, 다수의 행들의 결과들은 <code>get_results</code>와 함께 데이터베이스로부터 채워질 수 있습니다. 이 함수는 하나의 배열로써의 전체 쿼리 결과를 리턴시킬 것입니다. 배열의 각각의 요소들은 쿼리 결과의 한 행에 대하여 부합하는 것입니다. 그리고 <code>get_row</code> 와 같이,  하나의 오브젝트, 하나의 관련된 배열 혹은 다수의 배열이 될 수 있습니다. 만약 일치하는 행을 찾을 수 없다면 혹은 데이터베이스 에러가 있다면, 리턴되는 값은 빈 배열일 것입니다. 만약 <tt>$query</tt> 가 비어져 있을 경우 혹은 <tt>$output_type</tt>에 대해 허용되지 않는 값을 전달한다면, <tt>NULL</tt> 이 리턴되어질 것입니다.
+
+%%% <?php $wpdb->get_results( 'query', output_type ); ?> %%%
+; query : (string)  실행되어지길 원하는 쿼리입니다.
+; output_type :  사전에 정의된 4가지중 하나의 속성입니다. 기본은 <tt>OBJECT</tt> 입니다. [[#SELECT a Row|SELECT a Row]]를 보세요 그리고 더 많은 정보를 살펴보세요.
+:* <tt>OBJECT</tt> -  결과는 다수의 인덱스되어진 행 배열들일 것입니다.
+:* <tt>OBJECT_K</tt> -  결과는 처음으로 열들의 값들을 키로써 사용하는 관련되어진 행 개체들의 배열이 출력될 것입니다. (불필요한 것은 아마 폐기될 것입니다.)
+:* <tt>ARRAY_A</tt> - 결과는 다수의 인덱스화 되어졌으며 열의 이름을 키들로써 사용하는 관련된 배열들일 것입니다. 
+:* <tt>ARRAY_N</tt> - 결과는 다수의 인덱스화 되어진 배열을 반환할 것입니다.
+
+이 함수가 <tt>$wpdb->query()</tt> 함수를 사용한 이래로부터, 모든 클래스 변수들은 적절하게 셋팅되었습니다. 'SELECT' 쿼리에 대해서 카운트된 결과들은 <tt>$wpdb->num_rows</tt> 안에서 저장되어질 것입니다.
+
+=== 예제 ===
+아이디와 유저 5에 의해서 이동중인 모든 타이틀들을 가져옵니다 그리고 타이틀들을 출력합니다.
+<pre>
+$fivesdrafts = $wpdb->get_results( 
+	"
+	SELECT ID, post_title 
+	FROM $wpdb->posts
+	WHERE post_status = 'draft' 
+		AND post_author = 5
+	"
+);
+
+foreach ( $fivesdrafts as $fivesdraft ) 
+{
+	echo $fivesdraft->post_title;
+}
+</pre>
+
+유저 5에 의해서 이동중인 모든 정보를 가져옵니다.
+<pre>
+<?php
+$fivesdrafts = $wpdb->get_results( 
+	"
+	SELECT * 
+	FROM $wpdb->posts
+	WHERE post_status = 'draft' 
+		AND post_author = 5
+	"
+);
+
+if ( $fivesdrafts )
+{
+	foreach ( $fivesdrafts as $post )
+	{
+		setup_postdata( $post );
+		?>
+		<h2>
+			<a href="<?php the_permalink(); ?>" rel="bookmark" title="Permalink: <?php the_title(); ?>">
+				<?php the_title(); ?>
+			</a>
+		</h2>
+		<?php
+	}	
+}
+else
+{
+	?>
+	<h2>Not Found</h2>
+	<?php
+}
+?>
+</pre>
+
+== 행 삽입하기 ==
+
+테이블 속으로 행 삽입하기.
+
+%%% <?php $wpdb->insert( $table, $data, $format ); ?> %%%
+; table : (string) 데이터가 속으로 삽입되어질 테이블의 이름입니다.
+; data : (array) 삽입될 데이터입니다.  (in column => value 쌍으로 이루어짐). <tt>$data</tt> 열들 그리고 <tt>$data</tt> 값들은 반드시 가공되지 않은 "raw" 한 것이여야합니다. (반드시 SQL 이스케이핑이 되어있지 않아야 합니다.)
+; format : (array|string) (optional) 
+<tt>$data</tt> 안에서 개개의 값들을 맵핑시키기 위한 형식들의 배열입니다. 만약 string 일 경우, 이 포맷은 아마도 <tt>$data</tt> 안에서의 모든 값들에 대해서 사용되어질 것입니다. 만약 발행되어졌다면, 모든 <tt>$data</tt> 안에서의 값들은  <tt>wpdb::$field_types</tt> 안에서 규정되어진 것과는 반대로 모든 string 들로써 처리해버릴 것입니다.
+
+가능한 형식 값들: string 으로써의 <tt>%s</tt>  ; integer (whole number) 로써의 <tt>%d</tt> ; 그리고 float 로써의 <tt>%f</tt>. ([[#Placeholders | below]] 에서 더많은 정보를 보세요)
+
+삽입되어진 이후에, <tt>AUTO_INCREMENT</tt> 열에 대해서 생성된 아이디는 함께 접근되어질 수 있습니다.:
+ <pre>$wpdb->insert_id</pre>
+
+행이 삽입되어지지 않았다면, <tt>false</tt> 를 리턴시킬 것입니다. 그렇지 않다면 아마도 항상 1일것인 다수의 영향받은 행들을 반환시킬 것입니다.
+
+'''Please note''': 데이터 파라메터의 column=>value 쌍으로 이루어진 부분적인 값들은 반드시 스칼라여야 합니다. 만약 배열 혹은 오브젝트를 삽입시키기 위해서 값으로써 전달했다면, 아마도 "mysql_real_escape_string() expects parameter 1 to be string, array given on line 880 in file /var/www/html/wp-includes/wp-db.php" 와 비슷한 경고를 생성하게 될껍니다.
+
+=== 예제 ===
+
+행안에서 2개의 열들을 삽입합니다. 첫번째 값은 string 이며 두번째 값은 숫자입니다.:
+
+<pre>
+$wpdb->insert( 
+	'table', 
+	array( 
+		'column1' => 'value1', 
+		'column2' => 123 
+	), 
+	array( 
+		'%s', 
+		'%d' 
+	) 
+);
+</pre>
+
+== 행 교체하기 ==
+
+만약 존재한다면 테이블 안에서 행을 교체시킬 것입니다 존재하지 않는다면 테이블 안에 새로운 값을 삽입시킬 것입니다.
+
+%%% <?php $wpdb->replace( $table, $data, $format ); ?> %%%
+; table : (string) 데이터가 안에 있는 교체시킬 테이블의 이름입니다.
+; data : (array) 데이터를 교체시킵니다 (in column => value pairs). <tt>$data</tt> 열들과 <tt>$data</tt>  값들은 반드시 가공되지 않은 것이여야 합니다.
+; format : (array|string) (optional) <tt>$data</tt> 안에서의 매핑되어질 개개의 값들을 가진 형식들의 배열입니다. 만약 string 이라면, 해당 형식은 아마도 <tt>$data</tt> 안에서 모든 값들에 대하여 사용되어질 것입니다. 만약 실행되어진다면, <tt>$data</tt> 안에서의 모든 값들은 <tt>wpdb::$field_types</tt> 안에서 특별하게 명시되어지지 않는다면 string 으로 처리될 것입니다..
+
+
+가능한 형식 값들: string 으로써의 <tt>%s</tt>; 정수로써의 <tt>%d</tt>; 그리고 실수로써의 <tt>%f</tt>. ( [[#Placeholders | below]] 더 많은 정보에 대해서 보세요)
+
+교체되어진 이후에, <tt>AUTO_INCREMENT</tt> 에 대해서 생성되어진 아이디의 열은 이와같이 접근되어질 수 있습니다.:
+ <pre>$wpdb->insert_id</pre>
+
+이 함수는 영향받은 항들의 번호를 지칭하는 카운트들을 리턴할 것입니다. 이것은 삭제되거나 삽입된 행들의 요약입니다. 만약 단일 행 교체에 대해서 카운트가 1이라면, 하나의 행이 삽입되어졌을 것이고, 삭제된 행은 없었을 겁니다. 만약 카운트가 1보다 큰 경우 혹은 하나 이상의 오래된 행들은 새로운 행이 삽입되어지기 이전에 삭제되어졌을 것입니다. 이것은 하나의 행이 만약 테이블이 다수의 유니크한 인덱스를 함유한 경우에 교체하는 것을 가능하도록 만듭니다. 그리고 새로운 행은 또다른 유니크한 인덱스들 안에서 오래된 다른 행들에 대해서 값을 복사할 것입니다.
+
+존재하는 행이 교체되어지지 않았을 경우에 <tt>false</tt>를 리턴시킬 것이며 새로운 행은 삽입되지 않을 것입니다.
+
+=== 예제 ===
+
+첫번째 값은 row id이며 두번째 값은 string 그리고 3번째는 숫자값으로 행을 교체시킵니다.:
+
+<pre>
+$wpdb->replace( 
+	'table', 
+	array( 
+                'indexed_id' => 1,
+		'column1' => 'value1', 
+		'column2' => 123 
+	), 
+	array( 
+                '%d',
+		'%s', 
+		'%d' 
+	) 
+);
+</pre>
+
+== 행 업데이트 ==
+
+테이블 안의 행을 업데이트 합니다. 에러인 경우에 <tt>false</tt> 를 반환하거나 성공적일 경우에 영향받은 다수의 행을 반환합니다.
+
+%%% <?php $wpdb->update( $table, $data, $where, $format = null, $where_format = null ); ?> %%%
+; table : (string) 업데이트될 테이블의 이름입니다.. 
+; data : (array) 업데이트 시킬 데이터입니다. (<tt>column => value</tt> 쌍으로 이루어져 있습니다.). <tt>$data</tt> 열들 그리고 <tt>$data</tt> 값들은 반드시 가공되지 않은 것이여야 합니다. 이것은 <tt>GET</tt> 혹은 <tt>POST</tt> 데이터를 사용한다면, 데이터베이스 안에서 슬래쉬로 끝마쳐지는 것을 피하기위해서 <tt>stripslashes()</tt> 를 사용해야만 합니다.
+; where : (array) <tt>column => value</tt> 쌍들로 이루어진, <tt>WHERE</tt> 절에서 이름이 정의된 배열입니다. 다수의 절들은 tt>AND</tt>와 함께 참가되어질 것입니다. <tt>$where</tt> 열들과 <tt>$where</tt> 값들은 반드시 가공되지 않아야 합니다.
+; format : (array|string) (optional) <tt>$data</tt> 안에서 각각의 값들에 대해서 매핑되어질 형식들의 배열을 의미합니다. 만약 string 인 경우, 이 포맷은 <tt>$data</tt> 안에서 모든 데이터들에 대해서 사용되어질 것입니다.
+; where_format : (array|string) (optional) <tt>$where</tt>안에서 각각의 값들에 대해서 매핑되어질 형식들의 배열입니다. 만약 string 인 경우 <tt>$where</tt> 안에서 모든 아이템들에 대하여 적용되어질 것입니다.
+
+<strong>가능한 형식 값들</strong>: string 으로써의 <tt>%s</tt>; 정수로써의 <tt>%d</tt> 그리고 실수로써의 <tt>%f</tt>이 있습니다.. ([[#Placeholders | below]] 에서 더많은 정보를 참조하세요) 만약 발행되어진다면, <tt>$where</tt> 안의 모든 값들은 string 으로써 처리되어질 것입니다..
+
+'''리턴 값들:''' 이 함수는 업데이트되어진 다수의 행들을 반환할 것입니다. 혹은 에러가 존재한다면 <tt>false</tt> 를 반환합니다. 데이터베이스 안에서 이미 있는 데이터가 <tt>$data</tt>에 매치되어진다면, 행은 업데이트되어지지 않을 것입니다. 그래서 
+<tt>0</tt> 을 리턴시킬겁니다. 왜냐하면 이것은, 아마도 <tt>false === $result</tt> 와 함께 리턴을 체크해야만 하기 때문일 것입니다.
+
+=== 예제 ===
+
+ID 가 1인 곳에 대해서 행을 업데이트 시킵니다. 첫번째 열의 값은 string 이며 2번째 값은 숫자입니다.: 
+
+<pre>
+$wpdb->update( 
+	'table', 
+	array( 
+		'column1' => 'value1',	// string
+		'column2' => 'value2'	// integer (number) 
+	), 
+	array( 'ID' => 1 ), 
+	array( 
+		'%s',	// value1
+		'%d'	// value2
+	), 
+	array( '%d' ) 
+);
+</pre>
+
+<strong>주의:</strong> <code>%d</code> 콤마 값과 함께 다뤄질 수 없습니다 - 만약 완전한 숫자들을 사용하지 않는다면, string/<tt>%s</tt> 을 사용하세요..
+
+== 행 삭제하기 ==
+
+<tt>delete</tt> 함수는 워드프레스 [[Version_3.4|3.4.0]] 버전안에서 추가되어졌으며 테이블로부터 행들을 삭제하기 위해서 사용되어집니다. 사용법은 <tt>[[#UPDATE_Rows|update]]</tt> 그리고 <tt>[[#INSERT_Rows|insert]]</tt>와 비슷합니다. 이것은 업데이트 되어진 다수의 행들을 리턴시키거나 에러일 경우에 <tt>false</tt>를 반환시킵니다.
+
+===사용법===
+%%%<?php $wpdb->delete( $table, $where, $where_format = null ); ?>%%%
+===파라메터===
+{{Parameter|$table|string|테이블의 이름.}}
+{{Parameter|$where|array|column -> value 쌍으로 이루어진 <tt>WHERE</tt> 절에서 이름붙여진 배열입니다. 다수의 절은 <tt>AND</tt>와 함께 사용되어질 것입니다. <tt>$where</tt> 열들과 <tt>$where</tt> 값들은 반드시 가공되지 않은 'raw' 상태여야 합니다.}}
+{{Parameter|$where_format|string/array|<tt>$where</tt> 안에서 각각의 값에 대해서 매핑되어질 형식들의 배열을 뜻합니다. 만약 string 인 경우, 이 형식은 <tt>$where</tt> 안에서 모든 아이템들에 대해서 사용되어질 것입니다. 형식은 <tt>'%d'</tt>, <tt>'%f'</tt>, <tt>'%s'</tt> 중하나의 형식입니다. 만약 실행되어질 경우, 만약 이와 다르게 특정하게 <tt>wpdb::$field_types</tt> 안에서 명시되어지지 않는 경우, 모든 <tt>$where</tt> 안에서의 값들은 string 들로써 처리되어질 것입니다.}}
+
+===예제===
+<pre>
+// 기본 사용법 입니다.
+$wpdb->delete( 'table', array( 'ID' => 1 ) );
+
+// where 포맷을 지정한 사용입니다.
+$wpdb->delete( 'table', array( 'ID' => 1 ), array( '%d' ) );
+</pre>
+
+== General Queries 가동하기 ==
+
+<code>query</code> 함수는 워드프레스 데이터베이스에서 어떠한 SQL query 를 실행할 수 있도록 허가시킵니다. 이것은 특정한 것, 커스텀 혹은 복잡한 SQL 쿼리들이 있을때 사용하는 것이 가장 좋습니다. 기본 쿼리들에 대해서, 가령 예를들면 테이블로부터 정보를 고를때에, 위의 <code>wpdb</code> 함수를 살펴보세요.
+
+=== 일반적인 문법 ===
+
+%%% <?php $wpdb->query('query'); ?> %%%
+; query : (string) 실행하길 원하는 SQL 쿼리입니다.
+
+이 함수는 SELECT, INSERT, DELETE, UPDATE 등 에 대해서 선택되거나 영향받은 다수의 행을 지칭하는 정수 값을 리턴시킵니다. 특정한 행 대신에 전체 테이블에 대해서 영향을 미치는 CREATE, ALTER, TRUNCATE 그리고 DROP SQL 문에 대해서는 이 함수는 성공시에 <code>TRUE</code> 를 리턴시킵니다. 만약 MySQL 에러가 접해진다면, 이 함수는 <code>FALSE</code>를 리턴할 것입니다. 0과 <code>FALSE</code> 는 행 쿼리들에 대해서 리턴되어질 것이기 때문에, 리턴 값에 대해서 체크를 할때 조심스럽게 다뤄야만 합니다. 동일함을 확인하는 연산자 <tt>===</tt> 를 에러를 체크하기 위해서 (가령 예를들면 <tt>false === $result</tt>) 그리고 행들이 영향을 받았는지 아닌지에 대해서 체크하기 위해서 사용하세요 (예를들면 <tt>0 === $result</tt>)..
+
+=== 예제 ===
+포스트 13으로부터 gargle 메타키와 밸류를 삭제시킵니다. ( 우리는 아마도 'prepare' 메소드를 불법적인 연산자 혹은 문자들에 대해서 처리되지 않았는지 보증하기 위해서 사용할겁니다. ):
+
+<pre>
+$wpdb->query( 
+	$wpdb->prepare( 
+		"
+                DELETE FROM $wpdb->postmeta
+		 WHERE post_id = %d
+		 AND meta_key = %s
+		",
+	        13, 'gargle' 
+        )
+);
+
+</pre>
+''<code>[[Function Reference/delete post meta|delete_post_meta()]]</code> 에 의해서 워드프레스 안에서 실행하세요.''
+
+
+페이지 7의 [[Pages|Page]] 15의 부모에 대해서 셋팅합니다..
+<pre>
+$wpdb->query(
+	"
+	UPDATE $wpdb->posts 
+	SET post_parent = 7
+	WHERE ID = 15 
+		AND post_status = 'static'
+	"
+);
+</pre>
+
+== SQL 인젝션 공격에 대해서 쿼리를 보호하기 ==
+
+워드프레스 안에서 SQL 이스케이핑을 훑어보는 것은 좀더 완전하게 하기 때문에, [[Data Validation#Database|database Data Validation]]를 살펴보세요. 이것은 워드프레스 기여자들 혹은 플러그인 작성자들은 모두 반드시 읽어야 합니다.
+
+SQL 쿼리들 안의 모든 데이터는 SQL 인젝션 공격에 대해서 방어하기 위해서 SQL 쿼리가 실행되기 이전에 반드시 SQL 이스케이핑 처리가 되어져있어야합니다. <code>prepare</code> 메소드는 워드프레스에 대해서 함수성(혹은 함수화) 를 실행합니다. 이것은 [http://php.net/sprintf sprintf()]와 같이 그리고 [http://php.net/vsprintf vsprintf()] 문법과 같은 두가지에 대해서 서포트를 수행합니다.
+
+'''읽어주세요''': [[Version 3.5|3.5]] 으로써, <tt>wpdb::prepare()</tt>는 '''2만개의 인자들에 대해서''' 강화시켯습니다. [[http://make.wordpress.org/core/2012/12/12/php-warning-missing-argument-2-for-wpdb-prepare/ more info]]
+
+%%% <?php $sql = $wpdb->prepare( 'query' , value_parameter[, value_parameter ... ] ); ?> %%%
+
+; query : (string) 실행하길 원하는 [[#Placeholders|placeholders]] 와 함께하는 SQL 쿼리입니다. (아래를 보세요). 
+; value_parameter : (int|string|array) placeholder 속으로 치환되어질 값입니다. 많은 값들은 아마도 [http://php.net/sprintf sprintf()] 와같은 스타일 안에서 더 많은 인자들이 전달되는 것에 의해서 전달되어질 것입니다. 상대적으로 2번째 인자는  PHP의 [http://php.net/vsprintf vsprintf()] 함수에 의해서 값들을 함유한 배열이 되어질 수 있습니다. 파라메터 속으로 직접적인 유저 인풋이 허용되지 않기 위해서 반드시 주의되어져야만 합니다. 이것은 아마도 다수의 placeholder 들과 함께 어떠한 쿼리의 조작에 대해서 허용할 것입니다..
+
+===Placeholders===
+
+
+<tt>prepare</tt> 에 대한 <tt>query</tt> 파라메터들은 [http://php.net/sprintf sprintf()] 와 같은 placeholder 들을 받아들일 것입니다. <tt>%s</tt> (string), <tt>%d</tt> (integer) 그리고 <tt>%f</tt> (float) 형식이 지원되어집니다. 
+ <tt>%s</tt> 그리고 <tt>%d</tt> placeholder 들은 [[Version 2.3]] 에서 함수가 추가되어진 이래로 가능해졌으며, <tt>%f</tt> 는 유일하게 [[Version 3.3]] 이래로 가능해졌습니다.
+
+또다른 <code>%</code> 문자들은 그들이 이스케이핑이 되어지지 않는다면 아마도 파싱 에러를 발생시킬 것입니다. SQL string 내부의 모든 문자들 ( wildcard들을 포함하는 ) 은 반드시 <code>%%</code> 으로써 더블 이스케이프가 되어져야 합니다. <tt>%d</tt>, <tt>%f</tt> 그리고 <tt>%s</tt> 모두의 placeholder 는 유일하게 정수들을 받아들일 것입니다. 그래서 '''<tt>%d</tt> 를 통해서 콤마 값을 가진 숫자를 전달할 수 없습니다.''' 만약 콤마 값이 필요하다면, <tt>%f</tt>를 대신에 사용하세요..
+
+===예제===
+Meta key => value 쌍인 "Harriet's Adages" => "WordPress' database interface is like Sunday Morning: Easy." 를 포스트 10에 대해서 추가시킵니다..
+<pre>
+$metakey	= "Harriet's Adages";
+$metavalue	= "WordPress' database interface is like Sunday Morning: Easy.";
+
+$wpdb->query( $wpdb->prepare( 
+	"
+		INSERT INTO $wpdb->postmeta
+		( post_id, meta_key, meta_value )
+		VALUES ( %d, %s, %s )
+	", 
+        10, 
+	$metakey, 
+	$metavalue 
+) );
+</pre>
+''<code>[[Function_Reference/add_meta|add_meta()]]</code> 에 의해서 워드프레스 안에서 수행되어집니다.''
+
+[http://php.net/vsprintf vsprintf()] 와 같은 문법을 사용하는 같은 쿼리입니다.
+
+<pre>
+$metakey = "Harriet's Adages";
+$metavalue = "WordPress' database interface is like Sunday Morning: Easy.";
+
+$wpdb->query( $wpdb->prepare( 
+	"
+		INSERT INTO $wpdb->postmeta
+		( post_id, meta_key, meta_value )
+		VALUES ( %d, %s, %s )
+	", 
+        array(
+		10, 
+		$metakey, 
+		$metavalue
+	) 
+) );
+</pre>
+''이 에제에서 우리는 한 배열 안에서 함께 값들을 감쌉니다. 이것은 우리가 전달해야할 인자들이 마침내 런타임이 되기까지 인자들의 수를 모를때 매우 유용합니다.''
+
+전달할 string 들에 대해서 걱정할 필요가 없습니다. SQL 쿼리속으로 변수들을 직접적으로 전달하는 것 대신에, <code>%s</code> placeholder 를 string 들에 대해서, <code>%d</code> placeholder 를 integer 들에 대해서, <tt>%f</tt> placeholder 를 float 들에 대해서 사용 하세요. 원하는 것과 같은 많은 값들은 전달되어질 수 있으며, <code>prepare()</code> 메소드 안에서 새로운 각각의 파라메터들과 같이 많이 전달할 수 있습니다.
+
+== 에러들을 보여주거나 숨기세요 ==
+
+에러를 출력하는 것을 각각 <code>show_errors</code> 그리고 <code>hide_errors</code> 와 함께 전환시키거나 끌 수 있습니다. 
+
+%%% <?php $wpdb->show_errors(); ?> 
+ <?php $wpdb->hide_errors(); ?> %%%
+
+또한 <code>print_error</code> 와 함께 현존하는 많은 쿼리에 의해서 에러가 생성된다고 치더라도 프린트 할 수 있습니다.
+
+%%% <?php $wpdb->print_error(); ?> %%%
+
+<strong>알림:</strong>  만약 워드프레스 멀티사이트를 가동중이라면, 데이터베이스 에러들을 보여주기 위해서 DIEONDBERROR 를 정의해야만 하며 이렇게 사용합니다:
+<br />%%% <?php define( 'DIEONDBERROR', true ); ?> %%%
+
+== 컬럼 정보를 얻기 ==
+<code>get_col_info</code> 와 함께 현존하는 대부분의 쿼리결과들의 열들에 대한 정보를 반환할 수 있습니다. 이것은 알지 못하는 속성들을 가진 오브젝트에 대해서 함수가 리턴시킬때 매우 유용합니다. 이 함수는 특정한 열 혹은 특정하게 명시되어져있는 열이 없다면, 쿼리 결과로부터 ''all''  열들에 대한 정보와 함께 열들에 대해서 출력하게 될 것입니다.
+
+%%% <?php $wpdb->get_col_info('type', offset); ?> %%%
+; type : (string) 리턴시키길 원하는 정보입니다.  [http://jvmultimedia.com/docs/ezsql/ez_sql_help.htm ezSQL docs] 로부터 리스트를 가져온 뒤따라는 값들 중 어떤 것도 가능할 겁니다. 기본값은 '''name''' 입니다..
+
+:*name - 열의 이름입니다.  기본값입니다.
+:*table - 열이 속해있는 테이블의 이름입니다
+:*max_length - 열의 최대 길이 입니다
+:*not_null - 열이 NULL 이 아니라면 1입니다
+:*primary_key - 열이 primary key 라면 1입니다
+:*unique_key - 열이 unique key 라면 1입니다
+:*multiple_key - 열이 non-unique key 라면 1입니다
+:*numeric - 열이 숫자라면 1입니다
+:*blob - 열이 BLOB 이라면 1입니다
+:*type - 열의 타입입니다
+:*unsigned - 열이 배정되지 않앗다면 1입니다
+:*zerofill - 열이 0 필드라면 1입니다
+; offset : (integer)  반환될 정보로부터 특정하게 명시된 열입니다. (첫번째 열의 '''0''' 과 함께). 기본값은 '''-1''' 입니다.
+:*-1 - 모든 열들로부터 정보를 반환합니다. 출력은 배열입니다.
+:*Non-negative integer - 특정한 열들로부터 정보를 반환합니다. (처음에는 '''0''' 입니다)
+
+== 캐시 청소하기 ==
+
+SQL 캐시 결과를 <code>flush</code> 와 함께 청소할 수 있습니다.
+
+%%% <?php $wpdb->flush(); ?> %%%
+
+이것은 <code>$wpdb->last_result</code>, <code>$wpdb->last_query</code> 그리고 <code>$wpdb->col_info</code>를 청소합니다.
+
+== 클래스 변수 ==
+
+; $show_errors : [[#Show and Hide SQL Errors|Error echoing]] 가 켜질지 말지 결정합니다. 기본값은 TRUE 입니다.
+
+; $num_queries : 실행되어져온 쿼리들의 수입니다.
+
+; $last_query : 실행되어진 최근 쿼리들의 갯수입니다.
+
+; $last_error : MySQL 에 의해서 생성되어진 최근의 에러텍스트 입니다.
+
+; $queries : 아마도 데이터베이스에서 실행되어진 모든 쿼리들을 저장할 것입니다 그리고 <tt>SAVEQUERIES</tt> 상수를 <tt>TRUE</tt>로 설정함에 의해서 횟수를 가지고 멈출 것 입니다. 이것의 기본값은 <tt>FALSE</tt> 입니다. 만약 <tt>SAVEQUERIES</tt>이 TRUE 라면, 쿼리는 아마도 배열로써 이 변수 안에서 저장되어질 것입니다.
+
+; $last_result : 최근의 쿼리 결과입니다.
+
+; $col_info : 최근 쿼리 결과들에 대한 열 정보입니다. [[#Getting Column Information|Getting Column Information]] 를 보세요.
+
+; $insert_id : 최근의 <tt>INSERT</tt> 쿼리에 의해서 <tt>AUTO_INCREMENT</tt> 열에 대해서 생성되어진 ID 입니다..
+
+; $num_rows : 마지막 쿼리에 의해서 리턴되어진 행의 갯수입니다.
+
+; $prefix : 사이트에 대해 배정된 워드프레스 테이블 prefix  입니다.
+
+; $base_prefix : <tt>[[Editing_wp-config.php#table_prefix | wp-config.php]]</tt> 안에서 정의되어진 원본 prefix 입니다. 멀티 사이트에 대해서, blog number 가 붙여지지는 것 없이 prefix 를 얻기를 원한다면 사용하세요..
+
+=== 멀티사이트 변수들 ===
+
+만약 멀티 사이트를 운영중이라면, 또한 뒤따르는 것에 대해 엑세스 할 수 있습니다.:
+
+; $blogid :  현재 사이트의 id 입니다.
+; $siteid :  현재 네트워크의 id 입니다 (공식적으론 사이트). 워드프레스는 실제적으로 유일하게 하나의 네트워크당 다수의 멀티사이트 인스톨을 제공합니다. 그러나 이것은 미래이는 변할 수 있습니다. 뒤따르는 정보를 관찰하세요.:
+
+* [http://wordpress.org/support/topic/wordpress-difference-between-site_id-and-blog_id?replies=11 WordPress: difference between site_id and blog_id?]
+* http://stackoverflow.com/a/4189358/1924128 - Another good answer to the same question.
+
+== 테이블 == 
+<!-- 데이터베이스 구조가 완전하게 설명되어질때 이것은 보이는 것처럼 유용하진 않을 수 있습니다 -->
+워드프레스 데이터베이스 테이블들은 쉽게 <code>wpdb</code> 클래스 안에서 참조되어집니다.
+
+; $posts : [[Database Description#Table:_wp_posts|Posts]] 테이블 입니다..
+
+; $postmeta : [[Database Description#Table:_wp_postmeta|Meta Content]] (a.k.a. [[Custom Fields]]) 테이블 입니다.
+
+; $comments : [[Database Description#Table:_wp_comments|Comments]] 테이블 입니다.
+
+; $commentmeta : 이 테이블은 댓글에대한 추가적인 정보를 함유하고 있습니다.
+
+; $terms : [[Database Description#Table:_wp_terms|terms]] 테이블은 카테고리에 대한 설명을 함유하고 있습니다. 예를들면 링크 카테고리 태그들 이 있습니다.
+
+; $term_taxonomy : [[Database Description#Table:_wp_term_taxonomy|term_taxonomy]] 테이블은 클래스들의 term 들인 다양한 텍소노미들을 설명합니다. 카테고리들, 링크 카테고리들 그리고 태그들은 텍소노미입니다.
+
+; $term_relationships : [[Database Description#Table:_wp_term_relationships|term relationships]] 테이블은 term 그리고 각각의 포스트에 대해서 개개의 카테고리들의 파일 포인트로 의미되어지는 term 의 사용하는 object 사이의 링크를 함유하고 있습니다.
+
+; $users : [[Database Description#Table:_wp_users|Users]] 테이블 입니다.
+
+; $usermeta : [[Database Description#Table:_wp_usermeta|usermeta]] 테이블은 추가적인 유저정보, 예를들면 닉네임, 설명 그리고 권한들을 포함하고 있습니다.
+
+; $links : [[Database Description#Table:_wp_links|Links]] 테이블 입니다.
+
+; $options : [[Database Description#Table:_wp_options|Options]] 테이블 입니다.
+
+=== 멀티사이트 테이블 ===
+이러한 테이블들은 멀티사이트 설치 안에서 유일하게 사용되어집니다.
+
+; $blogs : [[Database Description#Table:_wp_blogs|Blogs]] 테이블은 분리된 블로그(사이트)들의 리스트를 함유하고 있습니다. 이것은 네트워크들 안에서 설치되어진 것입니다.
+
+; $signups : [[Database Description#Table:_wp_signups|Signups]] 테이블 입니다.
+
+; $site : [[Database Description#Table:_wp_site|Site]] 테이블은 설치 안에서 설정되어진 네트워크들의 리스트를 함유하고 있습니다. 이전에는 WPMU 안에서 사이트로 알려져 있으며 대게 이 테이블 안에서 오직 하나의 사이트만 존재합니다.
+
+; $sitemeta : [[Database Description#Table:_wp_sitemeta|Network Options (Site Meta)]] 테이블은 전체적인 멀티사이트 설치에 대해서 응용가능한 어떠한 옵션들을 함유합니다.
+
+; $sitecategories : [[Database Description#Table:_wp_sitecategories|Site Categories]] 테이블 입니다.
+
+; $registration_log : [[Database Description#Table:_wp_registration_log|Registration Log]] 테이블 입니다.
+
+; $blog_versions : [[Database Description#Table:_wp_blog_versions|Blog Versions]] 테이블 입니다.
+
+== 소스 파일 ==
+<tt>wpdb()</tt> 는 {{Trac|wp-includes/wp-db.php}} 안에 위치되어져 있습니다.
+
+== 관련 ==
+*  멤버 함수: [[Class_Reference/wpdb/esc_like | wpdb::esc_like()]] - SQL 안에서 사용하기 이전에 LIKE 문들을 탈출합니다.
+
+{{Query Tags}}
+
+{{Class Footer}}
+
+[[Category:Classes]]
+
+
+이 번역은 한국인 워드프레스 유저 Remoted 에 의하여 번역되었습니다. 번역에 대한 문의사항이나 추가 요청이 있는 경우 35mwlee@naver.com 혹은 http://35mwlee.blog.me 로 문의주시면 감사하겠습니다.

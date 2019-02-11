@@ -1,0 +1,93 @@
+{{Languages|
+{{en|Function Reference/register_sidebar}}
+{{es|Referencia de Funciones/register_sidebar}}
+{{ja|関数リファレンス/register_sidebar}}
+{{pt-br|Function Reference/register_sidebar}}
+}}
+
+== Description ==
+
+Builds the definition for a single [[Sidebars|sidebar]] and returns the ID. Call on "widgets_init" action.
+
+== Usage ==
+
+%%%<?php register_sidebar( $args ); ?>%%%
+
+===Default Usage===
+
+<pre>
+<?php $args = array(
+	'name'          => __( 'Sidebar name', 'theme_text_domain' ),
+	'id'            => 'unique-sidebar-id',    // ID should be LOWERCASE  ! ! !
+	'description'   => '',
+        'class'         => '',
+	'before_widget' => '<li id="%1$s" class="widget %2$s">',
+	'after_widget'  => '</li>',
+	'before_title'  => '<h2 class="widgettitle">',
+	'after_title'   => '</h2>' ); ?>
+</pre>
+
+== Parameters ==
+
+{{Parameter|args|string/array|Builds Sidebar based off of 'name' and 'id' values.|optional}}
+:* <tt>name</tt> - Sidebar name (default is localized 'Sidebar' and numeric ID).
+:* <tt>id</tt> - Sidebar id - Must be all in lowercase, with no spaces (default is a numeric auto-incremented ID).  If you do not set the <code>id</code> argument value, you will get <code>E_USER_NOTICE</code> messages in [[Debugging_in_WordPress|debug mode]], starting with version 4.2.
+:* <tt>description</tt> - Text description of what/where the sidebar is. Shown on widget management screen. (Since 2.9) (default: empty)
+:* <tt>class</tt> - CSS class to assign to the Sidebar in the Appearance -> Widget admin page. This class will only appear in the source of the WordPress Widget admin page.  It will not be included in the frontend of your website. Note: The value <code>"sidebar"</code> will be prepended to the class value. For example, a class of <code>"tal"</code> will result in a class value of <code>"sidebar-tal"</code>. (default: empty).
+:* <tt>before_widget</tt> - HTML to place before every widget(default: <code>&lt;li id="%1$s" class="widget %2$s"&gt;</code>) Note: uses sprintf for variable substitution
+:* <tt>after_widget</tt> - HTML to place after every widget (default: <code>&lt;/li>\n</code>).
+:* <tt>before_title</tt> - HTML to place before every title (default: <code>&lt;h2 class="widgettitle"></code>).
+:* <tt>after_title</tt> - HTML to place after every title (default: <code>&lt;/h2>\n</code>).
+
+The optional <code>args</code> parameter is an associative array that will be passed as a first argument to every active widget callback. (If a string is passed instead of an array, it will be passed through [http://php.net/manual/en/function.parse-str.php parse_str()] to generate an associative array.) The basic use for these arguments is to pass theme-specific HTML tags to wrap the widget and its title.
+
+== Notes ==
+
+* With WordPress 3.4.1 there're still some '''IDs to avoid''', [http://wordpress.stackexchange.com/questions/59973/what-is-allowed-as-an-id-argument-in-register-sidebar-args/59985#59985 that can be found here]. Props to "toscho" for building a plugin collecting and listing them.
+
+* Calling <tt>register_sidebar()</tt> multiple times to register a number of sidebars is preferable to using [[Function Reference/register sidebars|register_sidebars()]] to create a bunch in one go, because it allows you to assign a unique name to each sidebar (eg: “Right Sidebar”, “Left Sidebar”). Although these names only appear in the admin interface it is a best practice to name each sidebar specifically, giving the administrative user some idea as to the context for which each sidebar will be used.
+
+* The default before/after values are intended for themes that generate a sidebar marked up as a list with h2 titles. This is the convention we recommend for all themes and any theme built in this way can simply register sidebars without worrying about the before/after tags. If, for some compelling reason, a theme cannot be marked up in this way, these tags must be specified when registering sidebars. It is recommended to copy the id and class attributes verbatim so that an internal sprintf call can work and CSS styles can be applied to individual widgets.
+
+== Example ==
+
+This will create a sidebar named "Main Sidebar" with &lt;h2&gt; and &lt;/h2&gt; before and after the title:
+
+<pre>
+add_action( 'widgets_init', 'theme_slug_widgets_init' );
+function theme_slug_widgets_init() {
+    register_sidebar( array(
+        'name' => __( 'Main Sidebar', 'theme-slug' ),
+        'id' => 'sidebar-1',
+        'description' => __( 'Widgets in this area will be shown on all posts and pages.', 'theme-slug' ),
+        'before_widget' => '<li id="%1$s" class="widget %2$s">',
+	'after_widget'  => '</li>',
+	'before_title'  => '<h2 class="widgettitle">',
+	'after_title'   => '</h2>',
+    ) );
+}
+</pre>
+
+== Change Log ==
+
+* [[Version 4.2|4.2.0]] : Missing <code>id</code> property now triggers <code>E_USER_NOTICE</code>.
+* [[Version 2.9|2.9.0]] : Added <code>description</code> property
+* Since: [[Version 2.2|2.2.0]]
+
+== Source File ==
+
+<tt>register_sidebar()</tt> is located in {{Trac|wp-includes/widgets.php}}.
+
+== Resources ==
+
+* [http://generatewp.com/sidebar/ WordPress Sidebar Generator]
+* [http://justintadlock.com/archives/2010/11/08/sidebars-in-wordpress Sidebars in WordPress]
+
+== Related ==
+
+{{Sidebar Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:Widgets]]

@@ -1,0 +1,144 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a href="https://codex.wordpress.org/it:Riferimento_funzioni/wp_reset_query" title="it:Riferimento funzioni/wp reset query">Italiano</a> • 
+
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/">関数リファレンス/wp reset query 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Return_Values"><span class="tocnumber">4</span> <span class="toctext">Return Values</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Examples"><span class="tocnumber">5</span> <span class="toctext">Examples</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Change_Log"><span class="tocnumber">6</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Source_File"><span class="tocnumber">7</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Articles"><span class="tocnumber">8.1</span> <span class="toctext">Articles</span></a></li>
+<li class="toclevel-2"><a href="#Code_Documentation"><span class="tocnumber">8.2</span> <span class="toctext">Code Documentation</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_reset_query&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>wp_reset_query() restores the $wp_query and global post data to the original main query. This function should be called after query_posts(), if you must use that function. As noted in the examples below, it's heavily encouraged to use the <a rel="nofollow" class="external text" href="https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts">pre_get_posts</a> filter to alter query parameters before the query is made.
+</p><p>Calling wp_reset_query is not necessary after using WP_Query or get_posts as these don't modify the main query object. Instead use <a href="https://codex.wordpress.org/wp_reset_postdata" title="wp reset postdata" class="mw-redirect">wp_reset_postdata</a>
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_reset_query&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&#160;wp_reset_query</span><span style="color: #007700">();&#160;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_reset_query&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This function does not accept any parameters.
+</p>
+<h2><span class="mw-headline" id="Return_Values">Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_reset_query&amp;action=edit&amp;section=4" title="Edit section: Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This function does not return any values.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_reset_query&amp;action=edit&amp;section=5" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following example shows how to use wp_reset_query() after a custom loop. Note that the loop in the example is probably being used in addition to the main loop.
+</p>
+<pre>
+&lt;?php
+
+$args = array ( 'post_parent' =&gt; 5 );
+query_posts( $args );
+
+if ( have_posts() ):
+    while ( have_posts() )&#160;:
+        the_post();
+
+        // Do stuff with the post content.
+        the_title();
+        the_permalink(); // Etc.
+
+    endwhile;
+else:
+    // Insert any content or load a template for no posts found.
+endif;
+
+wp_reset_query();
+
+?&gt;
+</pre>
+<p><b>query_posts() will change your main query and is not recommended. Only use if <em>absolutely necessary</em> (see <a href="https://codex.wordpress.org/Function_Reference/query_posts#Caveats" title="Function Reference/query posts">query_posts: Caveats</a>).</b> Creating a new instance of <a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query">WP_Query</a> or <a href="https://codex.wordpress.org/Function_Reference/get_posts" title="Function Reference/get posts" class="mw-redirect">get_posts()</a> is preferred for secondary loops. If you would like to modify the main query, use the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts" title="Plugin API/Action Reference/pre get posts">pre_get_posts</a> action. Be sure to put your pre_get_posts filtering in your functions.php file.
+</p>
+<pre>
+&lt;?php
+query_posts( 'post_parent=5' );
+if ( have_posts() )&#160;:
+	while ( have_posts() )&#160;: the_post();
+		?&gt;&lt;a href="&lt;?php the_permalink()&#160;?&gt;"&gt;&lt;?php the_title()&#160;?&gt;&lt;/a&gt;&lt;br /&gt;&lt;?php
+	endwhile;
+endif;
+wp_reset_query();
+?&gt;
+</pre>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_reset_query&amp;action=edit&amp;section=6" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Since: <a href="https://codex.wordpress.org/Version_2.3" title="Version 2.3">2.3.0</a></li></ul>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_reset_query&amp;action=edit&amp;section=7" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>wp_reset_query()</tt> is located in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/query.php#L0">wp-includes/query.php</a></code>.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Function_Reference/wp_reset_query&amp;action=edit&amp;section=8" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Articles">Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Query_Tags&amp;action=edit&amp;section=T-1" title="Template:Query Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Article: <a href="https://codex.wordpress.org/The_Loop" title="The Loop">The Loop</a> - A basic overview of its use of query within the WordPress loop.</li>
+<li> Article: <a href="https://codex.wordpress.org/Query_Overview" title="Query Overview">Query Overview</a> - Explanation of how to determine which queries generate WordPress.</li>
+<li> Article: <a href="https://codex.wordpress.org/Custom_Queries" title="Custom Queries"> Customizing Queries via Hook</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Displaying_Posts_Using_a_Custom_Select_Query" title="Displaying Posts Using a Custom Select Query"> View Articles MYSQL query using custom</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Making_Advanced_Taxonomy_Queries" title="Making Advanced Taxonomy Queries"> Build advanced queries on Taxonomies</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Making_Custom_Queries_using_Offset_and_Pagination" title="Making Custom Queries using Offset and Pagination"> Build custom query using Offset and pagination</a></li></ul>
+<h3><span class="mw-headline" id="Code_Documentation">Code Documentation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Query_Tags&amp;action=edit&amp;section=T-2" title="Template:Query Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query"> WP_Query</a> - Detailed Overview of class WP_Query</li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Comment_Query" title="Class Reference/WP Comment Query"> WP_Comment_Query</a> - Class for comment-related queries</li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_User_Query" title="Class Reference/WP User Query"> WP_User_Query</a> - Class for user-related queries</li>
+<li> Object: <a href="https://codex.wordpress.org/Class_Reference/wpdb" title="Class Reference/wpdb"> $wpdb</a> - Overview on the use of the $wpdb object</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/set_query_var" title="Function Reference/set query var"> set_query_var()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_query_var" title="Function Reference/get query var"> get_query_var()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/query_posts" title="Function Reference/query posts"> query_posts()</a> - Create additional custom query</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_post" title="Function Reference/get post"> get_post()</a> - Take an ID of an item and return the records in the database for that article</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_posts" title="Function Reference/get posts" class="mw-redirect"> get_posts()</a> - A specialized function that returns an array of items</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_pages" title="Function Reference/get pages"> get_pages()</a> - A specialized function that returns an array of pages</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/have_posts" title="Function Reference/have posts"> have_posts()</a> - A condition that determines whether the query returned an article</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/the_post" title="Function Reference/the post"> the_post()</a> - Used to automatically set the loop after a query</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/rewind_posts" title="Function Reference/rewind posts"> rewind_posts()</a> - Clears the current loop</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/setup_postdata" title="Function Reference/setup postdata"> setup_postdata()</a> - Sets the data for a single query result within a loop</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_reset_postdata" title="Function Reference/wp reset postdata"> wp_reset_postdata()</a> - Restores the previous query (usually after a loop within another loop)</li>
+<li> Function: <strong class="selflink"> wp_reset_query()</strong></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/is_main_query" title="Function Reference/is main query"> is_main_query()</a> - Ensures that the query that is being changed is only the main query</li>
+<li> Action Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts" title="Plugin API/Action Reference/pre get posts"> pre_get_posts</a> - Change WordPress queries before they are executed</li>
+<li> Action Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/the_post" title="Plugin API/Action Reference/the post"> the_post</a> - Modify the post object after query</li>
+<li> Filter Hook: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/found_posts" title="Plugin API/Filter Reference/found posts"> found_posts</a> - Changes the value of the object found_posts WP_Query</li></ul>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004013
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.024 seconds
+Real time usage: 0.383 seconds
+Preprocessor visited node count: 110/1000000
+Preprocessor generated node count: 430/1000000
+Post‐expand include size: 4106/2097152 bytes
+Template argument size: 463/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  125.745      1 - -total
+ 43.96%   55.280      1 - Template:Trac
+ 41.25%   51.872      1 - Template:Languages
+ 36.59%   46.005      1 - Template:it
+ 26.67%   33.532      1 - Template:CurrentVersion
+ 12.62%   15.870      1 - Template:Tag_Footer
+  6.27%    7.883      1 - Template:Message
+  1.67%    2.103      1 - Template:Query_Tags
+  1.32%    1.662      1 - Template:en
+  1.20%    1.507      1 - Template:ja
+-->

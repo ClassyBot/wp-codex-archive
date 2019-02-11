@@ -1,0 +1,120 @@
+{{Languages|
+{{en|Taxonomies}}
+{{it|Tassonomie}}
+{{pt-br|Taxonomias}}
+}}
+{{Traduz}}
+== O que é Taxonomia? ==
+
+'''Taxonomia''' é uma daquelas palavras que a maioria das pessoas nunca ouviram ou não usam. Basicamente, uma taxonomia é uma forma de agrupar as coisas em conjunto. 
+
+Por exemplo, eu poderia ter um monte de diferentes tipos de animais. Eu posso agrupá-los de acordo com várias características e, em seguida, atribuir os nomes de grupos. Isso é algo que a maioria das pessoas encontram nas aulas de biologia, e é conhecido como o [https://pt.wikipedia.org/wiki/Sistema_de_Linn%C3%A9 Sistema de Linné].
+
+No WordPress, uma "taxonomia" é um mecanismo de agrupamento para alguns posts (ou links ou post personalizado).
+
+== Taxonomias Padrões ==
+
+O WordPress tem três taxonomias embutidas que você provavelmente já usou.
+
+=== Categoria ===
+
+A taxonomia '<tt>categoria</tt>' permite que você agrupe posts, classificando-os em várias categorias. Estas categorias podem então serem vistas no site usando '<tt>/category/nome</tt>'. Categorias tendem a ser pre-definidas e de longo alcance.
+
+=== Tag ===
+
+A taxonomia '<tt>post_tag</tt>' é similar às categorias, porém, mais livres. Tags podem ser criadas em tempo real, bastando digita-las. Elas podem ser vistas no site no tipo de URL '<tt>/tag/nome</tt>'. Posts tendem a ter inúmeras tags, e elas geralmente são exibidas próximas aos posts ou nas forma de 'tag clouds'.
+
+=== Categorias de Links ===
+
+O '<tt>link_category</tt>' permite você caracterizar seus links. Eles tendem a ser usados apenas internamente, por razões organizacionais, e geralmente não são expostos no site em si. Eles são conveniente para definir grupos de links para serem exibidos em 'sidebars' e afins.
+
+== Taxonomias Customizadas ==
+Desde o [[Version 2.3|WordPress 2.3]], você pode criar suas próprias taxonomias personalizadas, mas elas não foram uma funcionalidade do WordPress muito utilizada até a versão [[Version 2.9]]. Na verdade, elas são uma poderosa forma de agrupar vários itens de todas as formas.
+
+=== Exemplo ===
+
+O plugin [http://wordpress.org/extend/plugins/matts-community-tags/ Matt's Community Tags] usa taxonomias para definir "pessoas" como uma taxonomia para anexos. Ele usa-o para permitir pessoas marcarem os nomes de outros nas fotos, e usando isso, o site dele pode exibir fotos de pessoas a partir da URL '<tt>/pessoa/nome</tt>'.
+
+=== Registrando uma taxonomia ===
+
+Para registrar uma taxonomia, você pode usar a função [[Function_Reference/register_taxonomy|register_taxonomy()]].
+
+A seguir, um exemplo registrando a taxonomia "pessoas":
+
+<pre>
+function people_init() {
+	// cria uma nova taxonomia
+	register_taxonomy(
+		'pessoas',
+		'post',
+		array(
+			'label' => __( 'Pessoas' ),
+			'rewrite' => array( 'slug' => 'pessoa' ),
+			'capabilities' => array('assign_terms'=>'edit_guides', 'edit_terms'=>'publish_guides')
+		)
+	);
+}
+add_action( 'init', 'people_init' );
+</pre>
+
+Aqui a taxonomia "pessoas" é definida. Ela é definida para funcionar para posts, e a slug de reescrita é definida para a URL ficar como '<tt>/pessoa/</tt>', ao invés de '<tt>/pessoas/</tt>'.
+A linha de capacidades (capabilities) é opcional. Sem ela, o WordPress usará as capacidades padrões. Como mostrado abaixo, isso permitirá que qualquer usuário com a capacidade personalizada "edit_guides" a definir a taxonomia para o post e qualquer usuário com a capacidade personalizada "publish_guides" a criar novos itens de taxonomia.
+
+A capacidade das taxonomias incluem "assign_terms", "edit_terms", "manage_terms" (exibe a taxonomia no painel admin) e "delete_terms".
+
+=== Usando a taxonomia ===
+
+Uma vez que você adicionou a taxonomia, você perceberá que o WordPress cria uma nova meta box nos posts para você. Esta nova meta box parece exatamente como as caixa de Tags e permitirá você adicionar tags para estes posts.
+
+Se você não estiver anexando sua taxonomia a posts, então pode ser que a interface não seja criada para você. Taxonomias são genéricas, no final, você poderia criar uma para cada tipo de objeto. Para adicionar termos a um objeto usando taxonomia, você precisará usar a função [[Function_Reference/wp_set_object_terms|wp_set_object_terms()]]. Abaixo, um exemplo de adição do termo "José" ao post de ID número 123 na taxonomia "pessoa":
+
+ wp_set_object_terms( 123, 'José', 'pessoa' );
+
+Como você pode ver, é simples de se fazer. O segundo parâmetro também pode ser uma array de termos para adicionar todos de uma só vez, caso precise.
+
+=== Nuvens ===
+
+A função [[Function_Reference/wp_tag_cloud|wp_tag_cloud()]] também pode aceitar um parâmetro "taxonomia" se vocẽ quiser exibir a nuvem de termos para a sua taxonomia personalizada.
+
+=== Listando os termos ===
+
+Se você deseja ter uma lista personalizada no seu tema, então você pode passar o nome da taxonomia dentro da função [[Function_Reference/the_terms|the_terms()]] no Loop, como:
+
+ the_terms( $post->ID, 'pessoa', 'Pessoa: ', ', ', ' ' );
+
+Isso mostra a lista de pessoas anexadas a cada post.
+
+=== Consultando por Taxonomia ===
+
+Criar uma taxonomia geralmente cria automaticamente uma variável especial para consulta usando a classe [[Class Reference/WP_Query|WP_Query]], que pode ser utilizada para buscar relacionados. Por exemplo, para puxar uma lista com os posts que têm "José" como uma taxonomia "pessoa" neles, vamos utilizar:
+
+<pre>
+$query = new WP_Query( array( 'pessoa' => 'jose' ) );
+</pre>
+
+ou, um exemplo mais complexo:
+
+<pre>
+$args = array(
+	'tax_query' => array(
+		array(
+			'taxonomy' => 'pessoa',
+			'field' => 'slug',
+			'terms' => 'jose'
+		)
+	)
+);
+$query = new WP_Query( $args );
+</pre>
+
+== Erro 404 ==
+Se o seu site usa permalinks personalizados, você terá que atualizar a estrutura do seu parmalink depois de fazer alterações na sua taxonomia, ou então você poderá se deparar com o erro "Página não encontrada". Sua estrutura de permalink é automaticamente atualizada quando você visita Configurações > Permalinks no seu Painel de Administração.
+
+== More Information ==
+
+* [https://gist.github.com/1886449 Quick taxonomy creating class]
+* [http://justintadlock.com/archives/2009/05/06/custom-taxonomies-in-wordpress-28 Custom taxonomies in WordPress 2.8]
+* [http://net.tutsplus.com/tutorials/wordpress/introducing-wordpress-3-custom-taxonomies/ Introducing WordPress 3 Custom Taxonomies]
+
+{{Codex-pt}}
+{{DEFAULTSORT:T}}

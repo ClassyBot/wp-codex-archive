@@ -1,0 +1,50 @@
+Adding new settings to existing options is straightforward, but can require looking into the WordPress core code to
+find out which hooks to utilise.
+
+The following example adds an "extra blog description" field.
+
+<pre>
+
+/**
+ * Class for adding a new field to the options-general.php page
+ */
+class Add_Settings_Field {
+
+	/**
+	 * Class constructor
+	 */
+	public function __construct() {
+		add_action( 'admin_init' , array( $this , 'register_fields' ) );
+	}
+
+	/**
+	 * Add new fields to wp-admin/options-general.php page
+	 */
+	public function register_fields() {
+		register_setting( 'general', 'extra_blog_description', 'esc_attr' );
+		add_settings_field(
+			'extra_blog_desc_id',
+			'<label for="extra_blog_desc_id">' . __( 'Blog description' , 'extra_blog_description' ) . '</label>',
+			array( $this, 'fields_html' ),
+			'general'
+		);
+	}
+
+	/**
+	 * HTML for extra settings
+	 */
+	public function fields_html() {
+		$value = get_option( 'extra_blog_description', '' );
+		echo '<input type="text" id="extra_blog_desc_id" name="extra_blog_description" value="' . esc_attr( $value ) . '" />';
+	}
+
+}
+new Add_Settings_Field();
+
+</pre>
+
+
+Another explanation can be found at http://trepmal.com/2011/03/07/add-field-to-general-settings-page/
+
+{{Stub}}
+[[Category:Advanced Topics]]

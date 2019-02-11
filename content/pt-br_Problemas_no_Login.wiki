@@ -1,0 +1,86 @@
+{{Languages|
+{{en|Login Trouble}}
+{{ja|Login Trouble}}
+{{pt-br|Problemas no Login}}
+{{sk|Problémy s prihlasovaním}}
+}}
+
+Se você está tendo problemas para acessar o WordPress, aqui estão algumas soluções possíveis. 
+==Habilite Cookies==
+
+Certifique-se que os cookies estão habilitados para o seu navegador.
+
+* Limpar os cookies do navegador.
+* Limpar o cache do navegador.
+
+== Desabilitar Plugins==
+
+Alguns [[pt-br:Plugins| WordPress Plugins]] podem interferir com o processo de login. Desative todos os Plugins, pode ser através do Painel de Administração ou de remova/renomeie sua pasta em <code>/wp-content/plugins/</code>.
+
+== Novo Arquivo de Login ==
+
+Às vezes, o <code>wp-login.php</code> pode ter sido corrompido ou enviado incorretamente.
+
+* Delete <code> wp-login.php </code> e envie uma nova cópia de um pacote WordPress. Lembre-se, a substituição de arquivos via [[pt-br:Cliente FTP|Clientes FTP]] pode levar à transferência incompleta.
+* Edite <code> wp-login.php </code> como segue:
+
+*Vá até a seção <code>case retrievepassword</code>, encontre o comentário: 
+
+
+<code>// redefining user_login ensures we return the right case in the email</code>
+::Substitua:
+<code> $user_login = $user_data["user_login"];</code>
+
+::Com:
+<code> $user_login = $user_data->user_login;</code>
+
+== Editando Tabela de Usuários ==
+
+Este é um modo não-recomendando para iniciantes.
+
+[[WordPress_Backups#Accessing_phpMyAdmin|Accesse phpMyAdmin do seu servidor]] e edite o banco de dados com cautela:
+
+* Abra o banco de dados '''WordPress'''.
+* Clique na tabela de usuários no menu à esquerda (o padrão é <code> wp_users </code>, ou <code> seuprefixo''_users''</code> se você definiu um prefixo de tabela diferente.)
+* Clique em'' 'BROWSE'''.
+* Clique no botão "EDIT''''botão 'ao lado do usuário admin.
+* Delete o que estiver no campo de senha.
+* Utilizar o [http://bfl.rctek.com/tools/?tool=hasher MD5 Hasher], digite a senha desejada e copie o hash gerado.
+* Cole o hash no campo de senha para o usuário <code> admin </code>.
+* Guardar a informação na base de dados.
+* Entrar no WordPress usando "admin" e a senha que você usou para criar o hash.
+* No caso de novas versões do WordPress, a senha é duplo hash, mas enquanto é md5 a senha, ele vai completar o hash (ele atualiza sua senha por você).
+
+== Problemas com senha ==
+
+Para obter informações sobre problemas em iniciar sessão, devido a uma senha errada ou perdida, veja [[pt-br:Redefinindo Senha|Redefinindo Senha]].
+
+Lembre-se, os campos Username e Password são sensíveis a letra maiúscula/minuscula.
+
+== URL Redirecionado ==
+Em certos casos, o seu endereço WordPress URI pode ter sido redefinido.
+
+*Verifique o valor '''siteurl''' na tabela ''wp-options'' do banco de dados do WordPress.  
+*Está definido como <tt><nowiki>http:/</nowiki></tt>?
+*Se sim, mude'''site_url''' para o valor correto.
+*Abra''wp-login.php'' em um edito de texto e comente/delete as seguinte linhas:
+
+<code>// If someone has moved WordPress let's try to detect it
+//if ( dirname('<nowiki>http://</nowiki>' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) != get_settings('siteurl') )
+ // update_option('siteurl', dirname('<nowiki>http://</nowiki>' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']) );</code>
+
+==HTTPS Seguro==
+
+Se você está tendo problema com HTTPS seguro, altere a seguinte linha em <tt>wp-includes/vars.php</tt> de: 
+
+<code>define('COOKIEPATH', preg_replace('|http://[^/]+|i', '', get_settings('home') . '/' ) );</code>
+
+Para:
+
+<code>define('COOKIEPATH', preg_replace('|https?://[^/]+|i', '', get_settings('home') . '/' ) );</code>
+
+Certifique-se também de alterar o URL em Opções para <nowiki> https ://</nowiki>.
+
+
+{{Codex-pt}}
+[[Category:Resolvendo Problemas]]

@@ -1,0 +1,194 @@
+{{Languages|
+{{en|Child Themes}}
+{{it|Temi Child}}
+{{ja|Child Themes}}
+{{ko|Child Themes}}
+{{es|Temas hijos}}
+{{nl|Child Thema's}}
+{{fr|Thèmes Enfant}}
+{{pt-br|Temas Filhos}}
+{{ru|Дочерние темы}}
+{{sk|Odvodené témy}}
+{{th|Child Themes}}
+{{zh-hans|子主题}}
+{{zh-tw|子主題}}
+{{mk|Дете теми}}
+}}
+
+Een WordPress child thema is een thema dat functionaliteit overneemt van een ander thema, het hoofdthema genaamd. Child thema's stellen je in staat de functionaliteit te bewerken of toe te voegen aan het hoofdthema. Een  child thema is de veiligste en makkelijkste manier om een bestaand thema te wijzigen, of je nu kleine of hele grote veranderingen aanbrengt. In plaats van de themabestanden direct te wijzigen, kun je een child thema maken en daarmee functionaliteit overschrijven.
+
+== Waarom een child thema gebruiken? ==
+
+Hier zijn een paar redenen:
+
+* Als je een bestaand thema aanpast en het wordt bijgewerkt, zullen de wijzigingen overschreven worden. Met een child thema kun je het hoofdthema updaten (wat belangrijk kan zijn voor beveiliging of voor nieuwe functionaliteit) en toch de aangebrachte wijzigingen behouden. 
+* Het kan de ontwikkeltijd verkorten.
+* Het is een mooie start als je net begonnen bent met het ontwikkelen van WordPress-thema’s.
+
+== Hoe maak je een child thema? ==
+
+* [[Image:child-theme-directory-structure.jpg|right|Mappenstructuur van Subthema]] Maak een map aan voor het child thema in de themamap. De themamap is wp-content/themes. De naam van de map mag geen spaties bevatten en het is gebruikelijk om de naam van de map van het hoofdthema te gebruiken met '-child' eraan toegevoegd. Bijvoorbeeld: als je een child thema maakt van het thema 'twentyfourteen', dan zou de naam van de map 'twentyfourteen-child' zijn.
+
+* Maak een bestand aan, genaamd style.css in de map van het child thema. Dit is het enige bestand dat vereist is om een child thema aan te maken. Deze stylesheet moet beginnen met de volgende regels:
+<pre>
+/*
+ Theme Name:   Twenty Fourteen Child
+ Theme URI:    http://example.com/twenty-fourteen-child/
+ Description:  Twenty Fourteen Child Theme
+ Author:       John Doe
+ Author URI:   http://example.com
+ Template:     twentyfourteen
+ Version:      1.0.0
+ Tags:         light, dark, two-columns, right-sidebar, responsive-layout, accessibility-ready
+ Text Domain:  twenty-fourteen-child
+*/
+
+@import url("../twentyfourteen/style.css");
+
+/* =Theme customization starts here
+-------------------------------------------------------------- */
+</pre>
+Je kunt deze regels aanpassen voor het child thema. De enige vereiste regels zijn 'Theme Name', 'Template' en (als het stylesheet van het child thema wijzigingen bevat ten opzichte van het hoofdthema) de regel '@import url'.
+
+'Template' is de naam van de map van het hoofdthema. In dit geval is het hoofdthema: TwentyFourteen, dus het Template is twentyfourteen; dat is de naam van de map waarin het thema TwentyFourteen zich bevindt. Als je een child thema wilt maken van een thema met de mapnaam voorbeeld-thema-naam, dan zou je <tt>Template: voorbeeld-thema-naam</tt> gebruiken.
+
+Tevens zou 'twentyfourteen' op de regel met '@import url' vervangen moeten worden door de naam van de map van het hoofdthema als je de stylesheet van het hoofdthema wilt importeren.
+
+Opmerking: De stylesheet van het child thema wordt geladen na het hoofdthema en de opmaakstijlen overschrijven die van het hoofdthema.
+
+* Activeer het child thema. Meld je aan op het Dashboard van je site en ga naar [[Administration Panels]] > [[Administration_Panels#Appearance|Appearance]] > [[Administration_Panels#Theme_Options|Themes]] ('Weergave' => 'Thema's'). Hier zul je het child thema zien staan. Klik op 'Activeren'.
+(Als WordPress draait als multi-site, zul je naar het netwerkbeheer-dashboard moeten gaan, => thema's, => klik op 'Netwerk activeren'. Daarna ga je naar het reguliere Dashboard en gebruik je bovenstaande stap om het child thema te activeren)
+
+== Template-bestanden ==
+
+Als je meer dan alleen de stylesheet wilt wijzigen, kun je bestanden van het hoofdthema overschrijven met die van het child thema: gebruik een bestand met dezelfde naam in de map van het child thema en dit zal hetzelfde bestand van het hoofdthema overschrijven als de site wordt geladen. Bijvoorbeeld: als je de PHP-code voor de header wilt wijzigen, gebruik je een bestand header.php in de map van het child thema. Dit bestand wordt dan gebruikt in plaats van header.php van het hoofdthema.
+
+Je kunt ook bestanden gebruiken in het child thema die niet aanwezig zijn in het hoofdthema. Bijvoorbeeld: je kunt een template-bestand gebruiken dat niet in het hoofdthema aanwezig is; denk aan een specifieke pagina of een categorie-archief. Zie ook de [[Template Hierarchy]] voor meer informatie over hoe WordPress besluit welk template er gebruikt wordt.
+
+=== Gebruik functions.php ===
+
+Anders dan ''style.css'' zal de ''functions.php'' van het child thema niet de versie van het hoofdthema overschrijven. In plaats daarvan wordt het '''geladen als uitbreiding voor de functions.php van het hoofdthema'''. (Meer specifiek: het wordt geladen ''voordat'' het hoofdthema-bestand wordt geladen.)
+
+Op die manier zal ''functions.php'' van een child thema een slimme, probleemloze methode zijn om de functionaliteit van het hoofdthema aan te passen. Stel, je wilt een PHP-functie toevoegen aan het thema. De snelste manier is het bestand ''functions.php'' te openen en de functie hierin te plaatsen. Dat is echter niet slim: De volgende keer dat het hoofdthema wordt bijgewerkt, zal de toegevoegde functie verdwenen zijn. Maar er is een alternatief dat de slimme manier is: je kunt een child thema maken, het bestand ''functions.php'' toevoegen en de gewenste functie aan dat bestand toevoegen. De functie zal exact hetzelfde werken, met het voordeel dat het niet wordt aangetast bij toekomstige updates van het hoofdthema. Kopieer niet de hele inhoud van de functions.php van het hoofdthema naar de functions.php van het child thema.
+
+De structuur van ''functions.php'' is simpel: Een open-tag bovenin, een sluit-tag onderaan en daartussen de PHP-code. Daarin kun je zoveel of zo weinig functies gebruiken als je wilt. Het voorbeeld hieronder toont een elementair bestand ''functions.php'' dat één simpel ding doet: Voeg een favicon-link toe aan het <code>head</code>-element van HTML-pagina's.
+
+<pre>
+<?php //Open-tag
+
+// In te sluiten aangepaste functie
+function favicon_link() {
+    echo '<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />' . "\n";
+}
+add_action( 'wp_head', 'favicon_link' );
+
+?> //Sluit-tag
+</pre>
+
+TIP VOOR THEMA-ONTWIKKELAARS. Het feit dat een ''functions.php'' van een child thema eerst geladen wordt, betekent dat je de functies van het thema 'pluggable' (vervangbaar door een child thema) kunt maken door deze conditioneel te declareren. Bijv.:
+
+<pre>
+if ( ! function_exists( 'theme_special_nav' ) ) {
+    function theme_special_nav() {
+        //  Doe iets.
+    }
+}
+</pre>
+
+Op die manier kan een child thema een PHP-functie van het hoofdthema vervangen door het simpelweg eerder te declareren.
+
+=== Toevoegen van bestanden aan het child thema ===
+
+Als je bestanden moet toevoegen die zich in de mappenstructuur van het child thema bevinden, moet je [[Function_Reference/get_stylesheet_directory|get_stylesheet_directory()]] gebruiken. Omdat style.css van het hoofdthema is vervangen door dat van het child thema en het style.css zich in de root van de submap van het child thema bevindt, verwijst get_stylesheet_directory() naar de map van het child thema (niet naar die van het hoofdthema).
+
+Hier is een voorbeeld, gebruikmakend van <code>require_once</code>, dat toont hoe je get_stylesheet_directory kunt gebruiken om een bestand in de mapstructuur van het child thema toe te voegen.
+
+<pre>
+require_once( get_stylesheet_directory() . '/mijn_toegevoegde_bestand.php' );
+</pre>
+
+== Andere nuttige informatie ==
+
+=== Gebruik Post Formats ===
+
+Een child thema overerft [[Post Formats|post formats]], zoals gedefinieerd door het hoofdthema. 
+Als je een child thema aanmaakt, let er dan op dat het gebruik van ''add_theme_support('post-formats')'' de opmaakcodes van het hoofdthema zal overschrijven, in plaats van '''ze toe te voegen''' aan het hoofdthema.
+
+=== RTL-ondersteuning ===
+
+Om RTL-talen te ondersteunen, voeg je een '''rtl.css'''-bestand toe aan het child thema, dat het volgende bevat:
+
+<pre>
+/*
+Theme Name: Twenty Fourteen Child
+Template: twentyfourteen
+*/
+
+@import url("../twentyfourteen/rtl.css");
+</pre>
+
+'''rtl.css''' wordt alleen geladen door WordPress als [[Function Reference/is rtl|is_rtl()]] waar is.
+
+Het is aan te raden het rtl.css-bestand toe te voegen aan het child thema, zelfs als het hoofdthema geen rtl.css-bestand bevat.
+
+=== Internationalisering ===
+
+Child thema's zullen, net als andere extensies, vertaald worden in andere talen door het gebruik van de gettext-functie. Voor een overzicht, zie [[Translating WordPress]] & [[I18n for WordPress Developers]].
+
+Volg de volgende stappen om een child thema te internationaliseren:
+
+* Voeg een directory 'languages' toe.
+** Iets als <code>my-theme/languages/</code>.
+* Voeg taalbestanden toe.
+** De bestandsnamen moeten luiden: <code>he_IL.po</code> & <code>he_IL.mo</code> (afhankelijk van je taal), in tegenstelling tot plugin-files die luiden: <code>domain-he_IL.xx</code>.
+* Laad een tekstdomein.
+** Gebruik load_child_theme_textdomain() in functions.php gedurende de 'after_setup_theme'-actie.
+** Het tekstdomein, gedefinieerd in load_child_theme_textdomain(), moet gebruikt worden om alle strings in het child thema te vertalen.
+* Gebruik GetText-functies om i18n-support toe te voegen voor de strings.
+
+==== Voorbeeld: tekstdomein ====
+
+<pre>
+<?php
+/**
+ * Tekstdomein van mijn child thema opzetten.
+ *
+ * Roep tekstdomein aan voor dit child thema.
+ * Vertalingen dienen opgeslagen te worden in de 'languages'-directory.
+ */
+function my_child_theme_setup() {
+	load_child_theme_textdomain( 'my-child-theme', get_stylesheet_directory() . '/languages' );
+}
+add_action( 'after_setup_theme', 'my_child_theme_setup' );
+?>
+</pre>
+
+==== Voorbeel: gettext-functies ====
+
+<pre>
+<?php
+_e( 'Code is Poetry', 'my-child-theme' );
+?>
+</pre>
+
+
+Samengevat, alle strings in het tekstdomein van 'my-child-theme' zullen vertaalbaar zijn. De vertaalbestanden moeten zich in de 'languages'-directory bevinden.
+
+== Resources ==
+
+* [[Theme Development]]
+* [http://themeshaper.com/modify-wordpress-themes/ How to Modify WordPress Themes the Smart Way] - serie in vier delen over child-thema's  
+* [https://managewp.com/how-to-create-a-child-theme How to Create a Child Theme]
+* [http://www.hongkiat.com/blog/wordpress-child-themes-dev/ Guide to WordPress Child Theme Development]
+* [http://theme.fm/2011/07/how-to-create-a-child-theme-based-on-twenty-eleven-791/ How to: Create a Child Theme Based on Twenty Eleven]
+* [http://wpmu.org/customizing-your-wordpress-theme-using-firebug/ Customizing Your WordPress Theme Using Firebug]
+* [http://wp.tutsplus.com/tutorials/theme-development/child-themes-basics-and-creating-child-themes-in-wordpress/ Tutorial: Child Themes Basics and Creating Child Themes in WordPress]
+* [http://wp.tutsplus.com/tutorials/creative-coding/how-to-modify-the-parent-theme-behavior-within-the-child-theme/ How to Modify the Parent Theme Behavior Within the Child Theme]
+* [http://wordpress.org/extend/plugins/child-themify/ Child Themify] - een plugin voor het creëren van een child-thema
+* [http://wordpress.org/plugins/orbisius-child-theme-creator/ Orbisius Child Theme Creator] - creëer een child-thema met één enkele klik, pas de child-thema-info aan, dubbele ajax-thema-editor
+
+'''''Terug naar de [[nl:Startpagina | Startpagina]]'''''
+
+[[Category:Design and Layout]]
+[[Category:UI Link]]<!-- link from wp-admin/update-core.php -->
+[[Category:Dutch Codex|S]]

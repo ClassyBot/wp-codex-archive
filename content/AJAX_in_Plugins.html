@@ -1,0 +1,220 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/AJAX">in Plugins 日本語</a> 
+<a href="https://codex.wordpress.org/ko:%ED%94%8C%EB%9F%AC%EA%B7%B8%EC%9D%B8%EC%97%90%EC%84%9C_AJAX_%EA%B5%AC%ED%98%84" title="ko:플러그인에서 AJAX 구현">한국어</a> • 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Introduction"><span class="tocnumber">1</span> <span class="toctext">Introduction</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Ajax_on_the_Administration_Side"><span class="tocnumber">2</span> <span class="toctext">Ajax on the Administration Side</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Separate_JavaScript_File"><span class="tocnumber">2.1</span> <span class="toctext">Separate JavaScript File</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="#Ajax_on_the_Viewer-Facing_Side"><span class="tocnumber">3</span> <span class="toctext">Ajax on the Viewer-Facing Side</span></a>
+<ul>
+<li class="toclevel-2 tocsection-5"><a href="#The_post-load_JavaScript_Event"><span class="tocnumber">3.1</span> <span class="toctext">The post-load JavaScript Event</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#Error_Return_Values"><span class="tocnumber">4</span> <span class="toctext">Error Return Values</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Debugging"><span class="tocnumber">5</span> <span class="toctext">Debugging</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Further_Reading_-_External_Resources"><span class="tocnumber">6</span> <span class="toctext">Further Reading - External Resources</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Related_References"><span class="tocnumber">7</span> <span class="toctext">Related References</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Introduction">Introduction</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=1" title="Edit section: Introduction">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This article, aimed at plugin developers, describes how to add Ajax to a plugin. Before reading this article, you should be familiar with the following:
+</p>
+<ul><li> <a href="https://codex.wordpress.org/AJAX" title="AJAX">Ajax</a> - Overview of the technology</li>
+<li> <a href="https://codex.wordpress.org/Writing_a_Plugin" title="Writing a Plugin">Writing a Plugin</a> - How to write a plugin</li>
+<li> <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">Plugin API</a> - Filters and actions - what they are and how to use them</li>
+<li> How to add HTML to the appropriate WordPress page, post, or screen -- for instance, if you want to add Ajax to administration  screens you create, you will need to understand how to <a href="https://codex.wordpress.org/Adding_Administration_Menus" title="Adding Administration Menus" class="mw-redirect">add administration menus to WordPress</a>; if you want to add Ajax to the display of a single post, you'll need to figure out the right filters and actions to add HTML to that spot on viewer-facing blog screens. This article does not cover these topics.</li></ul>
+<h2><span class="mw-headline" id="Ajax_on_the_Administration_Side">Ajax on the Administration Side</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=2" title="Edit section: Ajax on the Administration Side">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since Ajax is already built into the core WordPress administration screens, adding more administration-side Ajax functionality to your plugin is fairly straightforward.
+</p><p>This short example uses PHP to write our JavaScript in the footer of the page. This script then triggers the AJAX request when the page is fully loaded:
+</p>
+<code><pre>
+&lt;?php
+add_action( 'admin_footer', 'my_action_javascript' ); // Write our JS below here
+
+function my_action_javascript() {&#160;?&gt;
+	&lt;script type="text/javascript" &gt;
+	jQuery(document).ready(function($) {
+
+		var data = {
+			'action': 'my_action',
+			'whatever': 1234
+		};
+
+		// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
+		jQuery.post(ajaxurl, data, function(response) {
+			alert('Got this from the server: ' + response);
+		});
+	});
+	&lt;/script&gt; &lt;?php
+}
+</pre></code>
+<div style="background-color:#ffffff; border:1px solid #c6d9e9; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;"><b>NOTE:</b> Since <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">Version 2.8</a>, The JavaScript global variable <tt>ajaxurl</tt> can be used in case you want to separate your JavaScript code from php files into JavaScript only files. <b>This is true on the administration side only.</b> If you are using AJAX on the front-end, you need to make your JavaScript aware of the <tt>admin-ajax.php</tt> url. A best practice is documented in the fourth example, below using <tt>wp_localize_script()</tt>.</div>
+<p>Then, set up a PHP function to handle the AJAX request.
+</p>
+<pre>
+&lt;?php 
+
+add_action( 'wp_ajax_my_action', 'my_action' );
+
+function my_action() {
+	global $wpdb; // this is how you get access to the database
+
+	$whatever = intval( $_POST['whatever'] );
+
+	$whatever += 10;
+
+        echo $whatever;
+
+	wp_die(); // this is required to terminate immediately and return a proper response
+}
+</pre>
+<p>Notice how the 'action' key's value 'my_action', defined in our JavaScript above, matches the latter half of the action 'wp_ajax_my_action' in our AJAX handler below. This is because it is used to call the server side PHP function through admin-ajax.php. If an action is not specified, admin-ajax.php will exit, and return <code>0</code> in the process.
+</p><p>You will need to add a few details, such as error checking and verifying that the request came from the right place ( using <a href="https://codex.wordpress.org/Function_Reference/check_ajax_referer" title="Function Reference/check ajax referer">check_ajax_referer()</a> ), but hopefully the example above will be enough to get you started on your own administration-side Ajax plugin.
+</p><p>Notice the use of <tt><a href="https://codex.wordpress.org/Function_Reference/wp_die" title="Function Reference/wp die"> wp_die()</a></tt>, instead of <tt>die()</tt> or <tt>exit()</tt>. Most of the time you should be using <tt>wp_die()</tt> in your Ajax callback function. This provides better integration with WordPress and makes it easier to test your code.
+</p>
+<h3><span class="mw-headline" id="Separate_JavaScript_File">Separate JavaScript File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=3" title="Edit section: Separate JavaScript File">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The same example as the previous one, except with the JavaScript on a separate external file we'll call <tt>js/my_query.js</tt>. The examples are relative to a plugin folder.
+</p>
+<pre>
+jQuery(document).ready(function($) {
+	var data = {
+		'action': 'my_action',
+		'whatever': ajax_object.we_value      // We pass php values differently!
+	};
+	// We can also pass the url value separately from ajaxurl for front end AJAX implementations
+	jQuery.post(ajax_object.ajax_url, data, function(response) {
+		alert('Got this from the server: ' + response);
+	});
+});
+</pre>
+<p>With external JavaScript files, we must first <a href="https://codex.wordpress.org/Function_Reference/wp_enqueue_script" title="Function Reference/wp enqueue script">wp_enqueue_script()</a> so they are included on the page. Additionally, we must use <a href="https://codex.wordpress.org/Function_Reference/wp_localize_script" title="Function Reference/wp localize script">wp_localize_script()</a> to pass values into JavaScript object properties, since PHP cannot directly <code>echo</code> values into our JavaScript file. The handler function is the same as the previous example.
+</p>
+<pre>
+&lt;?php
+add_action( 'admin_enqueue_scripts', 'my_enqueue' );
+function my_enqueue($hook) {
+    if( 'index.php'&#160;!= $hook ) {
+	// Only applies to dashboard panel
+	return;
+    }
+        
+	wp_enqueue_script( 'ajax-script', plugins_url( '/js/my_query.js', __FILE__ ), array('jquery') );
+
+	// in JavaScript, object properties are accessed as ajax_object.ajax_url, ajax_object.we_value
+	wp_localize_script( 'ajax-script', 'ajax_object',
+            array( 'ajax_url' =&gt; admin_url( 'admin-ajax.php' ), 'we_value' =&gt; 1234 ) );
+}
+
+// Same handler function...
+add_action( 'wp_ajax_my_action', 'my_action' );
+function my_action() {
+	global $wpdb;
+	$whatever = intval( $_POST['whatever'] );
+	$whatever += 10;
+        echo $whatever;
+	wp_die();
+}
+</pre>
+<h2><span class="mw-headline" id="Ajax_on_the_Viewer-Facing_Side">Ajax on the Viewer-Facing Side</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=4" title="Edit section: Ajax on the Viewer-Facing Side">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since WordPress 2.8, there is a hook similar to <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_ajax_(action)" title="Plugin API/Action Reference/wp ajax (action)">wp_ajax_(action)</a></tt>:
+</p>
+<ul><li> <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_ajax_nopriv_(action)" title="Plugin API/Action Reference/wp ajax nopriv (action)">wp_ajax_nopriv_(action)</a></tt> executes for users that are not logged in.</li></ul>
+<p>So, if you want it to fire on the front-end for both visitors and logged-in users, you can do this:
+</p>
+<pre>
+add_action( 'wp_ajax_my_action', 'my_action' );
+add_action( 'wp_ajax_nopriv_my_action', 'my_action' );
+</pre>
+<p><b>Note:</b> Unlike on the admin side, the <code>ajaxurl</code> javascript global does not get automatically defined for you, unless you have <a rel="nofollow" class="external text" href="http://buddypress.org/">BuddyPress</a> or another Ajax-reliant plugin installed. So instead of relying on a global javascript variable, declare a javascript namespace object with its own property, <code>ajaxurl</code>. You might also use <a href="https://codex.wordpress.org/Function_Reference/wp_localize_script" title="Function Reference/wp localize script"> wp_localize_script()</a> to make the URL available to your script, and generate it using this expression: <code>admin_url( 'admin-ajax.php' )</code>
+</p><p><b>Note 2:</b> Both front-end and back-end Ajax requests use <tt>admin-ajax.php</tt> so <tt><a href="https://codex.wordpress.org/Function_Reference/is_admin" title="Function Reference/is admin"> is_admin()</a></tt> will always return <b>true</b> in your action handling code.  When selectively loading your Ajax script handlers for the front-end and back-end, and using the <tt><a href="https://codex.wordpress.org/Function_Reference/is_admin" title="Function Reference/is admin"> is_admin()</a></tt> function, your <tt>wp_ajax_(action)</tt> and <tt>wp_ajax_nopriv_(action)</tt> hooks MUST be inside the <i><b>is_admin() === true</b></i> part. 
+</p><p>Ajax requests bound to either <tt>wp_ajax_</tt> or <tt>wp_ajax_nopriv_</tt> actions are executed in the WP Admin context.  Carefully review the actions you are performing in your code since unprivileged users or visitors will be able to trigger requests with elevated permissions that they may not be authorized for.
+</p>
+<pre>
+if ( is_admin() ) {
+    add_action( 'wp_ajax_my_frontend_action', 'my_frontend_action' );
+    add_action( 'wp_ajax_nopriv_my_frontend_action', 'my_frontend_action' );
+    add_action( 'wp_ajax_my_backend_action', 'my_backend_action' );
+    // Add other back-end action hooks here
+} else {
+    // Add non-Ajax front-end action hooks here
+}
+</pre>
+<p>Here the Ajax action <tt>my_frontend_action</tt> will trigger the PHP function <tt>my_frontend_action_callback()</tt> for all users. The Ajax action <tt>my_backend_action</tt> will trigger the PHP function <tt>my_backend_action_callback()</tt> for logged-in users only.
+</p>
+<h3><span class="mw-headline" id="The_post-load_JavaScript_Event">The post-load JavaScript Event</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=5" title="Edit section: The post-load JavaScript Event">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Plugins and themes that insert content via Ajax must trigger the <code>post-load</code> event on <code>document.body</code> after content is inserted. Other scripts that depend on a JavaScript interaction after content insertion, such as <a rel="nofollow" class="external text" href="https://wordpress.org/plugins/add-to-any/">AddToAny</a> or a <a rel="nofollow" class="external text" href="http://desandro.github.io/masonry/">jQuery Masonry</a> script, listen for the <code>post-load</code> event to initialize their required JavaScript. When the <code>post-load</code> event is fired from <a rel="nofollow" class="external text" href="https://jetpack.me/support/infinite-scroll/">Jetpack's Infinite Scroll</a>, for example, AddToAny displays the share buttons for each post, and jQuery Masonry positions elements on the page.
+</p><p>JavaScript triggering the <code>post-load</code> event after content has been inserted via Ajax:
+</p>
+<pre>
+jQuery( document.body ).trigger( 'post-load' );
+</pre>
+<p>JavaScript listening to the <code>post-load</code> event:
+</p>
+<pre>
+jQuery( document.body ).on( 'post-load', function () {
+    // New content has been added to the page.
+} );
+</pre>
+<p><b>Note on jQuery:</b> Beware of using jQuery's <code>load</code> method <em>with a selector expression</em> to insert content because it will cause <code>&lt;script&gt;</code> blocks in the response <a rel="nofollow" class="external text" href="https://api.jquery.com/load/#script-execution">to be stripped out</a>.
+</p>
+<h2><span class="mw-headline" id="Error_Return_Values">Error Return Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=6" title="Edit section: Error Return Values">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>If the Ajax request fails in <tt><a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/browser/trunk/wp-admin/admin-ajax.php">wp-admin/admin-ajax.php</a></tt>, the response will be <i><b>-1</b></i> or <i><b>0</b></i>, depending on the reason for the failure. Additionally, if the request succeeds, but the Ajax <tt>action</tt> does not match a WordPress hook defined with <tt>add_action('wp_ajax_(action)', ...)</tt> or <tt>add_action('wp_ajax_nopriv_(action)', ...)</tt>, then <tt>admin-ajax.php</tt> will respond <i><b>0</b></i>.
+</p>
+<h2><span class="mw-headline" id="Debugging">Debugging</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=7" title="Edit section: Debugging">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>To parse AJAX, WordPress must be reloaded through the admin-ajax.php script, which means that any PHP errors encountered in the initial page load will also be present in the AJAX parsing. If error_reporting is enabled, these will be echoed to the output buffer, polluting your AJAX response with error messages.
+</p><p>Because of this, care must be taken when debugging Ajax as any PHP notices or messages returned may confuse the parsing of the results or cause your JavaScript to error. 
+</p><p>One option if you can't eliminate the messages and must run with <a href="https://codex.wordpress.org/Debugging_in_WordPress" title="Debugging in WordPress">debug turned on</a> is to clear the buffer immediately before returning your data.
+</p>
+<pre>
+    ob_clean();
+    echo $whatever;
+    wp_die();
+</pre>
+<p>It is also possible to use tools such as FirePHP to log debug messages to your browsers debug console. An alternative approach is to use a debugging proxy such as fiddler.
+</p>
+<ul><li> <a rel="nofollow" class="external text" href="http://wpengineer.com/1219/firephp-and-wordpress/">WPEngineer - FirePHP and Wordpress</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.fiddler2.com/fiddler2/">Fiddler</a></li></ul>
+<h2><span class="mw-headline" id="Further_Reading_-_External_Resources">Further Reading - External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=8" title="Edit section: Further Reading - External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://ocaoimh.ie/2008/11/01/make-your-wordpress-plugin-talk-ajax/">Make your WordPress plugin talk AJAX</a> - examples on viewer-side AJAX for plugins</li>
+<li> <a rel="nofollow" class="external text" href="http://byronyasgur.wordpress.com/2011/06/27/frontend-forward-facing-ajax-in-wordpress/">Frontend (forward facing) Ajax in WordPress</a></li>
+<li> <a rel="nofollow" class="external text" href="http://pippinsplugins.com/using-ajax-your-plugin-wordpress-admin/">Using Ajax in Your Plugin and WordPress Admin</a></li>
+<li> <a rel="nofollow" class="external text" href="http://pippinsplugins.com/loading-scripts-correctly-in-the-wordpress-admin/">Loading Scripts Correctly in the WordPress Admin</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.jackreichert.com/2013/03/24/using-ajax-in-wordpress-development-the-quickstart-guide/">Using AJAX in WordPress Development. The Quick-and-Dirty QuickStart Guide</a></li></ul>
+<h2><span class="mw-headline" id="Related_References">Related References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AJAX_in_Plugins&amp;action=edit&amp;section=9" title="Edit section: Related References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_ajax_(action)" title="Plugin API/Action Reference/wp ajax (action)">The 'wp_ajax_' hook</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/WP_Ajax_Response" title="Function Reference/WP Ajax Response" class="mw-redirect">WP_Ajax_Response (responding to AJAX requests)</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/wp_send_json" title="Function Reference/wp send json">wp_send_json function</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003722
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.024 seconds
+Real time usage: 0.098 seconds
+Preprocessor visited node count: 162/1000000
+Preprocessor generated node count: 506/1000000
+Post‐expand include size: 1812/2097152 bytes
+Template argument size: 1108/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   33.243      1 - -total
+ 52.31%   17.390      1 - Template:Note
+ 46.97%   15.614      1 - Template:Languages
+ 28.31%    9.410      1 - Template:en
+  7.05%    2.345      1 - Template:ja
+  6.63%    2.205      1 - Template:Message
+  5.66%    1.883      1 - Template:ko
+-->

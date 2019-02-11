@@ -1,0 +1,86 @@
+{{Languages|
+{{en|Custom Backgrounds}}
+{{ja|Custom Backgrounds}}
+}}
+
+'''Custom Backgrounds''' is a [[Theme Features|theme feature]] that provides for customization of the background color and image.
+
+== Adding Theme Support ==
+
+Since [[Version 3.4]], themes need to use [[Function_Reference/add_theme_support|add_theme_support()]] in the [[Theme_Development#Functions_File|functions.php]] file to support custom backgrounds, like so:
+
+<pre>add_theme_support( 'custom-background' );</pre>
+
+Note that you can add default arguments using:
+
+<pre>
+$defaults = array(
+	'default-color'          => '',
+	'default-image'          => '',
+	'default-repeat'         => 'repeat',
+	'default-position-x'     => 'left',
+        'default-position-y'     => 'top',
+        'default-size'           => 'auto',
+	'default-attachment'     => 'scroll',
+	'wp-head-callback'       => '_custom_background_cb',
+	'admin-head-callback'    => '',
+	'admin-preview-callback' => ''
+);
+add_theme_support( 'custom-background', $defaults );
+</pre>
+
+== Example ==
+
+An example using default '#000000' background color with 'background.jpg' background image:
+
+<pre>
+$args = array(
+	'default-color' => '000000',
+	'default-image' => '%1$s/images/background.jpg',
+);
+add_theme_support( 'custom-background', $args );
+</pre>
+
+== Outcome ==
+
+The purpose of this call to add_theme_support() is to enable the Custom Background screen in the administrator's Appearance menu.  It also serves as a declaration that the theme has properly implemented the [[Function_Reference/body_class|body_class()]] and [[Function_Reference/wp_head|wp_head()]] template tags to provide feature compatibility.
+
+When the administrator sets custom values for the theme, WordPress generates an extra style sheet in-line with the HTML headers, usually right before the end of the document's HEAD element.  The extra style sheet overrides the background values from the theme's style sheet.
+
+Example output:
+
+<pre>
+<style type="text/css" id="custom-background-css">
+body.custom-background { background-color: #bdd96e; }
+</style>
+</pre>
+
+Note that setting the default-image parameter will instantly cause that value to become the effective Custom Background, whereas setting the default-color has no effect until the administrator visits the Custom Background page.  To override this default behavior, you would have to provide a replacement for the _custom_background_cb() function.
+
+== Backwards Compatibility ==
+
+To add backwards compatibility for older versions, use the following code:
+
+<pre>
+global $wp_version;
+if ( version_compare( $wp_version, '3.4', '>=' ) ) :
+	add_theme_support( 'custom-background' ); 
+else :
+	add_custom_background( $args );
+endif;
+</pre>
+
+'''Note:''' As we're now beyond the release WordPress 3.6, providing backwards compatibility for any version prior to 3.4 will be a violation of the [[Theme_Review|Theme Review]] guidelines.
+
+== Resources ==
+
+* [http://generatewp.com/theme-support/ WordPress Theme Support Generator]
+
+== Related ==
+* [[Theme Development]]
+
+{{Theme Support}}
+
+[[Category:Advanced Topics]]
+[[Category:Design and Layout]]
+[[Category:WordPress Development]]

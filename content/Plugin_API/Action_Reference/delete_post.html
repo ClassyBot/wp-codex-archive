@@ -1,0 +1,50 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Definitions"><span class="tocnumber">2</span> <span class="toctext">Definitions</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Example"><span class="tocnumber">3</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Related"><span class="tocnumber">4</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/delete_post&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>delete_post</tt> is fired before and after a post (or page) is deleted from the database.
+</p><p>However by this time the post <b>comments and metadata</b> have been <b>already deleted</b>. Use the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/before_delete_post" title="Plugin API/Action Reference/before delete post">before_delete_post</a> hook to catch post deletion before that.
+</p>
+<h2><span class="mw-headline" id="Definitions">Definitions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/delete_post&amp;action=edit&amp;section=2" title="Edit section: Definitions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>/wp-includes/post.php - pre-deletion</tt></dt>
+<dd> (<a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/browser/tags/3.2.1/wp-includes/post.php#L2041"><i>#2041</i></a>) (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Integer" title="How to Pass Tag Parameters">integer</a>) The <tt>$postid</tt> parameter is the same value that was passed to <a href="https://codex.wordpress.org/Function_Reference/wp_delete_post" title="Function Reference/wp delete post">wp_delete_post()</a>.
+<dl><dd> Hook: <tt>do_action( 'delete_post', $postid );</tt></dd></dl></dd></dl>
+<dl><dt> <tt>/wp-includes/post.php - post-deletion</tt></dt>
+<dd> (<a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/browser/tags/3.2.1/wp-includes/post.php#L2043"><i>#2043</i></a>) (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#Integer" title="How to Pass Tag Parameters">integer</a>) The <tt>$postid</tt> parameter is the same value that was passed to <a href="https://codex.wordpress.org/Function_Reference/wp_delete_post" title="Function Reference/wp delete post">wp_delete_post()</a>.
+<dl><dd> Hook: <tt>do_action( 'deleted_post', $postid );</tt></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/delete_post&amp;action=edit&amp;section=3" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Let's suppose you have a plugin that, for one reason or another, stores its own <a href="https://codex.wordpress.org/Function_Reference/post_meta_Function_Examples" title="Function Reference/post meta Function Examples">post metadata</a> in a separate database table called <i>codex_postmeta</i>. One of the ways you can achieve synchronisation is to be made aware when a post is deleted so that you can replicate the changes yourself.
+</p><p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />add_action</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'admin_init'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'codex_init'&#160;</span><span style="color: #007700">);<br />function&#160;</span><span style="color: #0000BB">codex_init</span><span style="color: #007700">()&#160;{<br />&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">add_action</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'delete_post'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'codex_sync'</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">10&#160;</span><span style="color: #007700">);<br />}<br /><br />function&#160;</span><span style="color: #0000BB">codex_sync</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$pid&#160;</span><span style="color: #007700">)&#160;{<br />&#160;&#160;&#160;&#160;global&#160;</span><span style="color: #0000BB">$wpdb</span><span style="color: #007700">;<br />&#160;&#160;&#160;&#160;if&#160;(&#160;</span><span style="color: #0000BB">$wpdb</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">get_var</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$wpdb</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'SELECT&#160;post_id&#160;FROM&#160;codex_postmeta&#160;WHERE&#160;post_id&#160;=&#160;%d'</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$pid&#160;</span><span style="color: #007700">)&#160;)&#160;)&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">$wpdb</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$wpdb</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'DELETE&#160;FROM&#160;codex_postmeta&#160;WHERE&#160;post_id&#160;=&#160;%d'</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$pid&#160;</span><span style="color: #007700">)&#160;);<br />&#160;&#160;&#160;&#160;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/delete_post&amp;action=edit&amp;section=4" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/Function_Reference/wp_delete_post" title="Function Reference/wp delete post">wp_delete_post()</a>
+<a href="https://codex.wordpress.org/Plugin_API/Action_Reference/before_delete_post" title="Plugin API/Action Reference/before delete post">before_delete_post()</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004051
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 74/1000000
+Preprocessor generated node count: 140/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

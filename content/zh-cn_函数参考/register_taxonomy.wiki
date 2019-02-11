@@ -1,0 +1,223 @@
+{{Languages|
+{{en|Function Reference/register_taxonomy}}
+{{zh-cn|函数参考/register_taxonomy}}
+{{ja|関数リファレンス/register_taxonomy}}
+}}
+== 说明 ==
+
+This function adds or overwrites a [[Taxonomies|taxonomy]].  It takes in a name, an object name that it affects, and an array of parameters. It does not return anything.
+
+Care should be used in selecting a taxonomy name so that it does not conflict with other taxonomies, post types, and [http://core.trac.wordpress.org/browser/trunk/wp-includes/classes.php reserved WordPress public and private query variables].  A complete list of those is described in the [[#Reserved Terms|Reserved Terms section]].
+
+== 用法 ==
+
+%%% <?php register_taxonomy($taxonomy, $object_type, $args); ?> %%%
+
+'''Use the <tt>init</tt> action to call this function.''' Calling it outside of an action can lead to troubles. See [http://core.trac.wordpress.org/ticket/15568 #15568] for details.
+
+== 参数 ==
+
+{{Parameter|$taxonomy|string|The name of the taxonomy.}}
+{{Parameter|$object_type|array/string|Name of the object type for the taxonomy object.}}
+{{Parameter|$args|array/string|An array of [[#Arguments|Arguments]].|optional}}
+
+=== Arguments ===
+{{Parameter|label|string|A '''plural''' descriptive name for the taxonomy marked for translation.|optional|overridden by $labels->name}}
+
+{{Parameter|labels|array|labels - An array of labels for this taxonomy. By default tag labels are used for non-hierarchical types and category labels for hierarchical ones.|optional|if empty, name is set to label value, and singular_name is set to name value}}
+:* 'name' - general name for the taxonomy, usually plural. The same as and overridden by $tax->label. Default is _x( 'Post Tags', 'taxonomy general name' ) or _x( 'Categories', 'taxonomy general name' ).  When internationalizing this string, please use a [[I18n_for_WordPress_Developers#Disambiguation_by_context|gettext context]] matching your post type. Example: <code>_x('Writers', 'taxonomy general name');</code>
+:* 'singular_name' - name for one object of this taxonomy. Default is _x( 'Post Tag', 'taxonomy singular name' ) or _x( 'Category', 'taxonomy singular name' ).  When internationalizing this string, please use a [[I18n_for_WordPress_Developers#Disambiguation_by_context|gettext context]] matching your post type. Example: <code>_x('Writer', 'taxonomy singular name');</code>
+:* 'search_items' - the search items text.  Default is __( 'Search Tags' ) or __( 'Search Categories' ) 
+:* 'popular_items' - the popular items text.  Default is __( 'Popular Tags' ) or null
+:* 'all_items' - the all items text.  Default is __( 'All Tags' ) or __( 'All Categories' )
+:* 'parent_item' - the parent item text.  This string is not used on non-hierarchical taxonomies such as post tags. Default is null  or __( 'Parent Category' )
+:* 'parent_item_colon' - The same as <code>parent_item</code>, but with colon <code>:</code> in the end null, __( 'Parent Category:' )
+:* 'edit_item' - the edit item text. Default is __( 'Edit Tag' ) or __( 'Edit Category' )
+:* 'update_item' - the update item text.  Default is __( 'Update Tag' ) or __( 'Update Category' )
+:* 'add_new_item' - the add new item text.  Default is __( 'Add New Tag' ) or __( 'Add New Category' )
+:* 'new_item_name' - the new item name text.  Default is __( 'New Tag Name' ) or __( 'New Category Name' )
+:* 'separate_items_with_commas' - the separate item with commas text used in the taxonomy meta box.  This string isn't used on hierarchical taxonomies. Default is __( 'Separate tags with commas' ), or null
+:* 'add_or_remove_items' - the add or remove items text and used in the meta box when JavaScript is disabled.  This string isn't used on hierarchical taxonomies.  Default is __( 'Add or remove tags' ) or null
+:* 'choose_from_most_used' - the choose from most used text used in the taxonomy meta box. This string isn't used on hierarchical taxonomies. Default is __( 'Choose from the most used tags' ) or null
+:* 'menu_name' - the menu name text. This string is the name to give menu items. Defaults to value of name 
+
+{{Parameter|public|boolean|Should this taxonomy be exposed in the admin UI.|optional|true}}
+
+{{Parameter|show_in_nav_menus|boolean|true makes this taxonomy available for selection in navigation menus.|optional|if not set, defaults to value of public argument}}
+
+{{Parameter|show_ui|boolean|Whether to generate a default UI for managing this taxonomy.|optional|if not set, defaults to value of public argument}}
+
+{{Parameter|show_tagcloud|boolean|Wether to allow the Tag Cloud widget to use this taxonomy.|optional|if not set, defaults to value of show_ui argument}}
+
+{{Parameter|hierarchical|boolean|Is this taxonomy hierarchical (have descendants) like categories or not hierarchical like tags.|optional|false}}
+
+{{Parameter|update_count_callback|string|A function name that will be called to update the count of an associated ''$object_type'', such as post, is updated.|optional|None}}
+
+{{Parameter|rewrite|boolean or array|Set to false to prevent rewrite, or array to customize customize query var. Default will use $taxonomy as query var|optional|true}}
+:$args array
+:* 'slug' - prepend posts with this slug - defaults to taxonomy's name
+:* 'with_front' - allowing permalinks to be prepended with front base - defaults to true
+:* 'hierarchical' - true or false allow hierarchical urls (implemented in [[Version 3.1]])
+
+{{Parameter|query_var|boolean or string|False to prevent queries, or string to customize query var. Default will use $taxonomy as query var|optional|$taxonomy}}
+
+{{Parameter|capabilities|array|An array of the capabilities for this taxonomy.|optional}}
+:* 'manage_terms' - 'manage_categories'
+:* 'edit_terms' - 'manage_categories'
+:* 'delete_terms' - 'manage_categories'
+:* 'assign_terms' - 'edit_posts'
+
+{{Parameter|_builtin|boolean|Whether this taxonomy is a native or "built-in" taxonomy. '''Note: this Codex entry is for documentation - core developers recommend you don't use this when registering your own taxonomy'''|not for general use|false}}
+
+== 范例 ==
+An an example of registering a two taxonomies, genres and writers, for the post type called "book" (uses [[Version 3.1]] arguments): 
+
+Note: You can define custom taxonomies in a themes's <code>functions.php</code> template file:
+
+<pre>
+<?php
+//hook into the init action and call create_book_taxonomies when it fires
+add_action( 'init', 'create_book_taxonomies', 0 );
+
+//create two taxonomies, genres and writers for the post type "book"
+function create_book_taxonomies() 
+{
+  // Add new taxonomy, make it hierarchical (like categories)
+  $labels = array(
+    'name' => _x( 'Genres', 'taxonomy general name' ),
+    'singular_name' => _x( 'Genre', 'taxonomy singular name' ),
+    'search_items' =>  __( 'Search Genres' ),
+    'all_items' => __( 'All Genres' ),
+    'parent_item' => __( 'Parent Genre' ),
+    'parent_item_colon' => __( 'Parent Genre:' ),
+    'edit_item' => __( 'Edit Genre' ), 
+    'update_item' => __( 'Update Genre' ),
+    'add_new_item' => __( 'Add New Genre' ),
+    'new_item_name' => __( 'New Genre Name' ),
+    'menu_name' => __( 'Genre' ),
+  ); 	
+
+  register_taxonomy('genre',array('book'), array(
+    'hierarchical' => true,
+    'labels' => $labels,
+    'show_ui' => true,
+    'query_var' => true,
+    'rewrite' => array( 'slug' => 'genre' ),
+  ));
+
+  // Add new taxonomy, NOT hierarchical (like tags)
+  $labels = array(
+    'name' => _x( 'Writers', 'taxonomy general name' ),
+    'singular_name' => _x( 'Writer', 'taxonomy singular name' ),
+    'search_items' =>  __( 'Search Writers' ),
+    'popular_items' => __( 'Popular Writers' ),
+    'all_items' => __( 'All Writers' ),
+    'parent_item' => null,
+    'parent_item_colon' => null,
+    'edit_item' => __( 'Edit Writer' ), 
+    'update_item' => __( 'Update Writer' ),
+    'add_new_item' => __( 'Add New Writer' ),
+    'new_item_name' => __( 'New Writer Name' ),
+    'separate_items_with_commas' => __( 'Separate writers with commas' ),
+    'add_or_remove_items' => __( 'Add or remove writers' ),
+    'choose_from_most_used' => __( 'Choose from the most used writers' ),
+    'menu_name' => __( 'Writers' ),
+  ); 
+
+  register_taxonomy('writer','book',array(
+    'hierarchical' => false,
+    'labels' => $labels,
+    'show_ui' => true,
+    'query_var' => true,
+    'rewrite' => array( 'slug' => 'writer' ),
+  ));
+}
+?>
+</pre>
+
+==Reserved Terms==
+* attachment
+* attachment_id
+* author
+* author_name
+* calendar
+* cat
+* category__and
+* category__in
+* category__not_in
+* category_name
+* comments_per_page
+* comments_popup
+* cpage
+* day
+* debug
+* error
+* exact
+* feed
+* hour
+* link
+* minute
+* monthnum
+* more
+* name
+* nav_menu
+* nopaging
+* offset
+* order
+* orderby
+* p
+* page
+* page_id
+* paged
+* pagename
+* pb
+* perm
+* post
+* post_format
+* post_mime_type
+* post_status
+* post_type
+* post_type
+* posts
+* posts_per_archive_page
+* posts_per_page
+* preview
+* robots
+* s
+* search
+* second
+* sentence
+* showposts
+* static
+* subpost
+* subpost_id
+* tag
+* tag__and
+* tag__in
+* tag__not_in
+* tag_id
+* tag_slug__and
+* tag_slug__in
+* taxonomy
+* tb
+* term
+* type
+* w
+* withcomments
+* withoutcomments
+* year
+
+== 更改日志 ==
+
+Since: [[Version 2.3|2.3]]
+
+== 源文件 ==
+
+<tt>register_taxonomy()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== 相关 ==
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

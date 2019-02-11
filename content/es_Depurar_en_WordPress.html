@@ -1,0 +1,124 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<a href="https://codex.wordpress.org/Debugging_in_WordPress" title="Debugging in WordPress">English</a> • 
+<strong class="selflink">Español</strong> • 
+
+<a href="https://codex.wordpress.org/hr:Ispitivanje_kvarova_u_WordPressu" title="hr:Ispitivanje kvarova u WordPressu">Hrvatski</a> • 
+<a href="https://codex.wordpress.org/it:Debug_in_WordPress" title="it:Debug in WordPress">Italiano</a> • 
+
+<a href="https://codex.wordpress.org/pt-br:Depura%C3%A7%C3%A3o_no_WordPress" title="pt-br:Depuração no WordPress">Português do Brasil</a> • 
+
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>Depurar código PHP forma parte de cualquier proyecto, pero WordPress viene equipado con sistemas de depuración específicos para simplificar el proceso también como parar estandarizar el código por todo el núcleo, plugins y temas. Esta página describe las varias herramientas de depuración de WordPress y cómo ser más productivo en tu programación tan bien como incrementar la calidad global y la interoperatividad de tu código. 
+</p>
+<div style="background-color:#ffffff; border:1px solid #c6d9e9; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;"><b>NOTE:</b> Dado que no es obligatorio rendir cuentas a <tt>WP_DEBUG</tt> en plugins y temas es <b>altamente recomendado</b> que los desarrolladores de plugins y temas usen el modo <tt>WP_DEBUG</tt> mientras que trabajen en el código que pretendan entregar públicamente. Si tu plugin o tema no es compatible entonces los errores, notificaciones y avisos que lanza harán imposible que otros desarrolladores usen tu plugin/tema mientras que tengan activo <tt>WP_DEBUG</tt> y tu tema no será nominable para su promoción vía las herramientas oficiales de <a href="https://codex.wordpress.org/Theme_Review#PHP.2C_JS.2C_CSS.2C_HTML" title="Theme Review">WordPress</a>.</div>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#WP_DEBUG"><span class="tocnumber">1</span> <span class="toctext">WP_DEBUG</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Errores.2C_avisos_y_noticias_de_PHP"><span class="tocnumber">1.1</span> <span class="toctext">Errores, avisos y noticias de PHP</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Funciones_y_argumentos_descatalogados"><span class="tocnumber">1.2</span> <span class="toctext">Funciones y argumentos descatalogados</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="#WP_DEBUG_LOG"><span class="tocnumber">2</span> <span class="toctext">WP_DEBUG_LOG</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#WP_DEBUG_DISPLAY"><span class="tocnumber">3</span> <span class="toctext">WP_DEBUG_DISPLAY</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#SCRIPT_DEBUG"><span class="tocnumber">4</span> <span class="toctext">SCRIPT_DEBUG</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#SAVEQUERIES"><span class="tocnumber">5</span> <span class="toctext">SAVEQUERIES</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Ejemplo_de_wp-config.php_para_depuraci.C3.B3n"><span class="tocnumber">6</span> <span class="toctext">Ejemplo de wp-config.php para depuración</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Plugins_de_depuraci.C3.B3n"><span class="tocnumber">7</span> <span class="toctext">Plugins de depuración</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#Historia"><span class="tocnumber">8</span> <span class="toctext">Historia</span></a></li>
+<li class="toclevel-1 tocsection-11"><a href="#Recursos_externos"><span class="tocnumber">9</span> <span class="toctext">Recursos externos</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="WP_DEBUG">WP_DEBUG</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=1" title="Edit section: WP DEBUG">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="https://codex.wordpress.org/WP_DEBUG" title="WP DEBUG">WP_DEBUG</a> es una constante de PHP (una variable global permanente) que al ser establecida como verdadera (true) activa el modo de "depuración" en WordPress. Su valor predeterminado es falso (false) y el archivo recomendado para establecer su valor es <a href="https://codex.wordpress.org/Editing_wp-config.php" title="Editing wp-config.php">wp-config.php</a> (situado en la raíz del sitio) de alguna de las siguientes formas:
+</p>
+<pre>define('WP_DEBUG', true);
+define('WP_DEBUG', false);
+</pre>
+<p>No se recomienda utilizar <tt>WP_DEBUG</tt>, al igual que las demás herramientas de depuración, de forma permanente en sitios Web de producción (sitios Web accesibles al público) ya que estos errores, graves o no, serían mostrados en pantalla a todos los usuarios del sitio. Esto no es deseable. La finalidad de estas herramientas es la depuración de código en entornos de prueba previamente a la apertura del sitio al público.
+</p>
+<h3><span class="mw-headline" id="Errores.2C_avisos_y_noticias_de_PHP">Errores, avisos y noticias de PHP</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=2" title="Edit section: Errores, avisos y noticias de PHP">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>El comportamiento por defecto de PHP es mostrar en pantalla solo los errores más graves, errores fatales, y/o enseñar una pantalla vacía cuando éstos ocurren. Sin embargo activar <tt>WP_DEBUG</tt> causará que todos los errores, avisos y noticias de PHP, fatales o leves, sean dirigidos a la salida HTML provocando el efecto antes mencionado.
+</p><p>Mostrar todas los errores, avisos y noticias de PHP con frecuencia resulta en mostrar en pantalla mensajes de error que no son realmente graves. Estos errores pueden ser simplemente secuencias de código que no siguen las convenciones de validación de código de PHP pero que no por ello paralizan el funcionamiento del sistema. Estos avisos facilitan la identificación de estos fragmentos de código erróneo y colaboran en el proceso de depurar este código que una vez corregido será más resistente a fallos y fácil de mantener.
+</p>
+<h3><span class="mw-headline" id="Funciones_y_argumentos_descatalogados">Funciones y argumentos descatalogados</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=3" title="Edit section: Funciones y argumentos descatalogados">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Activar <tt>WP_DEBUG</tt> también causara avisos acerca de funciones descatalogadas y argumentos dentro de WordPress que están siendo usados en tu sitio. Éstas son funciones o argumentos que aún no han sido retirados del núcleo del código pero que están declarados para su borrado en un futuro próximo. Los avisos de descatalogación a menudo indican la nueva función que debería usarse en su lugar.
+</p>
+<h2><span class="mw-headline" id="WP_DEBUG_LOG">WP_DEBUG_LOG</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=4" title="Edit section: WP DEBUG LOG">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>WP_DEBUG_LOG</tt> es compañera de <tt>WP_DEBUG</tt> lo que causa que todos los errores sean también salvados a un fichero de registro <tt>debug.log</tt> dentro del directorio <tt>/wp-content/</tt>. Ésto es útil cuando quieres revisar todas las notificaciones más tarde o necesitas ver notificaciones generadas en diferido (p.ej. durante una petición <a href="https://codex.wordpress.org/AJAX_in_Plugins" title="AJAX in Plugins">AJAX</a> o ejecución <a href="https://codex.wordpress.org/Function_Reference/wp_schedule_event" title="Function Reference/wp schedule event">wp-cron</a>). 
+</p>
+<pre>define('WP_DEBUG_LOG', true);
+</pre>
+<h2><span class="mw-headline" id="WP_DEBUG_DISPLAY">WP_DEBUG_DISPLAY</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=5" title="Edit section: WP DEBUG DISPLAY">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>WP_DEBUG_DISPLAY</tt> es otra compañera de WP_DEBUG que controla si los mensajes de depuración se muestran dentro de las páginas HTML o no. Por defecto es 'cierto' lo cual muestra errores y avisos según se generan. Establecer ésta a falso esconderá todos los errores. Debería usarse conjuntamente con <tt>WP_DEBUG_LOG</tt> para que los errores puedan ser revisados luego. 
+</p>
+<pre>define('WP_DEBUG_DISPLAY', false);
+</pre>
+<h2><span class="mw-headline" id="SCRIPT_DEBUG">SCRIPT_DEBUG</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=6" title="Edit section: SCRIPT DEBUG">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><tt>SCRIPT_DEBUG</tt> es una constante relacionada que forzará a WordPress a usar las versiones "dev" de los archivos centrales de CSS y Javascript en vez de las versiones minificadas que normalmente se cargan. Ésta es útil cuando estás comprobando modificaciones para cualquier fichero interno .js or .css . Su valor por defecto es false.
+</p>
+<pre>define('SCRIPT_DEBUG', true);
+</pre>
+<h2><span class="mw-headline" id="SAVEQUERIES">SAVEQUERIES</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=7" title="Edit section: SAVEQUERIES">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>La definición <tt>SAVEQUERIES</tt> salva las consultas a la base de datos en un array y ese array puede ser mostrado para ayudar a analizar tales consultas. La constante definida como cierta causará que cada consulta sea guardada, cuánto tiempo tardó en ejecutarse, y que función la llamó.
+</p>
+<pre>define('SAVEQUERIES', true);
+</pre>
+<p>El array se almacena en la global <tt>$wpdb-&gt;queries</tt>.
+</p><p>NOTA: Ésto tendrá un impacto de rendimiento en tu sitio, así que asegúrate de apagarla cuando no estés depurando.
+</p>
+<h2><span class="mw-headline" id="Ejemplo_de_wp-config.php_para_depuraci.C3.B3n">Ejemplo de wp-config.php para depuración</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=8" title="Edit section: Ejemplo de wp-config.php para depuración">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>El siguiente código, insertado en tu fichero <a href="https://codex.wordpress.org/Editing_wp-config.php" title="Editing wp-config.php">wp-config.php</a> registrará todos los errores noticias y avisos a un fichero llamado debug.log en el directorio wp-content. También esconderá los errores para que no interrumpan la generación de página. 
+</p>
+<pre> // Activar modo WP_DEBUG
+define('WP_DEBUG', true);
+
+// Activar registro de depuración al fichero /wp-content/debug.log
+define('WP_DEBUG_LOG', true);
+
+// Desactiva mostrar los errores y avisos 
+define('WP_DEBUG_DISPLAY', false);
+@ini_set('display_errors',0);
+
+// Usa versiones dev de ficheros centrales JS y CSS (solo necesario si estás modificando esos ficheros centrales)
+define('SCRIPT_DEBUG', true);
+</pre>
+<h2><span class="mw-headline" id="Plugins_de_depuraci.C3.B3n">Plugins de depuración</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=9" title="Edit section: Plugins de depuración">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Existen muchos <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/search.php?q=debug&amp;sort=">plugins de calidad</a> para la depuración de WordPress que brindan información detallada tanto del sistema en general como de componentes específicos. Algunos de estos plugins son <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/debug-bar/">Barra de depuración (Debug Bar)</a> con <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/debug-bar-console/">Consola de Barra de depuración (Debug Bar Console)</a> y <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/log-deprecated-notices/">Alerta sobre funciones obsoletas (Log Deprecated Notices)</a>.
+</p>
+<h2><span class="mw-headline" id="Historia">Historia</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=10" title="Edit section: Historia">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Previa a la version WordPress 3.1 la constante STYLE_DEBUG se comportaba similarmente a SCRIPT_DEBUG pero afectaba a ficheros CSS en vez de a los Javascript. En 3.1 las dos constantes se fusionaron en una sola SCRIPT_DEBUG, la cual ahora afecta a ambos tipos de ficheros miniaturizados.
+</p>
+<h2><span class="mw-headline" id="Recursos_externos">Recursos externos</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=es:Depurar_en_WordPress&amp;action=edit&amp;section=11" title="Edit section: Recursos externos">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://generatewp.com/wp-config/">WordPress 'wp-config.php' Generador de ficheros</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/wp-bug-tracker/">Gestor de vulnerabilidades de WordPress</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004252
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.025 seconds
+Preprocessor visited node count: 110/1000000
+Preprocessor generated node count: 462/1000000
+Post‐expand include size: 2330/2097152 bytes
+Template argument size: 1582/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    9.085      1 - -total
+ 72.77%    6.611      1 - Template:Languages
+ 26.15%    2.376      1 - Template:Note
+ 12.00%    1.090      1 - Template:Message
+ 11.38%    1.034      1 - Template:es
+ 11.13%    1.011      1 - Template:en
+ 11.07%    1.006      1 - Template:pt-br
+ 11.02%    1.001      1 - Template:it
+ 10.84%    0.985      1 - Template:hr
+-->

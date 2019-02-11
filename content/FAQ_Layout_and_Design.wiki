@@ -1,0 +1,578 @@
+{{Languages|
+{{en|FAQ Layout and Design}}
+{{ja|FAQ/レイアウトとデザイン}}
+{{pt-br|FAQ Layout e Design}}
+{{zh-cn|设计与布局的常见问题}}
+{{zh-tw|設計與佈局的常見問題}}
+}}
+
+[[FAQ|Back to FAQ]]
+__TOC__
+<div style="color: #d22; font-size: 120%; font-weight: bold; margin: 0;">
+CAUTION!</div>
+<div style="margin: 0; padding: 8px; border: 2px solid #F22; text-align: left; background-color: #FFEBEB;">
+Many of the answers provided on this FAQ refer to outdated versions of WordPress. Use caution when following some instructions, as some specifics may have changed. In particular, be wary of instructions that direct you to edit WordPress core files. We don't do things that way any more. The best way to alter how your website looks and works is by creating your own [[Child_Themes|Child Theme]] that overrides only the settings you want to change and interacts only as needed with WordPress (just like a Plugin does) through [[Plugin_API#Hooks.2C_Actions_and_Filters|action and filter hooks]]. Since all your customizations are contained in your Child Theme, you don't have to worry about all your changes being overwritten during the next upgrade cycle.</div>
+
+== Layout and Styles ==
+
+===I am having trouble with my CSS so where can I find help?===
+The following are articles that will help you troubleshoot and solve many of your CSS problems:
+
+* [[Site Design and Layout]]
+* [[Finding Your CSS Styles]]
+* [[CSS Fixing Browser Bugs]]
+* [[CSS Troubleshooting]]
+* [[CSS|WordPress CSS Information and Resources]]
+
+===How can I choose different styles or colours for my comments?===
+There are a variety of WordPress Plugins that change the look, layout, and colors of your comments and comment form. Look for various Comments Plugins in the [http://wordpress.org/extend/plugins/search.php?q=comment Official WordPress Plugin Directory].
+
+===How do I change the size of the popup comments window?===
+To change the look of the Popup Comments window in WordPress version 1.5, make changes to the <tt>comment-functions.php</tt> file where it shows the following line: <tt>function comments_popup_script($width=400, $height=400, $file='') {</tt>.
+
+To change the look of the Popup Comments window in WordPress version 1.2.1 Mingus, make the following change to the <tt>template-functions-comment.php</tt> on line 50:
+
+<pre><nowiki>function comments_popup_script($width=400, $height=400, 
+$file='wp-comments-popup.php')</nowiki></pre>
+
+You can also change Line 81 of ''wp-comments-popup.php'' to alter the textarea size for people entering comments.
+
+===Where can I find some other Themes and templates to use for styling my site?===
+* [http://wordpress.org/extend/themes/ Official WordPress Free Themes Directory]
+* [http://www.bloggingpro.com/archives/category/wordpress-themes/ Blogging Pro features a whole category of WordPress Themes]
+* [http://wordpress.org/extend/themes/commercial/ Commercially Supported GPL Themes]
+
+===Where can I find information about styling lists and nested lists?===
+See [[Styling Lists with CSS]]
+
+===How do I change the way menu links are listed?===
+See [[Styling Lists with CSS]]
+
+===How do I get rid of the bullet points next to my links?===
+See [[Styling Lists with CSS]]
+
+===How can I create horizontal menus?===
+See [[Creating Horizontal Menus]]
+
+===How can I get my categories to display in the order I want?===
+See [[Template Tags/wp_list_categories| wp_list_categories()]].
+
+===How can I get my links to open in a new window?===
+Opening links in a new window is considered bad form in today's web as it has been abused. Yet, it still serves a purpose for demonstration sites that require more than one window open at a time.  This method will work for those links that you enter into the body of a post.
+
+After entering the link using the Quicktags button for "link", add <tt>target="_blank"</tt> to the individual*- link you want to have open in a new window when clicked. Consider adding text indicating that this link will open a new window, as required by web accessibility standards.
+
+<pre>
+<a href="<nowiki>http://example.com/page.php</nowiki>" 
+title="Page Title - opens in new window" target="_blank">
+Page Title (Opens in new window)</a>
+</pre>
+
+===Is there a tool to encode ''HTML'' entities and tags so I can display code on my site?===
+The article [[Writing Code in Your Posts]] will help you write programming code and code examples in your posts. The [http://wordpress.org/resources/tools/encode.php Encode tool] will convert your [[Glossary#HTML|HTML]]/[[Glossary#XHTML|XHTML]] code into a form that can be displayed on your [[Glossary#blog|blog]] without it being treated as [[Glossary#HTML|HTML]] by browsers.
+
+There are also WordPress [[http://wordpress.org/extend/plugins/search.php?q=syntax+highlighter Plugins]] and other tools available to help integrate this process into your site if you use it frequently to display code.
+
+See also: [[Fun Character Entities]]
+
+===How do I do a ''dropcaps'' on the first letter of a post?===
+''DropCaps'' is the name for the effect where the first letter of the first paragraph in an article drops below the line of text, and is displayed in a larger font-size than the other normal letters.
+
+This can be done using BBCode quicktags. First, add this to your ''style sheet'':
+<pre>
+ #fp:first-letter {
+ font-size : 300%;
+ font-weight : bold;
+ float : left;
+ margin-right: 3px;
+ }
+</pre>
+then add following code to file ''/wp-includes/js/quicktags.js'' and put them among ''edButtons'':
+<pre>
+ edButtons[edButtons.length] =
+ new edButton('ed_capdrop'
+ ,'CapDrop'
+ ,'<p id="fp">'
+ ,'</p>'
+ ,'c'
+ );
+</pre>
+
+You will now see a CapDrop quicktag in your edit window.
+
+See also: [http://wordpress.org/support/topic/9542 drop caps support question]
+
+===Where should I look for more information on CSS?===
+See [[CSS]]
+
+== Text and Content Display ==
+
+===How do I show only the titles of articles on the site homepage?===
+To show only the title of posts on the site homepage, using the WordPress Default theme as an example, in the wp-content/themes/default/index.php file you will find code similar to this:
+<pre>
+<h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h2>
+<small><?php the_time('F jS, Y') ?> <!-- by <?php the_author() ?> --></small>
+
+<div class="entry">
+<?php the_content('Read the rest of this entry &raquo;'); ?>
+</div>
+</pre>
+
+So, in this case, you would replace:
+ <?php the_content('Read the rest of this entry &raquo;'); ?>
+with something like:
+ <?php
+ if (is_single()) {
+ the_content('Read the rest of this entry &raquo;');
+ }
+ else {//no content, nothing.
+ }
+ ?>
+
+This will cause only the post title to display on your homepage, but show the post content on the individual posts page.  Note if your theme uses another template, such as ''single.php'', to display individual posts, then this change may not affect your individual post pages.  
+
+See also:
+*[[Template Hierarchy]]
+*[[Stepping Into Template Tags]]
+*[[Stepping Into Templates]]
+
+===How do I show an excerpt, teaser, or summary, for an article on the site homepage?===
+A '''teaser''' should not be confused with the '''excerpt'''.  A teaser refers to the first few sentences or paragraphs of a [[Glossary#Post|post]].  When typing a long post, you can insert the <nowiki><!--more--></nowiki> [[Write_Post_SubPanel#Quicktags|Quicktag]] after a few sentences, and that acts as a cut-off point for the teaser.   When the post is displayed on a home page, category page, or an archive page, the teaser is displayed, followed by a hyperlink (such as '''Read the rest of this entry...''').  Visitors can click on that link to see the full version of your [[Glossary#Post|post]].  
+
+Note that some [[Using Themes|Themes]] may not support the '''more''' ability.  Additional information on how to present the '''more''' can be found in the [[Template_Tags/the_content|the_content()]] and [[Customizing the Read More]] articles.
+
+As stated before, the teaser (the more) feature should not be confused with the [[Glossary#Excerpt|Excerpt]] field that is completed when writing or editing a post.  The [[Template Tags|Template Tag]], [[Template Tags/the excerpt|the_excerpt()]], can be used to display the post's excerpt field.  
+
+The excerpt you enter when writing a post will not be displayed on your site unless [[Template Tags/the excerpt|the_excerpt() template tag]] is specified in your theme.  Also, if you choose the "Summary" option '''For each article in a feed''' in [[Administration_Panels|Administration]] > [[Administration_Panels#Reading|Settings]] > [[Settings_Reading_SubPanel|Reading]], the excerpt will be used for feeds.
+
+===How do I show a summary rather than the full content of posts?===
+Here's two possible ways to show a summary, rather than full content of posts on a site main page:
+
+#Use the Quicktag ''<nowiki><!--more--></nowiki>'' in your posts, and it will display the text of the post up to that point, and then provide a link, such as "Continue reading...", to allow the reader to see the complete post.  The article, [[Customizing the Read More]], discusses changing the text (e.g. Continue reading...) of the link.
+#Change your theme's index.php [[Templates|Template]] to use the [[Template_Tags|Template Tag]], [[Template_Tags/the_excerpt|the_excerpt()]], instead of [[Template_Tags/the_content|the_content()]].
+
+See also:
+*[[Stepping Into Template Tags]]
+*[[Stepping Into Templates]]
+*[[Template Hierarchy]]
+
+===How do I customise the text shown in "(more.....)" on my site?===
+See [[Customizing the Read More]]
+
+===How do I use the blogroll links rating feature to display the ratings?===
+# Go to the '''Links''' Panel.
+# Click on the Link you wish to feature in your blogroll.
+# Scroll to the bottom to '''Advanced''' and select the rating number for that site. The dropdown menu permits a rating of 0 - 10.
+
+To get your link ratings to display, you may need to edit your Theme. See the documentation for the [[Template_Tags/wp_list_bookmarks|wp_list_bookmarks()]] or [[Template_Tags/get_links|get_links()]] Template Tags for more information.
+
+==Images and Graphics==
+
+===How to add a favicon to your site===
+To add a favicon to your site in WordPress 2.0 or later, place your '''favicon.ico''' file inside your theme folder (for example: ''wp-content/themes/default/'') then add this line to ''header.php'':
+
+ <nowiki><link rel="shortcut icon" href="<?php bloginfo('template_directory'); ?>/favicon.ico" /></nowiki>
+
+Be sure to add it somewhere within the <nowiki><head></head></nowiki> section.
+
+See [[Creating a Favicon|Creating and Installing a Favicon]] for more detailed instructions.
+
+===Where can I get some buttons for my site?===
+
+Buttons are like badges you display on your website to show your affection for something, or to display information regarding your cultural, social, political or technical leanings.  
+
+To add a WordPress button to your site showing support for the WordPress Community:
+
+*[[Contributing_to_WordPress#Show_You_Care|Contributing to WordPress, Show you Care]]
+
+For more buttons, see:
+
+* [http://www.gtmcknight.com/buttons/ GtmcKnight's Steal these Buttons]
+* [http://kalsey.com/tools/buttonmaker Adam Kalsey's Buttonmaker]
+
+===How do I get WordPress to generate links to the thumbnail of an uploaded picture?===
+
+See:
+*[[Using Images]]
+*[[Photoblogs and Galleries]]
+
+===How can I use a custom image for my list bullets?===
+
+See:
+*[[Styling Lists with CSS]]
+*[[Customizing Your Sidebar]]
+
+===How do I rotate/cycle/randomize the image in the header of the site?===
+See:
+*[[Designing_Headers#Rotating_Header_Images|Designing Headers, Rotating Header Images]]
+
+===How do I link to my own images?===
+You can use absolute or relative [[Glossary#URI and URL|URI/URLs]] addresses.
+
+To use a relative link, set the address from the '''root''' folder of your site by using a slash in front of the folder in the root directory.
+
+ <img src="<nowiki>/images/balloons/image.jpg</nowiki>" alt="balloons" />
+
+To use an absolute link:
+ <img src="<nowiki>http://www.example.com/images/balloons/image.jpg</nowiki>" alt="balloons" />
+
+===How can I display images in my category and archive pages?===
+
+For current versions of WordPress, see [[Post Thumbnails]]. 
+
+When using the default [[Glossary#Theme|theme]], you'll notice images (and links) do not appear when visiting category and archive query pages. This has to do with how the default theme displays post content in those sections of your site. To change this behavior,  edit the default theme's Archive Template (archive.php). You can do this online through the [[Administration_Panels#Theme_Editor|Theme Editor]], or offline by downloading and opening the default theme's archive.php in any text editor. Once in the Archive Template, look for this section:
+
+ &lt;div class="entry"&gt;
+     <?php the_excerpt() ?>
+ &lt;/div&gt;
+
+Here, change [[Template_Tags/the_excerpt|the_excerpt()]] template tag, which displays a summary of a post's content while filtering out all [[Glossary#HTML|HTML]] tags. To display each post's whole content (and HTML tags), use [[Template_Tags/the_content|the_content()]] template tag:
+
+ &lt;div class="entry"&gt;
+    <?php the_content(); ?>
+ &lt;/div&gt;
+
+From 2.9, you can also make use of [[Template_Tags/the_post_thumbnail|the_post_thumbnail()]] template tag.
+
+===Where can I find more information on images, Photosites, and photo galleries?===
+See:
+*[[Using Images]]
+*[[Photoblogs and Galleries]]
+
+==Template Tags==
+
+===How do I change the time stamp for each post from an AM/PM mode to a 24 hour mode?===
+You set the '''Default Time Format''' for your site via the [[Administration_Panels|Administration]] > [[Administration_Panels#General|Settings]] > [[Settings_General_SubPanel|General]] under the
+[[Settings_General_SubPanel#Date_and_Time|Date and Time section.]]
+
+See also: [[Formatting Date and Time]]
+
+===How can I have the date/time displayed on every entry I make?===
+To put the date and time on every post title on your site, you may have to change more than one [[Templates|template file]].  They may include <tt>index.php</tt>, <tt>single.php</tt>, <tt>category.php</tt>, and <tt>archives.php</tt>. 
+
+From among the various template files, find all references to the title of your post like this (your Theme version may be slightly different):
+
+<pre><h2>
+<a href="<?php the_permalink() ?>" rel="bookmark" 
+title="Permanent Link to <?php the_title(); ?>">
+<?php the_title(); ?></a>
+</h2>
+<small>
+<?php the_time('F jS, Y') ?> by <?php the_author() ?>
+</small>
+</pre>
+
+Rearrange it so the time information goes in front (or in back) of your Post Title:
+
+<pre><h2>
+<a href="<?php the_permalink() ?>" rel="bookmark" 
+title="Permanent Link to <?php the_title(); ?>">
+<?php the_time('F jS, Y') ?> - <?php the_title(); ?></a>
+</h2>
+<small>
+by <?php the_author() ?>
+</small>
+</pre>
+
+See also: [[Formatting Date and Time]]
+
+===How do I change the "Permanent Link to" in my Title link?===
+The <tt>title</tt> of your links includes text that explains what the link is to, in concordance with web accessibility standards.  By default, your title may look like this example, which uses the <tt>title</tt> attribute with the words "Permanent Link to" and the template tag that displays the title of the post.
+
+<pre><h2>
+<a href="<?php the_permalink() ?>" rel="bookmark" 
+title="Permanent Link to <?php the_title(); ?>">
+<?php the_title(); ?></a>
+</h2>
+</pre>
+
+To change the "Permanent Link to" text, simply delete it and replace it with your own words:
+
+<pre><h2>
+<a href="<?php the_permalink() ?>" rel="bookmark" 
+title="Post about <?php the_title(); ?>">
+<?php the_title(); ?></a>
+</h2>
+</pre>
+
+Or remove it completely, leaving only the title tag.
+
+<pre><h2>
+<a href="<?php the_permalink() ?>" rel="bookmark" 
+title="<?php the_title(); ?>">
+<?php the_title(); ?></a>
+</h2>
+</pre>
+ 
+===How do I make my categories appear in a drop down list ?===
+
+In some cases it may be necessary to change  ''sidebar.php''. 
+
+Find this line in the theme:
+
+<pre><?php wp_list_categories('show_count=1&title_li=<h2>Categories</h2>'); ?></pre>
+
+and replace it with this line instead:
+<pre><h2>Categories</h2>
+<form action="<?php bloginfo('url'); ?>" method="get">
+<?php wp_dropdown_categories('show_count=1&hierarchical=1'); ?>
+<input type="submit" name="submit" value="view" />
+</form></pre>
+
+See also: [[Template_Tags/wp_dropdown_categories]] 
+
+===How do I exclude one or more categories from being listed in the list of categories?===
+Use the following function to list your categories but exclude category 1:
+
+<pre><?php wp_list_categories('exclude=1'); ?></pre>
+
+Of course, change the '''1''' to the ID of the category you want to exclude.
+
+To exclude multiple categories, use this: 
+
+<pre><?php wp_list_categories('exclude=1, 2'); ?></pre>
+
+Change 1 and 2 to the categories you want excluded. You can exclude more of them by adding their IDs separated by commas.
+
+See also: [[Template Tags/wp_list_categories]]
+
+===How do I hide posts belonging to a certain category on the front page ''index.php''?===
+If you need to hide (exclude) posts belonging to a certain category from displaying on the front page, you can place code that does the exclusion inside [[The Loop]] of your theme's <tt>index.php</tt> file.
+
+[[The Loop]] starts something like this:
+
+ <?php if (have_posts()) : while (have_posts()) : the_post(); ?>
+
+To exclude category 4 from the front page, just inside [[The Loop]], add this condition :
+
+ <?php if ( !(in_category('4')) || !is_home() ) { ?>
+ <nowiki><!-- Output the post here --></nowiki>
+
+[[The Loop]] ends something like this:
+
+ <?php endwhile; ?>
+
+Just before that line, add this:
+ <?php } ?>
+
+In the end, it will look like:
+
+ <?php if (have_posts()) : while (have_posts()) : the_post(); ?>
+ <?php if ( !(in_category('4')) || !is_home() ) { ?>
+
+ <nowiki><!-- Output the post here --></nowiki>
+
+ <?php } ?>
+ <?php endwhile; ?>
+
+This means that if on the front page, the post will be presented if it's not in category 4. On pages other than the front ( home ) page, all posts are presented. 
+
+See also: [[The_Loop#Exclude_Posts_From_Some_Category|Exclude Posts From Some Category]]
+
+===How do I make my Archives appear in a drop-down list?===
+Put this code into your ''index.php'' where you wish the item to appear:
+
+<pre>
+<li id="archives">Archives:
+<ul>
+<li><form name="archiveform" action="">
+<select name="archive_chrono" onchange="window.location =
+  (document.forms.archiveform.archive_chrono[document.forms.archiveform.archive_chrono.selectedIndex].value);">
+<option value=''>By Month</option>
+< ?php get_archives('','','option', 1); ?>
+</></select>
+</form>
+</li>
+</ul></li> 
+</pre>
+
+===How do I get rid of the "No Comments" message displayed with every post?===
+If you do not allow comments on your site you may want to get rid of the "No Comments" (or Comments are off) message displayed with each post.
+
+If you are using the WordPress Default theme you would delete the following code from <tt>wp-content/themes/default/index.php</tt>
+
+<pre>
+<?php comments_popup_link('No Comments »', '1 Comment »', '% Comments »'); ?>
+</pre>
+
+Note that if you use a different theme the information to delete may be slightly different.
+
+See also: [[Template_Tags/comments_popup_link|comments_popup_link()]]
+
+==Templates==
+===Why can I see only n posts on the site, where are the other entries?===
+Make sure that you have the correct settings in the '''Show at most''' posts or days fields in the [[Administration Panels|Administration]] > 
+[[Administration_Panels#Options_-_Configuration_Settings|Settings]] > [[Settings_Reading_SubPanel#Reading Options|Reading Panel]].
+
+If you are not seeing all your entries and you modified the default [[WordPress Files|index.php]], make sure you have an equal number of opening and closing tags, and that they are in the right places.
+
+===How do I create an archives page, with all the entries sortable by different methods?===
+[[Creating an Archive Index]] shows you how to use WordPress template tags to create a custom archive Page for your WordPress site. There are WordPress Plugins that will also help create customized archive pages.
+
+===What do the __() and _e() functions in WordPress do?===
+In the simplest of terms, they "print" what you tell them to do. They are abbreviations for the PHP term "echo" which displays text. In WordPress, they are used to identify strings in the php files marked for translation to other languages, and localization using two "tags" which are actually functions. They are:
+*__()
+*_e()
+
+These accept a string as an argument. For example:
+
+ __("Translate Me")
+ _e("Translate Me")
+
+The only functional difference between the two methods is that _e() echoes the string and __() simply returns the string. __() is used when you want to supply a string to a function. _e() is used when you want to output the string as part of your XHTML.
+
+We have a tool which goes through all of the php files, extracting strings that are marked by '''__()''' and '''_e()'''. 
+
+See also: [[I18n for WordPress Developers]]
+
+===How to easily display links to both Pages and Categories in the blog navigation header?===
+
+# In your blog's admin interface, go to '''Design → Menus'''
+# At the top of the page, select the primary menu for editing (this is the menu that appears in the header)
+# In the accordion menu in the left column, open '''Categories'''
+# Select the categories you want to display in the header and add them to the menu. They will appear in the right column.
+
+===How to display posts in a Page?===
+There's several ways to do display posts in a [[Pages|Page]].  The simplest way is described in the FAQ: [[FAQ_Working_with_WordPress#How_can_I_have_a_static_front_page_and_posts_display_on_a_page_called_Blog.3F|How can I have a static front page and posts display on a page called Blog?]] 
+
+A more complex method is to first create a [[Pages#Page_Templates|Page Template]] with [[Class_Reference/WP_Query|a WP query]], and [[The_Loop|a loop]], that retrieve and display the posts.  Then via [[Administration_Panels|Administration]] > [[Administration_Panels#Add_New_Page|Pages]] > [[Pages_Add_New_SubPanel|Add New]], add a new Page with that Page Template designated in the Template field.  Here's an example developed using the WordPress Default theme:
+*1. Create a file called ''wp-content/themes/default/pageofposts.php'' that has this code:
+<pre>
+<?php
+/*
+Template Name: PageOfPosts
+*/
+
+get_header(); ?>
+
+	<div id="content" class="narrowcolumn">
+
+<?php
+$showposts = -1; // -1 shows all posts
+$do_not_show_stickies = 1; // 0 to show stickies
+   $args=array(
+   'showposts' => $showposts,
+   'caller_get_posts' => $do_not_show_stickies,
+   );
+$my_query = new WP_Query($args); 
+
+?>
+
+	<?php if( $my_query->have_posts() ) : ?>
+
+		<?php while ($my_query->have_posts()) : $my_query->the_post(); ?>
+			<?php
+			//necessary to show the tags 
+			global $wp_query;
+			$wp_query->in_the_loop = true;
+			?>
+			<div <?php post_class() ?> id="post-<?php the_ID(); ?>">
+				<h2><a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a></h2>
+				<small><?php the_time('F jS, Y') ?> <!-- by <?php the_author() ?> --></small>
+
+				<div class="entry">
+					<?php the_content('Read the rest of this entry &raquo;'); ?>
+				</div>
+
+				<p class="postmetadata"><?php the_tags('Tags: ', ', ', '<br />'); ?> Posted in <?php the_category(', ') ?> | <?php edit_post_link('Edit', '', ' | '); ?>  <?php comments_popup_link('No Comments &#187;', '1 Comment &#187;', '% Comments &#187;'); ?></p>
+			</div>
+
+		<?php endwhile; ?>
+
+		<div class="navigation">
+			<div class="alignleft"><?php next_posts_link('&laquo; Older Entries') ?></div>
+			<div class="alignright"><?php previous_posts_link('Newer Entries &raquo;') ?></div>
+		</div>
+
+	<?php else : ?>
+
+		<h2 class="center">Not Found</h2>
+		<p class="center">Sorry, but you are looking for something that isn't here.</p>
+		<?php get_search_form(); ?>
+
+	<?php endif; ?>
+
+	</div>
+
+<?php get_sidebar(); ?>
+
+<?php get_footer(); ?>
+</pre>
+*2. In [[Administration_Panels|Administration]] > [[Administration_Panels#Add_New_Page|Pages]] > [[Pages_Add_New_SubPanel|Add New]], create a new Page, title the Page whatever you want, and in the Template field select '''PageOfPosts'''.
+*3. That's it, now visit that Page on your site and you should see your posts.
+
+See also: [[FAQ_Working_with_WordPress#Why_is_there_no_Page_Template_option_when_writing_or_editing_a_Page.3F|Why is there no Page Template option when writing or editing a Page?]]
+
+===How to delete duplicate navigation bar references to Home?===
+If your theme displays [[Pages]] for navigation, and there is more than one instance of Home in the navigation bar, here's several ways to fix that.  Typically the duplicate problem occurs after someone has created a [[Pages|Page]] called Home.
+
+Many theme authors 'hard-code' a reference to Home in the theme's '''header.php''' and use [[Template_Tags|template tag]], [[Template_Tags/wp_list_pages|wp_list_pages]], to display all the other Pages.  But, if you've created a Page called Home, that likely causes the duplicate navigation item.
+
+To delete the duplication, you would edit your theme's '''header.php''' and:
+# Find and delete the hard-coded reference to Home.  
+# Or, use the '''exclude=x''' argument with [[Template_Tags/wp_list_pages|wp_list_pages()]] and replace the '''x''' with the Page ID of your Home Page.
+
+===How to get rid of encoding in a theme's footer?===
+Some theme authors embed links in an encoded footer making it difficult to understand what is happening in the footer. '''Note:''' this type of encoded content could be malicious as well as just a copyright banner! 
+
+The best course of action is to avoid using encrypted themes entirely.  There are a large number of free themes available without such potentially malicious code in them.
+
+Nevertheless, here's a method to decode (figure out) and correct the footer so there is no encoding.
+
+In your index.php find the line that says ''<?php get_footer(); ?>''.  Above and below it add marker text like this:
+
+<pre>
+<!-- Evil Footer Devil FOUND -->
+<?php get_footer(); ?>
+<!-- Evil Footer Devil BEGONE -->
+</pre>
+
+Now visit your site, view source (e.g. View->Page Source in Firefox), and copy the HTML between those two markers. Rename your footer.php and make a new copy of ''footer.php'' with that HTML code.  Then change it to your hearts content. Remember to insert the ''[[Plugin_API/Action_Reference/wp_footer|<?php wp_footer(); ?>]]'' before ''</body>'' tag.
+
+Keep in mind that if your theme's license does not permit this, then don't do it. If that's the case please consider finding a new theme.
+
+=== Other methods ===
+
+The above is useful, but only shows you the HTML output, rather than any dynamic PHP code.  To see the PHP code, you might try using an online decoder.
+
+This page will let you decode the encryption that seems most commonplace, the one that looks like $o=whatever: http://ottodestruct.com/decoder.php
+
+That interface was based on this page, which will decode the type of encryption that starts with $_F=__FILE__: http://www.tareeinternet.com/scripts/byterun.php
+
+Another one is here, for those that look like eval(gzinflate(base64_decode('...')));:
+http://www.tareeinternet.com/scripts/decrypt.php
+
+There are also decoders available at http://cyko.decodethe.net/ and http://base64-encoder-online.waraxe.us/ 
+
+== See also: ==
+* [http://wordpress.org/support/topic/300761 List of various online decoders]
+* http://wordpress.org/support/topic/237083
+* http://wordpress.org/support/topic/235287
+* [http://www.templatelite.com/how-to-remove-footer-encryption/comment-page-1/ How to Remove Footer Encryption]
+* [http://wordpress.org/extend/plugins/tac/ Theme Authentication Checker plug to check your theme files]
+
+==Themes==
+
+===Which files do I modify when I start to design my site?===
+See:
+*[[Working_with_WordPress#Site_Development|Working with WordPress, Site Development]]
+====How do I tell which file is making which output?====
+You can put e.g.,
+<pre>
+<!-- Begin <?php echo basename(__FILE__); ?> -->
+<!-- End   <?php echo basename(__FILE__); ?> -->
+</pre>
+at the top and bottom of your files, which will be printed in the HTML output.
+
+===How do you create a screenshot.png for your Theme?===
+
+# Create a screenshot image using the Print Screen button on your keyboard and pasting it into your graphics program, or use the screen capture feature found in many popular graphics programs. 
+# Resize the image to 880x660 pixels.
+# Save the image as a PNG file in your Theme's folder with the name <tt>screenshot.png</tt>. WordPress looks for that file name automatically. 
+
+
+[[FAQ|Back to FAQ]]
+
+[[Category:Design and Layout]]
+[[Category:Troubleshooting]]
+[[Category:WordPress Help]]

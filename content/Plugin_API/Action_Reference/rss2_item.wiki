@@ -1,0 +1,48 @@
+== Description ==
+The '''rss2_item action hook''' is triggered immediately after the default output of an rss2 feed. 
+
+This hook has no parameters and no return values. It can be used to echo data into the feed if necessary. 
+
+This hook is not dependent on your theme. It can be called within your theme's ''functions.php'' file or from a plugin. 
+
+=== Example Usage ===
+==== Add an image element for each post ====
+Adds an ''image'' node to your RSS2 feeds.
+<pre><?php
+add_action('rss2_item', 'add_my_rss_node');
+
+function add_my_rss_node() {
+	global $post;
+	if(has_post_thumbnail($post->ID)):
+		$thumbnail = get_attachment_link(get_post_thumbnail_id($post->ID));
+		echo("<image>{$thumbnail}</image>");
+	endif;
+}
+?></pre>
+
+==== Add a custom field element for each post ====
+
+Adds a node from a custom field to your RSS2 feeds using [[Function Reference/get post meta|get_post_meta()]]
+<pre><?php
+add_action('rss2_item', 'add_my_custom_field_node');
+
+function add_my_custom_field_node() {
+	global $post;
+	$metaValue = get_post_meta($post->ID, 'my-custom-field', true);
+	if(!empty($metaValue)):
+		echo("<my-custom-field>{$metaValue}</my-custom-field>");
+	endif;
+}
+?></pre>
+
+'''Note:''' Custom elements like the one in this example are not a part of the RSS 2.0 specification, so adding it will mean your feed will technically be invalid RSS 2.0. Few, if any, RSS readers will make any use of the custom element.
+
+== Related ==
+[[Plugin API/Action Reference/rss_item|rss_item action hook]], [[Plugin API/Action Reference/atom entry|atom_item action hook]], [[Plugin API/Action Reference/rdf item|rdf_item action hook]], [[Plugin API/Action Reference/commentrss2 item|commentrss2_item action hook]], [[Plugin API/Action Reference/comment atom entry|comment_atom_entry action hook]]
+
+== See also ==
+* [[Plugin API]]
+* [[Plugin API/Action Reference]]
+
+{{Stub}}
+[[Category:Actions]]

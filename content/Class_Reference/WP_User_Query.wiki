@@ -1,0 +1,409 @@
+{{Languages|
+{{en|Class Reference/WP User Query}}
+{{ja|Class Reference/WP User Query}}
+}}
+
+== Description ==
+
+<tt>WP_User_Query</tt> is a class, defined in {{Trac|wp-includes/user.php}}, that allows querying [[Database_Description|WordPress database]] tables '<tt>[[Database_Description#Table:_wp_users|wp_users]]</tt>' and '<tt>[[Database_Description#Table:_wp_usermeta|wp_usermeta]]</tt>'. This class was introduced in [[Version 3.1]] and as a result, the <tt>WP_User_Search</tt> class got deprecated.
+
+== Usage ==
+
+<pre>
+<?php
+$args = array(
+	.
+	.
+	.
+);
+
+// The Query
+$user_query = new WP_User_Query( $args );
+
+// User Loop
+if ( ! empty( $user_query->get_results() ) ) {
+	foreach ( $user_query->get_results() as $user ) {
+		echo '<p>' . $user->display_name . '</p>';
+	}
+} else {
+	echo 'No users found.';
+}
+?>
+</pre>
+
+== Methods and Properties ==
+
+=== Properties ===
+
+; <tt>$query_vars</tt>
+: An associative array containing the query variables and their respective values, after parsing.
+
+; <tt>$results</tt>
+: An array containing a list of found users.
+
+; <tt>$total_users</tt>
+: Total number of found users for the current query.
+
+; <tt>$query_fields</tt>
+: SQL clauses for the return fields.
+
+; <tt>$query_from</tt>
+: SQL clauses 
+
+; <tt>$query_where</tt>
+: SQL clauses
+
+; <tt>$query_orderby</tt>
+: SQL clauses for sorting retrieved users.
+
+; <tt>$query_limit</tt>
+: SQL clauses for limiting retrieved users.
+
+=== Methods ===
+
+; <tt>get()</tt>
+: Retrieve query variable.
+
+; <tt>set()</tt>
+: Set query variable.
+
+; <tt>get_results()</tt>
+: Return the list of users.
+
+; <tt>get_total()</tt>
+: Return the total number of users for the current query.
+
+== Parameters ==
+
+=== User Role Parameter ===
+
+Show users associated with certain role.
+
+* '''<tt>role</tt>''' (''string / array'') - use [[Roles and Capabilities|User Role]]. An array or a comma-separated list of role names that users must match to be included in results. Note that this is an inclusive list: users must match *each* role. Default empty.
+* '''<tt>role__in</tt>''' (''array'') - An array of role names. Matched users must have at least one of these roles. Default empty array.  (since [[Version 4.4]]).
+* '''<tt>role__not_in</tt>''' (''array'') - An array of role names to exclude. Users matching one or more of these roles will not be included in results. Default empty array. (since [[Version 4.4]]).
+
+'''Display Administrator role users'''
+
+ $user_query = new WP_User_Query( array( 'role' => 'Administrator' ) );
+
+'''Display Subscriber role users'''
+
+ $user_query = new WP_User_Query( array( 'role' => 'Subscriber' ) );
+
+'''Display all users except Subscriber role users'''
+
+ $user_query = new WP_User_Query( array( 'role__not_in' => 'Subscriber' ) );
+
+=== Include & Exclude Parameters ===
+
+Show specific users.
+
+* '''<tt>include</tt>''' (''array'') - List of users to be included.
+* '''<tt>exclude</tt>''' (''array'') - List of users to be excluded.
+
+'''Display specific users list'''
+
+ $user_query = new WP_User_Query( array( 'include' => array( 1, 2, 3 ) ) );
+
+'''Display all users except a specific list of users'''
+
+ $user_query = new WP_User_Query( array( 'exclude' => array( 4, 5, 6 ) ) );
+
+=== Blog Parameter ===
+
+Show users associated with certain blog on the [[Glossary#Network|network]].
+
+* '''<tt>blog_id</tt>''' (''int'') - The blog id on a [[Glossary#Multisite|multisite]] environment. Defaults to the current blog id.
+
+'''Display users from blog 33'''
+
+ $user_query = new WP_User_Query( array( 'blog_id' => 33 ) );
+
+=== Search Parameters ===
+
+Search users.
+
+* '''<tt>search</tt>''' (''string'') - Searches for possible string matches on columns. Use of the &#42; wildcard before and/or after the string will match on columns <tt>starting with&#42;</tt>, <tt>&#42;ending with</tt>, or <tt>&#42;containing&#42;</tt> the string you enter.
+* '''<tt>search_columns</tt>''' (''array'') - List of [[Database_Description#Table:_wp_users|database table columns]] to matches the search string across multiple columns.
+** '<tt>ID</tt>' - Search by user id.
+** '<tt>user_login</tt>' - Search by user login.
+** '<tt>user_nicename</tt>' - Search by user nicename.
+** '<tt>user_email</tt>' - Search by user email.
+** '<tt>user_url</tt>' - Search by user url.
+
+We can use the [[Plugin_API/Filter_Reference/user_search_columns|user_search_columns]] filter to modify the search columns.
+
+'''Display users based on a keyword search'''
+
+ $user_query = new WP_User_Query( array( 'search' => 'Rami' ) );
+
+'''Display users based on a keyword search, only on login and email columns'''
+
+ $args = array(
+ 	'search'         => 'Rami',
+ 	'search_columns' => array( 'user_login', 'user_email' )
+ );
+ $user_query = new WP_User_Query( $args );
+
+=== Pagination Parameters ===
+
+Limit retrieved Users.
+
+* '''<tt>number</tt>''' (''int'') - The maximum returned number of results (needed in pagination).
+* '''<tt>offset</tt>''' (''int'') - Offset the returned results (needed in pagination).
+* '''<tt>paged</tt>''' (''int'') - When used with number, defines the page of results to return. Default 1. (since [[Version 4.4]]).
+
+'''Display 10 users'''
+
+ $user_query = new WP_User_Query( array( 'number' => 10 ) );
+
+'''Display 5 users starting from 25'''
+
+ $user_query = new WP_User_Query( array( 'number' => 5, 'offset' => 25 ) );
+
+=== Order & Orderby Parameters ===
+
+Sort retrieved Users.
+
+* '''<tt>orderby</tt>''' (''string'') - Sort retrieved users by parameter.  Defaults to 'login'.
+** '<tt>ID</tt>' - Order by user id.
+** '<tt>display_name</tt>' - Order by user display name.
+** '<tt>name</tt>' / '<tt>user_name</tt>' - Order by user name.
+** '<tt>include</tt>' - Order by the included list of user_ids (requires the include parameter) (since [[Version 4.1]]).
+** '<tt>login</tt>' / '<tt>user_login</tt>' - Order by user login.
+** '<tt>nicename</tt>' / '<tt>user_nicename</tt>' - Order by user nicename.
+** '<tt>email</tt>' / '<tt>user_email</tt>' - Order by user email.
+** '<tt>url</tt>' / '<tt>user_url</tt>' - Order by user url.
+** '<tt>registered</tt>' / '<tt>user_registered</tt>' - Order by user registered date.
+** '<tt>post_count</tt>' - Order by user post count.
+** '<tt>meta_value</tt>' - Note that a 'meta_key=keyname' must also be present in the query (available with [[Version 3.7]]).
+** '<tt>meta_value_num</tt>' - Note that a 'meta_key=keyname' must also be present in the query (available with [[Version 4.2]]).
+
+* '''<tt>order</tt>''' (''string'') - Designates the ascending or descending order of the '<tt>orderby</tt>' parameter.  Defaults to 'ASC'.
+** '<tt>ASC</tt>' - ascending order from lowest to highest values (1, 2, 3; a, b, c).
+** '<tt>DESC</tt>' - descending order from highest to lowest values (3, 2, 1; c, b, a).
+
+'''Display users sorted by Post Count, Descending order'''
+
+ $user_query = new WP_User_Query( array ( 'orderby' => 'post_count', 'order' => 'DESC' ) );
+
+'''Display users sorted by registered, Ascending order'''
+
+ $user_query = new WP_User_Query( array ( 'orderby' => 'registered', 'order' => 'ASC' ) );
+
+=== Date Parameters ===
+
+Date queries are handled through to the <tt>WP_Date_Query</tt> object and are applied to the <tt>user_registered</tt> field.
+
+Available since [http://codex.wordpress.org/Version_4.1 version 4.1]. 
+
+* '''<tt>date_query</tt>''' (''array'') - See the  documentation for the <tt>[[Class_Reference/WP_Query#Date_Parameters | WP_Query]]</tt> class.
+
+'''Find users that registered during the last 12 hours:'''
+
+ $args = array(
+     'date_query' => array( 
+         array( 'after' => '12 hours ago', 'inclusive' => true )  
+     )
+ );
+ $user_query = new WP_User_Query( $args );
+
+=== Custom Field Parameters ===
+
+Show users associated with a certain custom field.
+
+The <tt>[[Class_Reference/WP_Meta_Query | WP_Meta_Query]]</tt> class is used to parse this part of the query since [[Version 3.2|3.2.0]], so check the docs for that class for the full, up to date [[Class_Reference/WP_Meta_Query#Accepted_Arguments | list of arguments]].
+
+* '''<tt>meta_key</tt>''' (''string'') - Custom field key.
+* '''<tt>meta_value</tt>''' (''string'') - Custom field value.
+* '''<tt>meta_compare</tt>''' (''string'') - Operator to test the '<tt>meta_value</tt>'. See <tt>'compare'</tt> below.
+
+* '''<tt>meta_query</tt>''' (''array'') - Custom field parameters (available with [[Version 3.5]]).
+** '''<tt>key</tt>''' (''string'') - Custom field key.
+** '''<tt>value</tt>''' (''string''|''array'') - Custom field value (''Note'': Array support is limited to a compare value of 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS' or 'NOT EXISTS')
+** '''<tt>compare</tt>''' (''string'') - Operator to test. Possible values are '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS', and 'NOT EXISTS' ; 'REGEXP', 'NOT REGEXP' and 'RLIKE' were added in WordPress 3.7. Default value is '='.<br />'''Note:''' Currently <tt>'NOT EXISTS'</tt> does not always work as intended if <tt>'relation'</tt> is <tt>'OR'</tt> when, (1) using the [[#User_Role_Parameter |<tt>'role'</tt>]] parameter on single site installs, or (2) for any query on multisite. See [https://core.trac.wordpress.org/ticket/23849 ticket #23849].<br />'''Note 2:''' with 'LIKE' the value parameter is change to '%<value>%'. So the string is searched anywhere in the custom field value. If value parameter contain a '%' it is escaped. So it bans to search a string beginning by some characters, for exemple... To construct this query you must use 'REGEXP' with a regular expression in value parameter (ex : '^n.*' matchs all values that beginning by "n" or "N").
+** '''<tt>type</tt>''' (''string'') - Custom field type. Possible values are 'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', 'UNSIGNED'. Default value is 'CHAR'. You can also specify precision and scale for the 'DECIMAL' and 'NUMERIC' types (for example, 'DECIMAL(10,5)' or 'NUMERIC(10)' are valid).
+
+'''Display users from Israel'''
+
+ $user_query = new WP_User_Query( array( 'meta_key' => 'country', 'meta_value' => 'Israel' ) );
+
+'''Display users under 30 years old'''
+
+ $user_query = new WP_User_Query( array( 'meta_key' => 'age', 'meta_value' => '30', 'meta_compare' => '<' ) );
+
+'''Multiple custom user fields handling'''
+
+ $args = array(
+ 	'meta_query' => array(
+ 		'relation' => 'OR',
+ 			array(
+ 				'key'     => 'country',
+ 				'value'   => 'Israel',
+ 	 			'compare' => '='
+ 			),
+ 			array(
+ 				'key'     => 'age',
+ 				'value'   => array( 20, 30 ),
+ 				'type'    => 'numeric',
+ 				'compare' => 'BETWEEN'
+ 			)
+ 	)
+  );
+ $user_query = new WP_User_Query( $args );
+
+=== Who Parameter ===
+
+Which users?
+
+* '''<tt>who</tt>''' (''string'') - Which users to query. Currently only 'authors' is supported. Default is all users.
+
+'''Display only authors'''
+
+ $user_query = new WP_User_Query( array( 'who' => 'authors' ) );
+
+Equals to:
+
+ $args = array(
+ 	'meta_key'     => 'user_level',
+ 	'meta_value'   => '0',
+ 	'meta_compare' => '!=',
+ 	'blog_id'      => 0
+ )
+ $user_query = new WP_User_Query( $args );
+
+=== Total Count Parameter ===
+
+* '''<tt>count_total</tt>''' (''boolean'') - Whether to count the total number of users found. When <tt>true</tt> (default), the total number of results for the query can be retrieved using the <tt>get_total()</tt> method. If you don't need the total number of results, set this to <tt>false</tt>.
+
+=== Has Published Posts Parameter ===
+
+* '''<tt>has_published_posts</tt>''' (''boolean / array'') - Pass an array of post types to filter results to users who have published posts in those post types. <tt>true</tt> is an alias for all public post types. Default is <tt>null</tt>. Since [[Version 4.3]].
+
+=== Return Fields Parameter ===
+
+Set return values.
+
+* '''<tt>fields</tt>''' (''string|array'') - Which fields to return. Defaults to ''all''.
+** '<tt>ID</tt>' - Return an array of user id's.
+** '<tt>display_name</tt>' - Return an array of user display names.
+** '<tt>login</tt>' / '<tt>user_login</tt>' - Return an array of user login names.
+** '<tt>nicename</tt>' / '<tt>user_nicename</tt>' - Return an array of user nicenames.
+** '<tt>email</tt>' / '<tt>user_email</tt>' - Return an array of user emails.
+** '<tt>url</tt>' / '<tt>user_url</tt>' - Return an array of user urls.
+** '<tt>registered</tt>' / '<tt>user_registered</tt>' - Return an array of user registered dates.
+** '<tt>all</tt> (default) or <tt>all_with_meta</tt>' - Returns an array of [[Class_Reference/WP_User|WP_User]] objects.  Must pass an array to subset fields returned. *'all_with_meta' currently returns the same fields as 'all' which does not include user fields stored in wp_usermeta. You must create a second query to get the user meta fields by ID or use the __get PHP magic method to get the values of these fields.
+
+'''Return an array of WP_User object'''
+
+ $user_query = new WP_User_Query( array( 'role' => 'editor', 'fields' => 'all' ) );
+
+'''Return List all blog editors, return limited fields in resulting row objects:
+
+ $user_fields = array( 'user_login', 'user_nicename', 'user_email', 'user_url' );
+ $user_query = new WP_User_Query( array( 'role' => 'editor', 'fields' => $user_fields ) );
+
+== Return Values ==
+; (Array) : An array of IDs, stdClass objects, or [[Class_Reference/WP_User|WP_User]] objects, depending on the value of the '<tt>fields</tt>' parameter.
+:*If '<tt>fields</tt>' is set to 'all' (default), or 'all_with_meta', it will return an array of [[Class_Reference/WP_User|WP_User]] objects (does not include related user meta fields even with 'all_with_meta' set) .
+:*If '<tt>fields</tt>' is set to an array of <tt>[[Database_Description#Table:_wp_users | wp_users]]</tt> table fields, it will return an array of stdClass objects with only those fields.
+:*If '<tt>fields</tt>' is set to any individual <tt>[[Database_Description#Table:_wp_users | wp_users]]</tt> table field, an array of IDs will be returned.
+
+==Filters==
+
+* '''<tt>[[Plugin_API/Filter_Reference/found_users_query|found_users_query]]</tt>''' - Alters SQL 'SELECT FOUND_ROWS()' clause to the query that returns the count total.
+
+==Examples==
+Here is a working example if you want to search a user by first_name / last_name / description  and the default search_columns.
+<pre>
+// The search term
+$search_term = 'Ross';
+
+// WP_User_Query arguments
+$args = array (
+    'role'       => 'reporter',
+    'order'      => 'ASC',
+    'orderby'    => 'display_name',
+    'search'     => '*' . esc_attr( $search_term ) . '*',
+    'meta_query' => array(
+        'relation' => 'OR',
+        array(
+            'key'     => 'first_name',
+            'value'   => $search_term,
+            'compare' => 'LIKE'
+        ),
+        array(
+            'key'     => 'last_name',
+            'value'   => $search_term,
+            'compare' => 'LIKE'
+        ),
+        array(
+            'key'     => 'description',
+            'value'   => $search_term ,
+            'compare' => 'LIKE'
+        )
+    )
+);
+
+// Create the WP_User_Query object
+$wp_user_query = new WP_User_Query( $args );
+
+// Get the results
+$authors = $wp_user_query->get_results();
+
+// Check for results
+if ( ! empty( $authors ) ) {
+    echo '<ul>';
+    // loop through each author
+    foreach ( $authors as $author ) {
+        // get all the user's data
+        $author_info = get_userdata( $author->ID );
+        echo '<li>' . $author_info->first_name . ' ' . $author_info->last_name . '</li>';
+    }
+    echo '</ul>';
+} else {
+    echo 'No authors found';
+}
+</pre>
+
+== Change Log ==
+* [[Version 4.4|4.4.0]]:
+** Add <tt>paged</tt>, <tt>role__in</tt>, <tt>role__not_in</tt>  Parameters
+** Update <tt>role</tt> Parameter to permit an array or comma-separated list of values
+** Update <tt>number</tt> Parameter to support querying for all users with using -1
+
+* [[Version 4.3|4.3.0]]:
+** Add <tt>has_published_posts</tt> Parameter
+
+* [[Version 4.2|4.2.0]]:
+** Add <tt>meta_value_num</tt> option to <tt>orderby</tt> Parameter
+
+* [[Version 4.1|4.1.0]]:
+** Add <tt>include</tt> option to <tt>orderby</tt> Parameter
+
+* [[Version 3.5|3.5.0]]:
+** Add <tt>$query_vars</tt> Property
+** Add <tt>get()</tt> Methods
+** Add <tt>set()</tt> Methods
+** Add <tt>meta_query</tt> Parameter
+
+* Since: [[Version 3.1|3.1.0]]
+
+== Source File ==
+<tt>WP_User_Query</tt> is located in {{Trac|wp-includes/class-wp-user-query.php}}.
+
+==Resources==
+* [http://generatewp.com/wp_user_query/ WordPress WP_User_Query Generator]
+* [http://wpsmith.net/?p=17712 An Introduction to WP_User_Query Class]
+
+== Related ==
+* [[Database_Description#Table%3a_wp_users_2 | Database 'wp_users' Table]]
+* [[Class_Reference/WP_User | WP_User]] class
+* [[Function_Reference/get_users|<tt>get_users()</tt>]]
+* [[Class_Reference/WP_Query | WP_Query]] - Class for post-related queries
+* [[Class_Reference/WP_Comment_Query | WP_Comment_Query]] - Class for comment-related queries
+
+{{Class Footer}}
+
+[[Category:Classes]]

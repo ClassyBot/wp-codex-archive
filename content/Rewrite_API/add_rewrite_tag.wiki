@@ -1,0 +1,50 @@
+==Description==
+This function can be used to make WordPress aware of custom querystring variables. Generally, it's used in combination with [[Rewrite_API/add_rewrite_rule|add_rewrite_rule()]] to create rewrite rules for pages with custom templates.
+
+If you use this function to declare a rewrite tag that already exists, the existing tag will be ''overwritten''.
+
+This function ''must'' be called on [[Plugin_API/Action_Reference/init|init]] or earlier.
+
+==Usage==
+%%%<?php add_rewrite_tag($tag, $regex, $query); ?>%%%
+
+==Arguments==
+
+{{Parameter|$tag|string|The tag name you want to use, with a leading and trailing '''%'''.|required}}
+{{Parameter|$regex|string|Specify a regex to validate the value of the tag.|required}}
+{{Parameter|$query|string|Append query to queryreplace property array.|optional}}
+
+==What it does==
+* Gets a query var name by stripping the % signs from the name of the tag: trim($tag, '%')
+* Calls <tt>$wp_rewrite->add_rewrite_tag()</tt> with the name, generated QV name and regex.
+* Adds the QV as a query var (again, this could be done by filtering query_vars but it might be nicer to add a function to the WP class that stores 'extra' QVs like above)
+
+==Example==
+The following will register a tag called 'film_title':
+ 
+%%%<?php
+	function custom_rewrite_tag() {
+		add_rewrite_tag('%film_title%', '([^&]+)');
+	}
+	add_action('init', 'custom_rewrite_tag', 10, 0);
+?>%%%
+
+This is particularly important when you are using rewrites with custom page templates.
+
+==Retrieving the Value of a Rewritten URL==
+With a rewrite tag defined, you can now retrieve the value of your rewritten querystring variables using WordPress's <tt>$wp_query</tt> variable. To get the value of the above tag out of a rewrite, you could use the following in your page template:
+ 
+ $wp_query->query_vars['film_title']
+
+Note that using $_GET on a rewritten URL ''will not work'', even if the rewrite includes the querystring variables. You must use <tt>$wp_query</tt>.
+
+== Source File ==
+
+<tt>add_rewrite_tag()</tt> is located in {{Trac|wp-includes/rewrite.php}}.
+
+==Related==
+{{Rewrite API}}
+
+== External Resources ==
+
+* [http://www.viper007bond.com/2011/10/07/code-snippet-helper-class-to-add-custom-taxonomy-to-post-permalinks/ Viper007Bond.com: Code Snippet: Helper Class To Add Custom Taxonomy To Post Permalinks], a real world usage example of how to use this function by Alex Mills (Viper007Bond)

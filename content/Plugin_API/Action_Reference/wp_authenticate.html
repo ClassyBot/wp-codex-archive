@@ -1,0 +1,42 @@
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/wp_authenticate&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This action is located inside of <a href="https://codex.wordpress.org/Function_Reference/wp_signon" title="Function Reference/wp signon">wp_signon</a>. In contrast to the wp_login action, it is executed before the WordPress authentication process.
+</p>
+<ul><li>This action hook is not to be confused with the <a href="https://codex.wordpress.org/Function_Reference/wp_authenticate" title="Function Reference/wp authenticate">wp_authenticate pluggable function</a>.</li></ul>
+<h2><span class="mw-headline" id="Location">Location</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/wp_authenticate&amp;action=edit&amp;section=2" title="Edit section: Location">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Located in /wp-includes/user.php.
+</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/wp_authenticate&amp;action=edit&amp;section=3" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>You can use wp_authenticate to use a custom login mechanism before you involve WordPress.
+</p><p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />add_action</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'wp_authenticate'&#160;</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'check_custom_authentication'&#160;</span><span style="color: #007700">);<br /><br />function&#160;</span><span style="color: #0000BB">check_custom_authentication&#160;</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$username&#160;</span><span style="color: #007700">)&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;global&#160;</span><span style="color: #0000BB">$wpdb</span><span style="color: #007700">;<br /><br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;if&#160;(&#160;!&#160;</span><span style="color: #0000BB">username_exists</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$username&#160;</span><span style="color: #007700">)&#160;)&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;return;<br />&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">$userinfo&#160;</span><span style="color: #007700">=&#160;</span><span style="color: #0000BB">get_user_by</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'login'</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$username&#160;</span><span style="color: #007700">);<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">$property&#160;</span><span style="color: #007700">=&#160;</span><span style="color: #0000BB">$wpdb</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prefix&#160;</span><span style="color: #007700">.&#160;</span><span style="color: #DD0000">'capabilities'</span><span style="color: #007700">;<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">$caps&#160;</span><span style="color: #007700">=&#160;</span><span style="color: #0000BB">$userinfo</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">$property</span><span style="color: #007700">;<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;foreach&#160;(&#160;</span><span style="color: #0000BB">$caps&#160;</span><span style="color: #007700">as&#160;</span><span style="color: #0000BB">$role&#160;</span><span style="color: #007700">)&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;if&#160;(&#160;</span><span style="color: #DD0000">'special_authenticator'&#160;</span><span style="color: #007700">==&#160;</span><span style="color: #0000BB">$role&#160;</span><span style="color: #007700">)&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">wpExternalLoginProcess</span><span style="color: #007700">(&#160;</span><span style="color: #0000BB">$username</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'pwd'</span><span style="color: #007700">]&#160;);<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;}<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p><p>You can also use email to authenticate users in WordPress.
+</p><p><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />add_action</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'wp_authenticate'</span><span style="color: #007700">,&#160;</span><span style="color: #DD0000">'wp_authenticate_by_email'&#160;</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&#160;user&#160;name&#160;is&#160;passed&#160;in&#160;by&#160;reference&#160;<br /></span><span style="color: #007700">function&#160;</span><span style="color: #0000BB">wp_authenticate_by_email</span><span style="color: #007700">(&#160;&amp;</span><span style="color: #0000BB">$username&#160;</span><span style="color: #007700">)&#160;{<br />&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">$user&#160;</span><span style="color: #007700">=&#160;</span><span style="color: #0000BB">get_user_by</span><span style="color: #007700">(&#160;</span><span style="color: #DD0000">'email'</span><span style="color: #007700">,&#160;</span><span style="color: #0000BB">$username&#160;</span><span style="color: #007700">);<br /><br />&#160;&#160;&#160;&#160;if&#160;(&#160;!&#160;</span><span style="color: #0000BB">$user&#160;</span><span style="color: #007700">)&#160;{<br />&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span><span style="color: #0000BB">$username&#160;</span><span style="color: #007700">=&#160;</span><span style="color: #0000BB">$user</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">user_login</span><span style="color: #007700">;<br />&#160;&#160;&#160;&#160;}<br /><br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</p>
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=Plugin_API/Action_Reference/wp_authenticate&amp;action=edit">expanding it</a></b>.</div>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004056
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.023 seconds
+Preprocessor visited node count: 147/1000000
+Preprocessor generated node count: 352/1000000
+Post‐expand include size: 941/2097152 bytes
+Template argument size: 242/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.995      1 - -total
+100.00%    3.995      1 - Template:Stub
+ 46.33%    1.851      1 - Template:Message
+-->

@@ -1,0 +1,141 @@
+{{Stub}}
+==Introduction==
+The <code>mce_external_plugins</code> [[Plugin API/Filter Reference|filter]] is used to load external TinyMCE plugins. 
+
+This filter may be useful for loading any of the [http://www.tinymce.com/wiki.php/Plugins TinyMCE core plugins], many of which are not included by default in WordPress, as well as any custom TinyMCE plugins you may want to create.
+
+To find out how to create a TinyMCE plugin from scratch, [http://www.tinymce.com/wiki.php/Tutorials:Creating_a_plugin see this article on the TinyMCE Wiki].
+
+==Examples==
+
+===Visualblock plugin===
+
+For example, you might create a WordPress plugin that loads the TinyMCE plugin [http://www.tinymce.com/wiki.php/Plugin:visualblocks visualblocks]. 
+
+TinyMCE plugins typically consist of a javascript file named 'editor_plugin.js' and a series of CSS files and other helper files. This example assumes the WordPress plugin stores TinyMCE plugins as follows: ''example_plugin/tinymce/visualblocks/edior_plugin.js''
+
+<pre>
+/**
+ * Add the TinyMCE VisualBlocks Plugin.
+ *
+ * @param array $plugins An array of all plugins.
+ * @return array
+ */
+function my_custom_plugins( $plugins ) {
+     $plugins['visualblocks'] = plugins_url( 'tinymce/', __FILE__ ) . 'visualblocks/editor_plugin.js';
+     return $plugins;
+}
+add_filter( 'mce_external_plugins', 'my_custom_plugins' );
+</pre>
+
+===Creating a shortcode and a tag button===
+
+First, create a plugin that registers the buttons and their JavaScript.
+
+<pre>
+/* Plugin Name: My TinyMCE Buttons */
+add_action( 'admin_init', 'my_tinymce_button' );
+
+function my_tinymce_button() {
+     if ( current_user_can( 'edit_posts' ) && current_user_can( 'edit_pages' ) ) {
+          add_filter( 'mce_buttons', 'my_register_tinymce_button' );
+          add_filter( 'mce_external_plugins', 'my_add_tinymce_button' );
+     }
+}
+
+function my_register_tinymce_button( $buttons ) {
+     array_push( $buttons, "button_eek", "button_green" );
+     return $buttons;
+}
+
+function my_add_tinymce_button( $plugin_array ) {
+     $plugin_array['my_button_script'] = plugins_url( '/mybuttons.js', __FILE__ ) ;
+     return $plugin_array;
+}
+</pre>
+
+Then, in the same folder as the plugin, the JavaScript file '''mybuttons.js'''. We add our two buttons (eek and green), one is a direct <tt>onclick</tt> that inserts a Shortcode and the other is a command that adds an <tt>h3</tt> tag to the selected text in the editor.  
+
+<pre>
+(function() {
+     /* Register the buttons */
+     tinymce.create('tinymce.plugins.MyButtons', {
+          init : function(ed, url) {
+               /**
+               * Inserts shortcode content
+               */
+               ed.addButton( 'button_eek', {
+                    title : 'Insert shortcode',
+                    image : '../wp-includes/images/smilies/icon_eek.gif',
+                    onclick : function() {
+                         ed.selection.setContent('[myshortcode]');
+                    }
+               });
+               /**
+               * Adds HTML tag to selected content
+               */
+               ed.addButton( 'button_green', {
+                    title : 'Add span',
+                    image : '../wp-includes/images/smilies/icon_mrgreen.gif',
+                    cmd: 'button_green_cmd'
+               });
+               ed.addCommand( 'button_green_cmd', function() {
+                    var selected_text = ed.selection.getContent();
+                    var return_text = '';
+                    return_text = '<h1>' + selected_text + '</h1>';
+                    ed.execCommand('mceInsertContent', 0, return_text);
+               });
+          },
+          createControl : function(n, cm) {
+               return null;
+          },
+     });
+     /* Start the buttons */
+     tinymce.PluginManager.add( 'my_button_script', tinymce.plugins.MyButtons );
+})();
+</pre>
+
+You can pass PHP values to the JavaScript file printing directly in <tt>admin_head</tt>:
+
+<pre>
+foreach ( array('post.php','post-new.php') as $hook ) {
+     add_action( "admin_head-$hook", 'my_admin_head' );
+}
+
+/**
+ * Localize Script
+ */
+function my_admin_head() {
+    $plugin_url = plugins_url( '/', __FILE__ );
+    ?>
+<!-- TinyMCE Shortcode Plugin -->
+<script type='text/javascript'>
+var my_plugin = {
+    'url': '<?php echo $plugin_url; ?>',
+};
+</script>
+<!-- TinyMCE Shortcode Plugin -->
+    <?php
+}
+</pre>
+
+And then, access it in '''mybuttons.js''' with <tt>console.log(my_plugin.url);</tt>.
+
+==Plugin Version Compatibility==
+
+'''Note:''' TinyMCE plugins must be compatible with the version of TinyMCE included in WordPress. As of [[Version 3.5.2|WordPress 3.5.2]], TinyMCE 3.5.8 is used. Be sure to download any plugins from the TinyMCE branch that matches the version currently in use by WordPress.
+
+It may also be helpful to check when the particular plugin was introduced. [http://www.tinymce.com/develop/changelog/?ctrl=version&act=view&pr_id=1&vr_id=611 For example], the visualblocks plugin was introduced in TinyMCE version 3.5b1.
+
+=== Wordpress 3.9+ compatibility ===
+[[Version 3.9|WordPress 3.9]] had a major update with TinyMCE 4.0. Although the [http://www.tinymce.com/wiki.php/Plugin:compat3x compat3x plugin] is included, you may still need to rework some parts. (See [https://core.trac.wordpress.org/ticket/24067 bug 24067])
+
+If you find that your plugin script is not getting added, make sure you are adding your plugin 'id' => scripturl with the 'mce_external_plugins' filter, but not the 'tiny_mce_plugins' filter, or else the script file will not be registered.
+
+== External Resources ==
+* [http://wp.tutsplus.com/tutorials/theme-development/guide-to-creating-your-own-wordpress-editor-buttons/ Creating Your Own WordPress Editor Buttons]
+* [http://www.tinymce.com/wiki.php/Tutorials:Creating_a_plugin Creating a TinyMCE Plugin in Javascript]
+* [http://generatewp.com/take-shortcodes-ultimate-level/ Take your shortcodes to the ultimate level] - Tutorial for using external TinyMCE plugins
+
+==Related==
+{{TinyMCE API}}

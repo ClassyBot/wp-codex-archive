@@ -1,0 +1,101 @@
+{{Languages|
+{{en|Function Reference/add shortcode}}
+{{it|Riferimento funzioni/add shortcode}}
+{{ja|関数リファレンス/add_shortcode}}
+{{pt-br|Function Reference/add shortcode}}
+}}
+== Descrição ==
+
+Hook para adicionar uma tag na api de [[Shortcode API|shortcode]].
+
+== Uso ==
+
+%%%<?php add_shortcode( $tag , $func ); ?>%%%
+
+== Paramêtros ==
+
+{{Parameter|$tag|string|Shortcode tag para ser buscada no conteúdo do post}}
+{{Parameter|$func|callable|Hook para rodar quando o shortcode for encontrado}}
+
+== Valores de retorno ==
+
+; (none)
+
+== Exemplos ==
+
+Um simples exemplo pra criar uma shortcode tag usando a API:
+[footag foo="bar"]
+
+<pre>
+function footag_func( $atts ) {
+	return "foo = {$atts['foo']}";
+}
+add_shortcode( 'footag', 'footag_func' );
+</pre>
+
+Exemplo com atributos:
+[bartag foo="bar"]
+
+<pre>
+function bartag_func( $atts ) {
+	$atts = shortcode_atts( array(
+		'foo' => 'no foo',
+		'baz' => 'default baz'
+	), $atts, 'bartag' );
+
+	return "foo = {$atts['foo']}";
+}
+add_shortcode( 'bartag', 'bartag_func' );
+</pre>
+
+Exemplo com conteúdo incluso:
+[baztag]content[/baztag]
+
+<pre>
+function baztag_func( $atts, $content = "" ) {
+	return "content = $content";
+}
+add_shortcode( 'baztag', 'baztag_func' );
+</pre>
+
+Se seu plugin é projetado com classe siga este padrão:
+
+<pre>
+class MyPlugin {
+	public static function baztag_func( $atts, $content = "" ) {
+		return "content = $content";
+	}
+ }
+ add_shortcode( 'baztag', array( 'MyPlugin', 'baztag_func' ) );
+</pre>
+
+== Notas ==
+
+* O callback do shortcode vai passar três argumentos: os atributos do shortcode, o conteúdo se existir e o nome do shortcode.
+
+* Podemos criar apenas um hook por shortcode. Isso significa que se outro plugin usar um shortcode similar, vai sobrescrever o seu shortcode dependendo da ordem de prioridade que o plugin foi incluso no seu tema.
+
+* Nomes de atributos de shortcode sempre são convertidos para lowercase antes dele serrem passados para função que os manipulará. Os valores são intocados apenas o nome é editado.
+
+* Note que a função chamada por um shortcode nunca deve produzir uma saída de qualquer tipo. Função do shortcode deve retorna o texto que será usado para substituir o shortcode. Produzindo uma saída diretamente ligada ao resultado esperado, ou seja o short code deve ser intuitivo se criarmos uma shortcode "foto" ele deve realizar algo relacionado a uma foto. Mas claro para usuário final ele não tem o controle de como e quando é chamado ele apenas faz uma chamada e tem um retorno
+
+== Change Log ==
+
+Since: 2.5
+
+== Source File ==
+
+<tt>add_shortcode()</tt> está localizado em {{Trac|wp-includes/shortcodes.php}}.
+
+== Recursos ==
+
+* [http://generatewp.com/shortcodes/ WordPress Shortcodes Generator]
+
+== Relacionados ==
+
+{{Shortcode Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

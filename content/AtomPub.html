@@ -1,0 +1,102 @@
+<p>As of version 2.3, WordPress lets you manage posts and media files using the Atom Publishing Protocol, or AtomPub. From WordPress 3.5 AtomPub is disabled by default, but you can use the <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/atom-publishing-protocol/">Atom Publishing Protocol Plugin</a>.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Overview"><span class="tocnumber">1</span> <span class="toctext">Overview</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#How_AtomPub_Works"><span class="tocnumber">2</span> <span class="toctext">How AtomPub Works</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Testing_and_Troubleshooting"><span class="tocnumber">3</span> <span class="toctext">Testing and Troubleshooting</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Authentication"><span class="tocnumber">3.1</span> <span class="toctext">Authentication</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Firewall"><span class="tocnumber">3.2</span> <span class="toctext">Firewall</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Permissions"><span class="tocnumber">3.3</span> <span class="toctext">Permissions</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Permalinks"><span class="tocnumber">3.4</span> <span class="toctext">Permalinks</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Sanitization"><span class="tocnumber">3.5</span> <span class="toctext">Sanitization</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Foreign_Markup"><span class="tocnumber">3.6</span> <span class="toctext">Foreign Markup</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-10"><a href="#Resources"><span class="tocnumber">4</span> <span class="toctext">Resources</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Overview">Overview</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=1" title="Edit section: Overview">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>AtomPub allows you to connect to your blog with an AtomPub-enabled client and publish, update and delete posts and media files remotely, without needing to log in to the administration section directly.
+</p><p>While remote posting has been possible using a number of protocols, AtomPub is a well defined protocol that should promote interoperability. 
+</p><p>WordPress's AtomPub service address is http&#x3a;//[Blog URL]/wp-app.php/service. Your AtomPub client should be configured to point to that address.
+</p>
+<h2><span class="mw-headline" id="How_AtomPub_Works">How AtomPub Works</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=2" title="Edit section: How AtomPub Works">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This section provides some background on how AtomPub works. In most cases it will not be necessary to understand this, however it may be useful when addressing problems with your set up. 
+</p><p>AtomPub is an application-level protocol that uses HTTP and XML to manage resources on the Web. Specifically, an AtomPub client sends XML messages to an AtomPub server using HTTP commands using what is known as a RESTful architecture. Resources such as blog posts can be retrieved using an HTTP GET operation, published using an HTTP POST operation, modified using an HTTP PUT operation and deleted using an HTTP DELETE operation.
+</p>
+<h2><span class="mw-headline" id="Testing_and_Troubleshooting">Testing and Troubleshooting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=3" title="Edit section: Testing and Troubleshooting">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>What functionality you get from WordPress's AtomPub support depends, in part, on how your WordPress blog is configured.  You can enter your blog's service address into the <a rel="nofollow" class="external text" href="http://www.tbray.org/ape/">Atom Protocol Exerciser</a> (APE) to verify your configuration. The APE is a special AtomPub client that is designed to test AtomPub servers. It will test all the functionality that AtomPub gives to your WordPress blog. That is, it will try to retrieve collections of posts and media files, post new resources, update them and delete them. If any of the expected functionality fails, the APE will report an error. The information below is provided to help you understand and fix possible errors.
+</p>
+<h3><span class="mw-headline" id="Authentication">Authentication</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=4" title="Edit section: Authentication">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>First, and most basic, only the users that are in your weblog's User List may access your weblog through the AtomPub interface.  For most configurations, this <i>just works</i>, but in the case of PHP run as CGI on top of the Apache web server, additional Apache <a rel="nofollow" class="external text" href="http://www.besthostratings.com/articles/http-auth-php-cgi.html">configuration</a> is required. You can check to see if PHP is running as CGI by running the <tt>phpinfo()</tt> function (see <a href="https://codex.wordpress.org/Finding_Server_Info" title="Finding Server Info">Finding_Server_Info</a>) and looking for the <tt>SERVER_SOFTWARE</tt> entry, which will contain PHP-CGI as well as other server information.
+</p><p>When this is a problem, APE will report:
+</p>
+<ul><li>  Retrieval of Service Document failed: Too many redirects</li></ul>
+<p>or
+</p>
+<ul><li>  Retrieval of Service Document failed: Can't connect to <i>www.example.com</i> on port 80: wrong status line: "HTTP/1.1 Credentials required."</li></ul>
+<h3><span class="mw-headline" id="Firewall">Firewall</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=5" title="Edit section: Firewall">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>While comparatively rare, some client's or server's firewalls are configured to disallow PUT and DELETE operations.  As these requests are denied before Wordpress even sees them, this issue needs to be addressed at the firewall.  Left unaddressed,  this limits your AtomPub usage to the two most common interactions: GET and POST.
+</p><p>When this is a problem, APE will report:
+</p>
+<ul><li> Couldn't delete the entry that was posted: Forbidden</li>
+<li> Can't update mini-entry at http&#x3a;//<i>your-host</i>/<i>your-blog</i>/wp-app.php/post/5</li>
+<li> Couldn't delete media link entry</li>
+<li> Can't update picture at http&#x3a;//<i>your-host</i>/<i>your-blog</i>/wp-app.php/attachment/file/10</li></ul>
+<h3><span class="mw-headline" id="Permissions">Permissions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=6" title="Edit section: Permissions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In order to handle uploads of attachments of media resources like images, Wordpress needs to be able to write to your <code>wp-content</code> directory.  If this is a problem, see <a href="https://codex.wordpress.org/Changing_File_Permissions" title="Changing File Permissions">Changing File Permissions</a>.
+</p><p>When this is a problem, APE will report:
+</p>
+<ul><li> Retrieval of media resource: Content-type must be 'image/jpeg', not 'application/atom+xml'</li>
+<li> Media resource differs from posted picture</li>
+<li> Fetch image to get ETag failed: Internal Server Error</li>
+<li> Can't fetch image to get ETag</li></ul>
+<h3><span class="mw-headline" id="Permalinks">Permalinks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=7" title="Edit section: Permalinks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Your AtomPub client may allow you to set the <i>postname</i> (also sometimes known as <i>slug</i>) in your permalinks.  If this is of interest to you, see <a href="https://codex.wordpress.org/Using_Permalinks" title="Using Permalinks">Using Permalinks</a>.
+</p><p>When this is a problem, APE will report:
+</p>
+<ul><li> Client-provided slug 'ape-<i>nnnnn'</i> not used in server-generated URI.</li></ul>
+<h3><span class="mw-headline" id="Sanitization">Sanitization</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=8" title="Edit section: Sanitization">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If users are able to post <a href="https://codex.wordpress.org/Roles_and_Capabilities#unfiltered_html" title="Roles and Capabilities">unfiltered HTML</a> they may be able to include malicious code in their posts.  To be sure this doesn't happen, check the <a href="https://codex.wordpress.org/Roles_and_Capabilities#Capability_vs._Role_Table" title="Roles and Capabilities">capabilities vs. Role Table</a>.  In general, posting using a Wordpress User which is defined as an <b>Author</b> eliminates this possibility.
+</p><p>When this is a problem, APE will report:
+</p>
+<ul><li> Published entry retains xhtml:script element.</li>
+<li> Published entry retains 'background' attribute.</li>
+<li> Published entry retains 'style' attribute.</li>
+<li> Published entry retains dangerous hyperlink: 'javascript:evil'.</li></ul>
+<h3><span class="mw-headline" id="Foreign_Markup">Foreign Markup</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=9" title="Edit section: Foreign Markup">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The Atom Publishing Protocol defines an optional facility for including metadata in the form of foreign markup to be attached to your posts.  While this may be supported in some future release of Wordpress, it is not supported in 2.3.  This is mentioned here, as this is one of the things that APE checks for and reports on.  If you see these messages, they are normal and are not something to be concerned about.
+</p><p>The following messages from APE are to be considered <b>normal</b>:
+</p>
+<ul><li> Server discarded foreign markup in Returned entry.</li>
+<li> Server discarded foreign markup in Retrieved entry.</li>
+<li> Server discarded foreign markup in Entry from collection feed.</li></ul>
+<p>What this means is that when perfectly valid Atom 1.0 feed contains XHTML in <code>&lt;content type="xhtml"&gt;</code> element, wordpress discards all formatting and treats the input stream as plain text omitting anything XHTML/HTML related (e.g., all EOLs are replaced by <code>&lt;BR /&gt;</code> element in the resulting HTML). That means that anything else than plain text cannot be now successfully included in the <code>&lt;content&gt;</code> element. See <a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/ticket/9513">this ticket</a> for further information.
+</p>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=AtomPub&amp;action=edit&amp;section=10" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li><a rel="nofollow" class="external text" href="http://tools.ietf.org/html/rfc5023">RFC 5023</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.tbray.org/ape/">Atom Protocol Exerciser</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.atomenabled.org/developers/protocol/">AtomEnabled</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003726
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.015 seconds
+Preprocessor visited node count: 39/1000000
+Preprocessor generated node count: 44/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

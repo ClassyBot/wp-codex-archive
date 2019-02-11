@@ -1,0 +1,89 @@
+{{Languages|
+{{en|Function Reference/get post}}
+{{it|Riferimento_funzioni/get_post}}
+{{ja|関数リファレンス/get post}}
+{{ru|Справочник_по_функциям/get_post}}
+{{tr|Fonksiyon Referans/get post}}
+}}
+==Описание==
+
+В качестве аргумента принимает ID записи и возвращает хранящуюся в базе данных информацию о ней. Формат возвращаемых данных зависит от параметра <tt>$output</tt>.
+
+==Использование==
+
+%%%<?php get_post( $post, $output ); ?> %%%
+
+==Параметры==
+
+{{Parameter|$post|integer| ID записи, которую вы бы хотели «достать». '''Вам нужно подставлять именно переменную со значением ID''' (напр. <tt>$id</tt>), а не просто цифру, равную ID (напр. 7). В последнем случае получите критическую ошибку. ('''''Only variables can be passed for reference''''' или '''''Cannot pass parameter 1 by reference''''')}}
+{{Parameter|$output|string|Определяет формат возвращаемых данных. <ul><li>''OBJECT'' — возвращает объект</li><li>''ARRAY_A'' — возвращает ассоциативный массив, в котором индексами служат названия полей в базе данных, а значениями данные из этих полей</li><li>''ARRAY_N'' — возвращает числовой массив с данными из полей</li></ul>|optional|OBJECT}}
+
+==Примеры==
+
+Для вывода заголовка записи с ID 7:
+
+%%%<?php
+$my_id = 7;
+$post_id_7 = get_post($my_id); 
+$title = $post_id_7->post_title;
+?> %%%
+
+Тоже самое, но с указанием формата возвращаемых данных «Как ассоциативный массив». Для этого зададим параметру <tt>$output</tt> значение ARRAY_A:
+
+%%%<?php
+$my_id = 7;
+$post_id_7 = get_post($my_id, ARRAY_A);
+$title = $post_id_7['post_title'];
+?> %%%
+
+%%%<?php
+##	Правильно: зададим значение переменной равное ID записи
+$the_post = & get_post( $dummy_id = 7 );
+	
+##	Неправильно: зададим литерал 7 равный ID записи
+$the_post = & get_post( 7 );
+//	Получим Fatal error: 'Only variables can be passed for reference' или 'Cannot pass parameter 1 by reference'
+?>%%%
+
+==Возвращаемые значения==
+В случае ошибки эта функция возвращает <tt><b>null</b></tt>.
+
+Возвращаемые поля:
+
+; <tt>ID</tt> : (''integer'')  ID записи
+; <tt>post_author</tt> : (''integer'') ID автора записи
+; <tt>post_date</tt> : (''string'') Дата и время создания записи (<tt>ГГГГ-ММ-ДД ЧЧ:ММ:СС</tt>)
+; <tt>post_date_gmt</tt> : (''string'') Дата и время создания записи  по Гринвичу (GMT) (<tt>ГГГГ-ММ-ДД ЧЧ:ММ:СС</tt>)
+; <tt>post_content</tt> : (''string'') Содержание записи.
+; <tt>post_title</tt> : (''string'') Заголовок записи
+; <tt>post_category</tt> : (''integer'') ID рубрики к которой принадлежит запись. Важно помнить, что это значения всегда будет равно 0 начиная с Wordpress 2.1 Для определения рубрики или рубрик, в которых находится запись используйте [[Справочник_по_функциям/get_the_category|get_the_category()]].
+; <tt>post_excerpt</tt> : (''string'') Выдержка из записи (отрывок текста)
+; <tt>post_status</tt> : (''string'') Статус записи (<tt>publish|pending|draft|private|static|object|attachment|inherit|future</tt>)
+; <tt>comment_status</tt> : (''string'') Статус комментирования (<tt>open|closed|registered_only</tt>)
+; <tt>ping_status</tt> : (''string'') Статус пингов и трекбеков (<tt>open|closed</tt>)
+; <tt>post_password</tt> : (''string'') Пароль записи
+; <tt>post_name</tt> : (''string'') Приставка к URL записи (slug, ее видно в URL, если включена опция ЧПУ)
+; <tt>to_ping</tt> : (''string'') URL'ы для пингов
+; <tt>pinged</tt> : (''string'') URL'ы, которые уже были «пропингованы»
+; <tt>post_modified</tt> : (''string'') Дата и время последнего редактирования записи (<tt>ГГГГ-ММ-ДД ЧЧ:ММ:СС</tt>)
+; <tt>post_modified_gmt</tt> : (''string'') Дата и время последнего редактирования записи по Гринвичу (GMT) (<tt>ГГГГ-ММ-ДД ЧЧ:ММ:СС</tt>)
+; <tt>post_content_filtered</tt> : (''string'') 
+; <tt>post_parent</tt> : (''integer'') ID родительской записи (для вложений, например и т.п.)
+; <tt>guid</tt> : (''string'') Cсылка на запись. Примечание: не всегда GUID это постоянная (неизменяемая) ссылка на запись (как это было до версии 2.5). Можно сказать, что это текущая ссылка на конретную запись.
+; <tt>menu_order</tt> : (''integer'') Число определяющее «рейтинг» записи (влияет на порядок вывода страниц в списке)
+; <tt>post_type</tt> : (''string'') Тип записи (<tt>post|page|attachment</tt>)
+; <tt>post_mime_type</tt> : (''string'') Mimе-тип (для вложений, проч.)
+; <tt>comment_count</tt> : (''integer'') Число комментариев
+
+== Ссылки ==
+
+* [http://wordpress.org/support/topic/54424 Форум:get_post не работает]
+Тема закрыта для обсуждения.
+
+== Исходный файл ==
+<tt>get_post()</tt> объявляется в <tt>/wp-includes/post.php</tt> (а также и в <tt>/wp-app.php</tt>)
+
+{{ru:Tag Footer}}
+
+[[Category:Функции]]
+[[Category:Russian Codex]]

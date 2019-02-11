@@ -1,0 +1,40 @@
+==Description==
+
+<tt>publish_post</tt> is an action triggered whenever a post is updated and its new status is "publish". See documentation: https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
+
+==Example==
+
+The example below will send an email via <tt>[[Function_Reference/wp_mail|wp_mail()]]</tt> to the post author when their article is published.
+
+<pre>function post_published_notification( $ID, $post ) {
+    $author = $post->post_author; /* Post author ID. */
+    $name = get_the_author_meta( 'display_name', $author );
+    $email = get_the_author_meta( 'user_email', $author );
+    $title = $post->post_title;
+    $permalink = get_permalink( $ID );
+    $edit = get_edit_post_link( $ID, '' );
+    $to[] = sprintf( '%s <%s>', $name, $email );
+    $subject = sprintf( 'Published: %s', $title );
+    $message = sprintf ('Congratulations, %s! Your article “%s” has been published.' . "\n\n", $name, $title );
+    $message .= sprintf( 'View: %s', $permalink );
+    $headers[] = '';
+    wp_mail( $to, $subject, $message, $headers );
+}
+add_action( 'publish_post', 'post_published_notification', 10, 2 );</pre>
+
+==Notes==
+
+'''This action hook is not deprecated!'''
+
+Previously, on both this page and the [[Plugin_API/Action_Reference|Action Reference]] page, <tt>publish_post</tt> had been identified as deprecated since [[Version 2.3|WordPress 2.3]]. That was incorrect. Since Version 2.3, <tt>publish_post</tt> is an action that adheres to the new form of post status transition actions <tt>{status}_{post_type}</tt>. For more information, see [[Post Status Transitions]].
+
+'''Custom Post Types'''
+
+To trigger this action for a custom post type, use publish_{$custom_post_type}.
+e.g. if your post type is 'book' use:
+<pre>add_action( 'publish_book', 'post_published_notification', 10, 2 );</pre>
+
+
+== Related ==
+
+[[Post Status Transitions]]

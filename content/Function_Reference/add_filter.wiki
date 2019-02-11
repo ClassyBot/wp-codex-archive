@@ -1,0 +1,124 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/add_filter/}}
+
+{{Languages|
+{{en|Function_Reference/add_filter}}
+{{it|Function_Reference/it:add_filter}}
+{{ja|関数リファレンス/add_filter}}
+{{ru|Справочник_по_функциям/add_filter}}
+}}
+
+== Description ==
+Hook a function to a specific filter action.
+
+* Glossary: [http://codex.wordpress.org/Glossary#Filter Filters]
+
+== Usage ==
+
+%%% <?php add_filter( $tag, $function_to_add, $priority, $accepted_args ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$tag|string|The name of the existing Filter to Hook the <tt>$function_to_add</tt> argument to. You can find a [http://codex.wordpress.org/Plugin_API/Filter_Reference list of Filter Hooks here].}}
+{{Parameter|$function_to_add|callback|The name of the function to be called when the custom Filter is [[Function Reference/apply_filters|applied]].}}
+{{Parameter|$priority|integer|Used to specify the order in which the functions associated with a particular action are executed. Lower numbers correspond with earlier execution, and functions with the same priority are executed in the order in which they were added to the filter.|optional|10}}
+{{Parameter|$accepted_args|integer|The number of arguments the function(s) accept(s). In WordPress 1.5.1 and newer hooked functions can take extra arguments that are set when  the matching apply_filters() call is run.|optional|1}}
+
+== Return == 
+
+The function returns true if the attempted function hook succeeds or false if not. There is no test that the function exists nor whether the <tt>$function_to_add</tt> is even a string. It is up to you to take care.
+This is done for optimization purposes, so everything is as quick as possible.
+
+== Example ==
+The filter <tt>img_caption_shortcode</tt> is applied in <tt>media.php</tt> using the following call:
+
+<pre>
+// Allow plugins/themes to override the default caption template.
+$output = apply_filters('img_caption_shortcode', '', $attr, $content);
+if ( $output != '' )
+	return $output;
+</pre>
+
+The target filter function will be called with three arguments:
+* &#39;&#39;  &lt;= This is normally the value the filter will be modifying
+* $attr
+* $content
+
+In order for the filter function to actually receive the full argument list, the call to <tt>add_filter()</tt> must
+be modified to specify there are 3 arguments on the parameter list.
+
+<pre>
+add_filter('img_caption_shortcode', 'my_img_caption_shortcode_filter',10,3);
+
+/**
+ * Filter to replace the [caption] shortcode text with HTML5 compliant code
+ *
+ * @return text HTML content describing embedded figure
+ **/
+function my_img_caption_shortcode_filter($val, $attr, $content = null)
+{
+	extract(shortcode_atts(array(
+		'id'	=> '',
+		'align'	=> '',
+		'width'	=> '',
+		'caption' => ''
+	), $attr));
+	
+	if ( 1 > (int) $width || empty($caption) )
+		return $val;
+
+	$capid = '';
+	if ( $id ) {
+		$id = esc_attr($id);
+		$capid = 'id="figcaption_'. $id . '" ';
+		$id = 'id="' . $id . '" aria-labelledby="figcaption_' . $id . '" ';
+	}
+
+	return '<figure ' . $id . 'class="wp-caption ' . esc_attr($align) . '" style="width: '
+	. (10 + (int) $width) . 'px">' . do_shortcode( $content ) . '<figcaption ' . $capid 
+	. 'class="wp-caption-text">' . $caption . '</figcaption></figure>';
+}
+</pre>
+
+== Notes ==
+* Hooked functions can take extra arguments that are set when the matching <tt>[[Function_Reference/do_action | do_action()]]</tt> or <tt>[[Function_Reference/apply_filters | apply_filters()]]</tt> call is run. For example, the action <tt>[[Plugin_API/Action_Reference/comment_id_not_found | 'comment_id_not_found']]</tt> will pass the comment ID to each callback.
+
+* Although you can pass the number of <tt>$accepted_args</tt>, you can only manipulate the <tt>[http://codex.wordpress.org/Function_Reference/apply_filters#Parameters $value]</tt>. The other arguments are only to provide context, and their values cannot be changed by the filter function.
+
+* You can also pass a class method as a callback.
+
+:Static class method:
+:<pre>add_filter( 'media_upload_newtab', array( 'My_Class', 'media_upload_callback' ) );</pre>
+
+:Instance method:
+:<pre>add_filter( 'media_upload_newtab', array( $this, 'media_upload_callback' ) );</pre>
+
+* You can also pass an an anonymous function as a callback. For example:
+:<pre>add_filter( 'the_title', function( $title ) { return '<b>' . $title . '</b>'; } );</pre>
+
+:[http://www.php.net/manual/functions.anonymous.php Anonymous functions] were introduced in PHP 5.3.0. Check [[Hosting WordPress]] requirements and double check your PHP version before using them.
+
+:If your version of PHP is older than 5.3.0, you can use <tt>[http://www.php.net/manual/function.create-function.php create_function()]</tt>  instead. But keep in mind that lambda functions created by <tt>create_function()</tt> are not [http://framework.zend.com/issues/browse/ZF-7646 cached by APC or any other optimizer]. So don't use <tt>create_function()</tt> if callback is supposed to be used more than few times or it has complex logic.
+
+== Change Log ==
+
+* Since: 0.71
+
+== Source File ==
+
+<tt>add_filter()</tt> is located in {{Trac|wp-includes/plugin.php}}.
+
+== See Also ==
+
+* [http://stackoverflow.com/questions/13797313/wordpress-how-to-return-value-when-use-add-filter/13797597#13797597 A good explanation on Filter hooks on stackoverflow.com] (2012-12-10)
+
+== Related ==
+
+{{Filter Tags}}
+
+== External Resources ==
+
+* [https://carlalexander.ca/wordpress-adventurous-plugin-api/ WordPress for the adventurous: Plugin API]
+
+{{Tag Footer}}
+
+[[Category:Functions]]

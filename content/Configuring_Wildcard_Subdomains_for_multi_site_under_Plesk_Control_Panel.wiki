@@ -1,0 +1,155 @@
+{{Languages|
+{{en|Configuring Wildcard Subdomains for multi site under Plesk Control Panel}}
+{{fr|Configuration de sous-domaines génériques pour la fonction multisite dans le panneau de contrôle Plesk Sauvegardes WordPress}}
+{{it|Configurazione dei sottodomini wildcard per vari siti tramite il Pannello di Controllo di Plesk}}
+{{pt|Configuração de subdomínios universais para sites múltiplos no Painel de controlo do Plesk}}
+}}
+
+==WordPress MultiSite in Subdomain Mode==
+
+To make use of the [https://codex.wordpress.org/Glossary#Multisite WordPress multisite] function, you need to create a wildcard subdomain first. If you use Plesk version 10.4 or later, follow the instructions below to add a wildcard subdomain. If you are running an earlier Plesk version, [[#WordPress_MultiSite_in_Subdomain_Mode_.28Plesk_version_10.3_or_earlier.29|go here]], but be warned that the instructions are rather technical and require root level access to the server. Consider upgrading or migrating to a later Plesk version.
+
+# [https://docs.plesk.com/en-US/onyx/customer-guide/quick-start-with-plesk/log-in-to-plesk.77963/ Log in] to Plesk.
+# Click '''Add Subdomain'''.
+#:[[File:add_subdomain_1.png]]
+# Type the * character in the "Subdomain name" field, and then click '''Ok'''.
+#:[[File:add_subdomain_2.png]]
+And there you have it! Now, whenever someone browses a subdomain you have not explicitly created in Plesk, they will be served the parent domain instead. Follow [https://codex.wordpress.org/Create_A_Network these instructions] to finish setting up your WordPress network.
+
+==WordPress MultiSite in Subdomain Mode (Plesk version 10.3 or earlier)==
+
+In WordPress MU (WPMU), and in WordPress 3.x, webmasters can enable subdomain mode to create sub-sites of the main domain name (e.g. support.example.com as opposed to example.com/support/).
+
+* cPanel v Plesk hosting management control panel
+There is already a lot of help and support on the internet for webmasters whose hosting service or servers use the <b>cPanel control panel</b> to manage the webhosting environment, and for setting up the wildcard subdomain settings needed for WPMU and WordPress 3.x with multisite enabled (WP-MS).  
+
+However, there is a lot less help for webmasters whose hosting service provide <b>Parallels Plesk Control Panel</b> as a replacement for cPanel, and Plesk has several quirks that do not exist in cPanel hosting.
+
+The standardised instructions included for both WPMU and WP-MS for enabling sub-blogs / sub-sites work fine for cPanel based hosting, but less so for Plesk Panel based hosting, unless you are thoroughly familiar with Plesk's idiosyncrasies.  
+
+This page aims to provide a straight forward, step-by-step guide to getting wildcard subdomain mode enabled under Plesk based web hosting.
+
+* Who is this page for?
+The instructions on this page are for WordPress users of all experience levels, whether they have server root access or not.  
+
+If you are not planning to use WordPress sub-blogs or sub-sites in subdomain mode, you do not need these instructions.
+
+* How to retain webmail access with wildcard subdomains when using Plesk Panel
+If you follow the standard WordPress instructions for enabling wildcard subdomains under Plesk hosting, you will lose access to web-based email interfaces (browser based email use) for email accounts under your main domain name.
+
+The reason for this lies in Plesk-specific reconfiguration of server-level settings that must be "undone".  This mainly affects <b>webmasters using Plesk Panel 9.x series</b> for both Linux and Windows.
+<ul>
+<li>If you <u>DO NOT</u> have root access to your server, use the following instructions to request your hosting service's tech support perform the necessary changes for you.</li>
+<li>If you <u>DO</u> have access, use the instructions to perform the changes yourself (it takes only a few minutes total, using an SSH tool like PenguiNet or PuTTy.</li>
+</ul>
+
+* Instructions for preserving web-based email with WordPress wildcard-subdomains
+Follow these steps :
+<ol>
+<li>In your hosting root folder <b>/etc/httpd/conf.d/</b> locate the following files at the bottom of the file list:
+<ul>
+<li><b>zz010_psa_httpd.conf</b> - this contains the domain and subdomain name loading order controls for your domain.</li>
+<li><b>zzz_atmail_vhost.conf</b> - this contains the domain and subdomain name loading order controls for the AtMail browser based webmail software.</li>
+<li><b>zzz_horde_vhost.conf</b> - this contains the domain and subdomain name loading order controls for the Horde browser based webmail software.</li>
+<li>Note the file naming conventions - they are loaded and run by the server in alphanumerical filename sequence, and it is this that causes the loss of webmail access when enabling wildcard subdomains. You might also have files for RoundCube and other browser email software - do the same procedure with them.</li>
+</ul>
+<li>Rename the two (or more) mail service files as follows:</li>
+<ul>
+<li><b>Rename</b> zzz_atmail_vhost.conf <b>to</b> zz001_atmail_vhost.conf</li>
+<li><b>Rename</b> zzz_horde_vhost.conf <b>to</b> zz002_horde_vhost.conf</li>
+</ul>
+<li><b>Restart the Apache server service</b> (if you have root access, it is in Plesk Panel Home screen - Server - Server Services Manager, just click the restart button and wait 30 seconds).</li>
+</ol>
+This will place the mail host names, and their associated wildcard mail-user names (shown in DNS), above and before the website domain and subdomain names in the loading sequence.  
+
+The reason for doing this is to ensure the webmail host names are loaded and resolved <u>BEFORE</u> wildcard subdomain name resolution for webpages (WordPress's main and sub sites).  
+
+If it is <u>not</u> done, you will be able to see and use the WPMU and WP-MS sub-sites without any problem, but you will <u>not</u> be able to use the browser based email interfaces, <u>nor</u> use the Plesk control panel buttons to view, edit, and send email.
+
+Plesk's official "workaround" containing a variation of the above instructions, including command line parameters, are here: http://forum.parallels.com/showpost.php?p=394330&postcount=36  
+
+That link also includes their instructions discussed in the next section below, which <u>DO NOT</u> work for enabling wildcard subdomains for WPMU and WP-MS - do not use the Plesk instructions, use the solution posted below, for the reasons shown.
+
+* Creating wildcard subdomains the official Plesk way (does not work for WordPress)
+Plesk's official workaround for creating wildcard subdomains (linked above) does not work for WordPress sub-blogs and sub-sites.  This occurs for a very simple reason.
+
+Under Plesk, your main domain's installation of WordPress lives in the main folder for putting your web files.  
+<ul><li>var/www/vhosts/example.com/httpdocs/ (or /httpsdocs/)</li></ul>
+When you create a wildcard subdomain using the Plesk instructions, it creates that named subdomain and its site files folder in:
+<ul><li>var/www/vhosts/example.com/httpdocs/subdomains/zz-wildcard/httpdocs/</li></ul>
+
+The purpose of this Plesk method is to host a new webscript in the subdomain folders that is independent of the script in the main domain's folder hierarchy.  Although this is not unique to Plesk, the way they control and manage it is different to cPanel (behind the scenes) and it simply does not work for WordPress's <u>virtual</u> wildcard subdomains that are stored in the database, not on disk.
+
+Because of this, you have to ignore the Plesk instructions for creating a wildcard subdomain when trying to setup WPMU or WP-MS.
+
+* Successfully creating wildcard subdomains for WPMU & WP MultiSite on Plesk Hosting
+This is going to sound odd if you have already been struggling to get wildcard subdomains working, but the standard WordPress instructions for creating wildcard subdomains <b>DO</b> work ... if you apply them in the basic Apache Web Server way, not the Plesk way.  
+
+The instructions are below - again if you have root access, do them yourself.  If not, send them to your web hosting company to do for you.
+
+** Adding the WordPress instructions for wildcard subdomains to the Apache server
+In /var/www/vhosts/domain.com/conf/ create or edit a <i>vhost.conf</i> file.
+<ul><li>Add a single line - <i>ServerAlias *.yourdomain.com</i> - to the start of the file.</li></ul>
+
+Note, for Plesk 10 you may find you need
+<ul><li>Add a single line - <i>ServerAlias "*.yourdomain.com"</i> - to the start of the file.</li></ul>
+Do <u>not</u> add the <ServerName> or <VirtualHost> headers - just add the server alias command and wildcard domain name on a single line as shown above.
+
+<b><i>Author's note</i></b> - On my install, being a belt and braces type of guy, I also added these lines (without line numbers) after the ServerAlias line:
+<ol><li><Directory /var/www/vhosts/mydomain.com/></li>
+<li>AllowOverride FileInfo Options</li>
+<li>php_admin_flag safe_mode off</li>
+<li></Directory></li>
+</ol>
+Save the <i>vhost.conf</i> file and restart Apache again (as above).
+
+That sets up the server to read the wildcard subdomain names, and point the page requests to the WordPress installation's root folder with its <i>htaccess</i> file, for resolving to the correct home or sub-site / sub-blog.  
+
+But, in order to get there, the <u><b>DNS</b> wildcard</u> still has to be set - the standard WordPress instructions work fine for this too -
+<ol><li>Got to your Domain page in Plesk - choose DNS settings - add a record</li>
+<li>Add a CNAME entry using <i>*.example.com CNAME example.com</i> as the parameters.</li>
+<li>Check the wildcard subdomain shows in the DNS list (probably as the top entry) and update DNS using the update button</li></ol>
+
+Note - if you add the DNS record as an A record ( *.example.com in A xxx.xxx.xxx.xxx ) you might get some delays in resolving blog addresses initially.  Using the CNAME entry in testing proved less troublesome.  Your experience may differ.
+
+On Plesk 11 I had to run this shell command as root in order to rebuild the vhosts config http://forum.parallels.com/showthread.php?t=260504 (Post #4): <pre>/usr/local/psa/admin/sbin/httpdmng --reconfigure-all</pre>
+
+You should now be good to go.
+
+Log into your site, go to the home site Administration Panel - Settings - Permalinks - and save them again.  This is a <b>MUST DO</b> or you could start getting strange behaviour from your browser, such as trying to download and save an x-httpd-php file instead of opening a webpage.
+
+Then, navigate around the administration side of your main and sub blogs, and do the same on the public pages - make sure you're not getting any weird dump-outs. 
+
+If all is fine in WordPress, then try going to webmail.yourdomain.com and you should see the login for your default webmail client.  
+
+If all that works fine, allow yourself a WOOT!
+
+* The best of both worlds - wildcard subdomains handled by Wordpress alongside Plesk subdomains
+
+I tried the above, and it does manage to get the webmail working alongside a Wordpress Multisite installation on subdomains, but I wanted to have some Plesk-based subdomains as well. Plesk puts the configuration of its subdomains <b>AFTER</b> the configuration for the main domain in the httpd.include file, so putting the wildcard <tt>ServerAlias</tt> rule in vhost.conf for the main domain catches everything, and apache ignores the Plesk configured subdomains that come after it.
+
+The solution here is to put the apache rules with the wildcarded <tt>ServerAlias</tt> in a file in the <tt>/etc/httpd/conf.d</tt> folder (call it <tt>zzz_wildcard.conf</tt> to make sure it loads last). The file should contain the first <tt>VirtualHost</tt> entry for port 80 from the  <tt>httpd.include</tt> configuration for the domain:
+<pre>
+<VirtualHost XXX.XXX.XXX.XXX:80>
+        ServerName   example.com:80
+        ServerAlias  *.example.com
+        ===========================
+        all the other plesk stuff
+        ===========================
+</VirtualHost>
+</pre>
+Thanks to Dave in [http://forum.parallels.com/showthread.php?t=111215 this thread] for the solution.
+
+* Recap
+There are <b>four</b> main stages to setting your server up to run WordPress in multi site subdomain mode, when using wildcard subdomains on a Plesk Panel administered web hosting server -
+<ol>
+<li>Set the webmail services to resolve before the subdomain names (in /etc/httpd/conf.d/)</li>
+<li>Set the Domain wildcard subdomains in Apache (in <tt>/var/www/vhosts/domain.com/conf/vhost.conf</tt> or in <tt>/etc/httpd/conf.d/zzz_wildcard.conf</tt></li>
+<li>Set the DNS to know where to send page requests with wildcard domain addresses (in DNS settings)</li>
+<li>Reset the Permalinks of your WordPress Home blog (don't mistakenly do it in a sub blog and wonder why it's not working ... like I've done before).</li>
+</ol>
+As long as you perform all four in sequence, and remember to restart Apache, you shouldn't have any problems.
+
+
+[[:Category:Getting_Started_with_WordPress|Installation]]
+[[Category:New_page_created]]

@@ -1,0 +1,100 @@
+{{Languages|
+{{en|Integrating WordPress with Your Website}}
+{{ja|Integrating WordPress with Your Website}}
+{{ru|Интеграция WordPress в Ваш сайт — Введение}}
+}}
+
+== Introduction ==
+
+By nature, WordPress is very powerful. It can be as complex or as simple as you wish. With that in mind, how much you want to use WordPress with your existing website is totally up to you. There may be only a few features of WordPress you want to use when integrating it with your site, or you may want your entire site run with WordPress.  This tutorial will guide you through making your WordPress site look like your current design. We will start with how to make a WordPress blog look like the rest of your site. Then we can move on to making your entire site running on WordPress.
+
+These directions will not work on a [[Create A Network|MultiSite Network]].
+
+== Begin the transformation ==
+
+First, assume you have an existing site at <tt><nowiki>http://myexample.com</nowiki></tt>. Next, create a new sub-directory (folder) at your site and call it 'blog' (you could use something other than blog, but you must create this sub-directory). So you now have an empty sub-directory at <tt><nowiki>http://myexample.com/blog/</nowiki></tt>. Now, download WordPress and upload all of its files into this new folder, and [[Getting_Started_with_WordPress#Installation|install WordPress]].
+
+== Grab the header ==
+In order to transform regular PHP pages into ones that utilize WordPress, you need to add either of the following code snippets to the start of each page.
+<pre>
+<?php 
+/* Short and sweet */
+define('WP_USE_THEMES', false);
+require('./wp-blog-header.php');
+?>
+</pre>
+
+<pre>
+<?php
+require('/the/path/to/your/wp-blog-header.php');
+get_header(); 
+?>
+</pre>
+
+== The Loop ==
+It is necessary to include [[The Loop]] in your pages to effectively take advantage of the multitude of [[Template Tags]] or [[Plugins|plugins]] available. Familiarize yourself with '''The Loop''' and the basics of [[The Loop in Action]] to get underway with integrating the power of WordPress into your website.
+
+== Examples ==
+=== Generate a list ===
+In the event you want to show ten posts sorted alphabetically in ascending order on your web page, you could do the following to grab the posted date, title and excerpt:
+<pre>
+<?php
+require('/the/path/to/your/wp-blog-header.php');
+?>
+
+<?php
+$posts = get_posts('numberposts=10&order=ASC&orderby=post_title');
+foreach ($posts as $post) : setup_postdata( $post ); ?>
+<?php the_date(); echo "<br />"; ?>
+<?php the_title(); ?>    
+<?php the_excerpt(); ?> 
+<?php
+endforeach;
+?>
+</pre>
+
+=== Last three posts ===
+Display titles of the last three posts on your web page.
+<pre>
+<?php
+// Get the last 3 posts.
+global $post;
+$args = array( 'posts_per_page' => 3 );
+$myposts = get_posts( $args );
+
+foreach( $myposts as $post ) :	setup_postdata($post); ?>
+<a href="<?php the_permalink() ?>" rel="bookmark" title="Permanent Link to <?php the_title_attribute(); ?>"><?php the_title(); ?></a><br />
+<?php endforeach; ?>
+</pre>
+
+== Making a theme ==
+The first portion of this tutorial described how to take components of WordPress and integrate them into your existing site. You may wish to stop right now, but perhaps you would like to create a WordPress theme that would eventually replace web pages on your site.
+
+You will need to create a custom theme. A theme is a set of files used to tell WordPress how to display the site and [[Using_Themes]] is fundamental to WordPress. You may create your own theme from scratch, but you should consider to create the [[Child_Themes|Child Theme]] of existing theme as the first step. The child theme can enhance or customize the limited portions of existing theme. Refer  [[Child_Themes|Child Theme]] for more detail.
+
+A little known, but very helpful HTML element, <tt><nowiki><base></nowiki></tt> is going to help you out a lot. It instructs the browser to use a specified URL for relative paths:
+
+<pre>
+ <base href="http://myexample.com" />
+</pre>
+
+Normally, the <tt><nowiki><base></nowiki></tt> would be your current URL. For example, the default <tt><nowiki><base></nowiki></tt> at your blog will be <tt><nowiki>http://myexample.com/blog/</nowiki></tt>. By changing it with the <tt><nowiki><base></nowiki></tt> element, you tell the browser to look for files at <tt><nowiki>http://myexample.com/</nowiki></tt>. Why is this useful? When copying and pasting HTML from your current site, you will have references to something like: 
+
+<pre>
+ <img src="me.jpg" alt="" />
+</pre>
+
+When you copy this HTML to your theme, the browser will be looking for <tt><nowiki>http://myexample.com/blogs/me.jpg</nowiki></tt>, when the file actually exists at <tt><nowiki>http://myexample.com/me.jpg</nowiki></tt>. Using <tt><nowiki><base href="http://myexample.com" /></nowiki></tt>, the browser is told the right place to find the files and you do not have to edit every reference to every file that you copied from your main site.
+
+== Performance ==
+
+Although WordPress is fast, it does contain a substantial quantity of code that needs to be loaded each time a page is displayed.  This may or may not affect performance depending on the hosting environment, but on a shared hoasting environment using SuPhp (and thus without op code caching) it can add several seconds to each page load.
+
+== External links ==
+*[https://wordpress.org/plugins/wp-integration/ WP Integration plugin - helps you to integrate WP with any of the supported web apps]
+*[http://lists.automattic.com/pipermail/wp-hackers/2009-November/028297.html wp-hackers email list discussion on "deprecating" direct calls to wp-config.php]
+*[http://cooltrainer.org/2010/06/20/fixing-false-404-headers-on-external-pages-including-wp-blog-header-php/ Fixing false 404 headers on external pages including wp-blog-header.php]
+
+[[Category:Installation]]
+[[Category:Getting Started]]
+[[Category:Design and Layout]]

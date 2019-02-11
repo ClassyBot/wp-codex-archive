@@ -1,0 +1,61 @@
+== Description ==
+
+Used to temporarily alter a WordPress option before you display a specific view. WordPress options (e.g. the blog configuration) are usually set in the back-end by the user or programmatically by a plugin. The options are stored in the database. If you want to alter the value of an option during the rendering of a page without changing it permanently in the database you can use 
+<pre>
+pre_option_(option name)
+</pre>
+
+where (option name) has to be replaced by the name of the option you want to alter.
+
+For instance:
+<pre>
+pre_option_posts_per_page
+pre_option_posts_per_rss
+pre_option_template
+pre_option_stylesheet
+pre_option_blog_charset
+pre_option_home
+...
+</pre>
+
+For a  list of all available options call 
+<pre>
+wp_load_alloptions()
+</pre>
+
+`wp_load_alloptions()` returns the list of available options as an array that you could store in a variable or display for debugging purposes.
+
+To use this filter, you will need to add filters for specific options names, such as "pre_option_foo" to filter the option "foo".
+
+== Example Usage ==
+
+For instance, if you want to alter the amount of displayed posts per page for a specific category (here the 'foo' category) you can add the filter 'pre_option_posts_per_page' 
+
+To make use of this filter, you will need to place a function similar to the one below in your theme's functions.php file.
+
+Firstly, add the following line of code to your theme's functions.php file to show WordPress that you want to hook in to this filter -
+
+<pre>
+add_filter('pre_option_posts_per_page', 'limit_posts_per_page');
+</pre>
+
+The first parameter is the filter name, the second paramter is the name of the function that you are going to create to alter the option (so you can name this as you like, so long as it matches the name in this next piece of code.)
+
+
+<pre>
+function limit_posts_per_page( $posts_per_page ) {
+	# for whatever reason is_category('foo') isn't working here. Instead you can use:
+	global $wp_query;
+	if ( $wp_query->query_vars['category_name']=='foo')
+	{
+	        return 20;
+        }
+
+        return $posts_per_page;
+}
+</pre>
+
+
+[[Category:Filters]]
+[[Category:New page created]]
+{{Copyedit}}

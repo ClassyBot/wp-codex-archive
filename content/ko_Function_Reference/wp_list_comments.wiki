@@ -1,0 +1,193 @@
+{{Languages|
+{{en|Template Tags/wp_list_comments}}
+{{ja|テンプレートタグ/wp_list_comments}}
+{{ko|Function Reference/wp_list_comments}}
+}}
+
+== 설명 ==
+
+포스트나 페이지의 모든 댓글들을 파라미터에 따라 나타냅니다.
+
+'''See also''': [[Migrating Plugins and Themes to 2.7]]
+
+== 사용 방법 ==
+
+%%% <?php wp_list_comments( $args, $comments ); ?> %%%
+
+=== <b>기본 사용 방법</b> ===
+{{Parameter|$args|array|The options for the function.|optional|
+<pre>
+<?php $args = array(
+	'walker'            => null,
+	'max_depth'         => '',
+	'style'             => 'ul',
+	'callback'          => null,
+	'end-callback'      => null,
+	'type'              => 'all',
+	'reply_text'        => 'Reply',
+	'page'              => '',
+	'per_page'          => '',
+	'avatar_size'       => 32,
+	'reverse_top_level' => null,
+	'reverse_children'  => '',
+	'format'            => 'html5', // or 'xhtml' if no 'HTML5' theme support
+	'short_ping'        => false,   // @since 3.6
+        'echo'              => true     // boolean, default is true
+); ?>
+</pre>}}
+
+The '<tt>max_depth</tt>', '<tt>per_page</tt>' and '<tt>reverse_top_level</tt>' parameters can be more easily controlled through the [[Settings_Discussion_SubPanel | Discussion Settings]] Administration Panel but a theme can override those settings.
+
+{{Parameter|$comments|array|Array obtained by [[get_comments]] query.|optional|The default return of [[get_comments]].}}
+
+== Arguments ==
+
+
+; <tt>'walker'</tt> : ( ''Walker object'' )  Provide a custom [[Class_Reference/Walker|Walker class]] object to use when rendering the comments. ''This is the primary method of customizing comment HTML.''
+
+<pre>
+<?php
+wp_list_comments( array(
+    'walker' => new Walker_Comment()
+) );
+</pre>
+
+; <tt>'max_depth'</tt> : ( ''integer'' ) How deep (in comment replies) should the comments be fetched.
+
+; <tt>'style'</tt> : ( ''string'' ) Can be either 'div', 'ol', or 'ul' (the default). Note that any containing tags that must be written explicitly. For instance: 
+
+<pre><div class="comment list">
+    <?php wp_list_comments( array( 'style' => 'div' ) ); ?>
+</div></pre>
+
+OR
+
+<pre><ol class="comment list">
+    <?php wp_list_comments( array( 'style' => 'ol' ) ); ?>
+</ol></pre>
+
+; <tt>'callback'</tt> : ( ''[http://www.php.net/manual/en/language.types.callable.php callback]'' ) The name of a custom function to use to open and display each comment. Using this will make your custom function get called to display each comment, bypassing all internal WordPress functionality in this respect. Use to customize comments display for extreme changes to the HTML layout. Note that your callback must include the opening <code>&lt;div&gt;</code>, <code>&lt;ol&gt;</code>, or <code>&lt;ul&gt;</code> tag (corresponding with the <tt>style</tt> parameter), but '''not''' the closing tags. WordPress will supply the closing tag automatically, or you can use <tt>end-callback</tt> to override this default. The <tt>callback</tt> is separate from the <tt>end-callback</tt> to facilitate hierarchical comments. Use with caution.
+
+; <tt>'end-callback'</tt> : ( ''[http://www.php.net/manual/en/language.types.callable.php callback]'' ) The name of a custom function to use to close each comment. Using this will make your custom function get called to at the end of each comment, bypassing the WordPress default of using <code>&lt;/div&gt;</code>, <code>&lt;/ol&gt;</code>, or <code>&lt;/li&gt;</code> based on the <tt>style</tt> parameter. Use to customize the ending tags for a comment. The <tt>callback</tt> is separate from the <tt>end-callback</tt> to facilitate hierarchical comments. Use with caution.
+
+; <tt>'type'</tt> : ( ''string'' ) The type of comment(s) to display. Can be <code>'all'</code>, <code>'comment'</code>, <code>'trackback'</code>, <code>'pingback'</code>, or <code>'pings'</code>. <code>'pings'</code> is both <code>'trackback'</code> and <code>'ping back'</code> together.
+
+; <tt>'reply_text'</tt> : ( ''string'' ) Text to display in each comment as a reply link. (This isn't an argument of this function but it gets passed to the <code>get_comment_reply_link</code> function.)
+
+; <tt>'page'</tt> : ( ''integer'' ) The current page in the pagination to display.
+
+; <tt>'per_page'</tt> : ( ''integer'' ) The number of items to show for each page of comments.
+
+; <tt>'avatar_size'</tt> : ( ''integer'' ) Size that the avatar should be shown as, in pixels. http://gravatar.com/ supports sizes between 1 and 512. Use 0 to hide avatars.
+
+; <tt>'reverse_top_level'</tt> : ( ''boolean'' )  Setting this to <code>true</code> will display the most recent comment first then going back in order, and setting this to <code>false</code> will show the oldest comments first. If not specified, it will use the value stored in the WordPress dashboard settings.
+
+; <tt>'reverse_children'</tt> : ( ''boolean'' ) Setting this to <code>true</code> will display the children (reply level comments) with the most recent ones first, then going back in order.
+
+; <tt>'format'</tt> : ( ''boolean'' ) This can be set to 'html5' or 'xhtml' - it defaults to your theme's <code>current_theme_supports( 'html5' )</code> setting.
+
+; <tt>'short_ping'</tt> : ( ''boolean'' ) Whether you want to use a short ping.
+
+; <tt>'echo'</tt> : ( ''boolean'' ) Whether to echo the list or just return it.
+
+== Examples ==
+
+===Default Usage===
+
+Outputs an ordered list of the comments. Things like threading or paging being enabled or disabled are controlled via the [[Settings Discussion SubPanel]].
+
+ &lt;ol class="commentlist"&gt;
+ <?php wp_list_comments(); ?>
+ &lt;/ol&gt;
+
+===Comments Only With A Custom Comment Display===
+
+Displays just comments (no pingbacks or trackbacks) while using a custom callback function to control the look of the comment.  You may want to add a <tt>max_depth=X</tt> parameter, if the reply links are not appearing.
+
+ &lt;ul class="commentlist"&gt;
+ <?php wp_list_comments( 'type=comment&callback=mytheme_comment' ); ?>
+ &lt;/ul&gt;
+
+You will need to define your custom callback function in your theme's [[Theme_Development#Functions_File|functions.php]] file. Here is an example:
+<pre>
+function mytheme_comment($comment, $args, $depth) {
+    if ( 'div' === $args['style'] ) {
+        $tag       = 'div';
+        $add_below = 'comment';
+    } else {
+        $tag       = 'li';
+        $add_below = 'div-comment';
+    }
+    ?>
+    <<?php echo $tag ?> <?php comment_class( empty( $args['has_children'] ) ? '' : 'parent' ) ?> id="comment-<?php comment_ID() ?>">
+    <?php if ( 'div' != $args['style'] ) : ?>
+        <div id="div-comment-<?php comment_ID() ?>" class="comment-body">
+    <?php endif; ?>
+    <div class="comment-author vcard">
+        <?php if ( $args['avatar_size'] != 0 ) echo get_avatar( $comment, $args['avatar_size'] ); ?>
+        <?php printf( __( '<cite class="fn">%s</cite> <span class="says">says:</span>' ), get_comment_author_link() ); ?>
+    </div>
+    <?php if ( $comment->comment_approved == '0' ) : ?>
+         <em class="comment-awaiting-moderation"><?php _e( 'Your comment is awaiting moderation.' ); ?></em>
+          <br />
+    <?php endif; ?>
+
+    <div class="comment-meta commentmetadata"><a href="<?php echo htmlspecialchars( get_comment_link( $comment->comment_ID ) ); ?>">
+        <?php
+        /* translators: 1: date, 2: time */
+        printf( __('%1$s at %2$s'), get_comment_date(),  get_comment_time() ); ?></a><?php edit_comment_link( __( '(Edit)' ), '  ', '' );
+        ?>
+    </div>
+
+    <?php comment_text(); ?>
+
+    <div class="reply">
+        <?php comment_reply_link( array_merge( $args, array( 'add_below' => $add_below, 'depth' => $depth, 'max_depth' => $args['max_depth'] ) ) ); ?>
+    </div>
+    <?php if ( 'div' != $args['style'] ) : ?>
+    </div>
+    <?php endif; ?>
+    <?php
+    }
+</pre>
+
+Note the lack of a trailing <code>&lt;/li&gt;</code>. In order to accommodate nested replies, WordPress will add the appropriate closing tag after listing any child elements.
+
+===Display Comments for a Specific Page/Post===
+
+Outputs an ordered list of comments for a specific page or post. Things like threading or paging being enabled or disabled are controlled via the [[Settings Discussion SubPanel]].
+
+<pre>
+<ol class="commentlist">
+	<?php
+		//Gather comments for a specific page/post 
+		$comments = get_comments(array(
+			'post_id' => XXX,
+			'status' => 'approve' //Change this to the type of comments to be displayed
+		));
+
+		//Display the list of comments
+		wp_list_comments(array(
+			'per_page' => 10, //Allow comment pagination
+			'reverse_top_level' => false //Show the oldest comments at the top of the list
+		), $comments);
+	?>
+</ol>
+</pre>
+
+== Change Log ==
+
+Since: 2.7.0
+
+== Source File ==
+
+<tt>wp_list_comments()</tt> is located in {{Trac|wp-includes/comment-template.php|tags/{{CurrentVersion}}|1880}}.
+
+== Related ==
+{{Tag Comments Tags}}
+
+{{Lists Tags}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

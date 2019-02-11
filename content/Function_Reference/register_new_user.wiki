@@ -1,0 +1,41 @@
+== Description ==
+
+The [[Function_Reference/register_new_user|register_new_user()]] function inserts a new user into the WordPress database. This function is used when a new user registers through WordPress' Login Page. It differs from [[Function_Reference/wp_create_user|wp_create_user()]] in that it requires a valid username and email address but doesn't allow to chose a password, generating a random one using [[Function_Reference/wp_generate_password|wp_generate_password()]]. If you want to create a new user with a specific password or with additional parameters, use [[Function_Reference/wp_create_user|wp_create_user()]] or [[Function_Reference/wp_insert_user|wp_insert_user()]] instead.
+
+[[Function_Reference/register_new_user|register_new_user()]] doesn't handle the user creation itself, it simply checks the submitted username and email validity and generates a random password, relying on wp_create_user() to create the new User. If registration worked it sends a notification email to the user with his password using [[Function_Reference/wp_new_user_notification|wp_new_user_notification()]]. In case of registration failure it returns a WP_Error().
+
+register_new_user() also provides two useful hooks to customize validation rules or user registration process, [[Plugin_API/Action_Reference/register_post|register_post]] and [[Plugin_API/Filter_Reference/registration_errors|registration_errors]].
+
+== Usage ==
+
+%%% <?php register_new_user( $user_login, $user_email ); ?> %%%
+
+== Example ==
+As used in wp-login.php:
+
+<pre>
+$user_login = $_POST['user_login'];
+$user_email = $_POST['user_email'];
+$errors = register_new_user($user_login, $user_email);
+if ( !is_wp_error($errors) ) {
+	$redirect_to = !empty( $_POST['redirect_to'] ) ? $_POST['redirect_to'] : 'wp-login.php?checkemail=registered';
+	wp_safe_redirect( $redirect_to );
+	exit();
+}
+</pre>
+
+== Parameters ==
+
+{{Parameter|$user_login|string|User's username for logging in}}
+{{Parameter|$user_email|string|User's email address to send password and add}}
+
+== Returns ==
+Like wp_create_user(), when successful this function returns the user ID of the created user. In case of failure (login or email is empty, invalid, already existing, or wp_create_user() failed) the function returns an [[Class_Reference/WP_Error|error object]].
+
+== Source File ==
+<tt>register_new_user()</tt> is located in {{Trac|wp-includes/user.php}}.
+
+{{Tag Footer}}
+
+
+[[Category:Functions]]

@@ -1,0 +1,117 @@
+{{Languages|
+{{en|Plugin_API/Action_Reference/after_setup_theme}}
+{{it|API dei plugin/Riferimento azioni/after_setup_theme}}
+}}
+
+== Descrizione ==
+Questa azione è chiamata durante ogni caricamento di pagina, dopo che il tema è stato inizializzato. Si utilizza generalmente per eseguire la configurazione di base, la registrazione e le azioni di inizializzazione per un tema.
+
+== Utilizzo ==
+
+<pre><?php add_action( 'after_setup_theme', 'nome_funzione' ); ?></pre>
+
+dove "nome_funzione" è il nome della funzione da chiamare.
+
+== Esempio ==
+Questo esempio è tratto dal tema Twenty Twelve.
+
+<pre>
+/** Indica a WordPress di eseguire twentytwelve_setup() all'esecuzione dell'azione 'after_setup_theme'. */
+add_action( 'after_setup_theme', 'twentytwelve_setup' );
+
+/**
+ * Imposta i valori predefiniti del tema e registra il supporto per varie funzionalità di WordPress.
+ *
+ * Si noti che questa funzione è agganciata in after_setup_theme, che viene eseguita
+ * prima dell'azione init. L'azione init è eseguita troppo tardi per alcune funzionalità,
+ * come ad esempio indicare il supporto per le miniature.
+ *
+ * Per sovrascrivere twentytwelve_setup() in un tema figlio, aggiungere la propria
+ * funzione twentytwelve_setup al file functions.php del tema figlio.
+ *
+ * @uses add_theme_support() Per aggiungere il supporto alle miniature e ai link automatici per i feed.
+ * @uses register_nav_menus() Per aggiungere il supporto ai menu di navigazione.
+ * @uses add_custom_background() Per aggiungere il supporto allo sfondo personalizzato.
+ * @uses add_editor_style() Per cambiare lo stile dell'editor di testo.
+ * @uses load_theme_textdomain() Per il supporto alla traduzione/localizzazione.
+ * @uses add_custom_image_header() Per aggiungere il supporto all'immagine di intestazione personalizzata.
+ * @uses register_default_headers() Per registrare le immagini predefinite personalizzate
+ * per l'intestazione fornite con il tema.
+ * @uses set_post_thumbnail_size() Per impostare una dimensione personalizzata per le immagini in
+ * evidenza.
+ *
+ * @since Twenty Twelve 1.0
+ */
+function twentytwelve_setup() {
+
+	// Questo tema modifica lo stile dell'editor di testo con editor-style.css
+	// per adeguarsi allo stile del tema.
+	add_editor_style();
+
+	// Supporto al formato del post. Si possono anche usare le categorie legacy "gallery" o "asides"
+	// (si noti il plurale).
+	add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );
+
+	// Questo tema utilizza le immagini in evidenza
+	add_theme_support( 'post-thumbnails' );
+
+	// Aggiunge link predefiniti ai feed RSS dei post e dei commenti nell'intestazione
+	add_theme_support( 'automatic-feed-links' );
+
+	// Rende il tema disponibile per la traduzione
+	// Le traduzioni possono essere archiviate nella cartella /languages/
+	load_theme_textdomain( 'twentytwelve', get_template_directory() . '/languages' );
+
+	$locale = get_locale();
+	$locale_file = get_template_directory() . "/languages/$locale.php";
+	if ( is_readable( $locale_file ) )
+		require_once( $locale_file );
+
+	// Questa tema utilizza wp_nav_menu() in una posizione.
+	register_nav_menus( array(
+		'primary' => __( 'Primary Navigation', 'twentytwelve' ),
+		'Secondary' => __( 'Secondary Navigation', 'twentytwelve' ),
+	) );
+
+	// Questa tema permette agli utenti di impostare uno sfondo personalizzato
+	add_custom_background();
+
+	// Qui si cominciano ad impostare le personalizzazioni per l'intestazione
+	if ( ! defined( 'HEADER_TEXTCOLOR' ) )
+		define( 'HEADER_TEXTCOLOR', '' );
+
+	// Nessun CSS, sono una chiamata ad un'immagine. La stringa %s è un segnaposto
+	// per l'URI della cartella del template del tema.
+	if ( ! defined( 'HEADER_IMAGE' ) )
+		define( 'HEADER_IMAGE', '%s/images/headers/path.jpg' );
+
+	// L'altezza e la larghezza dell'immagine personalizzata per l'intestazione. Si possono agganciare
+	// i filtri propri del tema per modificare questi valori.
+	// Aggiungere un filtro a twentytwelve_header_image_width e twentytwelve_header_image_height
+	// per modificare questi valori.
+	define( 'HEADER_IMAGE_WIDTH', apply_filters( 'twentytwelve_header_image_width', 940 ) );
+	define( 'HEADER_IMAGE_HEIGHT', apply_filters( 'twentytwelve_header_image_height', 198 ) );
+
+	// Si useranno le immagini in evidenza come immagini personalizzate nell'intestazione
+	// degli articoli e delle pagine.
+	// Vogliamo che siano larghe 940 pixel e alte 198 pixel.
+	// Le immagini più grandi verranno ritagliate automaticamente per adattarsi, quelle più piccole
+	// verranno ignorate. Si veda header.php.
+	set_post_thumbnail_size( HEADER_IMAGE_WIDTH, HEADER_IMAGE_HEIGHT, true );
+
+	// Nessun supporto al testo dentro l'immagine dell'intestazione.
+	if ( ! defined( 'NO_HEADER_TEXT' ) )
+		define( 'NO_HEADER_TEXT', true );
+
+	// Aggiungere un modo per dare uno stile all'immagine personalizzata dell'intestazione
+	// nel pannello di amministrazione che controlla le intestazioni personalizzate.
+	// Si veda twentytwelve_admin_header_style(), più sotto.
+	// add_custom_image_header( '', 'twentytwelve_admin_header_style' );
+
+	// ... e qui finiscono le personalizzazoni dell'intestazione modificabile.
+
+}
+</pre>
+
+
+[[Category:Actions]]

@@ -1,0 +1,1197 @@
+{{Languages|
+{{en|Class Reference/WP_Query}}
+{{it|Riferimento classi/WP_Query}}
+{{ko|Class Reference/WP_Query}}
+{{ja|関数リファレンス/WP_Query}}
+{{zh-cn|Class Reference/WP_Query}}
+}}
+
+==클래스 설명 ==
+
+<tt>WP_Query</tt>는 {{Trac|wp-includes/query.php}} 안에 정의된 클래스입니다. <tt>WP_Query</tt> 클래스는 포스트 또는 페이지가 워드프레스 블로그에 요청하는 복잡한 사항들을 처리합니다. The <tt>{{Trac|wp-blog-header.php}}</tt> (or the WP class in [[Version 2.0]]) gives the <tt>$wp_query</tt> object information defining the current request, and then <tt>$wp_query</tt> determines what type of query it's dealing with (possibly a category archive, dated archive, feed, or search), and fetches the requested posts. It retains a lot of information on the request, which can be pulled at a later date.
+
+== WP_Query와 상호작용하기 ==
+대부분의 경우에 클래스 내부와 전역 변수를 다루지 않고 당신이 원하는 정보를 찾을 수 있습니다. 어디서든지 당신이 원하는 정보를 얻게 해주는 함수들의 전체 묶음이 있습니다.
+
+당신이 <tt>WP_Query</tt>를 사용하기를 원하는 경우가 대표적으로 두 가지 경우가 있습니다. 첫번째 경우에는 워드프레스가 현재 처리하고 있는 요청의 타입을 확인하는 것입니다. <tt>$is_*</tt> 속성은 이 정보를 담도록 디자인 되었습니다. [[Conditional Tags|조건 태그]]를 사용하여 상호작용 할 수 있습니다.
+
+The second is during [[The Loop]]. <tt>WP_Query</tt> provides numerous functions for common tasks within The Loop. To begin with, [[Function_Reference/have_posts|have_posts()]], which calls <tt>$wp_query->have_posts()</tt>, is called to see if there are any posts to show. If there are, a <tt>while</tt> loop is begun, using [[Function_Reference/have_posts|have_posts()]] as the condition. This will iterate around as long as there are posts to show. In each iteration, [[Function_Reference/the_post|the_post()]], which calls <tt>$wp_query->the_post()</tt> is called, setting up internal variables within <tt>$wp_query</tt> and the global <tt>$post</tt> variable (which the [[Template Tags]] rely on), as above. These are the functions you should use when writing a theme file that needs a loop. See also [[The Loop]] and [[The Loop in Action]] for more information.
+
+'''Note:''' If you use [[Function_Reference/the_post|the_post()]] with your query, you need to run [[Function_Reference/wp_reset_postdata|wp_reset_postdata()]] afterwards to have [[Template Tags]] use the main query's current post again.
+
+==사용방법==
+
+===표준 루프(Loop)===
+
+<pre>
+<?php
+
+// The Query
+$the_query = new WP_Query( $args );
+
+// The Loop
+if ( $the_query->have_posts() ) {
+	echo '<ul>';
+	while ( $the_query->have_posts() ) {
+		$the_query->the_post();
+		echo '<li>' . get_the_title() . '</li>';
+	}
+	echo '</ul>';
+} else {
+	// no posts found
+}
+/* Restore original Post Data */
+wp_reset_postdata();
+</pre>
+
+===표준 루프(Loop) (대안)===
+
+<pre>
+<?php 
+// the query
+$the_query = new WP_Query( $args ); ?>
+
+<?php if ( $the_query->have_posts() ) : ?>
+
+	<!-- pagination here -->
+
+	<!-- the loop -->
+	<?php while ( $the_query->have_posts() ) : $the_query->the_post(); ?>
+		<h2><?php the_title(); ?></h2>
+	<?php endwhile; ?>
+	<!-- end of the loop -->
+
+	<!-- pagination here -->
+
+	<?php wp_reset_postdata(); ?>
+
+<?php else : ?>
+	<p><?php _e( 'Sorry, no posts matched your criteria.' ); ?></p>
+<?php endif; ?>
+</pre>
+
+===중첩 루프===
+여러 쿼리가 있으면 다음과 같이 다중 루프문을 수행할 필요가 있을 것입니다.
+
+<pre>
+<?php
+
+// The Query
+$query1 = new WP_Query( $args );
+
+// The Loop
+while ( $query1->have_posts() ) {
+	$query1->the_post();
+	echo '<li>' . get_the_title() . '</li>';
+}
+
+/* Restore original Post Data 
+ * NB: Because we are using new WP_Query we aren't stomping on the 
+ * original $wp_query and it does not need to be reset with 
+ * wp_reset_query(). We just need to set the post data back up with
+ * wp_reset_postdata().
+ */
+wp_reset_postdata();
+
+
+/* The 2nd Query (without global var) */
+$query2 = new WP_Query( $args2 );
+
+// The 2nd Loop
+while ( $query2->have_posts() ) {
+	$query2->next_post();
+	echo '<li>' . get_the_title( $query2->post->ID ) . '</li>';
+}
+
+// Restore original Post Data
+wp_reset_postdata();
+
+?>
+</pre>
+
+==메소드와 멤버변수==
+
+This is the formal documentation of <tt>WP_Query</tt>. You shouldn't alter the properties directly, but instead use the methods to interact with them. Also see [[#Interacting_with_WP_Query|Interacting with WP_Query]] for some useful functions that avoid the need to mess around with class internals and global variables.
+
+===멤버변수===
+
+; <tt>$query</tt>
+: WP 클래스에 의해 $wp_query 객체로 넘겨진 쿼리문을 담고 있습니다.
+
+; <tt>$query_vars</tt>
+: An associative array containing the dissected <tt>$query</tt>: an array of the query variables and their respective values.
+
+; <tt>$queried_object</tt>
+: Applicable if the request is a category, author, permalink or Page. Holds information on the requested category, author, post or Page.
+
+; <tt>$queried_object_id</tt>
+: If the request is a category, author, permalink or post / page, holds the corresponding ID.
+
+; <tt>$posts</tt>
+: Gets filled with the requested posts from the database.
+
+; <tt>$post_count</tt>
+: The number of posts being displayed.
+
+; <tt>$found_posts</tt>
+: 현재 쿼리 파라미터에 매치되어 찾은 포스트의 전체 개수
+
+; <tt>$max_num_pages</tt>
+: The total number of pages. Is the result of $found_posts / $posts_per_page
+
+; <tt>$current_post</tt>
+: ([[The Loop|루프]] 안에서 사용가능) Index of the post currently being displayed.
+
+; <tt>$post</tt>
+: ([[The Loop|루프]] 안에서 사용가능) The post currently being displayed.
+
+; <tt>$is_single</tt>, <tt>$is_page</tt>, <tt>$is_archive</tt>, <tt>$is_preview</tt>, <tt>$is_date</tt>, <tt>$is_year</tt>, <tt>$is_month</tt>, <tt>$is_time</tt>, <tt>$is_author</tt>, <tt>$is_category</tt>, <tt>$is_tag</tt>, <tt>$is_tax</tt>, <tt>$is_search</tt>, <tt>$is_feed</tt>, <tt>$is_comment_feed</tt>, <tt>$is_trackback</tt>, <tt>$is_home</tt>, <tt>$is_404</tt>, <tt>$is_comments_popup</tt>, <tt>$is_admin</tt>, <tt>$is_attachment</tt>, <tt>$is_singular</tt>, <tt>$is_robots</tt>, <tt>$is_posts_page</tt>, <tt>$is_paged</tt>
+: [[Glossary#Boolean|Booleans]] dictating what type of request this is. For example, the first three represent 'is it a permalink?', 'is it a Page?', 'is it any type of archive page?', respectively. See also [[Conditional_Tags]].
+
+===메소드===
+
+(An ampersand (&) before a method name indicates it [http://www.php.net/manual/en/language.references.return.php returns by reference].)
+
+; <tt>init()</tt>
+: 객체를 초기화 합니다. 모든 멤버변수를 null, 제로(0) 또는 false 상태로 만듭니다.
+
+; <tt>parse_query( $query )</tt>
+: Takes a query string defining the request, parses it and populates all properties apart from <tt>$posts</tt>, <tt>$post_count</tt>, <tt>$post</tt> and <tt>$current_post</tt>.
+
+; <tt>parse_query_vars()</tt>
+: Reparse the old query string.
+
+; <tt>get( $query_var )</tt>
+: Get a named query variable.
+
+; <tt>set( $query_var, $value )</tt>
+: Set a named query variable to a specific value.
+
+; <tt>&get_posts()</tt>
+: Fetch and return the requested posts from the database. Also populate <tt>$posts</tt> and <tt>$post_count</tt>.
+
+; <tt>next_post()</tt>
+: ([[The Loop|루프]] 안에서 사용됩니다) Advance onto the next post in <tt>$posts</tt>. Increment <tt>$current_post</tt> and set <tt>$post</tt> to the (new) current post object (note: this does not set the global <tt>$post</tt> variable, only the WP_Query object's instance variable.) Returns the current post object
+
+; <tt>the_post()</tt>
+: ([[The Loop|루프]] 안에서 사용됩니다) Advance onto the next post, and set the global <tt>$post</tt> variable.
+
+; <tt>have_posts()</tt>
+: (to be used when in [[The Loop]], or just before The Loop) Determine if we have posts remaining to be displayed.  Calls <tt>rewind_posts()</tt> and returns false if don't have posts remaining.  Because of the rewind, you can't rely on have_posts() staying false.  See [[Function_Reference/have_posts#Note|have_posts() note]].
+
+; <tt>rewind_posts()</tt>
+: Reset <tt>$current_post</tt> and <tt>$post</tt>.
+
+; <tt>&query( $query )</tt>
+: Call <tt>parse_query()</tt> and <tt>get_posts()</tt>. Return the results of <tt>get_posts()</tt>.
+
+; <tt>get_queried_object()</tt>
+: Set <tt>$queried_object</tt> if it's not already set and return it.
+
+; <tt>get_queried_object_id()</tt>
+: Set <tt>$queried_object_id</tt> if it's not already set and return it.
+
+; <tt>WP_Query( $query = <nowiki>''</nowiki> )</tt> (constructor)
+: If you provide a query string, call <tt>query()</tt> with it.
+
+==파라메터==
+
+===저자(Author) 파라메터===
+
+특정 저자(글쓴이)와 관련된 포스트를 보여줍니다.
+
+* '''<tt>author</tt>''' (''int'') - 저자 ID를 사용합니다.
+* '''<tt>author_name</tt>''' (''string'') - '<tt>user_nicename</tt>'을 사용합니다. (name 이 아닙니다).
+* '''<tt>author__in</tt>''' (''array'') - 저자 ID를 사용합니다. ([[Version 3.7]]이상에서 사용가능).
+* '''<tt>author__not_in</tt>''' (''array'') - 저자 ID를 사용합니다. ([[Version 3.7]]이상에서 사용가능).
+
+'''특정 저자가 작성한 포스트 보여주기'''
+
+저자 ID 를 사용하여 특정 저자가 작성한 포스트를 표시합니다 :
+
+ $query = new WP_Query( 'author=123' );
+
+'<tt>user_nicename</tt>'을 사용하여 특정 저자가 작성한 포스트를 표시합니다 :
+
+ $query = new WP_Query( 'author_name=rami' );
+
+'''다수의 저자가 작성한 포스트 보여주기'''
+
+몇몇 특정 저자들이 작성한 포스트를 표시합니다 :
+
+ $query = new WP_Query( 'author=2,6,17,38' );
+
+'''특정 저자가 쓴 포스트를 제외시켜서 표시하기'''
+
+Display all posts ''except'' those from an author(singular) by prefixing its id with a '-' (minus) sign:
+
+ $query = new WP_Query( 'author=-12' );
+
+'''다수의 저자 다루기'''
+
+다수의 저자 ID를 배열로 넘겨, 그 저자들이 작성한 포스트를 표시합니다 :
+
+ $query = new WP_Query( array( 'author__in' => array( 2, 6 ) ) );
+
+또한 다음과 같이 다수의 저자를 제외시킬 수도 있습니다 :
+
+ $query = new WP_Query( array( 'author__not_in' => array( 2, 6 ) ) );
+
+===카테고리 파라메터===
+
+특정 카테고리와 관련된 포스트들을 보여줍니다.
+
+* '''<tt>cat</tt>''' (''int'') - 카테고리 ID를 사용합니다.
+* '''<tt>category_name</tt>''' (''string'') - 카테고리 슬러그(slug)를 사용합니다. (이름이 아닙니다)
+* '''<tt>category__and</tt>''' (''array'') - 카테고리 ID를 사용합니다.
+* '''<tt>category__in</tt>''' (''array'') - 카테고리 ID를 사용합니다.
+* '''<tt>category__not_in</tt>''' (''array'') - 카테고리 ID를 사용합니다.
+
+'''특정 카테고리의 글 표시하기'''
+
+해당 카테고리가 가지고 있는 포스트를 표시합니다 (해당 카테고리의 자손 카테고리에 포함된 글도 포함). 카테고리 ID를 사용 :  
+ $query = new WP_Query( 'cat=4' );
+
+해당 카테고리가 가지고 있는 포스트를 표시합니다 (해당 카테고리의 자손 카테고리에 포함된 글도 포함). 카테고리 슬러그(Slug)를 사용 :
+
+ $query = new WP_Query( 'category_name=staff' );
+
+해당 카테고리가 가지고 있는 포스트를 표시합니다 (해당 카테고리의 자손 카테고리에 포함된 글은 ''제외''). 카테고리 ID를 사용 :
+
+ $query = new WP_Query( 'category__in=4' );
+
+'''몇개의 카테고리에 속한 포스트 표시하기'''
+
+여러 개의 카테고리를 지정하여 해당 카테고리에 속한 포스트를 모두 표시합니다. 카테고리 ID 사용 :
+
+ $query = new WP_Query( 'cat=2,6,17,38' );
+
+여러 개의 카테고리를 지정하여 해당 카테고리에 속한 포스트를 모두 표시합니다. 카테고리 슬러그(Slug) 사용 :
+
+ $query = new WP_Query( 'category_name=staff,news' );
+
+Display posts that have "all" of these categories:
+
+ $query = new WP_Query( 'category_name=staff+news' );
+
+'''Exclude Posts Belonging to Category'''
+
+Display all posts ''except'' those from a category by prefixing its id with a '-' (minus) sign.
+
+ $query = new WP_Query( 'cat=-12,-34,-56' );
+
+'''Multiple Category Handling'''
+
+Display posts that are in multiple categories.  This shows posts that are in both categories 2 and 6:
+
+ $query = new WP_Query( array( 'category__and' => array( 2, 6 ) ) );
+
+To display posts from either category 2 OR 6, you could use <tt>cat</tt> as mentioned above, or by using <tt>category__in</tt> (note this does not show posts from any children of these categories):
+
+ $query = new WP_Query( array( 'category__in' => array( 2, 6 ) ) );
+
+You can also exclude multiple categories this way:
+
+ $query = new WP_Query( array( 'category__not_in' => array( 2, 6 ) ) );
+
+===태그 파라메터===
+특정 태그와 관련된 포스트를 보여줍니다.
+
+* '''<tt>tag</tt>''' (''string'') - use tag slug.
+* '''<tt>tag_id</tt>''' (''int'') - use tag id.
+* '''<tt>tag__and</tt>''' (''array'') - use tag ids.
+* '''<tt>tag__in</tt>''' (''array'') - use tag ids.
+* '''<tt>tag__not_in</tt>''' (''array'') - use tag ids.
+* '''<tt>tag_slug__and</tt>''' (''array'') - use tag slugs.
+* '''<tt>tag_slug__in</tt>''' (''array'') - use tag slugs.
+
+'''Show Posts for One Tag'''
+
+Display posts that have this tag, using tag slug:
+
+ $query = new WP_Query( 'tag=cooking' );
+
+Display posts that have this tag, using tag id:
+
+ $query = new WP_Query( 'tag_id=13' );
+
+'''Show Posts From Several Tags'''
+
+Display posts that have "either" of these tags:
+
+ $query = new WP_Query( 'tag=bread,baking' );
+
+Display posts that have "all" of these tags:
+
+ $query = new WP_Query( 'tag=bread+baking+recipe' );
+
+'''Multiple Tag Handling'''
+
+Display posts that are tagged with both tag id 37 and tag id 47:
+
+ $query = new WP_Query( array( 'tag__and' => array( 37, 47 ) ) );
+
+To display posts from either tag id 37 or 47, you could use <tt>tag</tt> as mentioned above, or explicitly specify by using <tt>tag__in</tt>:
+
+ $query = new WP_Query( array( 'tag__in' => array( 37, 47 ) ) );
+
+Display posts that do not have any of the two tag ids 37 and 47:
+
+ $query = new WP_Query( array( 'tag__not_in' => array( 37, 47 ) ) );
+
+The <tt>tag_slug__in</tt> and <tt>tag_slug__and</tt> behave much the same, except match against the tag's slug.
+
+===택소노미(분류, Taxonomy) 파라메터===
+특정 [[Taxonomies|택소노미(Taxonomy)]]와 관련된 포스트를 보여줍니다.
+
+* '''<tt>{tax}</tt>''' (''string'') - use taxonomy slug. '''Deprecated''' as of [[Version 3.1]] in favor of '<tt>tax_query</tt>'.
+* '''<tt>tax_query</tt>''' (''array'') - use taxonomy parameters (available with [[Version 3.1]]).
+** '''<tt>relation</tt>''' (''string'') - The logical relationship between each inner taxonomy array when there is more than one. Possible values are 'AND', 'OR'. Do not use with a single inner taxonomy array.
+*** '''<tt>taxonomy</tt>''' (''string'') - Taxonomy.
+*** '''<tt>field</tt>''' (''string'') -  Select taxonomy term by ('term_id'(default), 'name' or 'slug')
+*** '''<tt>terms</tt>''' (''int/string/array'') - Taxonomy term(s).
+*** '''<tt>include_children</tt>''' (''boolean'') -  Whether or not to include children for hierarchical taxonomies. Defaults to true.
+*** '''<tt>operator</tt>''' (''string'') - Operator to test. Possible values are 'IN'(default), 'NOT IN', 'AND'.
+
+'''Important Note:''' <tt>tax_query</tt> takes an '''array''' of tax query arguments '''arrays''' (it takes an array of arrays) - you can see this in the second example below.
+This construct allows you to query multiple taxonomies by using the '''<tt>relation</tt>''' parameter in the first (outer) array to describe the boolean relationship between the taxonomy arrays. See the second and third multiple taxonomy handling examples below.
+
+As of [[Version_3.5|3.5]], a bug was fixed where <tt>tax_query</tt> would inadvertently return '''all''' posts when a result was empty.
+
+'''Simple Taxonomy Query:'''
+
+Display '''posts''' tagged with '''bob''', under '''people''' custom taxonomy:
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'people'    => 'bob',
+);
+$query = new WP_Query( $args );
+</pre>
+
+Display '''posts''' tagged with '''bob''', under '''people''' custom taxonomy, using '''tax_query''':
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'tax_query' => array(
+		array(
+			'taxonomy' => 'people',
+			'field'    => 'slug',
+			'terms'    => 'bob',
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+'''Multiple Taxonomy Handling:'''
+
+Display '''posts''' from several custom taxonomies:
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'people'    => 'bob',
+	'language'  => 'english',
+);
+$query = new WP_Query( $args );
+</pre>
+
+Display '''posts''' from several custom taxonomies, using '''tax_query''':
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'tax_query' => array(
+		'relation' => 'AND',
+		array(
+			'taxonomy' => 'movie_genre',
+			'field'    => 'slug',
+			'terms'    => array( 'action', 'comedy' ),
+		),
+		array(
+			'taxonomy' => 'actor',
+			'field'    => 'id',
+			'terms'    => array( 103, 115, 206 ),
+			'operator' => 'NOT IN',
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+Display '''posts''' that are in the '''quotes''' category OR have the '''quote''' [[Post Formats|format]]:
+
+<pre>
+$args = array(
+	'post_type' => 'post',
+	'tax_query' => array(
+		'relation' => 'OR',
+		array(
+			'taxonomy' => 'category',
+			'field'    => 'slug',
+			'terms'    => array( 'quotes' ),
+		),
+		array(
+			'taxonomy' => 'post_format',
+			'field'    => 'slug',
+			'terms'    => array( 'post-format-quote' ),
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+===Search Parameter===
+
+Show posts based on a keyword search.
+
+* '''<tt>s</tt>''' (''string'') - Search keyword.
+
+'''Show Posts based on a keyword search'''
+
+Display posts that match the search term "keyword":
+
+ $query = new WP_Query( 's=keyword' );
+
+===포스트 & 페이지 파라메터===
+
+Display content based on post and page parameters. Remember that default <tt>post_type</tt> is only set to display posts but not pages.
+
+* '''<tt>p</tt>''' (''int'') - use post id.
+* '''<tt>name</tt>''' (''string'') - use post slug.
+* '''<tt>page_id</tt>''' (''int'') - use page id.
+* '''<tt>pagename</tt>''' (''string'') - use page slug.
+* '''<tt>post_parent</tt>''' (''int'') - use page id to return only child pages. Set to 0 to return only top-level entries.
+* '''<tt>post_parent__in</tt>''' (''array'') - use post ids. Specify posts whose parent is in an array. NOTE: Introduced in 3.6 http://core.trac.wordpress.org/ticket/11056
+* '''<tt>post_parent__not_in</tt>''' (''array'') - use post ids. Specify posts whose parent is not in an array.
+* '''<tt>post__in</tt>''' (''array'') - use post ids. Specify posts to retrieve. '''ATTENTION''' If you use sticky posts, they will be included (prepended!) in the posts you retrieve whether you want it or not. To suppress this behaviour use [http://codex.wordpress.org/Class_Reference/WP_Query#Pagination_Parameters ignore_sticky_posts]
+* '''<tt>post__not_in</tt>''' (''array'') - use post ids. Specify post NOT to retrieve.
+
+'''Show Post/Page by ID'''
+
+Display post by ID:
+
+ $query = new WP_Query( 'p=7' );
+
+Display page by ID:
+
+ $query = new WP_Query( 'page_id=7' );
+
+'''Show Post/Page by Slug'''
+
+Display post by <tt>slug</tt>:
+
+ $query = new WP_Query( 'name=about-my-life' );
+
+Display page by <tt>slug</tt>:
+
+ $query = new WP_Query( 'pagename=contact' );
+
+'''Show Child Posts/Pages'''
+
+Display child page using the slug of the parent and the child page, separated by a slash (e.g. 'parent_slug/child_slug'):
+
+ $query = new WP_Query( 'pagename=contact_us/canada' );
+
+Display child pages using parent page ID:
+
+ $query = new WP_Query( 'post_parent=93' );
+
+Display only top-level pages, exclude all child pages:
+
+ $query = new WP_Query( 'post_parent=0' );
+
+Display posts whose parent is in an array:
+
+ $query = new WP_Query( array( 'post_parent__in' => array( 2, 5, 12, 14, 20 ) ) );
+
+'''Multiple Posts/Pages Handling'''
+
+Display only the specific posts:
+
+ $query = new WP_Query( array( 'post_type' => 'page', 'post__in' => array( 2, 5, 12, 14, 20 ) ) );
+
+Display all posts but NOT the specified ones:
+
+ $query = new WP_Query( array( 'post_type' => 'post', 'post__not_in' => array( 2, 5, 12, 14, 20 ) ) );
+
+Note: you cannot combine <tt>post__in</tt> and <tt>post__not_in</tt> in the same query.
+
+Also note that using a string containing a comma separated list will not work here. If you're passing a variable, make sure it's a proper array of integer values:
+
+<pre>
+// This will NOT work
+$exclude_ids = '1,2,3';
+$query = new WP_Query( array( 'post__not_in' => array( $exclude_ids ) ) );
+
+// This WILL work
+$exclude_ids = array( 1, 2, 3 );
+$query = new WP_Query( array( 'post__not_in' => $exclude_ids ) );
+</pre>
+
+===Password Parameters===
+
+Show content based on post and page parameters. Remember that default <tt>post_type</tt> is only set to display posts but not pages.
+
+* '''<tt>has_password</tt>''' (''bool'') -  true for posts with passwords ; false for posts without passwords ; null for all posts with and without passwords (available with [[Version 3.9]]).
+* '''<tt>post_password</tt>''' (''string'') - show posts with a particular password (available with [[Version 3.9]])
+
+'''Show Posts with/without passwords'''
+
+Display only password protected posts:
+
+ $query = new WP_Query( array( 'has_password' => true ) );
+
+Display only posts without passwords:
+
+ $query = new WP_Query( array( 'has_password' => false ) );
+
+Display only posts with and without passwords:
+
+ $query = new WP_Query( array( 'has_password' => null ) );
+
+'''Show Posts with particular password'''
+
+Display posts with 'zxcvbn' password:
+
+ $query = new WP_Query( array( 'post_password' => 'zxcvbn' ) );
+
+===Type Parameters===
+
+Show posts associated with certain [[Post Types|type]].
+
+* '''<tt>post_type</tt>''' (''string'' / ''array'') - use post types. Retrieves posts by [[Post Types]], default value is '<tt>post</tt>'. If '<tt>tax_query</tt>' is set for a query, the default value becomes '<tt>any</tt>';
+** '<tt>post</tt>' - a post.
+** '<tt>page</tt>' - a page.
+** '<tt>revision</tt>' - a revision.
+** '<tt>attachment</tt>' - an attachment. The default WP_Query sets 'post_status'=>'publish', but attachments default to 'post_status'=>'inherit' so you'll need to explicitly set <tt>post_status</tt> to 'inherit' or 'any' as well. (See [[Class_Reference/WP_Query#Status_Parameters|post_status]], below)
+** '<tt>nav_menu_item</tt>' - a navigation menu item
+** '<tt>any</tt>' - retrieves any type except revisions and types with 'exclude_from_search' set to true.
+** Custom Post Types (e.g. movies)
+
+'''Show Post by Type'''
+
+Display only pages:
+
+ $query = new WP_Query( 'post_type=page' );
+
+Display '<tt>any</tt>' post type (retrieves any type except revisions and types with 'exclude_from_search' set to TRUE):
+
+ $query = new WP_Query( 'post_type=any' );
+
+Display multiple post types, including custom post types:
+
+<pre>
+$query = new WP_Query( array(
+	'post_type' => array( 'post', 'page', 'movie', 'book' )
+) );
+</pre>
+
+===Status Parameters===
+
+Show posts associated with certain [[Post Status|status]].
+
+* '''<tt>post_status</tt>''' (''string'' / ''array'') - use post status. Retrieves posts by [[Post Status]]. Default value is '<tt>publish</tt>', but if the user is logged in, '<tt>private</tt>' is added. And if the query is run in an admin context (administration area or AJAX call), protected statuses are added too. By default protected statuses are '<tt>future</tt>', '<tt>draft</tt>' and '<tt>pending</tt>'. 
+** '<tt>publish</tt>' - a published post or page.
+** '<tt>pending</tt>' - post is pending review.
+** '<tt>draft</tt>' - a post in draft status.
+** '<tt>auto-draft</tt>' - a newly created post, with no content.
+** '<tt>future</tt>' - a post to publish in the future.
+** '<tt>private</tt>' - not visible to users who are not logged in.
+** '<tt>inherit</tt>' - a revision. see [[Function_Reference/get_children|get_children]].
+** '<tt>trash</tt>' - post is in trashbin (available with [[Version 2.9]]).
+** '<tt>any</tt>' - retrieves any status except those from post statuses with 'exclude_from_search' set to true (i.e. trash and auto-draft).
+
+'''Show Post by Status'''
+
+Display only drafts:
+
+ $query = new WP_Query( 'post_status=draft' );
+
+Display multiple post status:
+
+ $query = new WP_Query( array( 'post_status' => array( 'pending', 'draft', 'future' ) ) );
+
+Display all attachments:
+
+ $query = new WP_Query( array( 'post_status' => 'any', 'post_type' => 'attachment' ) );
+
+===Pagination Parameters===
+
+* '''<tt>nopaging</tt>''' (''boolean'') - show all posts or use pagination. Default value is 'false', use paging.
+* '''<tt>posts_per_page</tt>''' (''int'') - number of post to show per page (available with [[Version 2.1]], replaced '''<tt>showposts</tt>''' parameter). Use <tt>'posts_per_page'=>-1</tt> to show all posts (the <tt>'offset'</tt> parameter is ignored with a <tt>-1</tt> value). Set the '[[#set-paged|paged]]' parameter if pagination is off after using this parameter. ''Note'': if the query is in a feed, wordpress overwrites this parameter with the stored 'posts_per_rss' option. To reimpose the limit, try using the 'post_limits' filter, or filter 'pre_option_posts_per_rss' and return -1
+* '''<tt>posts_per_archive_page</tt>''' (''int'') - number of posts to show per page - on archive pages only. Over-rides '''<tt>posts_per_page</tt>''' and '''<tt>showposts</tt>''' on pages where <tt>[[Function_Reference/is_archive|is_archive()]]</tt> or <tt>[[Function_Reference/is_search|is_search()]]</tt> would be true.
+* '''<tt>offset</tt>''' (''int'') - number of post to ''displace'' or pass over. ''Warning'': Setting the offset parameter overrides/ignores the paged parameter and breaks pagination ([[Making_Custom_Queries_using_Offset_and_Pagination|Click here for a workaround]]). The <tt>'offset'</tt> parameter is ignored when <tt>'posts_per_page'=>-1</tt> (show all posts) is used.
+* '''<tt>paged</tt>''' (''int'') - number of page. Show the posts that would normally show up just on page X when using the "Older Entries" link.
+* '''<tt>page</tt>''' (''int'') - number of page for a [[Creating_a_Static_Front_Page|static front page]]. Show the posts that would normally show up just on page X of a Static Front Page.
+* '''<tt>ignore_sticky_posts</tt>''' (''boolean'') - ignore post stickiness (available with [[Version 3.1]], replaced '''<tt>caller_get_posts</tt>''' parameter). <tt>false</tt> (default): move sticky posts to the start of the set. <tt>true</tt>: do not move sticky posts to the start of the set.
+
+
+'''Show x Posts per page'''
+
+Display 3 posts per page:
+
+ $query = new WP_Query( 'posts_per_page=3' );
+
+'''Show All Post'''
+
+Display all posts in one page:
+
+ $query = new WP_Query( 'posts_per_page=-1' );
+
+Display all posts by disabling pagination:
+
+ $query = new WP_Query( 'nopaging=true' );
+
+'''Pass over Posts'''
+
+Display posts from the 4th one:
+
+ $query = new WP_Query( 'offset=3' ) );
+
+Display 5 posts per page which follow the 3 most recent posts:
+
+ $query = new WP_Query( array( 'posts_per_page' => 5, 'offset' => 3 ) );
+
+'''Show Posts from page x'''
+
+Display posts from page number 6:
+
+ $query = new WP_Query( 'paged=6' );
+
+'''Show Posts from Current Page'''
+
+Display posts from current page:
+ 
+ $query = new WP_Query( array( 'paged' => get_query_var( 'paged' ) ) );
+
+<span id="set-paged">Display posts from the current page and set the 'paged' parameter to 1 when the query variable is not set (first page).</span>
+
+ $paged = ( get_query_var('paged') ) ? get_query_var('paged') : 1;
+ $query = new WP_Query( array( 'paged' => $paged ) );
+
+Pagination Note: Use <tt>get_query_var('page');</tt> if you want your query to work in a [[Pages#Page_Templates|Page template]] that you've set as your [[Creating_a_Static_Front_Page|static front page]].  The query variable 'page' also holds the pagenumber for a single paginated Post or Page that includes the <code>&lt;!--nextpage--&gt;</code> [[Write_Post_SubPanel#Quicktags | Quicktag]] in the post content.
+
+Display posts from current page on a [[Creating_a_Static_Front_Page|static front page]]:
+ $paged = ( get_query_var('page') ) ? get_query_var('page') : 1;
+ $query = new WP_Query( array( 'paged' => $paged ) );
+
+'''Show Sticky Posts'''
+
+Display just the first sticky post:
+
+ $sticky = get_option( 'sticky_posts' );
+ $query = new WP_Query( 'p=' . $sticky[0] );
+
+Display just the first sticky post, if none return the last post published:
+
+<pre>
+$args = array(
+	'posts_per_page'      => 1,
+	'post__in'            => get_option( 'sticky_posts' ),
+	'ignore_sticky_posts' => 1,
+);
+$query = new WP_Query( $args );
+</pre>
+
+Display just the first sticky post, if none return nothing:
+
+<pre>
+$sticky = get_option( 'sticky_posts' );
+$args = array(
+	'posts_per_page'      => 1,
+	'post__in'            => $sticky,
+	'ignore_sticky_posts' => 1,
+);
+$query = new WP_Query( $args );
+if ( $sticky[0] ) {
+	// insert here your stuff...
+}
+</pre>
+
+'''Don't Show Sticky Posts'''
+
+Exclude all sticky posts from the query:
+
+ $query = new WP_Query( array( 'post__not_in' => get_option( 'sticky_posts' ) ) );
+
+Exclude sticky posts from a category. Return ALL posts within the category, but don't show sticky posts at the top. The 'sticky posts' will still show in their natural position (e.g. by date):
+
+ $query = new WP_Query( array( 'ignore_sticky_posts' => 1, 'posts_per_page' => 3, 'cat' => 6 );
+
+Exclude sticky posts from a category. Return posts within the category, but exclude sticky posts completely, and adhere to paging rules:
+
+<pre>
+$paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
+$sticky = get_option( 'sticky_posts' );
+$args = array(
+	'cat'                 => 3,
+	'ignore_sticky_posts' => 1,
+	'post__not_in'        => $sticky,
+	'paged'               => $paged,
+);
+$query = new WP_Query( $args );
+</pre>
+
+===Order & Orderby Parameters===
+
+Sort retrieved posts.
+
+* '''<tt>order</tt>''' (''string | array'') - Designates the ascending or descending order of the '<tt>orderby</tt>' parameter.  Defaults to 'DESC'. An array can be used for multiple order/orderby sets.
+** '<tt>ASC</tt>' - ascending order from lowest to highest values (1, 2, 3; a, b, c).
+** '<tt>DESC</tt>' - descending order from highest to lowest values (3, 2, 1; c, b, a).
+
+* '''<tt>orderby</tt>''' (''string | array'') - Sort retrieved posts by parameter.  Defaults to 'date (post_date)'. One or more options can be passed.
+** '<tt>none</tt>' - No order (available with [[Version 2.8]]).
+** '<tt>ID</tt>' - Order by post id.  Note the capitalization.
+** '<tt>author</tt>' - Order by author.
+** '<tt>title</tt>' - Order by title.
+** '<tt>name</tt>' - Order by post name (post slug).
+** '<tt>type</tt>' - Order by [[post type]] (available since [[Version 4.0]]).
+** '<tt>date</tt>' - Order by date.
+** '<tt>modified</tt>' - Order by last modified date.
+** '<tt>parent</tt>' - Order by post/page parent id.
+** '<tt>rand</tt>' - Random order.
+** '<tt>comment_count</tt>' - Order by number of comments (available with [[Version 2.9]]).
+** '<tt>menu_order</tt>' - Order by  Page Order. Used most often for [[Pages]] (''Order'' field in the Edit Page Attributes box) and for [[Attachments]] (the integer fields in the Insert / Upload Media Gallery dialog), but could be used for any post type with distinct '<tt>menu_order</tt>' values (they all default to <var>0</var>).
+** '<tt>meta_value</tt>' - Note that a '<tt>meta_key=keyname</tt>' must also be present in the query. Note also that the sorting will be alphabetical which is fine for strings (i.e. words), but can be unexpected for numbers (e.g. 1, 3, 34, 4, 56, 6, etc, rather than 1, 3, 4, 6, 34, 56 as you might naturally expect). Use '<tt>meta_value_num</tt>' instead for numeric values. You may also specify '<tt>meta_type</tt>' if you want to cast the meta value as a specific type. Possible values are 'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', 'UNSIGNED', same as in '<tt>$meta_query</tt>'.
+** '<tt>meta_value_num</tt>' - Order by numeric meta value (available with [[Version 2.8]]). Also note that a '<tt>meta_key=keyname</tt>' must also be present in the query. This value allows for numerical sorting as noted above in '<tt>meta_value</tt>'.
+** '<tt>post__in</tt>' - Preserve post ID order given in the post__in array (available with [[Version 3.5]]).
+
+'''Show Posts sorted by Title, Descending order'''
+
+Display posts sorted by post title in a descending order:
+
+ $query = new WP_Query( array ( 'orderby' => 'title', 'order' => 'DESC' ) );
+
+Display posts sorted by menu_order with a fallback to post title, in a descending order:
+
+ $query = new WP_Query( array ( 'orderby' => 'menu_order title', 'order' => 'DESC' ) );
+
+'''Show Random Post'''
+
+Display one random post:
+
+ $query = new WP_Query( array ( 'orderby' => 'rand', 'posts_per_page' => '1' ) );
+
+'''Show Popular Posts'''
+
+Display posts ordered by comment count:
+
+ $query = new WP_Query( array( 'orderby' => 'comment_count' ) );
+
+'''Show Products sorted by Price'''
+
+Display posts with 'Product' type ordered by 'Price' custom field:
+
+ $query = new WP_Query( array ( 'post_type' => 'product', 'orderby' => 'meta_value_num', 'meta_key' => 'price' ) );
+
+'''Multiple 'orderby' values'''
+
+Display pages ordered by 'title' and 'menu_order'. (title is dominant):
+
+ $query = new WP_Query( array( 'post_type' => 'page', 'orderby' => 'title menu_order', 'order' => 'ASC' ) );
+
+'''Multiple 'orderby' values using an array'''
+
+Display pages ordered by 'title' and 'menu_order' with different sort orders (ASC/DESC):
+
+ $query = new WP_Query( array( 'orderby' => array( 'title' => 'DESC', 'menu_order' => 'ASC' ) ) );
+
+*[http://make.wordpress.org/core/2014/08/29/a-more-powerful-order-by-in-wordpress-4-0/ A more powerful ORDER BY in WordPress 4.0]
+*available since [[Version 4.0]]
+
+'''Mulitiple orderby/order pairs'''
+
+ 'orderby' => array( 'meta_value_num' => 'DESC', 'title' => 'ASC' ), 'meta_key' => 'age'
+
+''''orderby' with 'meta_value' and custom post type'''
+
+Display posts of type 'my_custom_post_type', ordered by 'age', and filtered to show only ages 3 and 4 (using meta_query).
+
+<pre>
+$args = array(
+	'post_type'  => 'my_custom_post_type',
+	'meta_key'   => 'age',
+	'orderby'    => 'meta_value_num',
+	'order'      => 'ASC',
+	'meta_query' => array(
+		array(
+			'key'     => 'age',
+			'value'   => array( 3, 4 ),
+			'compare' => 'IN',
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+===Date Parameters===
+
+Show posts associated with a certain time and date period.
+
+* '''<tt>year</tt>''' (''int'') - 4 digit year (e.g. 2011).
+* '''<tt>monthnum</tt>''' (''int'') - Month number (from 1 to 12).
+* '''<tt>w</tt>''' (''int'') - Week of the year (from 0 to 53). Uses [http://dev.mysql.com/doc/refman/5.1/en/date-and-time-functions.html#function_week MySQL WEEK command]. The mode is dependent on the "start_of_week" option.
+* '''<tt>day</tt>''' (''int'') - Day of the month (from 1 to 31).
+* '''<tt>hour</tt>''' (''int'') - Hour (from 0 to 23).
+* '''<tt>minute</tt>''' (''int'') - Minute (from 0 to 60).
+* '''<tt>second</tt>''' (''int'') - Second (0 to 60).
+* '''<tt>m</tt>''' (''int'') - YearMonth (For e.g.: '''<tt>201307</tt>''').
+
+* '''<tt>date_query</tt>''' (''array'') - Date parameters (available with [[Version 3.7]]).
+** '''<tt>year</tt>''' (''int'') - 4 digit year (e.g. 2011).
+** '''<tt>month</tt>''' (''int'') - Month number (from 1 to 12).
+** '''<tt>week</tt>''' (''int'') - Week of the year (from 0 to 53).
+** '''<tt>day</tt>''' (''int'') - Day of the month (from 1 to 31).
+** '''<tt>hour</tt>''' (''int'') - Hour (from 0 to 23).
+** '''<tt>minute</tt>''' (''int'') - Minute (from 0 to 59).
+** '''<tt>second</tt>''' (''int'') - Second (0 to 59).
+** '''<tt>after</tt>''' (''string/array'') - Date to retrieve posts after. Accepts <tt>[http://php.net/strtotime strtotime()]</tt>-compatible string, or array of 'year', 'month', 'day' values:
+*** '''<tt>year</tt>''' (''string'') Accepts any four-digit year. Default is empty.
+*** '''<tt>month</tt>''' (''string'') The month of the year. Accepts numbers 1-12. Default: 12.
+*** '''<tt>day</tt>''' (''string'') The day of the month. Accepts numbers 1-31. Default: last day of month.
+** '''<tt>before</tt>''' (''string/array'') - Date to retrieve posts before. Accepts <tt>[http://php.net/strtotime strtotime()]</tt>-compatible string, or array of 'year', 'month', 'day' values:
+*** '''<tt>year</tt>''' (''string'') Accepts any four-digit year. Default is empty.
+*** '''<tt>month</tt>''' (''string'') The month of the year. Accepts numbers 1-12. Default: 1.
+*** '''<tt>day</tt>''' (''string'') The day of the month. Accepts numbers 1-31. Default: 1.
+** '''<tt>inclusive</tt>''' (''boolean'') - For after/before, whether exact value should be matched or not'.
+** '''<tt>compare</tt>''' (''string'') - See WP_Date_Query::get_compare().
+** '''<tt>column</tt>''' (''string'') - [[Database_Description#Table:_wp_posts|Column]] to query against. Default: 'post_date'.
+** '''<tt>relation</tt>''' (''string'') -  OR or AND, how the sub-arrays should be compared. Default: AND.
+
+'''Returns posts dated December 12, 2012:'''
+
+<pre>
+$query = new WP_Query( 'year=2012&monthnum=12&day=12' );
+</pre>
+
+or:
+
+<pre>
+$args = array(
+	'date_query' => array(
+		array(
+			'year'  => 2012,
+			'month' => 12,
+			'day'   => 12,
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+'''Returns posts for today:'''
+
+<pre>
+$today = getdate();
+$query = new WP_Query( 'year=' . $today['year'] . '&monthnum=' . $today['mon'] . '&day=' . $today['mday'] );
+</pre>
+
+or:
+
+<pre>
+$today = getdate();
+$args = array(
+	'date_query' => array(
+		array(
+			'year'  => $today['year'],
+			'month' => $today['mon'],
+			'day'   => $today['mday'],
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+'''Returns posts for this week:'''
+
+<pre>
+$week = date( 'W' );
+$year = date( 'Y' );
+$query = new WP_Query( 'year=' . $year . '&w=' . $week );
+</pre>
+
+or:
+
+<pre>
+$args = array(
+	'date_query' => array(
+		array(
+			'year' => date( 'Y' ),
+			'week' => date( 'W' ),
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+'''Return posts between 9AM to 5PM on weekdays'''
+<pre>
+$args = array(
+	'date_query' => array(
+		array(
+			'hour'      => 9,
+			'compare'   => '>=',
+		),
+		array(
+			'hour'      => 17,
+			'compare'   => '<=',
+		),
+		array(
+			'dayofweek' => array( 2, 6 ),
+			'compare'   => 'BETWEEN',
+		),
+	),
+	'posts_per_page' => -1,
+);
+$query = new WP_Query( $args );
+</pre>
+
+'''Return posts from January 1st to February 28th'''
+<pre>
+$args = array(
+	'date_query' => array(
+		array(
+			'after'     => 'January 1st, 2013',
+			'before'    => array(
+				'year'  => 2013,
+				'month' => 2,
+				'day'   => 28,
+			),
+			'inclusive' => true,
+		),
+	),
+	'posts_per_page' => -1,
+);
+$query = new WP_Query( $args );
+</pre>
+
+Note that if a <tt>[http://php.net/strtotime strtotime()]</tt>-compatible string with just a date was passed in the <tt>before</tt> parameter, this will be converted to 00:00:00 on that date.  In this case, even if <tt>inclusive</tt> was set to true, the date would not be included in the query. If you want a before date to be inclusive, include the time as well, such as <tt>'before' => '2013-02-28 23:59:59'</tt>, or use the array format, which is adjusted automatically if <tt>inclusive</tt> is set.
+
+'''Return posts made over a year ago but modified in the past month'''
+<pre>
+$args = array(
+	'date_query' => array(
+		array(
+			'column' => 'post_date_gmt',
+			'before' => '1 year ago',
+		),
+		array(
+			'column' => 'post_modified_gmt',
+			'after'  => '1 month ago',
+		),
+	),
+	'posts_per_page' => -1,
+);
+$query = new WP_Query( $args );
+</pre>
+
+===Custom Field Parameters===
+
+Show posts associated with a certain custom field.
+
+This part of the query is parsed by <tt>[[Class_Reference/WP_Meta_Query | WP_Meta_Query]]</tt>, so check [[Class_Reference/WP_Meta_Query#Accepted_Arguments |the docs for it]] as well in case this list of arguments isn't up to date.
+
+* '''<tt>meta_key</tt>''' (''string'') - Custom field key.
+* '''<tt>meta_value</tt>''' (''string'') - Custom field value.
+* '''<tt>meta_value_num</tt>''' (''number'') - Custom field value.
+* '''<tt>meta_compare</tt>''' (''string'') - Operator to test the '<tt>meta_value</tt>'. Possible values are '!=', '>', '>=', '<', or '<='. Default value is '='.
+
+* '''<tt>meta_query</tt>''' (''array'') - Custom field parameters (available with [[Version 3.1]]).
+** '''<tt>relation</tt>''' (''string'') - The logical relationship between each inner meta_query array when there is more than one. Possible values are 'AND', 'OR'. Do not use with a single inner meta_query array.
+
+<tt>meta_query</tt> also contains one or more arrays with the following keys:
+
+* '''<tt>key</tt>''' (''string'') - Custom field key.
+* '''<tt>value</tt>''' (''string''|''array'') - Custom field value. It can be an array only when <tt>'''compare'''</tt> is <tt>'IN'</tt>, <tt>'NOT IN'</tt>, <tt>'BETWEEN'</tt>, or <tt>'NOT BETWEEN'</tt>. You don't have to specify a value when using the <tt>'EXISTS'</tt> or <tt>'NOT EXISTS'</tt> comparisons in WordPress 3.9 and up. <br>(<strong>Note:</strong> Due to [http://core.trac.wordpress.org/ticket/23268 bug #23268], <tt>value</tt> is required for <tt>NOT EXISTS</tt> comparisons to work correctly prior to 3.9. You must supply ''some'' string for the <tt>value</tt> parameter. An empty string or NULL will NOT work. However, any other string will do the trick and will NOT show up in your SQL when using <tt>NOT EXISTS</tt>. Need inspiration? How about <tt>'bug #23268'</tt>.)
+* '''<tt>compare</tt>''' (''string'') - Operator to test. Possible values are '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS' (only in WP >= 3.5), and 'NOT EXISTS' (also only in WP >= 3.5). Default value is '='.
+* '''<tt>type</tt>''' (''string'') - Custom field type. Possible values are 'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', 'UNSIGNED'. Default value is 'CHAR'.
+
+The 'type' DATE works with the 'compare' value BETWEEN only if the date is stored at the format YYYYMMDD and tested with this format.
+
+'''Important Note:''' <tt>meta_query</tt> takes an '''array''' of meta query arguments '''arrays''' (it takes an array of arrays) - you can see this in the examples below.
+This construct allows you to query multiple metadatas by using the '''<tt>relation</tt>''' parameter in the first (outer) array to describe the boolean relationship between the meta queries. Accepted arguments are 'AND', 'OR'. The default is 'AND'.
+
+'''Simple Custom Field Query:'''
+
+Display posts where the custom field key is 'color', regardless of the custom field value:
+
+ $query = new WP_Query( 'meta_key=color' );
+
+Display posts where the custom field value is 'blue', regardless of the custom field key:
+
+ $query = new WP_Query( 'meta_value=blue' );
+
+Display [[Pages|Page]] where the custom field value is 'blue', regardless of the custom field key:
+
+ $query = new WP_Query( 'meta_value=blue&post_type=page' );
+
+Display posts where the custom field key is 'color' and the custom field value is 'blue':
+
+ $query = new WP_Query( array( 'meta_key' => 'color', 'meta_value' => 'blue' ) );
+
+Display posts where the custom field key is 'color' and the custom field value IS NOT 'blue':
+
+ $query = new WP_Query( array( 'meta_key' => 'color', 'meta_value' => 'blue', 'meta_compare' => '!=' ) );
+
+Display 'product'(s) where the custom field key is 'price' and the custom field value that is LESS THAN OR EQUAL TO 22.<br />''By using the 'meta_value' parameter the value 99 will be considered greater than 100 as the data are stored as 'strings', not 'numbers'. For number comparison use 'meta_value_num'.''
+
+ $query = new WP_Query( array( 'meta_key' => 'price', 'meta_value' => '22', 'meta_compare' => '<=', 'post_type' => 'product' ) );
+
+Display posts with a custom field value of zero (0), regardless of the custom field key:
+
+ $query = new WP_Query( array( 'meta_value' => '_wp_zero_value' ) );
+
+'''Single Custom Field Handling:'''
+
+Display posts from a single custom field:
+
+<pre>
+$args = array(
+	'post_type'  => 'product',
+	'meta_query' => array(
+		array(
+			'key'     => 'color',
+			'value'   => 'blue',
+			'compare' => 'NOT LIKE',
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+(Note that meta_query expects nested arrays, even if you only have one query.)
+
+'''Multiple Custom Field Handling:'''
+
+Display posts from several custom field:
+
+<pre>
+$args = array(
+	'post_type'  => 'product',
+	'meta_query' => array(
+		array(
+			'key'     => 'color',
+			'value'   => 'blue',
+			'compare' => 'NOT LIKE',
+		),
+		array(
+			'key' => 'price',
+			'value'   => array( 20, 100 ),
+			'type'    => 'numeric',
+			'compare' => 'BETWEEN',
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+Display posts that have meta key 'color' NOT LIKE value 'blue' OR meta key 'price' with values BETWEEN 20 and 100:
+
+<pre>
+$args = array(
+	'post_type'  => 'product',
+	'meta_query' => array(
+		'relation' => 'OR',
+		array(
+			'key'     => 'color',
+			'value'   => 'blue',
+			'compare' => 'NOT LIKE',
+		),
+		array(
+			'key'     => 'price',
+			'value'   => array( 20, 100 ),
+			'type'    => 'numeric',
+			'compare' => 'BETWEEN',
+		),
+	),
+);
+$query = new WP_Query( $args );
+</pre>
+
+===Permission Parameters===
+
+* '''<tt>perm</tt>''' (''string'') - User permission.
+
+'''Show posts if user has the appropriate capability:'''
+
+Display published and private posts, if the user has the appropriate capability:
+
+ $query = new WP_Query( array( 'post_status' => array( 'publish', 'private' ), 'perm' => 'readable' ) );
+
+===Caching Parameters===
+
+Stop the data retrieved from being added to the cache.
+
+* '''<tt>cache_results</tt>''' (''boolean'') - Post information cache.
+* '''<tt>update_post_meta_cache</tt>''' (''boolean'') - Post meta information cache.
+* '''<tt>update_post_term_cache</tt>''' (''boolean'') - Post term information cache.
+
+'''Show Posts without adding post information to the cache'''
+
+Display 50 posts, but don't add post information to the cache:
+
+ $query = new WP_Query( array( 'posts_per_page' => 50, 'cache_results' => false ) );
+
+'''Show Posts without adding post meta information to the cache'''
+
+Display 50 posts, but don't add post meta information to the cache:
+
+ $query = new WP_Query( array( 'posts_per_page' => 50, 'update_post_meta_cache' => false ) );
+
+'''Show Posts without adding post term information to the cache'''
+
+Display 50 posts, but don't add post term information to the cache:
+
+ $query = new WP_Query( array( 'posts_per_page' => 50, 'update_post_term_cache' => false ) );
+
+In general usage you should not need to use these, adding to the cache is the right thing to do, however they may be useful in specific circumstances.   An example of such circumstances might be when using a WP_Query to retrieve a list of post titles and URLs to be displayed, but in which no other information about the post will be used and the taxonomy and meta data won't be needed. By not loading this information, you can save time from the extra unnecessary SQL queries.
+
+'''Note''': If a persistent object cache backend (such as memcached) is used, these flags are set to false by default since there is no need to update the cache every page load when a persistent cache exists.
+
+===Return Fields Parameter===
+
+Set return values.
+
+* '''<tt>fields</tt>''' (''string'') - Which fields to return. All fields are returned by default. There are two other options:
+** '<tt>ids</tt>' - Return an array of post IDs.
+** '<tt>id=>parent</tt>' - Return an associative array [ parent => ID, … ].
+** Passing anything else will return all fields (default) - an array of post objects.
+
+==Filters==
+
+* '''<tt>[[Plugin_API/Filter_Reference/posts_distinct|posts_distinct]]</tt>''' - Alters SQL 'DISTINCTROW' clause to the query that returns the post array.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_groupby|posts_groupby]]</tt>''' - Alters SQL 'GROUP BY' clause of the query that returns the post array.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_join|posts_join]]</tt>''' - Alters SQL 'JOIN' clause of the query that returns the post array.
+* '''<tt>[[Plugin_API/Filter_Reference/post_limits|post_limits]]</tt>''' - Alters SQL 'LIMIT' clause of the query that returns the post array.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_orderby|posts_orderby]]</tt>''' - Alters SQL 'ORDER BY' clause of the query that returns the post array.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_where|posts_where]]</tt>''' - Alters SQL 'WHERE' clause of the query that returns the post array.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_join_paged|posts_join_paged]]</tt>''' - Alters SQL paging for posts using 'JOIN' clause of the query that returns the post array.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_where_paged|posts_where_paged]]</tt>''' - Alters SQL paging for posts using 'WHERE' clause of the query that returns the post array.
+* '''<tt>[[Plugin_API/Filter_Reference/posts_clauses|posts_clauses]]</tt>''' - Alters ''all'' the SQL clauses above in one go. It gives you an array of elements that are easy to alter (available with [[Version 3.1]]).
+
+Note, that there are more filters than the mentioned. As it is hard to keep the codex up to date, please inspect the <code>get_posts();</code> function inside the WP_Query class yourself (/wp-includes/query.php).
+
+==Source File==
+
+<tt>WP_Query()</tt> is located in {{Trac|wp-includes/query.php}}.
+
+==External Resources==
+* [http://generatewp.com/wp_query/ WordPress WP_Query Generator]
+* [http://thereforei.am/2011/10/28/advanced-taxonomy-queries-with-pretty-urls/ Advanced Taxonomy Queries with Pretty URLs]
+* [http://ottopress.com/2010/wordpress-3-1-advanced-taxonomy-queries/ Advanced Taxonomy Queries in WordPress 3.1]
+* [http://scribu.net/wordpress/advanced-metadata-queries.html Advanced Metadata Queries in WordPress 3.1]
+* [https://gist.github.com/2023628 Comprehensive Argument Reference by Mark Luetke]
+
+== Related ==
+
+{{Query Tags}}
+
+{{Class Footer}}
+
+[[Category:Classes]]
+{{Copyedit}}

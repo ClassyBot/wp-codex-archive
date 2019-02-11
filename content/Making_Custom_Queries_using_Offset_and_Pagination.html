@@ -1,0 +1,158 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Prerequisites_.26_Assumptions"><span class="tocnumber">2</span> <span class="toctext">Prerequisites &amp; Assumptions</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#The_Problem"><span class="tocnumber">3</span> <span class="toctext">The Problem</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#The_Solution"><span class="tocnumber">4</span> <span class="toctext">The Solution</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Offset_Using_pre_get_posts"><span class="tocnumber">5</span> <span class="toctext">Offset Using pre_get_posts</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Offset_.26_Manual_Pagination"><span class="tocnumber">5.1</span> <span class="toctext">Offset &amp; Manual Pagination</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Articles"><span class="tocnumber">6.1</span> <span class="toctext">Articles</span></a></li>
+<li class="toclevel-2"><a href="#Code_Documentation"><span class="tocnumber">6.2</span> <span class="toctext">Code Documentation</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Making_Custom_Queries_using_Offset_and_Pagination&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This article explains how to use WordPress's <tt>offset</tt> value in your queries without breaking WordPress's built-in pagination.
+</p><p>Specifying hard-coded offsets in queries can <b>and will</b> break pagination since <tt>offset</tt> is used by WordPress internally to calculate and handle pagination. 
+</p><p>To get around this limitation, you will need to write some additional code to manually handle pagination; you need to detect whether a <a href="https://codex.wordpress.org/The_Loop" title="The Loop">loop</a> has additional pages and then dynamically calculate the appropriate <i>offset</i> for the current page. Finally, you also need to adjust WordPress's pagination calculation to exclude the number of posts you have offset/skipped (which can be done by using the <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/found_posts" title="Plugin API/Filter Reference/found posts">found_posts</a> filter and subtracting your offset).
+</p>
+<h2><span class="mw-headline" id="Prerequisites_.26_Assumptions">Prerequisites &amp; Assumptions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Making_Custom_Queries_using_Offset_and_Pagination&amp;action=edit&amp;section=2" title="Edit section: Prerequisites &amp; Assumptions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This article assumes that you are already very familiar with WordPress's <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">Plugin API</a>. You should also be familiar with WordPress's <a href="https://codex.wordpress.org/Class_Reference/wpdb" title="Class Reference/wpdb">$wpdb class object</a> and it's various methods.
+</p>
+<h2><span class="mw-headline" id="The_Problem">The Problem</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Making_Custom_Queries_using_Offset_and_Pagination&amp;action=edit&amp;section=3" title="Edit section: The Problem">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Offsets are useful because they can allow a developer to skip a certain number of WordPress posts before starting output.
+</p><p>Unfortunately, many developers find out that hard way that setting an <tt>offset</tt> value in their custom WordPress queries has the nasty and potentially serious side-effect of <i>breaking pagination</i>.
+</p><p>There is a very good reason for this however... the <tt>offset</tt> argument is actually the value WordPress uses to handle pagination itself. If a developer sets a manual offset value, pagination will not function because that value will <i>override</i> WordPress's automatic adjustment of the offset for a given page.
+</p>
+<h2><span class="mw-headline" id="The_Solution">The Solution</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Making_Custom_Queries_using_Offset_and_Pagination&amp;action=edit&amp;section=4" title="Edit section: The Solution">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In order to use an offset  in WordPress queries without losing WordPress's pagination features, you will need to <b>manually handle some basic pagination calculations</b>. This can accomplished with the following two hooks:
+</p>
+<ul><li> <tt><a href="https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts" title="Plugin API/Action Reference/pre get posts">pre_get_posts</a></tt> - This hook allows tweaking of queries before they are run. Here we need to ensure that our offset is applied only to the first page.</li>
+<li> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/found_posts" title="Plugin API/Filter Reference/found posts">found_posts</a></tt> - Allows correction of WordPress's query result count. This allows us to ensure WordPress takes our offset into account for pages other than the first page.</li></ul>
+<h2><span class="mw-headline" id="Offset_Using_pre_get_posts">Offset Using pre_get_posts</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Making_Custom_Queries_using_Offset_and_Pagination&amp;action=edit&amp;section=5" title="Edit section: Offset Using pre get posts">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+function wpsites_exclude_latest_post( $query ) {
+	if ( $query-&gt;is_home() &amp;&amp; $query-&gt;is_main_query() ) {
+		$query-&gt;set( 'offset', '1' );
+	}
+}
+
+add_action( 'pre_get_posts', 'wpsites_exclude_latest_post', 1 );
+</pre>
+<p>The above code excludes the latest post from displaying on your home page loop.
+</p>
+<h3><span class="mw-headline" id="Offset_.26_Manual_Pagination">Offset &amp; Manual Pagination</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Making_Custom_Queries_using_Offset_and_Pagination&amp;action=edit&amp;section=6" title="Edit section: Offset &amp; Manual Pagination">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The first step is to use the <tt>pre_get_posts</tt> hook to both add your offset, and handle pagination. This hook passes the $query object to your function by reference, allowing you to easily use and manipulate the object without returning anything.
+</p><p>To make sure we are modifying the correct query, we perform a little check at the top. In the case of this example, we want the site's main blog archive (aka 'home') to skip the first 10 posts; we do this by checking any properties of the query object that may be relevant to us.
+</p>
+<pre data-syntax="php">
+add_action('pre_get_posts', 'myprefix_query_offset', 1 );
+function myprefix_query_offset(&amp;$query) {
+
+    //Before anything else, make sure this is the right query...
+    if (&#160;! $query-&gt;is_home() ) {
+        return;
+    }
+
+    //First, define your desired offset...
+    $offset = 10;
+    
+    //Next, determine how many posts per page you want (we'll use WordPress's settings)
+    $ppp = get_option('posts_per_page');
+
+    //Next, detect and handle pagination...
+    if ( $query-&gt;is_paged ) {
+
+        //Manually determine page query offset (offset + current page (minus one) x posts per page)
+        $page_offset = $offset + ( ($query-&gt;query_vars['paged']-1) * $ppp );
+
+        //Apply adjust page offset
+        $query-&gt;set('offset', $page_offset );
+
+    }
+    else {
+
+        //This is the first page. Just use the offset...
+        $query-&gt;set('offset',$offset);
+
+    }
+}
+</pre>
+<p>There is one more problem to address, however. WordPress will *not* take the <tt>offset</tt> into account when it checks for the number of posts. This creates a problem... internally, WordPress makes a simple check to see if the number of pages outnumbers that query's <tt>posts_per_page</tt> property. However, while <tt>offset</tt> will skip posts in the loop, those skipped posts will still be counted when WordPress decides if there are more pages. Whoops!
+</p><p>This little miscalculation means that WordPress will sometimes assume there is another page even if another page does not exist. For example, if you have 15 posts, an offset of 10, and a <code>posts_per_page</code> limit of 25, WordPress will assume that there is a second page even though the first page will only contain 5 posts (which falls short of our 25 posts_per_page limit). That mysterious second page will return a 404 error.
+</p><p>This last little pagination problem is easily corrected by using the <tt>found_posts</tt> filter hook, like so...
+</p>
+<pre data-syntax="php">
+add_filter('found_posts', 'myprefix_adjust_offset_pagination', 1, 2 );
+function myprefix_adjust_offset_pagination($found_posts, $query) {
+
+    //Define our offset again...
+    $offset = 10;
+
+    //Ensure we're modifying the right query object...
+    if ( $query-&gt;is_home() ) {
+        //Reduce WordPress's found_posts count by the offset... 
+        return $found_posts - $offset;
+    }
+    return $found_posts;
+}
+</pre>
+<p>And now you're done. Pagination should now work correctly along with your own, custom offset.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Making_Custom_Queries_using_Offset_and_Pagination&amp;action=edit&amp;section=7" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Articles">Articles</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Query_Tags&amp;action=edit&amp;section=T-1" title="Template:Query Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Article: <a href="https://codex.wordpress.org/The_Loop" title="The Loop">The Loop</a> - A basic overview of its use of query within the WordPress loop.</li>
+<li> Article: <a href="https://codex.wordpress.org/Query_Overview" title="Query Overview">Query Overview</a> - Explanation of how to determine which queries generate WordPress.</li>
+<li> Article: <a href="https://codex.wordpress.org/Custom_Queries" title="Custom Queries"> Customizing Queries via Hook</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Displaying_Posts_Using_a_Custom_Select_Query" title="Displaying Posts Using a Custom Select Query"> View Articles MYSQL query using custom</a></li>
+<li> Article: <a href="https://codex.wordpress.org/Making_Advanced_Taxonomy_Queries" title="Making Advanced Taxonomy Queries"> Build advanced queries on Taxonomies</a></li>
+<li> Article: <strong class="selflink"> Build custom query using Offset and pagination</strong></li></ul>
+<h3><span class="mw-headline" id="Code_Documentation">Code Documentation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Template:Query_Tags&amp;action=edit&amp;section=T-2" title="Template:Query Tags">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query"> WP_Query</a> - Detailed Overview of class WP_Query</li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_Comment_Query" title="Class Reference/WP Comment Query"> WP_Comment_Query</a> - Class for comment-related queries</li>
+<li> Class: <a href="https://codex.wordpress.org/Class_Reference/WP_User_Query" title="Class Reference/WP User Query"> WP_User_Query</a> - Class for user-related queries</li>
+<li> Object: <a href="https://codex.wordpress.org/Class_Reference/wpdb" title="Class Reference/wpdb"> $wpdb</a> - Overview on the use of the $wpdb object</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/set_query_var" title="Function Reference/set query var"> set_query_var()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_query_var" title="Function Reference/get query var"> get_query_var()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/query_posts" title="Function Reference/query posts"> query_posts()</a> - Create additional custom query</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_post" title="Function Reference/get post"> get_post()</a> - Take an ID of an item and return the records in the database for that article</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_posts" title="Function Reference/get posts" class="mw-redirect"> get_posts()</a> - A specialized function that returns an array of items</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/get_pages" title="Function Reference/get pages"> get_pages()</a> - A specialized function that returns an array of pages</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/have_posts" title="Function Reference/have posts"> have_posts()</a> - A condition that determines whether the query returned an article</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/the_post" title="Function Reference/the post"> the_post()</a> - Used to automatically set the loop after a query</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/rewind_posts" title="Function Reference/rewind posts"> rewind_posts()</a> - Clears the current loop</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/setup_postdata" title="Function Reference/setup postdata"> setup_postdata()</a> - Sets the data for a single query result within a loop</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_reset_postdata" title="Function Reference/wp reset postdata"> wp_reset_postdata()</a> - Restores the previous query (usually after a loop within another loop)</li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/wp_reset_query" title="Function Reference/wp reset query"> wp_reset_query()</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/is_main_query" title="Function Reference/is main query"> is_main_query()</a> - Ensures that the query that is being changed is only the main query</li>
+<li> Action Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/pre_get_posts" title="Plugin API/Action Reference/pre get posts"> pre_get_posts</a> - Change WordPress queries before they are executed</li>
+<li> Action Hook: <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/the_post" title="Plugin API/Action Reference/the post"> the_post</a> - Modify the post object after query</li>
+<li> Filter Hook: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/found_posts" title="Plugin API/Filter Reference/found posts"> found_posts</a> - Changes the value of the object found_posts WP_Query</li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004042
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.016 seconds
+Preprocessor visited node count: 57/1000000
+Preprocessor generated node count: 106/1000000
+Post‐expand include size: 2767/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    1.365      1 - Template:Query_Tags
+100.00%    1.365      1 - -total
+-->

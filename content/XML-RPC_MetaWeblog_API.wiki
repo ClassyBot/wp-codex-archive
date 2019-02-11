@@ -1,0 +1,264 @@
+WordPress supports the [http://xmlrpc.scripting.com/metaWeblogApi.html metaWeblog XML-RPC API], augmented with additional WordPress-specific functionality (denoted by &dagger;) . This support was added in WordPress 1.5.0.
+
+== metaWeblog.getPost ==
+
+Retrieve a post.
+
+=== Parameters ===
+
+* int <tt>postid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* struct
+** int <tt>postid</tt>&dagger;
+** string <tt>title</tt>
+** string <tt>description</tt>: Post content.
+** string <tt>link</tt>: Post URL.
+** string <tt>userid</tt>&dagger;: ID of post author.
+** datetime <tt>dateCreated</tt>&dagger;
+** datetime <tt>date_created_gmt</tt>&dagger;
+** datetime <tt>date_modified</tt>&dagger; (Added in WordPress 3.4)
+** datetime <tt>date_modified_gmt</tt>&dagger; (Added in WordPress 3.4)
+** string <tt>wp_post_thumbnail</tt>&dagger;
+** string <tt>permaLink</tt>&dagger;: Post URL, equivalent to <tt>link</tt>.
+** array <tt>categories</tt>: Names of categories assigned to the post.
+** string <tt>mt_keywords</tt>: Names of tags assigned to the post.
+** string <tt>mt_excerpt</tt>
+** string <tt>mt_text_more</tt>: Post "Read more" text.
+** string <tt>wp_more_text</tt>
+** int <tt>mt_allow_comments</tt>
+** int <tt>mt_allow_pings</tt>
+** string <tt>wp_slug</tt>&dagger;
+** string <tt>wp_password</tt>&dagger;
+** string <tt>wp_author_id</tt>&dagger;
+** string <tt>wp_author_display_name</tt>&dagger;
+** string <tt>[[Post_Status_Transitions|post_status]]</tt>&dagger;
+** string <tt>wp_post_format</tt>&dagger; (Added in WordPress 3.1)
+** bool <tt>sticky</tt>&dagger; (Added in WordPress 2.7.1)
+** array <tt>custom_fields</tt>&dagger; (Added in WordPress 2.3.2)
+*** struct
+**** string <tt>id</tt>
+**** string <tt>key</tt>
+**** string <tt>value</tt>
+** struct <tt>enclosure</tt>: Only set if post has an enclosure. (Added in WordPress 2.6.3)
+*** string <tt>url</tt>
+*** int <tt>length</tt>
+*** string <tt>type</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have permission to edit this post.
+* 404
+** If no post with that <tt>postid</tt> exists.
+
+== metaWeblog.getRecentPosts ==
+
+Retrieve a list of recent posts.
+
+=== Parameters ===
+
+* int <tt>blogid</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* string <tt>username</tt>
+* string <tt>password</tt>
+* int <tt>numberOfPosts</tt>: Optional.
+
+=== Return Values ===
+
+* array
+** struct: see [[#metaWeblog.getPost]] for fields. <tt>enclosure</tt> will not be included. Note that the returned postid is string instead of an integer.
+
+=== Errors ===
+
+* If a user cannot edit a post that would be included in the result set, it will be omitted from the response. Therefore, the total number of posts returned may be less than the requested quantity.
+
+== metaWeblog.newPost ==
+
+Create a new post.
+
+=== Parameters ===
+
+* int <tt>blogid</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>content</tt>
+** string <tt>title</tt>
+** string <tt>description</tt>: Post content.
+** string <tt>post_type</tt>: "post" or "page"
+** datetime <tt>dateCreated</tt>&dagger;
+** datetime <tt>date_created_gmt</tt>&dagger;: If specified, takes precedence over <tt>dateCreated</tt>.
+** array <tt>categories</tt>: Names of categories assigned to the post.
+** array <tt>mt_keywords</tt>: Names of tags assigned to the post.
+** string <tt>mt_excerpt</tt>
+** string <tt>mt_text_more</tt>: Post "Read more" text.
+** string <tt>mt_allow_comments</tt>: "open" or "closed"
+** string <tt>mt_allow_pings</tt>: "open" or "closed"
+** string <tt>wp_slug</tt>&dagger;
+** string <tt>wp_password</tt>&dagger;
+** string <tt>wp_author_id</tt>&dagger;
+** string <tt>wp_author_display_name</tt>&dagger;
+** string <tt>[[Post_Status_Transitions|post_status]]</tt>&dagger;
+** string <tt>wp_post_format</tt>&dagger; (Added in WordPress 3.1)
+** bool <tt>sticky</tt>&dagger; (Added in WordPress 2.7.1)
+** array <tt>custom_fields</tt>&dagger; (Added in WordPress 2.3.2)
+*** struct
+**** string <tt>id</tt>: Optional.
+**** string <tt>key</tt>
+**** string <tt>value</tt>
+** struct <tt>enclosure</tt>: Only set if post has an enclosure. (Added in WordPress 2.6.3)
+*** string <tt>url</tt>
+*** int <tt>length</tt>
+*** string <tt>type</tt>
+* bool <tt>publish</tt>: Whether to publish the post upon creation or leave it as a draft.
+
+=== Return Values ===
+
+* string <tt>postid</tt>
+
+=== Errors ===
+
+* 401
+** If user does not have permission to edit or publish posts of the specified type.
+** If user does not have permission to edit other users' posts but <tt>wp_author_id</tt> is specified.
+* 404
+** If invalid post format is specified.
+
+== metaWeblog.editPost ==
+
+Edit an existing post.
+
+=== Parameters ===
+
+* int <tt>postid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>content</tt>: See [[#metaWeblog.newPost]] for fields.
+* bool <tt>publish</tt>
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 401
+** If user does not have permission to edit this post.
+** If user does not have permission to edit other users' posts but <tt>wp_author_id</tt> is specified.
+* 404
+** If no post with that <tt>postid</tt> exists.
+** If invalid post format is specified.
+
+== metaWeblog.deletePost ==
+
+Delete an existing post. Equivalent to <tt>blogger.deletePost</tt>.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* int <tt>postid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* bool <tt>publish</tt>: Will be ignored.
+
+=== Return Values ===
+
+* bool <tt>true</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have permission to delete this post.
+* 404
+** If no post with that <tt>postid</tt> exists.
+
+== metaWeblog.getCategories ==
+
+Retrieve list of categories.
+
+=== Parameters ===
+
+* int <tt>blogid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* array
+** struct
+*** string <tt>categoryId</tt>
+*** string <tt>parentId</tt>
+*** string <tt>categoryName</tt>
+*** string <tt>categoryDescription</tt>
+*** string <tt>description</tt>: Name of the category, equivalent to <tt>categoryName</tt>.
+*** string <tt>htmlUrl</tt>
+*** string <tt>rssUrl</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#edit_posts|edit_posts]]</tt> cap.
+
+== metaWeblog.newMediaObject ==
+
+Upload a media file.
+
+=== Parameters ===
+
+* int <tt>blogid</tt>
+* string <tt>username</tt>
+* string <tt>password</tt>
+* struct <tt>data</tt>
+** string <tt>name</tt>: Filename.
+** string <tt>type</tt>: File MIME type.
+** string <tt>bits</tt>: base64-encoded binary data.
+** bool <tt>overwrite</tt>: Optional. Overwrite an existing attachment of the same name. (Added in WordPress 2.2)
+
+=== Return Values ===
+
+* struct
+** string <tt>id</tt> (Added in WordPress 3.4)
+** string <tt>file</tt>: Filename.
+** string <tt>url</tt>
+** string <tt>type</tt>
+
+=== Errors ===
+
+* 401
+** If the user does not have the <tt>[[Roles_and_Capabilities#upload_files|upload_files]]</tt> cap.
+* 500
+** File upload failure.
+
+== metaWeblog.getUsersBlogs ==
+
+Returns information about all the blogs a given user is a member of. Equivalent to <tt>blogger.getUsersBlogs</tt>.
+
+=== Parameters ===
+
+* string <tt>appkey</tt>: Not applicable for WordPress, can be any value and will be ignored.
+* string <tt>username</tt>
+* string <tt>password</tt>
+
+=== Return Values ===
+
+* array
+** struct
+*** string <tt>blogid</tt>
+*** string <tt>url</tt>: Homepage URL for this blog.
+*** string <tt>blogName</tt>
+*** bool <tt>isAdmin</tt>&dagger;
+*** string <tt>xmlrpc</tt>&dagger;: URL endpoint to use for XML-RPC requests on this blog.
+
+== metaWeblog.getTemplate ==
+
+Not supported. Please use the [[Editing Files|theme editor]] to manage your templates.
+
+== metaWeblog.setTemplate ==
+
+Not supported. Please use the [[Editing Files|theme editor]] to manage your templates.
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Feeds]]

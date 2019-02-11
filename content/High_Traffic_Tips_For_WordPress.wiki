@@ -1,0 +1,164 @@
+{{Languages|
+{{en|High Traffic Tips For WordPress}}
+{{ja|WordPress_の最適化/高トラフィック_WordPress_サイト向けのヒント}}
+}}
+__TOC__
+Before [[Hosting_WordPress|using WordPress]] for a high-traffic site, you need to make sure the site is ready to deal with high traffic volumes. WordPress is certainly capable of managing large amounts of traffic, but there are limitations on what any website platform can do by itself. When you make changes to your web hosting/server, caching system, or file sizes, you must ensure your site will not crash after receiving only a few thousand hits.
+
+See also [[WordPress Optimization]]
+
+== Hardware Limitations ==
+
+Like any other web application, WordPress is only able to handle as much traffic as the [[Hosting_WordPress|hardware]] which runs it can support.
+
+There are two main barriers that can prevent your site from functioning under a high volume of traffic:
+
+* [[#Processor Limitations|Processor Limitations]]
+* [[#Network Limitations|Network Limitations]]
+
+=== Processor Limitations ===
+High traffic levels can put great demand on your server's internal resources. Ensure that your server has sufficient processor power and memory resources to meet these demands. 
+
+The default requirements for WordPress are listed below. However, individual sites may require additional resources.
+
+==== MySQL/MariaDB ====
+
+As with many blogging and web applications, WordPress depends on [[Glossary#MySQL|MySQL]] or [[Glossary#MariaDB|MariaDB]] to store data for producing output. Every request WordPress makes to MySQL/MariaDB, including both read and write operations, creates a load on the server.
+
+WordPress is continuously optimized to minimize the number of database requests needed for regular operation. However, developmental practices used in plugins or themes can increase the amount of database usage needed to run a given site. In high-traffic situations, many simultaneous database connections can cause excessive strain on the server. An incomplete connection to a server causes the "Connection timed out" response in the visitor's browser.
+
+MySQL/MariaDB connection rates can be improved by either adjusting MySQL/MariaDB settings, or providing more memory and processing power to the overworked server. Additionally, using query caching and proper indexing can help to improve MySQL/MariaDB performance. There is no single solution for every case, as all sites operate differently.
+
+Another option worth considering for high traffic sites is creating a read-only slave of your master database server. Since most requests made of the database by your WordPress site are SELECT (or read) requests, these can be separated from other UPDATE or INSERT requests by using a database management plugin such as HyperDB, written by the core WordPress team.
+
+==== Web Service ====
+
+WordPress is a web server neutral application, meaning that it can run on many different platforms.  [[Glossary#Apache|Apache]] and [[Glossary#Linux|Linux]] are the most robust platforms for running WordPress, but any server that supports [[Glossary#PHP|PHP]] and MySQL or [[Glossary#MariaDB|MariaDB]] will do.
+
+Make sure your host features the most up-to-date and stable version of these platforms in order to create a strong environment in which to run WordPress.
+
+The method chosen to run PHP -- the language that interprets the WordPress code -- can also affect your server's performance. In CGI mode, the server creates a new instance of the PHP program for every PHP file that a visitor requests. In shared module mode (or ISAPI), each PHP request is handled by a single library instance. 
+
+There are also many misconceptions about the benefits of multi-threaded Apache 2 implementations. In general, prefork performance of Apache 2 with mod_php is the most stable. There are advantages and drawbacks to each method - when choosing the method for your server, be sure to keep in mind traffic and its demands on the server, and make sure to run your own tests before deploying.
+
+===Network Limitations===
+
+A slow Internet connection can limit the number of pages your server can serve in a given space of time.
+
+Your server's network provider (your [[Glossary#Hosting provider|host]] or [[Glossary#ISP|ISP]]) will usually connect your server to their internal network via an Ethernet adapter.  Adapters typically operate at certain standard maximum speeds, usually 10Mb/s, 100Mb/s, or 1Gb/s.  Your server cannot transfer files faster than the speed at which this network connection transmits.  In addition, there are many other factors that can
+affect the actual transfer rate seen by your server.
+
+First, it is important to note that many of these numbers (especially the speed of your server's network adapter) are theoretical.  In practice, your server will never transfer files at the maximum rate specified by the adapter. This is because, in addition to the actual data being transferred, the server is also sending and receiving the routing information needed to get data to your site visitors.  Because of this "network overhead", '''only a fraction of the server's full bandwidth is available for actually transferring files.'''
+
+Second, your server is likely connected to various devices in your network provider's facilities. These devices can also place limitations on the "real world" speeds your server can attain.  They are in place because your network provider has to fraction out its limited bandwidth to many servers at its location, and all of the bandwidth must be shared.
+
+Certain network providers allow you to "burst" data -- temporarily exceed a pre-set transfer speed limit -- in cases when demand for your site content is especially high.  The network provider's hardware is designed to know when this is required.  Some providers charge extra for this feature, some do not, and others do not offer this feature at all. Contact your service provider to find out whether this feature is available to you.
+
+==== Network Transfer Speeds in Use ====
+
+To determine why the bandwidth of the connection is important to a high-traffic site, let's look at the math.
+
+Assume your site receives 100,000 hits in a day.  For the purpose of this computation, we will say that one "hit" is a single data transfer, whether that is a single file or a whole page and its supporting files.  Averaged out, 100,000 hits in a day equates to 1.16 hits every second.  
+
+Let's also assume the average hit generates 160KB of transferred data; HTML, images, CSS, downloaded files, etc.  This means that your site is transferring 190KB of data every second (<tt>160KB/hit * 1.16 hits/s</tt>).  The total, 190KB/s, equals about 1.5Mb/s of sustained throughput.  (Note that <tt>KB = Kilo<i>bytes</i></tt> and <tt>Mb = Mega<i>bits</i></tt>.  Most network speeds are rated in <i>bits</i> per second, whereas file sizes are measured in <i>bytes</i>.)  Many network providers cap the transfer rate of a site to about this level; some higher, some lower.  However, this steady rate will only be maintained if each individual user visits the site at regular intervals.
+
+Usually, more than one user at a time will access your site.  On the other hand, there may be periods where nobody accesses your site at all.  If 10 people suddenly hit the site in one second, and that hit rate is sustained over a lengthy period -- not uncommon for a high-traffic site -- then you would need a 15Mb/s connection just to keep up with the simultaneous connections.
+
+If your network adapter's maximum theoretical speed is only 10Mb/s, demand has already exceeded capacity.  In this instance the network is the source of your traffic problems, rather than WordPress.
+
+It is not necessary to receive hundreds of thousands of hits to experience this problem.  Sustaining this rate of connectivity for a mere hour generates only 36,000 hits.  If  your site visitors tend to favor a certain time of day (or an automated comment spam script attempts to access your system multiple concurrent times while posting comments) then you could be left with many dropped requests.
+
+A 100Mb/s connection could handle up to 70 simultaneous connections at the same rate of download, but most network providers would not offer the bandwidth needed to fully use this speed on their shared hosting plans.  You would likely need to pay a premium in order to get this kind of bandwidth from your connection.
+
+==== Transfer Overages ====
+
+Hosting large files such as videos, podcasts, or large photo archives can leave you at risk of transfer overages.  Hosting plan often stipulate a maximum amount of data that can be transferred in a given space of time.  After your account has reached that amount, you will be charged for any extra data that is transferred.  Depending on the host, this could be as much as $1/MB.  
+
+At that rate, a single 20MB download could cost you $20 extra on your hosting bill!
+
+Usually, the higher the transfer limit, the more costly your hosting plan will be.  Some hosting services offer plans with no transfer limitations. These can be quite expensive, but certainly ''less'' expensive than paying for transfer overages on a high-traffic site.
+
+A popular method of maximizing your site's performance while avoiding overages is to use a Content Delivery Network (CDN) with your site. There are many affordable pay-as-you go solutions that help you to avoid the bandwidth limitations implemented by some hosting providers. Learn more about CDNs and offloading [http://codex.wordpress.org/WordPress_Optimization/Offloading#Commercial_Services here].
+
+== Typical Requirements by Benchmark ==
+
+<div style="border:green solid 1px; padding: 10px">This space is reserved for showing the capabilities of a typical server setup under stressful load conditions.  Comparing the configuration of a particular hosting service to these benchmarks may help give you a better idea of the capabilities of the server you're considering.
+
+Note that any server you choose will likely be at least slightly different than the benchmarks shown here.
+
+ Still working on obtaining benchmarks.
+</div>
+
+== High Traffic Solutions ==
+
+Like [http://en.wikipedia.org/wiki/Kobe_beef Kobe beef], WordPress is only at its best when raised in the proper conditions.  Here are a few things to try if you find that high traffic is limiting your blog's performance.
+
+===Service-Oriented Architecture===
+
+If you are preparing for truly high traffic (or have already experienced it and are clamoring for some help), you should consider splitting your WordPress application into as many separate layers as possible, and serving those layers independently. Instead of a single host machine running your web server and MySQL/MariaDB, your site speed and resiliency would be helped by running in concurrent layers. Here is an example:
+* Apache2 / nginx web front-end server(s) - to handle actual page rendering and site administration.
+* MySQL/MariaDB database server - or master/slave, using a read-replica.
+* Varnish / nginx HTTP proxy layer - to handle initial requests from users.
+* CDN or image server - to serve media files that support your site.
+Not only will your site be able to take more load in this architecture, but you can then identify bottlenecks or stress-points that need to be addressed specifically. Perhaps your MySQL/MariaDB database is performing poorly, or Apache2 needs more CPU, and so forth. Under the right design, these layers can also be scaled out and in, or up and down, with your traffic.
+
+=== W3 Total Cache ===
+
+[http://wordpress.org/extend/plugins/w3-total-cache/ W3 Total Cache] (W3TC) is the latest generation in WordPress performance plugins, combining the research of [http://developer.yahoo.com/performance/rules.html web development authorities] to provide an optimal user experience for WordPress sites. W3TC is unique in its ability to optimize server side and client side performance, adding functionality otherwise unavailable natively:
+
+* Page Caching: W3TC helps to decrease response time by creating static HTML versions of pages, allowing web servers to serve them without invoking PHP. It automatically updates the cache when comments are made or pages are edited.
+* Minification: Removes unnecessary characters from HTML, CSS and JavaScript files, then respectively combines them before applying HTTP compression on the cached files.
+* Database Caching: Database queries (objects) are also cached, allowing many sites to reduce the time needed to generate new pages. This is especially useful for sites that receive a lot of comments.
+* Headers: W3TC manages the headers (entity tag, cache-control, expires) which control the caching of files in web browsers, reducing server load and improving the user's perceived performance.
+* Content Delivery Network (CDN): Using a CDN allows you to "[http://codex.wordpress.org/WordPress_Optimization/Offloading#Commercial_Services offload]" resources from your hosting account. W3TC moves the requests for images, CSS, JavaScript and other static files to a network of high performance servers. The server closest to the visitor is automatically used to download the files, providing the fastest downloads possible.
+
+W3TC can be used to optimize WordPress in both single- and multi-server environments through either shared or dedicated hosting.
+
+=== WP Super Cache ===
+
+[http://wordpress.org/extend/plugins/wp-super-cache/ WP Super Cache] is a static page caching plugin for WordPress. It generates HTML files that are served directly by Apache without processing comparatively heavy PHP scripts, helping you to make significant speed gains on your WordPress blog.
+
+WP Super Cache is a fork of [http://wordpress.org/extend/plugins/wp-cache/ WP Cache] by Ricardo Galli Granada. WP Cache also caches your WordPress blog pages and delivers them without accessing the database. However, its use is no longer recommended, as WP Cache still needs the PHP engine to be loaded in order to serve the cached files.
+
+However, WP Super Cache gets around this problem, allowing HTML files to be generated and served without ever invoking a single line of PHP. Using WP Super Cache allows your server to serve cached HTML pages at the same speed it serves regular graphic files. Consider WP Super Cache if your site is struggling to cope with its daily number of visitors, or if it appears on [http://digg.com/ Digg.com], [http://slashdot.org/ Slashdot.org] or any other popular site.
+
+=== Varnish Cache ===
+
+[https://www.varnish-cache.org/ Varnish Cache] works in concert with W3 Total Cache to store pre-built pages in memory and serve them quickly without requiring execution of the Apache, PHP, WordPress stack.
+
+While Varnish gives excellent performance, administrators should be aware that Varnish is "allergic" to cookies. If deployed with default settings, Varnish will not recognize or honor normal WordPress cookies for logged in users, etc. Therefore, the configuration file should be written so that the presence of WordPress cookies triggers Varnish to bypass the cache and send the request on to the web server directly. In effect this means that logged-in users (site admins, authors, contributors) will make requests directly to the web server, while public (anonymous) users will make their requests from the Varnish cache. A quick search of GitHub should provide a variety of VCL configuration files specifically written to work with WordPress, such as [https://github.com/dreamhost/varnish-vcl-collection DreamHost's WordPress VCL example].
+
+Please be aware that Varnish, like most other caching mechanisms, will serve up the same content from the cache until it expires. This means that administrators will need to either clear the cache when new content is added, or install a management plugin such as [https://wordpress.org/plugins/varnish-http-purge/ Varnish HTTP Purge], which resets the cache for any pages or posts that have been updated, and gives administrators a simple interface to clear the cache when theme or menu changes have been made.
+
+=== Turn Off or Limit WordPress Plugins and Graphics ===
+
+You may notice the effects of high traffic more if your blog has a high number of code and design elements.
+
+For example, let's say the front page of your blog calls upon 8 graphics to create the "look" of your blog's design. Add this number to the various WordPress template files it takes to build your page.  At minimum, this includes the header, sidebar, footer, and post content area, creating four more "calls" to files on your site. For 100 visitors, those files get loaded 1200 times. For 1000 visitors, those files are loaded 12000 times, increasing both bandwidth and server activity.
+
+WordPress Plugins are also files that are "called" by your WordPress Theme. In turn, these plugins make queries to your database to generate the information on your blog. The more WordPress Plugins, the more queries to your database. Combine all these access files and database queries with an exponential increase in visitors, and you have a lot of demand on your site.
+
+You can lower the number of files accessed and the queries to your database during periods of heavy traffic by: 
+#Limiting the number of graphics on your blog. You can do this by editing the stylesheet and template files of your WordPress Theme. 
+#Turning off a few WordPress Plugins temporarily. Go through your list of WordPress Plugins to see if there are any listed that you could live without for a day or two.
+
+Keep access to files and your database to a minimum as much as possible. Reactivate and restore these features after the heavy traffic volume has died down.
+
+=== New Hosting ===
+
+As painful as it may be to hear it, you might simply require a more powerful server.
+
+Here is a simple outline of upgrade steps for a site that is having problems with high traffic.  If you are having trouble with:
+
+* Shared hosting: try upgrading to Virtual Dedicated Hosting.
+* Virtual Dedicated Hosting: try upgrading to Dedicated Hosting.
+* Dedicated Hosting: try upgrading to a higher-powered dedicated server.
+* High-Powered Dedicated Hosting: talk to your hosting provider about multiple Load Balanced Servers.
+
+In all cases, your server is only as capable as your network provider.  If your provider does not provide the bandwidth you require, you may need to negotiate an increase, or find a different provider that can provide you with the bandwidth that your traffic requires.
+
+[[Category:Advanced Topics]]
+[[Category:Installation]]
+[[Category:Getting Started]]
+[[Category:WordPress Optimization]]
+{{Copyedit}}

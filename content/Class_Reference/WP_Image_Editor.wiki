@@ -1,0 +1,105 @@
+==Description==
+<tt>WP_Image_Editor</tt> is a class defined in {{Trac|wp-includes/class-wp-image-editor.php}} that is an abstract class, so it can't be called directly. It is used for implementations like WP_Image_Editor_GD and WP_Image_Editor_Imagick. It has some base functionality that can be used by those implementations.
+
+==Interacting with WP_Image_Editor==
+
+
+==Usage==
+
+<pre>
+$image = wp_get_image_editor( 'cool_image.jpg' ); // Return an implementation that extends WP_Image_Editor
+
+if ( ! is_wp_error( $image ) ) {
+    $image->rotate( 90 );
+    $image->resize( 300, 300, true );
+    $image->save( 'new_image.jpg' );
+}
+</pre>
+
+==Methods and Properties==
+
+You shouldn't call an implementation directly. Instead, use [[Function_Reference/wp_get_image_editor|wp_get_image_editor()]], which looks at which implementation is the best.
+
+===Methods===
+
+(An ampersand (&) before a method name indicates it [http://www.php.net/manual/en/language.references.return.php returns by reference].)
+
+; <tt>supports_mime_type( $mime_type )</tt>
+: Checks to see if editor supports the mime-type specified.
+
+; <tt>save( $destfilename = null, $mime_type = null )</tt>
+: Saves current image to file.
+
+; <tt>resize( $max_w, $max_h, $crop = false )</tt>
+: Resizes current image.
+: Crop value:
+ 1. If false (default), images will not be cropped.
+ 2. If an array in the form of array( x_crop_position, y_crop_position ):
+  - x_crop_position accepts 'left' 'center', or 'right'.
+  - y_crop_position accepts 'top', 'center', or 'bottom'.
+: Images will be cropped to the specified dimensions within the defined crop area.
+ 3. If true, images will be cropped to the specified dimensions using center positions.
+
+; <tt>multi_resize( $sizes );</tt>
+: Processes current image and saves to disk multiple sizes from single source.
+
+; <tt>crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false )</tt>
+: Crops Image.
+
+; <tt>rotate( $angle )</tt>
+: Rotates current image counter-clockwise by $angle.
+
+; <tt>flip( $horz, $vert )</tt>
+: Flips current image on the horizontal or vertical axis.
+
+; <tt>stream( $mime_type = null )</tt>
+: Streams current image to browser.
+
+; <tt>get_size()</tt>
+: Gets dimensions of image as an array with keys 'width' and 'height'.
+
+; <tt>update_size( $width = null, $height = null )</tt>
+: Sets current image size.
+
+; <tt>set_quality( $quality )</tt>
+: Sets Image Compression quality on a 1-100% scale as an integer (1-100). Default quality defined in WP_Image_Editor class is 90.
+
+; <tt>get_output_format( $filename = null, $mime_type = null )</tt>
+: Returns preferred mime-type and extension based on provided file's extension and mime, or current file's extension and mime. Will default to `$this->default_mime_type` if requested is not supported. Provides corrected filename only if filename is provided.
+
+; <tt>generate_filename( $suffix = null, $dest_path = null, $extension = null )</tt>
+: Builds an output filename based on current file, and adding proper suffix.
+
+; <tt>get_suffix()</tt>
+: Builds and returns proper suffix for file based on height and width.
+
+; <tt>make_image( $filename, $function, $arguments )</tt>
+: Either calls editor's save function or handles file as a stream.
+
+; <tt>get_mime_type( $extension = null )</tt>
+: Returns first matched mime-type from extension, as mapped from [http://codex.wordpress.org/Function_Reference/wp_get_mime_types wp_get_mime_types()].
+
+; <tt>get_extension( $mime_type = null )</tt>
+: Returns first matched extension from Mime-type, as mapped from [http://codex.wordpress.org/Function_Reference/wp_get_mime_types wp_get_mime_types()].
+
+==Filters==
+
+* '''<tt>[[Plugin_API/Filter_Reference/wp_image_editors|wp_image_editors]]</tt>''' - modify array to re-order or add additional editor/engine classes.
+* '''<tt>[[Plugin_API/Filter_Reference/image_editor_default_mime_type|image_editor_default_mime_type]]</tt>''' - string; set default mime-type for `WP_Image_Editor`.
+
+==Source File==
+
+<tt>WP_Image_Editor()</tt> is located in {{Trac|wp-includes/class-wp-image-editor.php}}.
+
+==Resources==
+
+* [http://make.wordpress.org/core/2012/12/06/wp_image_editor-is-incoming/ WP_Image_Editor is incoming!]
+* [http://markoheijnen.com/wordpress-new-image-manipulation/ WordPress new image manipulation]
+* [http://bhoover.com/wp_image_editor-wordpress-image-editing-tutorial/ WP_Image_Editor Tutorial]
+
+== Related ==
+
+
+==Change Log==
+* Since [[Version_3.5|3.5.0]]
+{{Copyedit}}

@@ -1,0 +1,85 @@
+{{Languages|
+{{en|Function Reference/add shortcode}}
+{{it|Riferimento funzioni/add shortcode}}
+{{ja|Function Reference/add shortcode}}
+}}
+== Descrizione ==
+
+Aggiunge una funzione di aggancio ad uno [[it:Le API degli Shortcode|shortcode]].
+
+== Utilizzo ==
+
+%%%<?php add_shortcode( $tag , $func ); ?>%%%
+
+== Parametri ==
+
+{{it:Parameter|$tag|string|Shortcode da ricercare nel contenuto del post}}
+{{it:Parameter|$func|callable|Funzione di aggancio da eseguire quando lo shortcode viene trovato}}
+
+== Valori restituiti ==
+
+; (nessuno)
+
+== Esempi ==
+
+Semplice esempio di uno shortcode che usa le API:
+[footag foo="bar"]
+ function footag_func( $atts ) {
+      return "foo = {$atts['foo']}";
+ }
+ add_shortcode('footag', 'footag_func');
+
+Esempio con valori prefediniti per gli attributi:
+[bartag foo="bar"]
+ function bartag_func( $atts ) {
+      extract( shortcode_atts( array(
+ 	      'foo' => 'no foo',
+ 	      'baz' => 'default baz'
+      ), $atts ) );
+      return "foo = {$foo}";
+ }
+ add_shortcode( 'bartag', 'bartag_func' );
+
+Esempio con contenuto racchiuso:
+[baztag]contenuto[/baztag]
+ function baztag_func( $atts, $content="" ) {
+      return "contenuto = $content";
+ }
+ add_shortcode( 'baztag', 'baztag_func' );
+
+Se il tuo plugin è progettato come una classe, scrivi nel modo seguente:
+ class MyPlugin {
+      function baztag_func( $atts, $content="" ) {
+             return "contenuto = $content";
+      }
+ }
+ add_shortcode( 'baztag', array( 'MyPlugin', 'baztag_func' ) );
+
+== Note ==
+
+Può esistene una sola funzione di aggancio per ogni shortcode. Questo significa che se un altro plugin ha uno shortcode simile, uno sovrascriverà l'altro a seconda dell'ordine in cui i plugin vengono inclusi e/o eseguiti.
+
+I nomi degli attributi degli shortcode sono sempre convertiti in minuscolo prima di essere passati alla funzione che li gestice. I valori rimangono immutati.
+
+Si noti che la funzione chiamata dallo shortcode non deve ''mai'' stampare l'output. Le funzioni degli shortcode devono ''restituire'' il testo da usare per rimpiazzare lo shortcode, in modo simile a come si comportano le funzioni filtro. Stampare output direttamente può portare a risultati inattesi poiché non è possibile controllare quando e in che punto le funzioni vengono chiamate.
+
+== Log delle modifiche ==
+
+Da: 2.5
+
+== File sorgente ==
+
+<tt>add_shortcode()</tt> si trova in {{Trac|wp-includes/shortcodes.php}}.
+
+== Risorse ==
+
+* [http://generatewp.com/shortcodes/ WordPress Shortcodes Generator]
+
+== Correlati ==
+
+{{it:Shortcode Tags}}
+
+{{it:Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

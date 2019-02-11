@@ -1,0 +1,80 @@
+{{Languages|
+{{en|Function Reference/wp_insert_term}}
+{{es|Function Reference/wp_insert_term}}
+{{ja|関数リファレンス/wp_insert_term}}
+}}
+
+== Description ==
+
+Adds a new term to the database. Optionally marks it as an alias of an existing term.
+
+== Usage ==
+%%%<?php wp_insert_term( $term, $taxonomy, $args = array() ); ?>%%%
+
+== Parameters ==
+{{Parameter|$term|int&#124;string|The term to add or update.}}
+{{Parameter|$taxonomy|string|The taxonomy to which to add the term.}}
+{{Parameter|$args|array&#124;string|Change the values of the inserted term|optional}}
+
+=== Arguments ===
+
+The arguments decide how the term is handled based on the <b><tt>$args parameter</tt></b>. The following is a list of the available overrides and the defaults.
+
+{{Parameter|'alias_of'|string|There is no default, but if added, expected is the slug that the term will be an alias of.|optional}}
+
+{{Parameter|'description'|string|If exists, will be added to the database along with the term.|optional}}
+
+{{Parameter|'parent'|numeric|Will assign value of 'parent' to the term.|optional|0 (zero)}}
+
+{{Parameter|'slug'|string||optional}}
+
+If <tt>'slug'</tt> argument exists then the slug will be checked to see if it is not a valid term. If that check succeeds (it is not a valid term), then it is added and the term id is given. If it fails, then a check is made to whether the taxonomy is hierarchical and the parent argument is not empty. If the second check succeeds, the term will be inserted and the term id will be given. If the slug argument is empty, then it will be calculated from the term name.
+
+== Return Values ==
+; (array&#124;WP_Error) :The Term ID and Term Taxonomy ID. (Example: <tt>array('term_id'=>12,'term_taxonomy_id'=>34)</tt>)
+
+Error handling is assigned for the nonexistence of the <tt>$taxonomy</tt> and <tt>$term</tt> parameters before inserting. If both the term id and taxonomy exist previously, then an array will be returned that contains the term id and the contents of what is returned. The keys of the array are 'term_id' and 'term_taxonomy_id' containing numeric values.
+
+It is assumed that the term does not yet exist or the above will apply. The term will be first added to the term table and then related to the taxonomy if everything is well. If everything is correct, then several actions will be run prior to a filter and then several actions will be run after the filter is run.
+
+== Example ==
+
+<pre>
+$parent_term = term_exists( 'fruits', 'product' ); // array is returned if taxonomy is given
+
+wp_insert_term(
+  'Apple', // the term 
+  'product', // the taxonomy
+  array(
+    'description'=> 'A yummy apple.',
+    'slug' => 'apple',
+    'parent'=> $parent_term['term_id']  // get numeric term id
+  )
+);
+</pre>
+
+== Hooks Used ==
+
+* <tt>'pre_insert_term'</tt>   filter with <tt>$term</tt> and <tt>$taxonomy</tt> as parameters
+This function calls these hooks with term <b>id</b> and taxonomy <b>id</b> as parameters:
+* <tt>'create_term'</tt>       action
+* <tt>'create_$taxonomy'</tt>  action
+* <tt>'term_id_filter'</tt>    filter
+* <tt>'created_term'</tt>      action
+* <tt>'created_$taxonomy'</tt> action
+
+== Change Log ==
+
+Since: 2.3.0
+
+== Source File ==
+
+<tt>wp_insert_term()</tt> is located in {{Trac|wp-includes/taxonomy.php}}.
+
+== Related ==
+[[Function Reference/wp_update_term|wp_update_term]], 
+[[Function Reference/wp_unique_term_slug|wp_unique_term_slug]]
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

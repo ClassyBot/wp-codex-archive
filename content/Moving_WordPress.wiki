@@ -1,0 +1,186 @@
+{{Languages|
+{{en|Moving WordPress}}
+{{ja|Moving WordPress}}
+{{fr|Deplacer WordPress}}
+{{nl|WordPress verhuizen}}
+{{pt-br|Movendo o WordPress}}
+{{ru|Перемещение WordPress}}
+{{sk|Presunutie WordPress}}
+{{zh-cn|WordPress 博客搬家}}
+}}
+
+__TOC__
+Whether you are moving WordPress to a new server or to a different location on your server, you don't need to reinstall. WordPress is flexible enough to handle all of these situations.
+
+==Moving to a New Server==
+
+If you are moving WordPress from one server to another, begin by backing up your WordPress directory, images, plugins, and other files on your site as well as the database. See [[WordPress Backups]] and [[Backing Up Your Database]]. 
+
+===Keeping Your Domain Name and URLs===
+
+Moving your domain without changing the Home and Site URLs of your WordPress site is very simple, and in most cases can be done by moving the files.
+
+* If database and URL remain the same, you can move by just copying your files and database. 
+* If database name or user changes, [[Editing_wp-config.php|edit wp-config.php]] to have the correct values.
+* If you want to '''test before you switch''', you must temporarily change "siteurl" and "home" in the database table "<tt>wp_options</tt>" (through phpMyAdmin or similar).
+* If you had any kind of rewrites (permalinks) setup you must disable <tt>.htaccess</tt> and reconfigure permalinks when it goes live.
+
+===Changing Your Domain Name and URLs===
+
+Moving a website and changing your  domain name or URLs (i.e. from http://example.com/site to http://example.com, or http://example.com to http://example.net)  requires the following steps - in sequence. 
+
+# Download your existing site files. 
+# Export your database - go in to MySQL and export the database. 
+# Move the backed up files and database into a new folder - somewhere safe - this is your site backup. 
+# Log in to the site you want to move and go to Settings > General, then change the URLs. (ie from http://example.com/ to http://example.net ) - save the settings and expect to see a 404 page. 
+# Download your site files again.
+# Export the database again. 
+# Edit wp-config.php with the new server's MySQL database name, user and password.
+# Upload the files.
+# Import the database on the new server.
+
+When your domain name or URLs change there are additional concerns. The files and database can be moved, however references to the old domain name or location will remain in the database, and that can cause issues with links or theme display.
+
+If you do a search and replace on your entire database to change the URLs, you ''can'' cause issues with data serialization, due to the fact that some themes and widgets store values with the length of your URL marked. When this changes, things break. To avoid that serialization issue, you have four options:
+
+# Use the [https://wordpress.org/plugins/velvet-blues-update-urls/ Velvet Blues Update URLs] plugin if you can access your WP Admin Dashboard.
+# Use the [https://wordpress.org/plugins/better-search-replace/ Better Search Replace] plugin if you can access your WP Admin Dashboard.
+# Use [http://wp-cli.org/commands/search-replace/ WP-CLI's search-replace] if your hosting provider (or you) have installed WP-CLI.
+# Use the [https://interconnectit.com/products/search-and-replace-for-wordpress-databases/ Search and Replace for WordPress Databases Script] to safely change all instances on your old domain or path to your new one. (** only use this option if you are comfortable with database administration ** ) 
+
+Note: Search and Replace from Interconnectit is a 3rd party script
+
+==Moving Directories On Your Existing Server==
+
+Moving the WordPress files from one location on your server to another - i.e. changing its URL - requires some special care. If you want to move WordPress to its own folder, but have it run from the root of your domain, please read [[Giving_WordPress_Its_Own_Directory|Giving WordPress Its Own Directory]] for detailed instructions.
+
+Here are the step-by-step instructions to move your WordPress site to a new location on the same server:
+
+# Create the new location using one of these two options:
+## If you will be moving your [[WordPress Files|WordPress core files]] to a new directory, create the new directory.
+## If you want to move WordPress to your root directory, make sure all [[WordPress Files|index.php]], [[Glossary#.htaccess|.htaccess]], and other files that might be copied over are backed up and/or moved, and that the root directory is ready for the new WordPress files. 
+# Log in to your site.
+# Go to the [[Administration Screens|Administration]] > [[Administration_Screens#Settings|Settings]] > [[Settings_General_Screen|General]] screen.
+# In the box for '''WordPress Address (URL):''' change the address to the new location of your main WordPress core files. 
+# In the box for '''Site Address (URL):''' change the address to the new location, which should match the WordPress (your public site) address. 
+# Click '''Save Changes'''.
+# (Do not try to open/view your site now!)
+# Move your WordPress core files to the new location.  This includes the files found within the original directory, such as <tt><nowiki> http://example.com/wordpress</nowiki></tt>, and all the sub-directories, to the new location.
+# Now, try to open your site by going to <tt><nowiki>yourdomain.com/wp-admin</nowiki></tt>. Note, you may need to go to <tt><nowiki>yourdomain.com/wp-login.php</nowiki></tt>
+# If you are using [[Using Permalinks|Permalinks]], go to the [[Administration Screens|Administration]] > [[Administration_Screens#Settings|Settings]] > [[Settings_Permalinks_Screen|Permalinks]] screen and update your Permalink structure to your [[Glossary#.htaccess|.htaccess]] file, which should be in the same directory as the main <tt>index.php</tt> file.
+# Existing image/media links uploaded media will refer to the old folder and must be updated with the new location. You can do this with the [https://wordpress.org/plugins/velvet-blues-update-urls/ Velvet Blues Update URLs] or [https://wordpress.org/plugins/better-search-replace/ Better Search Replace] plugins, [http://wp-cli.org/commands/search-replace/ WP-CLI's search-replace] if your hosting provider (or you) have installed WP-CLI, manually in your SQL database, or by using the 3rd party database updating tool  [https://interconnectit.com/products/search-and-replace-for-wordpress-databases/ Search and Replace Databases Script] * Note: this script is best used by experienced developers.
+# In some cases your permissions may have changed, depending on your ISP. Watch for any files with "0000" permissions and change them back to "0644".
+# If your theme supports menus, links to your home page may still have the old subdirectory embedded in them. Go to Appearance > Menus and update them.
+# Sometimes you would need to restart your server, otherwise your server may give out an error. (happens in MAMP software (Mac)).
+
+It is important that you set the URI locations '''BEFORE''' you move the files.
+
+=== If You Forget to Change the Locations ===
+
+If you accidentally moved the files before you changed the URIs: you have two options.
+
+# Suppose the files were originally in <tt>/path/to/old/</tt> and you moved them to <tt>/path/to/new</tt> before changing the URIs. The way to fix this would be to make <tt>/path/to/old/</tt> a symlink (for Windows users, "symlink" is equivalent to "shortcut") to <tt>/path/to/new/</tt>, i.e. <tt>ln -s /path/to/new /path/to/old</tt> and then follow the steps [[Moving WordPress#Moving WordPress Within Your Site | above]] as normal. Afterwards, delete the symlink if you want.
+# If you forget to change the WordPress Address and Blog Address, you will be unable to change it using the wordpress interface. However, you can fix it if you have access to the database. Go to the database of your site and find the <tt>wp_options</tt> table. This table stores all the options that you can set in the interface. The WordPress Address and Blog Address are stored as siteurl and home (the option_name field). All you have to do is change the <tt>option_value</tt> field to the correct URL for the records with <tt>option_name=’siteurl‘</tt> or <tt>option_name=’home‘</tt>.
+
+=== If You Have Accidentally Changed your WordPress Site URL ===
+
+'''Suppose you accidentally changed the URIs where you cannot move the files (but can still access the login page, through a redirection or something).'''
+
+''<tt>wp-login.php</tt>'' can be used to (re-)set the URIs. Find this line:
+
+<pre>
+require( dirname(__FILE__) . '/wp-load.php' );
+</pre>
+
+and insert the following lines below:
+
+<pre>
+//FIXME: do comment/remove these hack lines. (once the database is updated)
+update_option('siteurl', 'http://your.domain.name/the/path' );
+update_option('home', 'http://your.domain.name/the/path' );
+</pre>
+
+You're done.  Test your site to make sure that it works right.  If the change involves a new address for your site, make sure you let people know the new address, and consider adding some redirection instructions in your <tt>.htaccess</tt> file to guide visitors to the new location.
+
+[[Changing The Site URL]] also provides the details of this process.
+
+=== If Your WordPress Site Has a Customized upload_path Value ===
+
+It's possible, but unlikely, that the <tt>upload_path</tt> option value may be set on some very old WordPress sites, or on sites where the designer needed to customize this path. In this case, you should verify that the path is still valid after the move, and adjust it as it needed. If an absolute rather than a relative path was used, the path may be incorrect for use on the new server. An incorrect upload path will result in problems with media uploads and possible filesystem errors when WordPress attempts to create upload directories on the wrong path. (See ticket [https://core.trac.wordpress.org/ticket/41947 ticket #41947].)
+
+The <tt>upload_path</tt> option cannot be modified on the WordPress admin settings screen, it must be edited in the options table in the database.
+
+Normally, the <tt>upload_path</tt> value may be blank and WordPress will use the default path. If the value is not blank and contains a value other than the default upload location, you may need to do further research to determine how to handle uploads on the site after the move.
+
+==Managing Your Old Site==
+
+===Shutting It Down===
+
+#Download a copy of the main wordpress files from your OLD site to your hard drive and [[Editing_wp-config.php|edit wp-config.php]] to suit the new server.
+#Go back to your OLD site and go to [[Administration Screens|Administration]] > [[Administration_Screens#Settings|Settings]] > [[Settings_General_Screen|General]] and change the URL (both of them) to that of your new site.
+#Login on your server, go to phpMyAdmin, export as file, and save your database (but keep the old one just in case). Now, upload this new database and the copy of the wordpress core files with the edited <tt>wp-config.php</tt> to your new server. That's it!
+
+===Keeping it Running===
+
+Caution: Make sure you have a backup of your old site's WordPress database before proceeding!
+
+''Part A - Activating Your New Site''
+#Download your entire WordPress installation to your hard drive.  Name the folder appropriately to indicate that this is your OLD site's installation.
+#Download your database.
+#Go back to your OLD site and go to options and change the url (both of them) to that of your new site.
+#Again, download your entire WordPress installation to your hard drive.  Name the folder appropriately to indicate that this is your NEW site's installation.
+#Download your database once again (but keep the old one).  Upload this database to your new server.  It will be easiest if you use the same database name and you create a user with the same login credentials on your new server as on your old server.
+#If you used a different database name and/or user (see previous step), [[Editing_wp-config.php|edit wp-config.php]] in your NEW site's installation folder appropriately.
+#Upload the NEW site's installation folder to your new site.  Presto, your NEW site should be working!
+
+''Part B - Restoring Your Old Site''
+#On the original server, delete your OLD site's database (remember, you should have a copy on your local computer that you made at the very beginning).
+#Upload your OLD site's installation folder to your original server, overwriting the files that are currently there (you may also delete the installation folder on the server and simply re-upload the OLD site's files).
+#Upload your OLD site's database from your local computer to the server. That should do it!
+
+Another procedure for making copies of posts, comments, pages, categories and custom field (post status, data, permalinks, ping status, etc.) easy to follow:
+#Install a new WordPress site
+#Go on old site Administration Screen. Here, in Manage > Export select "all" in menu Restrict Author.
+#Click on Download Export File
+#In new site go on Manage > Import, choose WordPress item.
+#In the page that will be shown, select the file just exported. Click on Upload file and Import
+#It will appear a page. In Assign Authors, assign the author to users that already exist or create new ones.
+#Click on Submit
+#At the end, click on Have fun
+
+''Note: using this method, if there are some articles in the new site (like Hello World, Info Page, etc.), these will '''not''' be erased. Articles are only added. Using the former procedure, the articles in new site will be deleted.''
+
+==Moving WordPress Multisite==
+[[Create A Network|Multisite]] is somewhat more complicated to move, as the database itself has multiple references to the server name as well as the folder locations. If you're simply moving to a new server with the same domain name, you can copy the files and database over, exactly as you would a traditional install.
+
+If, instead, you are changing domains, then the best way to move Multisite is to move the files, edit the <tt>.htaccess</tt> and <tt>wp-config.php</tt> (change DOMAIN_CURRENT_SITE and, if the folder name containing Multisite changed, PATH_CURRENT_SITE), and then manually edit the database.  Search for all instances of your domain name, and change them as needed. This step cannot yet be easily automated. It's safe to search/replace any of the <tt>wp_x_posts</tt> tables, however do not attempt blanket search/replace without the [https://github.com/interconnectit/Search-Replace-DB Search and Replace for WordPress Databases script] (aka the interconnectit script).
+
+If you're moving Multisite from one folder to another, you will need to make sure you edit the <tt>wp_blogs </tt> entries to change the folder name correctly. You should manually review both <tt>wp_site</tt> and <tt>wp_blogs</tt> regardless, to ensure all sites were changed correctly.
+
+Also, manually review all the <tt>wp_x_options</tt> tables and look for '''four''' fields and edit them as needed:
+* <tt>home</tt>
+* <tt>siteurl</tt>
+* <tt>upload_path</tt>
+* <tt>upload_url_path</tt>
+
+The upload path and URL will be empty if the default media paths are used.
+
+If you are moving from subdomains to subfolders, or vice-versa, remember to adjust the <tt>.htaccess</tt> file and the value for <tt>SUBDOMAIN_INSTALL</tt> in your <tt>wp-config.php</tt> file accordingly.
+
+== Related Links ==
+* [http://educhalk.org/blog/how-to-move-wordpress-to-a-different-server-and-web-address/ eduChalk: How to Move WordPress to a Different Server and Web Address, 2-part video series]
+* [http://www.prelovac.com/vladimir/how-to-move-wordpress-site-to-another-server-with-zero-downtime How to move WordPress site to another server with zero downtime]
+* [http://www.problogger.net/archives/2009/01/03/how-to-move-from-wordpresscom-to-wordpressorg/ Moving a blog from wordpress.com to self-hosted blog]
+* [http://sltaylor.co.uk/blog/moving-wordpress-new-domain-server/ Moving WordPress to a new domain or server]
+* [http://www.valent-blog.eu/2007/09/14/trasferire-wordpress/ Italian version of this article - Versione italiana dell'articolo]
+* [http://interconnectit.com/124/search-and-replace-for-wordpress-databases/ Search and Replace for WordPress Databases]
+* [http://egalo.com/2012/05/15/clone-live-wordpress-to-local-env/ Cloning a live WordPress site to a local Mac test environment]
+* [http://blog.lavoie.sl/2012/07/php-script-to-replace-site-url-in.html PHP script to replace site url in Wordpress database dump, even with WPML]
+* [http://wordpress.org/plugins/duplicator/ The Duplicator plugin helps administrators move a site from one location to another]
+
+{{Copyedit}}
+
+[[Category:Getting Started]]
+[[Category:Advanced Topics]]
+[[Category:Troubleshooting]]
+[[Category:Installation]]

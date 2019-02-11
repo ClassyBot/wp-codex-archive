@@ -1,0 +1,65 @@
+{{Languages|
+{{en|Plugin API/Filter Reference/get_avatar}}
+{{ja|プラグイン_API/フィルターフック一覧/get_avatar}}
+}}
+== Description ==
+
+The "get_avatar" filter can be used to alter the avatar image returned by the [[Function_Reference/get_avatar|get_avatar()]] function.
+
+The Filter is used at the very end of the get_avatar() function, like this:
+
+<pre>
+    return apply_filters( 'get_avatar', $avatar, $id_or_email, $size, $default, $alt, $args );
+</pre>
+
+* $avatar           Image tag for the user's avatar.
+* $id_or_email  A user ID, email address, or comment object.
+* $size              Square avatar width and height in pixels to retrieve.
+* $default          (Optional) URL for the default image or a default type.
+* $alt                Alternative text to use in the avatar image tag.
+* $args             @since 4.2.0 (Optional) Extra arguments to retrieve the avatar.
+
+There are two tricky parts to using this filter:
+
+# get_avatar() can be passed a user ID, user object or email address. So we will not know what we are looking at and will need to check for them all.
+# It returns the entire image html string with classes, alt, and src. So you need to recreate the entire thing, not just send back the image url.
+
+== Example ==
+
+In this example, I am looking for user with an id of 1 and sending back a custom image.
+
+<pre>
+// Apply filter
+add_filter( 'get_avatar' , 'my_custom_avatar' , 1 , 5 );
+
+function my_custom_avatar( $avatar, $id_or_email, $size, $default, $alt ) {
+    $user = false;
+
+    if ( is_numeric( $id_or_email ) ) {
+
+        $id = (int) $id_or_email;
+        $user = get_user_by( 'id' , $id );
+
+    } elseif ( is_object( $id_or_email ) ) {
+
+        if ( ! empty( $id_or_email->user_id ) ) {
+            $id = (int) $id_or_email->user_id;
+            $user = get_user_by( 'id' , $id );
+        }
+
+    } else {
+        $user = get_user_by( 'email', $id_or_email );	
+    }
+
+    if ( $user && is_object( $user ) ) {
+
+        if ( $user->data->ID == '1' ) {
+            $avatar = 'YOUR_NEW_IMAGE_URL';
+            $avatar = "<img alt='{$alt}' src='{$avatar}' class='avatar avatar-{$size} photo' height='{$size}' width='{$size}' />";
+        }
+
+    }
+
+    return $avatar;
+}
+</pre>

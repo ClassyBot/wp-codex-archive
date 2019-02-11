@@ -1,0 +1,441 @@
+{{Languages|
+{{en|Theme Customization API}}
+{{ja|Theme Customization API}}
+{{ru|API настройки тем}}
+}}
+
+==Вступление==
+Для более детальной информации об API настройки тем пожалуйста посетите официальную документацию: https://developer.wordpress.org/themes/customize-api/.
+
+API настройки тем, добавленные в Wordpress 3.4, позволяет разработчикам настраивать и добавлять настройки в раздел «Внешний вид &rarr; Customize» в панели администратора. Экран настройки позволяет администраторам корректировать настройки темы, цвет схемы или виджета, а так же видеть предварительный просмотр в реальном времени.
+Эта страница документирует API Настройки тем и его использование в ваших разработанных схемах.
+
+Эта статья подразумевает, что вы уже прочитали [[Theme Development]] и [[Writing a Plugin]], которые дают примерное представление о разработке сторонних тем и плагинов для Wordpress. Эта статья так же требует понимания принципов объектно-ориентированного программирования. Знакомство с Wordpress [[Settings API]] так же будет весьма хорошим дополнением.
+
+Внимание: Эта информация верна для WordPress [[Version 3.4]] и выше.
+
+==Developing for the Customizer==
+
+Whether you are a theme or plugin developer, you can use this API to add more powerful, interactive customization options to your theme or plugin.
+
+To add your own options to the Customizer, you need to use a minimum of 2 hooks:
+
+;<tt>[[Plugin_API/Action_Reference/customize_register|customize_register]]</tt>: This hook allows you define new Customizer panels, sections, settings, and controls.
+;<tt>[[Plugin_API/Action_Reference/wp_head|wp_head]]</tt>: This hook allows you to output custom-generated CSS so that your changes show up correctly on the live website.
+
+'''Note:''' Optionally, the <tt>[[Plugin_API/Action_Reference/customize_preview_init|customize_preview_init]]</tt> hook can ''also'' be used for enqueuing custom JavaScript on the Customizer screen. JavaScript can be used for making the Customizer more responsive and powerful, but this step is not required.
+
+'''Important:''' Do not conditionally load your Customizer code with an <code>is_admin()</code> check. If you only add your <code>customize_register</code> if <code>is_admin()</code>, then any panels, sections, or controls will be unavailable when the Customizer preview loads. As of WordPress 4.1, there are contextual panels, sections, and controls so that they can be displayed only on certain URLs being previewed. If you only register your panels, sections, and controls if <code>is_admin()</code> then you'll be effectively saying that these are not contextual to any URL on your site. For more information, see [https://core.trac.wordpress.org/ticket/30387 #30387] and [https://core.trac.wordpress.org/ticket/29758 #29758].
+
+==Part 1: Defining Settings, Controls, Etc.==
+Any new Theme Customizer '''settings''', '''sections''', or '''controls''' must be defined from within a <tt>[[Plugin_API/Action_Reference/customize_register|customize_register]]</tt> action. This action automatically loads the <tt>$wp_customize</tt> object, which is an instance of the <tt>[[Class_Reference/WP_Customize_Manager|WP_Customize_Manager]]</tt> class.
+
+First, define the action like this:
+<pre>
+function mytheme_customize_register( $wp_customize ) {
+   //All our sections, settings, and controls will be added here
+}
+add_action( 'customize_register', 'mytheme_customize_register' );
+</pre>
+
+Note that the <tt>$wp_customize</tt> object is passed automatically to the function, and all customizations you make to the Theme Customization page are performed through methods of the <tt>$wp_customize</tt> object.
+
+Next, you need to define your settings, then your sections, then your controls (controls need a section and a setting to function).
+
+===Adding a New Setting===
+Settings automatically use WordPress's theme_mod features to get/set settings for your theme.
+
+To add a new setting to your Theme Customizer, you need to call the [[Class_Reference\WP_Customize_Manager\add_setting|$wp_customize->add_setting()]] method. By defining your setting this way, you don't need to do any extra work to create, save, or fetch settings for your theme.
+
+Adding a theme setting (within the 'customize_register' action) might look like this:
+<pre>
+$wp_customize->add_setting( 'header_textcolor' , array(
+    'default'     => '#000000',
+    'transport'   => 'refresh',
+) );
+</pre>
+
+'''Note:''' The '<tt>transport</tt>' argument is optional, and defaults to '<tt>refresh</tt>'. If left to default, then the theme customizer's preview window will update by completely reloading itself when this setting is changed. If you would prefer to avoid refreshes and improve responsiveness, you can set this to '<tt>postMessage</tt>' instead, then handle any styling updates ''manually'' with a bit of JavaScript (see the '''Configure Live Preview''' section below).
+
+===Adding a New Section===
+Sections are groups of options. When you define new controls, they must be added to a section. Although you ''can'' add controls to existing default sections, we will briefly cover adding a ''new'' section.
+
+To add a new section to your Theme Customizer, you need to call the <tt>[[Class_Reference/WP_Customize_Manager/add_section|$wp_customize->add_section()]]</tt> method.
+
+Adding a theme section (within the 'customize_register' action) might look like this:
+<pre>
+$wp_customize->add_section( 'mytheme_new_section_name' , array(
+    'title'      => __( 'Visible Section Name', 'mytheme' ),
+    'priority'   => 30,
+) );
+</pre>
+
+WordPress does include a few built-in sections. If you want to use any of the existing, built-in ones, you don't need to declare them with add_section(). Instead, refer to them by name. The following sections are built-in:
+
+*<tt>'''title_tagline'''</tt> - Site Title & Tagline
+*<tt>'''colors'''</tt> - Colors
+*<tt>'''header_image'''</tt> - Header Image
+*<tt>'''background_image'''</tt> - Background Image
+*<tt>'''nav'''</tt> - Navigation
+*<tt>'''static_front_page'''</tt> - Static Front Page
+
+===Adding a New Control===
+A control is an HTML form element that renders on the Theme Customizer page and allows admins to change a setting, and preview those changes in real time. Controls are linked to a single ''setting'', and a single ''section''.
+
+To add a new control to your Theme Customizer, you need to call the <tt>[[Class_Reference\WP_Customize_Manager\add_control|$wp_customize->add_control()]]</tt> method.
+
+Adding a control to a theme section (within the 'customize_register' action) might look like this:
+<pre>
+$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'link_color', array(
+	'label'        => __( 'Header Color', 'mytheme' ),
+	'section'    => 'your_section_id',
+	'settings'   => 'your_setting_id',
+) ) );
+</pre>
+
+Controllers have quite a few options, some of which require passing it another class (such as the [[Class Reference\WP_Customize_Color_Control|WP_Customize_Color_Control()]] class shown in the above example). For more examples, see the documentation for [[Class_Reference\WP_Customize_Manager\add_control|add_control()]]
+
+==Part 2: Generating Live CSS==
+Finally, you just need to make sure that you're fetching the settings and outputting any necessary CSS into your header. If you defined your settings within a '<tt>customize_register</tt>' action, as described above, then getting your setting values is as simple as outputting css with '<tt>wp_head</tt>' action and fetching the values with [[get_theme_mod|get_theme_mod()]]
+
+For example, let's say you have a setting called '<tt>header_color</tt>' and it looks like this:
+
+<pre>
+$wp_customize->add_setting( 'header_color' , array(
+    'default'     => '#000000',
+    'transport'   => 'refresh',
+) );
+</pre>
+
+Your code to output the css into the header might look something like this:
+
+<pre>
+function mytheme_customize_css()
+{
+    ?>
+         <style type="text/css">
+             h1 { color:<?php echo get_theme_mod('header_color', '#000000'); ?>; }
+         </style>
+    <?php
+}
+add_action( 'wp_head', 'mytheme_customize_css');
+</pre>
+
+When you look at the page source you would see the following in the header:
+
+<pre>
+<style type="text/css">
+     h1 {color:#000000;}
+</style>
+</pre>
+
+You will notice that the default value of #000000 is given for the color. Once this value is changed via the customizer, the new value will be shown. For example, let's say you wanted to change the color to white. In the customizer, you insert the hex value for white, #ffffff, click Save and Publish.
+
+Now in the page source you will see:
+
+<pre>
+<style type="text/css">
+.h1 {color:#ffffff;}
+</style>
+</pre>
+
+At this point, your live theme customization options should be fully functional (''unless'' the settings you defined in Part 1 explicitly use <tt>'transport'=>'postMessage'</tt>).
+
+'''Tip:''' At the end of this tutorial is a ''Sample Theme Customization'' class. This class contains a useful function (which is NOT part of WordPress)  called <tt>'''generate_css()'''</tt> that can help you quickly easily generate valid CSS for this step.
+
+==Part 3: Configure Live Preview (Optional)==
+This step is optional, but can dramatically improve user experience. This technique uses a little custom JavaScript in combination with your settings for a faster, more interactive Theme Customizer. If this is ''not'' used, then updates are rendered by reloading the entire preview window.
+
+In order to create this custom JavaScript handler, you need to do the following:
+;'''1''' - Make sure your settings are all configured for live preview ( <tt>'transport'=>'postMessage'</tt> )
+;'''2''' - Create a new JavaScript file (e.g. <tt>theme-customize.js</tt>) to handle the live changes
+;'''3''' - Create a hook for '<tt>[[Plugin_API/Action_Reference/customize_preview_init|customize_preview_init]]</tt>' that enqueues the js file
+
+We'll go through all 3 steps in detail...
+
+=== Step 1: Update Your Settings ===
+
+First, make sure that any custom settings you've created have <tt>'transport'=>'postMessage'</tt> set (see '''"Adding a New Setting"''' above). This will disable the automatic refresh behavior when you change that setting, allowing you to define any custom JavaScript handling you like.
+
+Please note that all of WordPress's Theme Customizer settings use <tt>'transport'=>'refresh'</tt> by default, so if you want to make the default, built-in Theme Customizer options also take advantage of this, you can easily update their transport method(s) within your '<tt>'''customize_register'''</tt>' hook function like this:
+
+<pre>
+
+$wp_customize->get_setting( 'blogname' )->transport = 'postMessage';
+$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage';
+$wp_customize->get_setting( 'header_textcolor' )->transport = 'postMessage';
+$wp_customize->get_setting( 'background_color' )->transport = 'postMessage';
+
+</pre>
+
+=== Step 2: Create a JavaScript File ===
+
+Next, you need to create a new JavaScript file for all your custom handling. Generally, you'd call this <tt>theme-customizer.js</tt> and place it in your theme's <tt>'''js/''</tt> folder, but you can call it whatever you want or place it where you want.
+
+The contents of your <tt>theme-customizer.js</tt> file might look like this:
+
+<pre>
+
+/**
+ * This file adds some LIVE to the Theme Customizer live preview. To leverage
+ * this, set your custom settings to 'postMessage' and then add your handling
+ * here. Your javascript should grab settings from customizer controls, and 
+ * then make any necessary changes to the page using jQuery.
+ */
+( function( $ ) {
+
+	// Update the site title in real time...
+	wp.customize( 'blogname', function( value ) {
+		value.bind( function( newval ) {
+			$( '#site-title a' ).html( newval );
+		} );
+	} );
+	
+	//Update the site description in real time...
+	wp.customize( 'blogdescription', function( value ) {
+		value.bind( function( newval ) {
+			$( '.site-description' ).html( newval );
+		} );
+	} );
+
+	//Update site title color in real time...
+	wp.customize( 'header_textcolor', function( value ) {
+		value.bind( function( newval ) {
+			$('#site-title a').css('color', newval );
+		} );
+	} );
+
+	//Update site background color...
+	wp.customize( 'background_color', function( value ) {
+		value.bind( function( newval ) {
+			$('body').css('background-color', newval );
+		} );
+	} );
+	
+	//Update site link color in real time...
+	wp.customize( 'link_textcolor', function( value ) {
+		value.bind( function( newval ) {
+			$('a').css('color', newval );
+		} );
+	} );
+	
+} )( jQuery );
+
+</pre>
+
+As you can see from the example above,  a single basic handler looks like this:
+<pre>
+
+wp.customize( 'YOUR_SETTING_ID', function( value ) {
+	value.bind( function( newval ) {
+		//Do stuff (newval variable contains your "new" setting data)
+	} );
+} );
+
+</pre>
+
+=== Step 3: Enqueue Your JavaScript ===
+
+Finally, you simply need to ensure your JavaScript is enqueued. 
+
+To ensure that the file is loaded ''only'' on the Theme Customizer admin screen (and not your live website), you should use the [[Plugin_API/Action_Reference/customize_preview_init|customize_preview_init]] hook.
+
+For example...
+
+<pre>
+
+/**
+ * Used by hook: 'customize_preview_init'
+ * 
+ * @see add_action('customize_preview_init',$func)
+ */
+public static function mytheme_customizer_live_preview()
+{
+	wp_enqueue_script( 
+		  'mytheme-themecustomizer',			//Give the script an ID
+		  get_template_directory_uri().'/assets/js/theme-customizer.js',//Point to file
+		  array( 'jquery','customize-preview' ),	//Define dependencies
+		  '',						//Define a version (optional) 
+		  true						//Put script in footer?
+	);
+}
+add_action( 'customize_preview_init', 'mytheme_customizer_live_preview' );
+
+</pre>
+
+==Sample Theme Customization Class==
+This sample shows one potential implementation of a basic Theme Customization class that can be easily incorporated into any existing theme. This example class even makes use of the postMessage transport method for live JavaScript-based Theme Customizer previews. 
+
+Please note that this class should be used in conjunction with the sample <tt>theme-customize.js</tt> file exampled earlier in this tutorial.
+
+<pre>
+<?php
+/**
+ * Contains methods for customizing the theme customization screen.
+ * 
+ * @link http://codex.wordpress.org/Theme_Customization_API
+ * @since MyTheme 1.0
+ */
+class MyTheme_Customize {
+   /**
+    * This hooks into 'customize_register' (available as of WP 3.4) and allows
+    * you to add new sections and controls to the Theme Customize screen.
+    * 
+    * Note: To enable instant preview, we have to actually write a bit of custom
+    * javascript. See live_preview() for more.
+    *  
+    * @see add_action('customize_register',$func)
+    * @param \WP_Customize_Manager $wp_customize
+    * @link http://ottopress.com/2012/how-to-leverage-the-theme-customizer-in-your-own-themes/
+    * @since MyTheme 1.0
+    */
+   public static function register ( $wp_customize ) {
+      //1. Define a new section (if desired) to the Theme Customizer
+      $wp_customize->add_section( 'mytheme_options', 
+         array(
+            'title' => __( 'MyTheme Options', 'mytheme' ), //Visible title of section
+            'priority' => 35, //Determines what order this appears in
+            'capability' => 'edit_theme_options', //Capability needed to tweak
+            'description' => __('Allows you to customize some example settings for MyTheme.', 'mytheme'), //Descriptive tooltip
+         ) 
+      );
+      
+      //2. Register new settings to the WP database...
+      $wp_customize->add_setting( 'link_textcolor', //No need to use a SERIALIZED name, as `theme_mod` settings already live under one db record
+         array(
+            'default' => '#2BA6CB', //Default setting/value to save
+            'type' => 'theme_mod', //Is this an 'option' or a 'theme_mod'?
+            'capability' => 'edit_theme_options', //Optional. Special permissions for accessing this setting.
+            'transport' => 'postMessage', //What triggers a refresh of the setting? 'refresh' or 'postMessage' (instant)?
+         ) 
+      );      
+            
+      //3. Finally, we define the control itself (which links a setting to a section and renders the HTML controls)...
+      $wp_customize->add_control( new WP_Customize_Color_Control( //Instantiate the color control class
+         $wp_customize, //Pass the $wp_customize object (required)
+         'mytheme_link_textcolor', //Set a unique ID for the control
+         array(
+            'label' => __( 'Link Color', 'mytheme' ), //Admin-visible name of the control
+            'section' => 'colors', //ID of the section this control should render in (can be one of yours, or a WordPress default section)
+            'settings' => 'link_textcolor', //Which setting to load and manipulate (serialized is okay)
+            'priority' => 10, //Determines the order this control appears in for the specified section
+         ) 
+      ) );
+      
+      //4. We can also change built-in settings by modifying properties. For instance, let's make some stuff use live preview JS...
+      $wp_customize->get_setting( 'blogname' )->transport = 'postMessage';
+      $wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage';
+      $wp_customize->get_setting( 'header_textcolor' )->transport = 'postMessage';
+      $wp_customize->get_setting( 'background_color' )->transport = 'postMessage';
+   }
+
+   /**
+    * This will output the custom WordPress settings to the live theme's WP head.
+    * 
+    * Used by hook: 'wp_head'
+    * 
+    * @see add_action('wp_head',$func)
+    * @since MyTheme 1.0
+    */
+   public static function header_output() {
+      ?>
+      <!--Customizer CSS--> 
+      <style type="text/css">
+           <?php self::generate_css('#site-title a', 'color', 'header_textcolor', '#'); ?> 
+           <?php self::generate_css('body', 'background-color', 'background_color', '#'); ?> 
+           <?php self::generate_css('a', 'color', 'link_textcolor'); ?>
+      </style> 
+      <!--/Customizer CSS-->
+      <?php
+   }
+   
+   /**
+    * This outputs the javascript needed to automate the live settings preview.
+    * Also keep in mind that this function isn't necessary unless your settings 
+    * are using 'transport'=>'postMessage' instead of the default 'transport'
+    * => 'refresh'
+    * 
+    * Used by hook: 'customize_preview_init'
+    * 
+    * @see add_action('customize_preview_init',$func)
+    * @since MyTheme 1.0
+    */
+   public static function live_preview() {
+      wp_enqueue_script( 
+           'mytheme-themecustomizer', // Give the script a unique ID
+           get_template_directory_uri() . '/assets/js/theme-customizer.js', // Define the path to the JS file
+           array(  'jquery', 'customize-preview' ), // Define dependencies
+           '', // Define a version (optional) 
+           true // Specify whether to put in footer (leave this true)
+      );
+   }
+
+    /**
+     * This will generate a line of CSS for use in header output. If the setting
+     * ($mod_name) has no defined value, the CSS will not be output.
+     * 
+     * @uses get_theme_mod()
+     * @param string $selector CSS selector
+     * @param string $style The name of the CSS *property* to modify
+     * @param string $mod_name The name of the 'theme_mod' option to fetch
+     * @param string $prefix Optional. Anything that needs to be output before the CSS property
+     * @param string $postfix Optional. Anything that needs to be output after the CSS property
+     * @param bool $echo Optional. Whether to print directly to the page (default: true).
+     * @return string Returns a single line of CSS with selectors and a property.
+     * @since MyTheme 1.0
+     */
+    public static function generate_css( $selector, $style, $mod_name, $prefix='', $postfix='', $echo=true ) {
+      $return = '';
+      $mod = get_theme_mod($mod_name);
+      if ( ! empty( $mod ) ) {
+         $return = sprintf('%s { %s:%s; }',
+            $selector,
+            $style,
+            $prefix.$mod.$postfix
+         );
+         if ( $echo ) {
+            echo $return;
+         }
+      }
+      return $return;
+    }
+}
+
+// Setup the Theme Customizer settings and controls...
+add_action( 'customize_register' , array( 'MyTheme_Customize' , 'register' ) );
+
+// Output custom CSS to live site
+add_action( 'wp_head' , array( 'MyTheme_Customize' , 'header_output' ) );
+
+// Enqueue live preview javascript in Theme Customizer admin screen
+add_action( 'customize_preview_init' , array( 'MyTheme_Customize' , 'live_preview' ) );
+</pre>
+
+==External Resources==
+* [http://ottopress.com/2012/how-to-leverage-the-theme-customizer-in-your-own-themes/ Otto's Theme Customization Tutorial]
+* [http://ottopress.com/2015/whats-new-with-the-customizer/ Using panels and active callbacks in Customizer]
+* [http://www.narga.net/comprehensive-guide-wordpress-theme-options-with-customization-api/ Comprehensive Guide to make WordPress Theme Options with Customization API] by NARGA
+* [http://wp.tutsplus.com/tutorials/theme-development/digging-into-the-theme-customizer-overview/ Digging Into the Theme Customizer: Overview]
+* [https://github.com/bueltge/Documentation/blob/master/inc/theme-customize.php Example Solution with documented source]
+* [http://web-profile.com.ua/wordpress/customization-api/ Theme Customization snippets]
+* [http://bueltge.de/wordpress-customizer Slides about the Customizer]
+* [https://github.com/bueltge/Wordpress-Theme-Customizer-Custom-Controls A collection of custom controls you can use in your WordPress theme customizer page]
+
+==Related==
+
+* Info: [[Theme_Customization_API|Theme Customization API]]
+* Class: [[Class Reference/WP Customize Manager|WP_Customize_Manager() class]]
+* Method: [[Class_Reference/WP_Customize_Manager/add_setting|WP_Customize_Manager->add_setting()]]
+* Method: [[Class_Reference/WP_Customize_Manager/add_section|WP_Customize_Manager->add_section()]]
+* Method: [[Class_Reference/WP_Customize_Manager/add_control|WP_Customize_Manager->add_control()]]
+* Method: [[Class_Reference/WP_Customize_Manager/get_setting|WP_Customize_Manager->get_setting()]]
+* Hook: [[Plugin_API/Action_Reference/customize_register|customize_register]]
+* Hook: [[Plugin_API/Action_Reference/customize_preview_init|customize_preview_init]]
+* Hook: [[Plugin_API/Action_Reference/customize_controls_print_styles|customize_controls_print_styles]]
+* Hook: [[Plugin_API/Action_Reference/customize_controls_print_scripts|customize_controls_print_scripts]]
+* Hook: [[Plugin_API/Action_Reference/customize_controls_init|customize_controls_init]]
+* Hook: [[Plugin_API/Action_Reference/customize_controls_enqueue_scripts|customize_controls_enqueue_scripts]]
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]

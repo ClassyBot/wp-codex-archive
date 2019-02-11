@@ -1,0 +1,54 @@
+== Interagindo com o Banco de Dados ==
+
+O WordPress provê uma classe de funções para manipulação de banco de dados.  A classe é chamada <code>wpdb</code> E é baseada na classe [http://justinvincent.com/ezsql ezSQL] escrita e mantida por [http://www.jvmultimedia.com Justin Vincent].
+=== Notas de uso ===
+
+Os métodos na classe <code>wpdb</code> não devem ser chamados diretamente. O WordPress provê a variável global <code>$wpdb</code>, que é uma instância da classe já definida para a comunicação com o banco de dados do WordPress.  Utilize sempre a variável global <code>$wpdb</code>.  (Consulte [http://www.php.net/manual/pt_BR/language.variables.scope.php#language.variables.scope.global gloabalize] <code>$wpdb</code> antes de utilizar qualquer função customizada.)
+
+O objeto <code>$wpdb</code> pode ser utilizado para ler os dados de qualquer tabela do bando de dados do WordPress, além das tabelas criadas pelo próprio.  Por exemplo para fazer um SELECT em uma tabela personalizada chamada "minha_tabela", você pode fazer o seguinte.
+<code>
+ $meusResultados = $wpdb->[[#SELECT_Generic_Results|get_results]]( "SELECT id, name FROM minha_tabela" );
+</code>
+
+O objeto <code>$wpdb</code> pode interagir com inúmeras tabelas, porém com apenas um banco de dados: O banco de dados do WordPress.  Se você precisar se conectar a outro banco de dados, você precisará instanciar seu próprio objeto da classe <code>wpdb</code> com os detalhes de conexão apropriados.  Para instalações complexas com vários bancos de dados, considere utilizar [http://wordpress.org/extend/plugins/hyperdb/ hyperdb].
+
+== Execute qualquer consulta no banco de dados ==
+
+A função <code>query</code> permite que você execute ''qualquer'' consulta SQL no banco de dados do WordPress.  É preferível utilizar uma função mais específica (veja abaixo), porém, para consultas SELECT.
+
+%%% <?php $wpdb->query('query'); ?> %%%
+; query : (string) A consulta SQL que você deseja executar.
+
+A função retorna um integer correspondente ao número de linhas afetadas/selecionadas.  Se houver um erro MySQL, a função retornará <code>FALSE</code>.  ('''Nota''': Como tanto 0 quanto FALSE podem ser retornados, tenha a certeza de usar o operador de comparação correto: igualdade <code>==</code> vs. identidade <code>===</code>).
+
+Nota: Tal como acontece com todas as funções/classes que executam consultas SQL, você deve escapar a entrada (ex., <code>wpdb->escape($dados_inseridor_pelo_usuario)</code>).  Veja a seção entitulada [http://codex.wordpress.org/wpdb_Class#Protegento_Consultas_Contra_Ataques_de_SQL_Injection Protegendo consultas contra ataques de SQL Injection] abaixo.
+
+=== Exemplos ===
+Remover a meta 'gargarejo' e seu valor Post 13. (We'll add the 'prepare' method to make sure we're not dealing with an illegal operation or any illegal characters):
+<pre>
+$wpdb->query( 
+	$wpdb->prepare( 
+		"
+                DELETE FROM $wpdb->postmeta
+		 WHERE post_id = %d
+		 AND meta_key = %s
+		",
+	        13, 'gargle' 
+        )
+);
+
+</pre>
+''Performed in WordPress by <code>[[Function Reference/delete post meta|delete_post_meta()]]</code>.''
+
+
+Set the parent of [[Pages|Page]] 15 to Page 7.
+<pre>
+$wpdb->query(
+	"
+	UPDATE $wpdb->posts 
+	SET post_parent = 7
+	WHERE ID = 15 
+		AND post_status = 'static'
+	"
+);
+</pre>

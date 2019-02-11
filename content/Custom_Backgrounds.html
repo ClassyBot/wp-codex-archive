@@ -1,0 +1,120 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Custom">Backgrounds 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p><b>Custom Backgrounds</b> is a <a href="https://codex.wordpress.org/Theme_Features" title="Theme Features">theme feature</a> that provides for customization of the background color and image.
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Adding_Theme_Support"><span class="tocnumber">1</span> <span class="toctext">Adding Theme Support</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Example"><span class="tocnumber">2</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Outcome"><span class="tocnumber">3</span> <span class="toctext">Outcome</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Backwards_Compatibility"><span class="tocnumber">4</span> <span class="toctext">Backwards Compatibility</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Resources"><span class="tocnumber">5</span> <span class="toctext">Resources</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Adding_Theme_Support">Adding Theme Support</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Backgrounds&amp;action=edit&amp;section=1" title="Edit section: Adding Theme Support">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Since <a href="https://codex.wordpress.org/Version_3.4" title="Version 3.4">Version 3.4</a>, themes need to use <a href="https://codex.wordpress.org/Function_Reference/add_theme_support" title="Function Reference/add theme support">add_theme_support()</a> in the <a href="https://codex.wordpress.org/Theme_Development#Functions_File" title="Theme Development">functions.php</a> file to support custom backgrounds, like so:
+</p>
+<pre>add_theme_support( 'custom-background' );</pre>
+<p>Note that you can add default arguments using:
+</p>
+<pre>
+$defaults = array(
+	'default-color'          =&gt; '',
+	'default-image'          =&gt; '',
+	'default-repeat'         =&gt; 'repeat',
+	'default-position-x'     =&gt; 'left',
+        'default-position-y'     =&gt; 'top',
+        'default-size'           =&gt; 'auto',
+	'default-attachment'     =&gt; 'scroll',
+	'wp-head-callback'       =&gt; '_custom_background_cb',
+	'admin-head-callback'    =&gt; '',
+	'admin-preview-callback' =&gt; ''
+);
+add_theme_support( 'custom-background', $defaults );
+</pre>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Backgrounds&amp;action=edit&amp;section=2" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>An example using default '#000000' background color with 'background.jpg' background image:
+</p>
+<pre>
+$args = array(
+	'default-color' =&gt; '000000',
+	'default-image' =&gt; '%1$s/images/background.jpg',
+);
+add_theme_support( 'custom-background', $args );
+</pre>
+<h2><span class="mw-headline" id="Outcome">Outcome</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Backgrounds&amp;action=edit&amp;section=3" title="Edit section: Outcome">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The purpose of this call to add_theme_support() is to enable the Custom Background screen in the administrator's Appearance menu.  It also serves as a declaration that the theme has properly implemented the <a href="https://codex.wordpress.org/Function_Reference/body_class" title="Function Reference/body class">body_class()</a> and <a href="https://codex.wordpress.org/Function_Reference/wp_head" title="Function Reference/wp head">wp_head()</a> template tags to provide feature compatibility.
+</p><p>When the administrator sets custom values for the theme, WordPress generates an extra style sheet in-line with the HTML headers, usually right before the end of the document's HEAD element.  The extra style sheet overrides the background values from the theme's style sheet.
+</p><p>Example output:
+</p>
+<pre>
+&lt;style type="text/css" id="custom-background-css"&gt;
+body.custom-background { background-color: #bdd96e; }
+&lt;/style&gt;
+</pre>
+<p>Note that setting the default-image parameter will instantly cause that value to become the effective Custom Background, whereas setting the default-color has no effect until the administrator visits the Custom Background page.  To override this default behavior, you would have to provide a replacement for the _custom_background_cb() function.
+</p>
+<h2><span class="mw-headline" id="Backwards_Compatibility">Backwards Compatibility</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Backgrounds&amp;action=edit&amp;section=4" title="Edit section: Backwards Compatibility">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>To add backwards compatibility for older versions, use the following code:
+</p>
+<pre>
+global $wp_version;
+if ( version_compare( $wp_version, '3.4', '&gt;=' ) )&#160;:
+	add_theme_support( 'custom-background' ); 
+else&#160;:
+	add_custom_background( $args );
+endif;
+</pre>
+<p><b>Note:</b> As we're now beyond the release WordPress 3.6, providing backwards compatibility for any version prior to 3.4 will be a violation of the <a href="https://codex.wordpress.org/Theme_Review" title="Theme Review">Theme Review</a> guidelines.
+</p>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Backgrounds&amp;action=edit&amp;section=5" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://generatewp.com/theme-support/">WordPress Theme Support Generator</a></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Custom_Backgrounds&amp;action=edit&amp;section=6" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Theme_Development" title="Theme Development">Theme Development</a></li></ul>
+<p><a href="https://codex.wordpress.org/Theme_Features" title="Theme Features"><b>Theme Support</b></a>: 
+<a href="https://codex.wordpress.org/Function_Reference/add_theme_support" title="Function Reference/add theme support"> add_theme_support()</a>,
+<a href="https://codex.wordpress.org/Function_Reference/remove_theme_support" title="Function Reference/remove theme support"> remove_theme_support()</a>,
+<a href="https://codex.wordpress.org/Function_Reference/current_theme_supports" title="Function Reference/current theme supports"> current_theme_supports()</a>
+<br />
+<a href="https://codex.wordpress.org/Theme_Features" title="Theme Features"><b>Theme Features</b></a>: 
+<a href="https://codex.wordpress.org/Sidebars" title="Sidebars">sidebar</a>, 
+<a href="https://codex.wordpress.org/Navigation_Menus" title="Navigation Menus">menus</a>, 
+<a href="https://codex.wordpress.org/Post_Formats" title="Post Formats">post-formats</a>, 
+<a href="https://codex.wordpress.org/Title_Tag" title="Title Tag">title-tag</a>, 
+<strong class="selflink">custom-background</strong>, 
+<a href="https://codex.wordpress.org/Custom_Headers" title="Custom Headers">custom-header</a>, 
+<a href="https://codex.wordpress.org/Theme_Logo" title="Theme Logo">custom-logo</a>, 
+<a href="https://codex.wordpress.org/Post_Thumbnails" title="Post Thumbnails">post-thumbnails</a>, 
+<a href="https://codex.wordpress.org/Automatic_Feed_Links" title="Automatic Feed Links">automatic-feed-links</a>, 
+<a href="https://codex.wordpress.org/Theme_Markup" title="Theme Markup">html5</a>, 
+<a href="https://codex.wordpress.org/Editor_Style" title="Editor Style">editor-style</a>, 
+<a href="https://codex.wordpress.org/Content_Width" title="Content Width">content_width</a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211003743
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.017 seconds
+Preprocessor visited node count: 90/1000000
+Preprocessor generated node count: 277/1000000
+Post‐expand include size: 1169/2097152 bytes
+Template argument size: 128/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    4.963      1 - -total
+ 69.68%    3.458      1 - Template:Languages
+ 21.79%    1.081      1 - Template:ja
+ 20.73%    1.029      1 - Template:en
+ 19.02%    0.944      1 - Template:Theme_Support
+-->

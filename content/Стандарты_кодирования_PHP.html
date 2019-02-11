@@ -1,0 +1,313 @@
+<p>Структура некоторых частей кода WordPress непоследовательна с точки зрения разметки и стиля. WordPress работает над постепенным улучшением кода, помогая пользователям поддерживать единый стиль, так чтобы код мог стать чистым и легко читающимся.
+</p><p>Имейте в виду следующие моменты при написании PHP-кода для WordPress, будь то основной код программы, плагины или темы. Руководящие принципы во многих отношениях похожи на <a rel="nofollow" class="external text" href="http://pear.php.net/manual/en/standards.php">стандарты Pear</a>, но отличаются в некоторых ключевых аспектах.
+</p><p>См. также: <a rel="nofollow" class="external text" href="https://make.wordpress.org/core/handbook/inline-documentation-standards/php-documentation-standards/">PHP Documentation Standards</a>. 
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#.D0.9E.D0.B4.D0.B8.D0.BD.D0.BE.D1.87.D0.BD.D1.8B.D0.B5_.D0.B8_.D0.B4.D0.B2.D0.BE.D0.B9.D0.BD.D1.8B.D0.B5_.D0.BA.D0.B0.D0.B2.D1.8B.D1.87.D0.BA.D0.B8"><span class="tocnumber">1</span> <span class="toctext">Одиночные и двойные кавычки</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#.D0.9E.D1.82.D1.81.D1.82.D1.83.D0.BF.D1.8B"><span class="tocnumber">2</span> <span class="toctext">Отступы</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#.D0.A1.D1.82.D0.B8.D0.BB.D1.8C_.D1.84.D0.B8.D0.B3.D1.83.D1.80.D0.BD.D1.8B.D1.85_.D1.81.D0.BA.D0.BE.D0.B1.D0.BE.D0.BA"><span class="tocnumber">3</span> <span class="toctext">Стиль фигурных скобок</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#.D0.A0.D0.B5.D0.B3.D1.83.D0.BB.D1.8F.D1.80.D0.BD.D1.8B.D0.B5_.D0.B2.D1.8B.D1.80.D0.B0.D0.B6.D0.B5.D0.BD.D0.B8.D1.8F"><span class="tocnumber">4</span> <span class="toctext">Регулярные выражения</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#.D0.97.D0.B0.D0.BF.D1.80.D0.B5.D1.82_.D0.BD.D0.B0_.D1.81.D0.BE.D0.BA.D1.80.D0.B0.D1.89.D0.B5.D0.BD.D0.BD.D1.8B.D0.B5_PHP-.D1.82.D0.B5.D0.B3.D0.B8"><span class="tocnumber">5</span> <span class="toctext">Запрет на сокращенные PHP-теги</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#.D0.A3.D0.B4.D0.B0.D0.BB.D0.B5.D0.BD.D0.B8.D0.B5_.D0.BA.D0.BE.D0.BD.D0.B5.D1.87.D0.BD.D1.8B.D1.85_.D0.BF.D1.80.D0.BE.D0.B1.D0.B5.D0.BB.D0.BE.D0.B2"><span class="tocnumber">6</span> <span class="toctext">Удаление конечных пробелов</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#.D0.98.D1.81.D0.BF.D0.BE.D0.BB.D1.8C.D0.B7.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_.D0.BF.D1.80.D0.BE.D0.B1.D0.B5.D0.BB.D0.BE.D0.B2"><span class="tocnumber">7</span> <span class="toctext">Использование пробелов</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#.D0.A4.D0.BE.D1.80.D0.BC.D0.B0.D1.82.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_SQL-.D0.BF.D1.80.D0.B5.D0.B4.D0.BB.D0.BE.D0.B6.D0.B5.D0.BD.D0.B8.D0.B9"><span class="tocnumber">8</span> <span class="toctext">Форматирование SQL-предложений</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#.D0.97.D0.B0.D0.BF.D1.80.D0.BE.D1.81.D1.8B_.D0.BA_.D0.B1.D0.B0.D0.B7.D0.B5_.D0.B4.D0.B0.D0.BD.D0.BD.D1.8B.D1.85"><span class="tocnumber">9</span> <span class="toctext">Запросы к базе данных</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#.D0.A1.D0.BE.D0.B3.D0.BB.D0.B0.D1.88.D0.B5.D0.BD.D0.B8.D0.B5_.D0.BE_.D0.B2.D1.8B.D0.B1.D0.BE.D1.80.D0.B5_.D0.B8.D0.BC.D0.B5.D0.BD"><span class="tocnumber">10</span> <span class="toctext">Соглашение о выборе имен</span></a></li>
+<li class="toclevel-1 tocsection-11"><a href="#.D0.9E.D1.81.D0.BC.D1.8B.D1.81.D0.BB.D0.B5.D0.BD.D0.BD.D1.8B.D0.B5_.D0.B7.D0.BD.D0.B0.D1.87.D0.B5.D0.BD.D0.B8.D1.8F_.D0.B0.D1.80.D0.B3.D1.83.D0.BC.D0.B5.D0.BD.D1.82.D0.BE.D0.B2_.D1.84.D1.83.D0.BD.D0.BA.D1.86.D0.B8.D0.B9.2C_.D0.B8.D0.B3.D1.80.D0.B0.D1.8E.D1.89.D0.B8.D1.85_.D1.80.D0.BE.D0.BB.D1.8C_.D1.84.D0.BB.D0.B0.D0.B3.D0.BE.D0.B2"><span class="tocnumber">11</span> <span class="toctext">Осмысленные значения аргументов функций, играющих роль флагов</span></a></li>
+<li class="toclevel-1 tocsection-12"><a href="#.D0.A2.D0.B5.D1.80.D0.BD.D0.B0.D1.80.D0.BD.D1.8B.D0.B9_.D0.BE.D0.BF.D0.B5.D1.80.D0.B0.D1.82.D0.BE.D1.80"><span class="tocnumber">12</span> <span class="toctext">Тернарный оператор</span></a></li>
+<li class="toclevel-1 tocsection-13"><a href="#.D0.A3.D1.81.D0.BB.D0.BE.D0.B2.D0.B8.D1.8F_.D0.99.D0.BE.D0.B4.D1.8B"><span class="tocnumber">13</span> <span class="toctext">Условия Йоды</span></a></li>
+<li class="toclevel-1 tocsection-14"><a href="#.D0.A3.D0.BC.D0.BD.D1.8B.D0.B9_.D0.BA.D0.BE.D0.B4"><span class="tocnumber">14</span> <span class="toctext">Умный код</span></a></li>
+<li class="toclevel-1 tocsection-15"><a href="#.D0.9E.D0.BF.D0.B5.D1.80.D0.B0.D1.82.D0.BE.D1.80_.D1.83.D0.BF.D1.80.D0.B0.D0.B2.D0.BB.D0.B5.D0.BD.D0.B8.D1.8F_.D0.BE.D1.88.D0.B8.D0.B1.D0.BA.D0.B0.D0.BC.D0.B8_.40"><span class="tocnumber">15</span> <span class="toctext">Оператор управления ошибками @</span></a></li>
+<li class="toclevel-1 tocsection-16"><a href="#.D0.98.D1.81.D1.82.D0.BE.D1.87.D0.BD.D0.B8.D0.BA.D0.B8"><span class="tocnumber">16</span> <span class="toctext">Источники</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id=".D0.9E.D0.B4.D0.B8.D0.BD.D0.BE.D1.87.D0.BD.D1.8B.D0.B5_.D0.B8_.D0.B4.D0.B2.D0.BE.D0.B9.D0.BD.D1.8B.D0.B5_.D0.BA.D0.B0.D0.B2.D1.8B.D1.87.D0.BA.D0.B8">Одиночные и двойные кавычки</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=1" title="Edit section: Одиночные и двойные кавычки">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Используйте одинарные и двойные кавычки, когда это необходимо. Если вы не оцениваете ничего в строке, используйте одинарные кавычки. Почти никогда не следует избегать кавычек в строке, потому что вы можете просто чередовать тип кавычек, например, так:
+</p>
+<pre>
+echo '&lt;a href="/static/link" title="Yeah yeah!"&gt;Link name&lt;/a&gt;';
+echo "&lt;a href='$link' title='$linktitle'&gt;$linkname&lt;/a&gt;";
+</pre>
+<p>Текст, который входит в атрибуты, должен обрабатываться <tt>esc_attr()</tt>, чтобы одинарные или двойные кавычки не заканчивали значение атрибута, не вызывали проблем с HTML-валидацией и не вызывали проблем безопасности. Для дальнейших подробностей см. <a href="https://codex.wordpress.org/Data_Validation" title="Data Validation">Data Validation</a> в Кодексе.
+</p>
+<h2><span class="mw-headline" id=".D0.9E.D1.82.D1.81.D1.82.D1.83.D0.BF.D1.8B">Отступы</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=2" title="Edit section: Отступы">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Отступы должны всегда отражать логическую структуру. Используйте настоящие табуляции, а не пробелы, так как это обеспечивает наибольшую гибкость для клиентов.
+</p><p>Исключение: если у вас есть блок кода, который будет более читабельным при выравнивании, используйте пробелы:
+</p>
+<pre>
+[tab]$foo   = 'somevalue';
+[tab]$foo2  = 'somevalue2';
+[tab]$foo34 = 'somevalue3';
+[tab]$foo5  = 'somevalue4';
+</pre>
+<p>Для ассоциативных массивов значения должны начинаться с новой строки. Обратите внимание на запятую после последнего элемента массива: это рекомендуется, поскольку так легче менять порядок элементов в массиве и  добавлять новые элементы.
+</p>
+<pre>
+$my_array = array(
+[tab]'foo'   =&gt; 'somevalue',
+[tab]'foo2'  =&gt; 'somevalue2',
+[tab]'foo3'  =&gt; 'somevalue3',
+[tab]'foo34' =&gt; 'somevalue3',
+);
+</pre>
+<p><b>Эмпирическое правило:</b> табуляции должны использоваться в начале строки для формирования отступа, в то время как пробелы могут использоваться в середине строки для выравнивания.
+</p>
+<h2><span class="mw-headline" id=".D0.A1.D1.82.D0.B8.D0.BB.D1.8C_.D1.84.D0.B8.D0.B3.D1.83.D1.80.D0.BD.D1.8B.D1.85_.D1.81.D0.BA.D0.BE.D0.B1.D0.BE.D0.BA">Стиль фигурных скобок</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=3" title="Edit section: Стиль фигурных скобок">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Фигурные скобки используются для всех блоков в стиле, показанном здесь:
+</p>
+<pre>
+if ( condition ) {
+    action1();
+    action2();
+} elseif ( condition2 &amp;&amp; condition3 ) {
+    action3();
+    action4();
+} else {
+    defaultaction();
+}
+</pre>
+<p>Кроме того, если у вас есть действительно длинный блок, рассмотрите возможность его разбиения на два или больше коротких блоков или функций. Если вы считаете, что присутствие такого длинного блока  неизбежно, поместите, пожалуйста, краткий комментарий в конце, чтобы люди могли быстро определить окончание блока - обычно это правило подходит для блоков длиннее приблизительно 35 строк, но любой код, который не является интуитивно понятным, может быть прокомментирован.
+</p><p>Фигурные скобки должны использоваться всегда, даже когда они не являются обязательными:
+</p>
+<pre>
+if ( condition ) {
+    action0();
+}
+ 
+if ( condition ) {
+    action1();
+} elseif ( condition2 ) {
+    action2a();
+    action2b();
+}
+ 
+foreach ( $items as $item ) {
+    process_item( $item );
+}
+</pre>
+<p>Обратите внимание, что требование использования скобок просто означает, что запрещены управляющие inline-конструкции, состоящие из одной инструкции. Вы можете свободно использовать <a rel="nofollow" class="external text" href="http://php.net/manual/en/control-structures.alternative-syntax.php">альтернативный синтаксис для управляющих конструкций</a> (например, <tt>if/endif, while/endwhile</tt>) - особенно в ваших шаблонах, где PHP-код встраивается в HTML, например:
+</p>
+<pre>
+&lt;?php if ( have_posts() )&#160;:&#160;?&gt;
+    &lt;div class="hfeed"&gt;
+        &lt;?php while ( have_posts() )&#160;: the_post();&#160;?&gt;
+            &lt;article id="post-&lt;?php the_ID()&#160;?&gt;" class="&lt;?php post_class()&#160;?&gt;"&gt;
+                &lt;!-- ... --&gt;
+            &lt;/article&gt;
+        &lt;?php endwhile;&#160;?&gt;
+    &lt;/div&gt;
+&lt;?php endif;&#160;?&gt;
+</pre>
+<h2><span class="mw-headline" id=".D0.A0.D0.B5.D0.B3.D1.83.D0.BB.D1.8F.D1.80.D0.BD.D1.8B.D0.B5_.D0.B2.D1.8B.D1.80.D0.B0.D0.B6.D0.B5.D0.BD.D0.B8.D1.8F">Регулярные выражения</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=4" title="Edit section: Регулярные выражения">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Perl-совместимым регулярным выражениям (<a rel="nofollow" class="external text" href="http://php.net/pcre">PCRE</a>, <tt>preg_</tt> функции) должно отдаваться предпочтение по сравнению с их POSIX-аналогами. Никогда не используйте переключатель <tt>/e</tt>, используйте вместо этого <tt>preg_replace_callback</tt>.
+</p><p>Наиболее удобно использовать для регулярных выражений одиночные кавычки,  поскольку в отличие от строк в двойных кавычках, у них есть только две управляющие последовательности: <tt>\'</tt> и <tt>\\</tt>.
+</p>
+<h2><span class="mw-headline" id=".D0.97.D0.B0.D0.BF.D1.80.D0.B5.D1.82_.D0.BD.D0.B0_.D1.81.D0.BE.D0.BA.D1.80.D0.B0.D1.89.D0.B5.D0.BD.D0.BD.D1.8B.D0.B5_PHP-.D1.82.D0.B5.D0.B3.D0.B8">Запрет на сокращенные PHP-теги</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=5" title="Edit section: Запрет на сокращенные PHP-теги">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>Важно</b>: никогда не используйте сокращенные открывающие PHP-теги. Всегда используйте полные PHP-теги.
+</p><p>Правильно:
+</p>
+<pre>
+&lt;?php ...&#160;?&gt;
+&lt;?php echo $var;&#160;?&gt;
+</pre>
+<p>Неправильно:
+</p>
+<pre>
+&lt;? ...&#160;?&gt;
+&lt;?= $var&#160;?&gt;
+</pre>
+<h2><span class="mw-headline" id=".D0.A3.D0.B4.D0.B0.D0.BB.D0.B5.D0.BD.D0.B8.D0.B5_.D0.BA.D0.BE.D0.BD.D0.B5.D1.87.D0.BD.D1.8B.D1.85_.D0.BF.D1.80.D0.BE.D0.B1.D0.B5.D0.BB.D0.BE.D0.B2">Удаление конечных пробелов</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=6" title="Edit section: Удаление конечных пробелов">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Удаляйте конечные пробелы в конце каждой строки кода. Желательно опускать закрывающий PHP-тег в конце файла. Если вы его все же используете, убедитесь, что вы удалите лишние пробелы в конце файла.
+</p>
+<h2><span class="mw-headline" id=".D0.98.D1.81.D0.BF.D0.BE.D0.BB.D1.8C.D0.B7.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_.D0.BF.D1.80.D0.BE.D0.B1.D0.B5.D0.BB.D0.BE.D0.B2">Использование пробелов</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=7" title="Edit section: Использование пробелов">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Всегда ставьте пробелы после запятых и по обе стороны логических операторов, сравнений, строк и операторов присваивания.
+</p>
+<pre>
+x == 23
+foo &amp;&amp; bar
+! foo
+array( 1, 2, 3 )
+$baz . '-5'
+$term .= 'X'
+</pre>
+<p>Ставьте пробелы по обе стороны открывающих и закрывающих скобок блоков <tt>if, elseif, foreach, for, switch</tt>.
+</p>
+<pre>
+foreach ( $foo as $bar ) { ...
+</pre>
+<p>Определение функции:
+</p>
+<pre>
+function my_function( $param1 = 'foo', $param2 = 'bar' ) { ...
+</pre>
+<p>Вызов функции:
+</p>
+<pre>
+my_function( $param1, func_param( $param2 ) );
+</pre>
+<p>Выполнение логических сравнений:
+</p>
+<pre>
+if (&#160;! $foo ) { ...
+</pre>
+<p><a rel="nofollow" class="external text" href="http://www.php.net/manual/en/language.types.type-juggling.php#language.types.typecasting">Приведение типов</a>:
+</p>
+<pre>
+foreach ( (array) $foo as $bar ) { ...
+ 
+$foo = (boolean) $bar;
+</pre>
+<p>При обращении к элементам массива ставьте пробелы вокруг индекса только если он является переменной, например:
+</p>
+<pre>
+$x = $foo['bar']; // правильно
+$x = $foo[ 'bar' ]; // неправильно
+ 
+$x = $foo[0]; // правильно
+$x = $foo[ 0 ]; // неправильно
+ 
+$x = $foo[ $bar ]; // правильно
+$x = $foo[$bar]; // неправильно
+</pre>
+<h2><span class="mw-headline" id=".D0.A4.D0.BE.D1.80.D0.BC.D0.B0.D1.82.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_SQL-.D0.BF.D1.80.D0.B5.D0.B4.D0.BB.D0.BE.D0.B6.D0.B5.D0.BD.D0.B8.D0.B9">Форматирование SQL-предложений</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=8" title="Edit section: Форматирование SQL-предложений">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>При форматировании SQL-предложений вы можете разбивать их на несколько строк и использовать отступы, если они достаточно сложные.  Хотя большинство предложений хорошо работают и в виде одной строки. Всегда используйте прописные буквы для SQL-частей предложений, таких как <tt>UPDATE</tt> или <tt>WHERE</tt>.
+</p><p>В функции, которые обновляют базу данных, параметры должны передаваться после экранирования спецсимволов. Экранирование должно быть сделано как можно ближе к запросу, предпочтительно с помощью  <tt>$wpdb-&gt;prepare()</tt>.
+</p><p><tt>$wpdb-&gt;prepare()</tt> - это метод, который управляет экранированием спецсимволов, заключением строк в кавычки и фильтрацией целочисленных параметров для SQL-запросов. Он использует подмножество стиля форматирования sprintf(). Пример&#160;:
+</p>
+<pre>
+$var = "dangerous'"; // данные, которые могут как нуждаться в экранировании, так и нет 
+$id = some_foo_number(); // ожидается целое число, но не обязательно
+ 
+$wpdb-&gt;query( $wpdb-&gt;prepare( "UPDATE $wpdb-&gt;posts SET post_title =&#160;%s WHERE ID =&#160;%d", $var, $id ) );
+</pre>
+<p><tt>%s</tt> используется для обозначения строкового значения и <tt>%d</tt> используется для целочисленных значений. Обратите внимание, что они не заключаются в кавычки! <tt>$wpdb-&gt;prepare()</tt> будет заботиться об экранировании спецсимволов и заключении строк в кавычки за нас. Преимущество этого заключается в том, что мы не должны беспокоиться о ручном использовании <tt>esc_sql()</tt>, и в том, что с первого взгляда видно, выполнено экранирование или нет, потому что оно делается непосредственно перед запросом.
+</p><p>См. <a href="https://codex.wordpress.org/Data_Validation" title="Data Validation">Data Validation</a> в Кодексе для более подробной информации.
+</p>
+<h2><span class="mw-headline" id=".D0.97.D0.B0.D0.BF.D1.80.D0.BE.D1.81.D1.8B_.D0.BA_.D0.B1.D0.B0.D0.B7.D0.B5_.D0.B4.D0.B0.D0.BD.D0.BD.D1.8B.D1.85">Запросы к базе данных</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=9" title="Edit section: Запросы к базе данных">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Не делайте запросов к базе данных напрямую. Если есть функции, которые могут получить нужные вам данные, используйте их. Абстрагирование от базы данных (использование функций вместо запросов) помогает сохранить совместимость вашего кода в будущем; и в случаях, когда результаты кэшируются в памяти, это может быть во много раз быстрее.
+</p><p>Если вам все же необходимо обратиться напрямую к базе данных, свяжитесь с разработчиками, отправив сообщение в <a rel="nofollow" class="external text" href="https://codex.wordpress.org/Mailing_Lists#Hackers">список рассылки wp-hackers</a>.  Возможно они захотят рассмотреть возможность создания функции для следующей версии WordPress, содержащей нужную вам функциональность.
+</p>
+<h2><span class="mw-headline" id=".D0.A1.D0.BE.D0.B3.D0.BB.D0.B0.D1.88.D0.B5.D0.BD.D0.B8.D0.B5_.D0.BE_.D0.B2.D1.8B.D0.B1.D0.BE.D1.80.D0.B5_.D0.B8.D0.BC.D0.B5.D0.BD">Соглашение о выборе имен</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=10" title="Edit section: Соглашение о выборе имен">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Используйте строчные буквы в именах переменных, действий и функций (никогда не используйте camelCase-нотацию). Разделяйте слова с помощью знака подчеркивания. Не сокращайте имена переменных без необходимости; пусть код будет понятным и самодокументированным.
+</p>
+<pre>
+function some_name( $some_variable ) { [...] }
+</pre>
+<p>Имена классов должны образовываться из слов, начинающихся с прописной буквы и разделенных символами подчеркивания. Все сокращения должны быть в верхнем регистре.
+</p>
+<pre>
+class Walker_Category extends Walker { [...] }
+class WP_HTTP { [...] }
+</pre>
+<p>Имена констант должны быть в верхнем регистре со знаками подчеркиваниями, разделяющими слова:
+</p>
+<pre>
+define( 'DOING_AJAX', true );
+</pre>
+<p>Имена файлов должны описывать содержание и состоять из строчных букв. Слова должны разделяться дефисами.
+</p>
+<pre>
+my-plugin-name.php
+</pre>
+<p>Имена файлов, содержащих классы, должны образовываться на основе имени класса с префиксом <tt>class-</tt>, знаки подчеркивания в имени класса должны заменяться на дефисы, например WP_Error становится:
+</p>
+<pre>
+class-wp-error.php
+</pre>
+<p>Эти стандарты именования файлов распространяются на все имеющиеся и новые файлы с классами. Исключение составляют три файла, которые содержат код, входящий в BackPress: <tt>class.wp-dependencies.php, class.wp-scripts.php, class.wp-styles.php</tt>. Эти файлы начинаются с префикса <tt>class.</tt>, содержащего точку, а не дефис.
+</p><p>Файлы, содержащие теги шаблонов в <tt>wp-includes</tt> должны иметь <tt>-template</tt> в конце имени, чтобы их содержание было очевидно.
+</p>
+<pre>
+general-template.php
+</pre>
+<h2><span class="mw-headline" id=".D0.9E.D1.81.D0.BC.D1.8B.D1.81.D0.BB.D0.B5.D0.BD.D0.BD.D1.8B.D0.B5_.D0.B7.D0.BD.D0.B0.D1.87.D0.B5.D0.BD.D0.B8.D1.8F_.D0.B0.D1.80.D0.B3.D1.83.D0.BC.D0.B5.D0.BD.D1.82.D0.BE.D0.B2_.D1.84.D1.83.D0.BD.D0.BA.D1.86.D0.B8.D0.B9.2C_.D0.B8.D0.B3.D1.80.D0.B0.D1.8E.D1.89.D0.B8.D1.85_.D1.80.D0.BE.D0.BB.D1.8C_.D1.84.D0.BB.D0.B0.D0.B3.D0.BE.D0.B2">Осмысленные значения аргументов функций, играющих роль флагов</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=11" title="Edit section: Осмысленные значения аргументов функций, играющих роль флагов">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>При вызове функций отдавайте предпочтение строковым значениям, а не просто <tt>true</tt> и <tt>false</tt>.
+</p>
+<pre>
+// Неправильно
+function eat( $what, $slowly = true ) {
+...
+}
+eat( 'mushrooms' );
+eat( 'mushrooms', true ); // Что значит true?
+eat( 'dogfood', false ); // Что значит false?
+</pre>
+<p>Поскольку PHP не поддерживает именованные аргументы, значения флагов не имеют смысла, и каждый раз, когда мы сталкиваемся с вызовом функции, подобным приведенному выше, мы должны искать определение функции. Код можно сделать более читаемым, заменив логические значения осмысленными строковыми.
+</p>
+<pre>
+// Правильно
+function eat( $what, $speed = 'slowly' ) {
+...
+}
+eat( 'mushrooms' );
+eat( 'mushrooms', 'slowly' );
+eat( 'dogfood', 'quickly' );
+</pre>
+<h2><span class="mw-headline" id=".D0.A2.D0.B5.D1.80.D0.BD.D0.B0.D1.80.D0.BD.D1.8B.D0.B9_.D0.BE.D0.BF.D0.B5.D1.80.D0.B0.D1.82.D0.BE.D1.80">Тернарный оператор</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=12" title="Edit section: Тернарный оператор">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a rel="nofollow" class="external text" href="http://en.wikipedia.org/wiki/Ternary_operation">Тернарные</a> операторы - это хорошо, но всегда проверяйте истинность утверждения, а не ложность. В противном случае, они становятся запутанными. (Исключением может быть использование <tt>! empty()</tt>, поскольку проверка на ложь здесь более понятна.)
+</p><p>Например:
+</p>
+<pre>
+// (if statement is true)&#160;? (do this)&#160;: (else, do this);
+$musictype = ( 'jazz' == $music )&#160;? 'cool'&#160;: 'blah';
+// (if field is not empty )&#160;? (do this)&#160;: (else, do this);
+</pre>
+<h2><span class="mw-headline" id=".D0.A3.D1.81.D0.BB.D0.BE.D0.B2.D0.B8.D1.8F_.D0.99.D0.BE.D0.B4.D1.8B">Условия Йоды</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=13" title="Edit section: Условия Йоды">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>
+if ( true == $the_force ) {
+    $victorious = you_will( $be );
+}
+</pre>
+<p>При выполнении логических сравнений всегда ставьте переменную справа, а константы и литералы слева.
+</p><p>В приведенном выше примере, если вы пропустите один знак равенства (это случается даже с самыми опытными из нас), вы получите синтаксическую ошибку, потому что вы не можете присвоить значение константе <tt>true</tt>. Если бы условие было записано наоборот ( <tt>$the_force = true</tt> ), присваивание было бы вполне допустимым, возвращало бы 1, и условие бы оценивалось как <tt>true</tt>, и вы могли бы долго искать ошибку.
+</p><p>Такую запись немного странно читать. Но делайте так и вы привыкнете.
+</p><p>Это относится к  <tt>==,&#160;!=, ===,&#160;!==</tt>. Условия Йоды для  <tt>&lt;, &gt;, &lt;=, &gt;=</tt>  читать значительно труднее, поэтому их лучше избегать.
+</p>
+<h2><span class="mw-headline" id=".D0.A3.D0.BC.D0.BD.D1.8B.D0.B9_.D0.BA.D0.BE.D0.B4">Умный код</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=14" title="Edit section: Умный код">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>В целом, читабельность важнее ума или краткости.
+</p>
+<pre>
+isset( $var ) || $var = some_function();
+</pre>
+<p>Хотя приведенная выше линия кода - умная, требуется время, чтобы ее понять, если вы не сталкивались с этим раньше. Поэтому лучше написать так:
+</p>
+<pre>
+if (&#160;! isset( $var ) ) {
+    $var = some_function();
+}
+</pre>
+<h2><span class="mw-headline" id=".D0.9E.D0.BF.D0.B5.D1.80.D0.B0.D1.82.D0.BE.D1.80_.D1.83.D0.BF.D1.80.D0.B0.D0.B2.D0.BB.D0.B5.D0.BD.D0.B8.D1.8F_.D0.BE.D1.88.D0.B8.D0.B1.D0.BA.D0.B0.D0.BC.D0.B8_.40">Оператор управления ошибками @</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=15" title="Edit section: Оператор управления ошибками @">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Как отмечается в <a rel="nofollow" class="external text" href="http://www.php.net//manual/en/language.operators.errorcontrol.php">PHP docs</a>:
+</p>
+<pre>
+PHP поддерживает один оператор управления ошибками: знак @. Когда он предшествует какому-либо PHP-выражению, любое сообщение об ошибке, которое может быть сгенерировано данным выражением, будет проигнорировано.
+</pre>
+<p>Поскольку этот оператор существует в ядре, он часто используется вместо того, чтобы делать надлежащие проверки на ошибки. Его использование крайне не рекомендуется, поскольку PHP docs также утверждает:
+</p>
+<pre>
+Предупреждение: в настоящее время оператор управления ошибками "@" отключает даже сообщения о критических ошибках, которые приводят к прекращению работы скрипта. Среди прочего, это означает, что если вы будете использовать "@" для подавления ошибок, возникающих при работе какой-либо функции, является ли она недоступной или содержит опечатку, скрипт прекратит работу без указания причины.
+</pre>
+<h2><span class="mw-headline" id=".D0.98.D1.81.D1.82.D0.BE.D1.87.D0.BD.D0.B8.D0.BA.D0.B8">Источники</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=%D0%A1%D1%82%D0%B0%D0%BD%D0%B4%D0%B0%D1%80%D1%82%D1%8B_%D0%BA%D0%BE%D0%B4%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_PHP&amp;action=edit&amp;section=16" title="Edit section: Источники">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Стандарты PHP: <a rel="nofollow" class="external text" href="http://pear.php.net/manual/en/standards.php">Pear standards</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004614
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.023 seconds
+Preprocessor visited node count: 333/1000000
+Preprocessor generated node count: 668/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

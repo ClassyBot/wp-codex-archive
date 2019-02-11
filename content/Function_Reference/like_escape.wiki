@@ -1,0 +1,79 @@
+{{#dotorgredirect:https://developer.wordpress.org/reference/functions/like_escape/}}
+
+{{Deprecated|version=4.0}}
+== Description ==
+
+'''This function is deprecated as of WordPress 4.0. Please use [[Class Reference/wpdb/esc_like|$wpdb->esc_like()]] instead.'''
+
+Sanitizes <tt>'''$string'''</tt> for use in a LIKE expression of an SQL query.
+
+Note that the string still needs to be SQL escaped with <tt>esc_sql()</tt> if it is untrusted data. This needs to be done before using <tt>like_escape()</tt>, to avoid double-slashing the string.
+
+== Usage ==
+
+%%% <?php $like = like_escape( $string ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$string|string|The LIKE argument portion of the SQL query.}}
+
+== Return Value ==
+
+{{Return||string|Escaped value appropriate as a LIKE argument in a SQL query.}}
+
+== Example ==
+Try to match a suspicious link to links in comments marked as spam.
+<pre>
+// Parse a suspicious URL so we can just get the main parts.
+$url = parse_url( $suspiciuos_link );
+
+// Strip out "http://" and any url parameters.
+if ( isset( $url['path'] ) ) {
+	$link = $url['host'] . $url['path'];
+} else {
+	$link = $url['host'];
+}
+
+// First, escape the link for use in our SQL query.
+$link = esc_sql( $link );
+
+// We are using this in a LIKE statement, so escape it for that as well.
+$link = like_escape( $link );
+
+// Add wildcards, since we are searching within comment text.
+$link = '%' . $link . '%';
+
+global $wpdb;
+
+// Search local spam for comments or author url containing this link.
+$matching_comments = $wpdb->get_var(
+	"
+	SELECT COUNT(*)
+	FROM $wpdb->comments 
+	WHERE (comment_content LIKE '$link' OR comment_author_url LIKE '$link')
+		AND comment_approved = 'spam' 
+	"
+);
+
+echo $matching_comments . ' spam comments found with this link.';
+</pre>
+
+== Notes ==
+Escapes % (percent) and _ (underscore) characters, as they have special meaning in LIKE arguments.
+== Change Log ==
+
+* Since: [[Version_2.5|2.5.0]]
+* Deprecated: [[Version_4.0|4.0.0]]
+**[http://make.wordpress.org/core/2014/06/20/like_escape-is-deprecated-in-wordpress-4-0/ like_escape() is Deprecated in WordPress 4.0 ]
+
+== Source File ==
+
+<tt>like_escape()</tt> is located in {{Trac|wp-includes/formatting.php}}.
+
+== Related ==
+
+{{Esc Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

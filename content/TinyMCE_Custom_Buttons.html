@@ -1,0 +1,125 @@
+<div style="background-color:#FAEBD7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">This page is <a href="https://codex.wordpress.org/Category:Stubs" title="Category:Stubs">marked</a> as incomplete. You can <a href="https://codex.wordpress.org/Codex:Contributing" title="Codex:Contributing">help</a> Codex by <b><a rel="nofollow" class="external text" href="https://codex.wordpress.org/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit">expanding it</a></b>.</div>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Introduction"><span class="tocnumber">1</span> <span class="toctext">Introduction</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Adding_Custom_CSS_Styles_to_MCE_Editor"><span class="tocnumber">2</span> <span class="toctext">Adding Custom CSS Styles to MCE Editor</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Enabling_hidden_MCE_buttons"><span class="tocnumber">3</span> <span class="toctext">Enabling hidden MCE buttons</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Creating_an_MCE_Editor_Plugin"><span class="tocnumber">4</span> <span class="toctext">Creating an MCE Editor Plugin</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Loading_a_TinyMCE_Plugin"><span class="tocnumber">5</span> <span class="toctext">Loading a TinyMCE  Plugin</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Loading_language_files"><span class="tocnumber">5.1</span> <span class="toctext">Loading language files</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Further_Reading"><span class="tocnumber">6</span> <span class="toctext">Further Reading</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#External_Resources"><span class="tocnumber">7</span> <span class="toctext">External Resources</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Related"><span class="tocnumber">8</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Introduction">Introduction</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=1" title="Edit section: Introduction">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>TinyMCE is the name of the visual editor that comes with WordPress, which can be used to edit post and page content. It comes with a variety of buttons, but it is also possible to add your own buttons to the editor toolbar, and otherwise change the editor's behavior. A powerful way to do this is by adding a "plugin" to the MCE editor, and this article demonstrates how to set up a WordPress plugin to do that.
+</p><p>This article assumes that you are already familiar with the basics of <a href="https://codex.wordpress.org/Writing_a_Plugin" title="Writing a Plugin">Writing a Plugin</a> and the <a href="https://codex.wordpress.org/Plugin_API" title="Plugin API">Plugin API</a> of hooks and filters. Also, the MCE plugins themselves are written in JavaScript, so you will need to be familiar with JavaScript and the MCE editor conventions, as well as PHP programming.
+</p><p>Note that the instructions below apply only to the "Visual" editor. To add buttons to the "HTML" editor as well you must use the <a href="https://codex.wordpress.org/Quicktags_API" title="Quicktags API">Quicktags API</a>.
+</p>
+<h2><span class="mw-headline" id="Adding_Custom_CSS_Styles_to_MCE_Editor">Adding Custom CSS Styles to MCE Editor</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=2" title="Edit section: Adding Custom CSS Styles to MCE Editor">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A common use-case for custom TinyMCE plugins is the need for buttons that generate custom styles used in a site's theme, beyond the default HTML tags like Blockquote and Strong. This need is accounted for by the built-in (but hidden in WordPress) <a href="https://codex.wordpress.org/TinyMCE_Custom_Styles" title="TinyMCE Custom Styles"><tt>'styleselect'</tt> button</a> in TinyMCE and the ability to register custom <b>formats</b> that users can insert using it. 
+</p><p>See <a href="https://codex.wordpress.org/TinyMCE_Custom_Styles" title="TinyMCE Custom Styles">TinyMCE Custom Styles</a> for information about adding a pulldown menu with custom styles to TinyMCE. 
+</p><p>Also see <a href="https://codex.wordpress.org/Function_Reference/add_editor_style" title="Function Reference/add editor style"><tt>add_editor_style()</tt></a> which is used to register a custom CSS file for TinyMCE that will make the Visual editor display post content the way it will be shown on the frontend of the site.
+</p>
+<h2><span class="mw-headline" id="Enabling_hidden_MCE_buttons">Enabling hidden MCE buttons</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=3" title="Edit section: Enabling hidden MCE buttons">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In implementing TinyMCE WordPress chooses to avoid a messy editor by not displaying many of the available buttons. In some cases creating a custom MCE button is unnecessary because a button already exists that does what you want and you just need to add it to one of the rows of buttons to have access. Common examples include the <b>hr</b> (horizontal rule), <b>sub</b> (subscript) and <b>sup</b> (superscript) buttons, as well as the powerful <b>styleselect</b> button mentioned above. <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/TinyMCE3x:Buttons/controls">See the full list of buttons on the TinyMCE site</a>.
+</p><p>As of WordPress 3.9 and TinyMCE 4.0 <b>sup</b> has been renamed to <b>superscript</b> and <b>sub</b> has been renamed to <b>subscript</b>.
+</p><p>Hidden buttons can be enabled by filtering the array of buttons for the row you wish to edit. The filter for the second row is <b><tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_buttons,_mce_buttons_2,_mce_buttons_3,_mce_buttons_4" title="Plugin API/Filter Reference/mce buttons, mce buttons 2, mce buttons 3, mce buttons 4">mce_buttons_2</a></tt></b>, while <b><tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_buttons,_mce_buttons_2,_mce_buttons_3,_mce_buttons_4" title="Plugin API/Filter Reference/mce buttons, mce buttons 2, mce buttons 3, mce buttons 4">mce_buttons_3</a></tt></b> will create a new third row of buttons. 
+</p>
+<pre>
+function my_mce_buttons_2( $buttons ) {	
+	/**
+	 * Add in a core button that's disabled by default
+	 */
+	$buttons[] = 'superscript';
+	$buttons[] = 'subscript';
+
+	return $buttons;
+}
+add_filter( 'mce_buttons_2', 'my_mce_buttons_2' );
+</pre>
+<h2><span class="mw-headline" id="Creating_an_MCE_Editor_Plugin">Creating an MCE Editor Plugin</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=4" title="Edit section: Creating an MCE Editor Plugin">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The first step in adding a plugin to the MCE editor is to define your plugins's behavior, by creating an MCE plugin (JavaScript) file. You can get some ideas on how to do that by looking at the existing editor plugins distributed with WordPress, which are in the <tt>/wp-includes/js/tinymce/plugins</tt> directory. Or, check the Further Reading section at the bottom of this article for documentation on how to write MCE plugins.
+</p><p>The result is that you will create a JavaScript file, and perhaps also a CSS style file and HTML file that define your MCE plugin. The next sections show how to make your MCE plugin get loaded into the editor in WordPress, from within a WordPress plugin.
+</p>
+<h2><span class="mw-headline" id="Loading_a_TinyMCE_Plugin">Loading a TinyMCE  Plugin</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=5" title="Edit section: Loading a TinyMCE Plugin">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In order to hook an MCE plugin into TinyMCE you need to hook into the following filters:
+</p>
+<dl><dt> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_buttons,_mce_buttons_2,_mce_buttons_3,_mce_buttons_4" title="Plugin API/Filter Reference/mce buttons, mce buttons 2, mce buttons 3, mce buttons 4"><b>mce_buttons</b></a></tt></dt>
+<dd> passes in/out a php array with the button names; You can also (<i>optionally</i>) use the pipe symbol ( <b><code>|</code></b> ) to insert a toolbar separator. See <a rel="nofollow" class="external text" href="http://www.tinymce.com/wiki.php/TinyMCE3x:Buttons/controls">TinyMCE button list</a></dd>
+<dt> <tt><a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_external_plugins" title="Plugin API/Filter Reference/mce external plugins"><b>mce_external_plugins</b></a></tt></dt>
+<dd> passes in/out an associative php array 'plugin_name' =&gt; 'plugin_url'. The url should be absolute and on the same domain as your WordPress installation.</dd></dl>
+<p>There are also a couple of details covered in sections below, such as how to deal with languages. 
+</p><p>Here is an example of how these filters might be used in a plugin:
+</p>
+<pre>
+// add new buttons
+add_filter( 'mce_buttons', 'myplugin_register_buttons' );
+
+function myplugin_register_buttons( $buttons ) {
+   array_push( $buttons, 'separator', 'myplugin' );
+   return $buttons;
+}
+ 
+// Load the TinyMCE plugin&#160;: editor_plugin.js (wp2.5)
+add_filter( 'mce_external_plugins', 'myplugin_register_tinymce_javascript' );
+
+function myplugin_register_tinymce_javascript( $plugin_array ) {
+   $plugin_array['myplugin'] = plugins_url( '/js/tinymce-plugin.js',__FILE__ );
+   return $plugin_array;
+}
+</pre>
+<p>Note: when using the <tt>mce_external_plugins</tt> filter, the url should point to the actual plugin file, as in the example above.
+</p>
+<h3><span class="mw-headline" id="Loading_language_files">Loading language files</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=6" title="Edit section: Loading language files">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The language codes are only ISO 639-1, which is just the first 2 letters from WordPress locale, like "de", "fr", "es", etc. TinyMCE  will look for a sub-directory named "langs" in the directory where my_plugin.js is located. It will load langs/[lang].js when a plugin is loaded and if the plugin has a popup, it will load langs/[lang]_dlg.js when the popup is opened.
+</p><p>All default TinyMCE strings are translated to all languages available in WordPress. A plugin can use any of these strings; check the tinyMCE.i18n js object when TinyMCE is loaded to see how to reference them within your js plugin.
+</p>
+<h2><span class="mw-headline" id="Further_Reading">Further Reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=7" title="Edit section: Further Reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Help for writing TinyMCE plugins can be found on TinyMCE's documentation site:
+</p>
+<ul><li> <a rel="nofollow" class="external free" href="http://archive.tinymce.com/wiki.php/Tutorials:Creating_a_plugin">http://archive.tinymce.com/wiki.php/Tutorials:Creating_a_plugin</a></li>
+<li> <a rel="nofollow" class="external free" href="http://archive.tinymce.com/wiki.php/API3:tinymce.api.3.x">http://archive.tinymce.com/wiki.php/API3:tinymce.api.3.x</a></li>
+<li> <a rel="nofollow" class="external free" href="http://www.tinymce.com/wiki.php/TinyMCE">http://www.tinymce.com/wiki.php/TinyMCE</a></li>
+<li> <a rel="nofollow" class="external free" href="https://www.tinymce.com/docs/">https://www.tinymce.com/docs/</a></li></ul>
+<h2><span class="mw-headline" id="External_Resources">External Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=8" title="Edit section: External Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://wp.tutsplus.com/tutorials/theme-development/guide-to-creating-your-own-wordpress-editor-buttons/">Creating Your Own WordPress Editor Buttons</a></li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=TinyMCE_Custom_Buttons&amp;action=edit&amp;section=9" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Intro: <a href="https://codex.wordpress.org/TinyMCE" title="TinyMCE">TinyMCE</a></li>
+<li> Tutorial: <strong class="selflink">TinyMCE Custom Buttons</strong></li>
+<li> Tutorial: <a href="https://codex.wordpress.org/TinyMCE_Custom_Styles" title="TinyMCE Custom Styles">Creating a Custom Style Dropdown</a></li>
+<li> Function: <a href="https://codex.wordpress.org/Function_Reference/add_editor_style" title="Function Reference/add editor style">add_editor_style()</a></li>
+<li> Filter: <a href="/index.php?title=Plugin_API/Filter_Reference/mce_spellchecker_languages&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Filter Reference/mce spellchecker languages (page does not exist)">mce_spellchecker_languages</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_buttons,_mce_buttons_2,_mce_buttons_3,_mce_buttons_4" title="Plugin API/Filter Reference/mce buttons, mce buttons 2, mce buttons 3, mce buttons 4">mce_buttons, mce_buttons_2, mce_buttons_3, mce_buttons_4</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_css" title="Plugin API/Filter Reference/mce css">mce_css</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_external_plugins" title="Plugin API/Filter Reference/mce external plugins">mce_external_plugins</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/mce_external_languages" title="Plugin API/Filter Reference/mce external languages">mce_external_languages</a></li>
+<li> Filter: <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/tiny_mce_before_init" title="Plugin API/Filter Reference/tiny mce before init">tiny_mce_before_init</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004136
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.019 seconds
+Preprocessor visited node count: 78/1000000
+Preprocessor generated node count: 196/1000000
+Post‐expand include size: 1624/2097152 bytes
+Template argument size: 221/2097152 bytes
+Highest expansion depth: 5/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.788      1 - -total
+ 66.76%    2.529      1 - Template:Stub
+ 37.59%    1.424      1 - Template:Message
+ 24.21%    0.917      1 - Template:TinyMCE_API
+-->

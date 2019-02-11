@@ -1,0 +1,198 @@
+{{Languages|
+{{en|Changing The Site URL}}
+{{sk|Zmena URL stránky}}
+}}
+
+__TOC__
+WordPress má vo svojej databáze uložené dve adresy, ktoré určujú kde sa nachádzajú vaše súbory blogu a kde je hlavný index. Pri normálnej inštalácii sú tieto adresy rovnaké. 
+
+Sú však dva prípady, keď je potrebné vstúpiť do databázy a zmeniť jedno alebo obe tieto nastavenia: 
+
+# Ak ste skúsili zmeniť URL blogu alebo WordPress URL v nastaveniach, a vyskytla sa chyba.
+# Ak ste sa presunuli na doménu/subdoménu s iným menom. 
+
+Poznámka: ak používate multistránku, pozrite sa prosím na sekciu 11, doplňujúce poznámky, nižšie.   
+
+<div style="border:red solid 4px; margin:20px; padding:10px;font-weight:bold">
+ZÁLOHUJTE svoju databázu predtým ako začnete a uložte svoju zálohu mimo server stránky, napríklad na pevný disk.  Pozrite: [[Backing Up Your Database|Zálohovanie vašej databázy]].
+</div>
+
+== Úprava wp-config.php ==
+
+Upraviť URL stránky by malo byť možné aj s použitím novej vlastnosti - 
+
+Pridajte tieto dva riadky do vášho wp-config.php, kde "priklad.com" je NOVÉ umiestnenie vašej stránky.
+ define('WP_HOME','http://priklad.com');
+ define('WP_SITEURL','http://priklad.com');
+
+Nie je to najlepší spôsob úpravy, je to len pridanie kódu „na tvrdo“ do samotnej stránky. Pri použití tejto metódy už nebudete môcť upraviť tieto hodnoty na stránke  Základných nastavení. 
+
+Vďaka [http://www.ilfilosofo.com/blog/2007/03/20/wordpress-relocation-without-editing-the-database/ filosofovi] za [http://core.trac.wordpress.org/ticket/4003 opravu], zahrnutú v 2.2.
+
+==Úprava functions.php==
+Ak máte na stránku prístup cez FTP, potom vám táto metóda pomôže rýchlo znovu spojazdniť vašu stránku, ak ste predtým nesprávne zmenili tieto hodnoty. 
+
+1. Vstúpte na stránku cez FTP, a urobte si kópiu functions.php súboru aktívnej témy. Upravíte ho v jednoduchom textovom editore  (ako poznámkový blok) a nahráte ho späť na stránku.
+
+2. Pridajte do súboru tieto dva riadky, hneď po úvodnom riadku "<?php".
+ update_option('siteurl','http://priklad.com/blog');
+ update_option('home','http://priklad.com/blog');
+
+Samozrejme namiesto priklad.com použite vaše vlastné URL .
+
+3. Nahrajte súbor späť na vašu stránku, do rovnakého umiestnenia. FileZilla ponúka užitočnú funkciu "úprava súboru" pre rýchle zvládnutie týchto krokov; ak máte možnosť ju použiť, urobte to.
+
+4. Načítajte niekoľko krát prihlasovaciu alebo administratívnu stránku. Stránka by sa mala vrátiť.  
+
+5. Opakujte vyšší postup, ale odstráňte tieto riadky. DÔLEŽITÉ: NEnechávajte tam tieto riadky. Odstráňte ich hneď ako je stránka znovu funkčná. 
+
+Ak v téme nie je súbor functions.php:
+Vytvorte nový textový súbor s názvom "functions.php".
+Upravte ho v poznámkovom bloku, a pridajte do neho tento text, s použitím vášho URL namiesto priklad.com:
+ <?php
+ update_option('siteurl','http://priklad.com/blog');
+ update_option('home','http://priklad.com/blog');
+
+Toto nahrajte do vášho adresára tém, potom pokračujte tak ako je to popísané vyššie. Po skončení súbor odstráňte. 
+
+==Metóda relokácie==
+WordPress podporuje automatický spôsob relokácie ktorý pre vás zistí a aktualizuje tieto hodnoty automaticky. Táto metóda by mala byť rýchlou pomocou pre opätovné spustenie vašej stránky pri presune z jedného servera na druhý. 
+
+Postup:
+
+1. Upravte súbor wp-config.php.
+
+2. Po zadaniach "define", pridajte toto nové:
+ define('RELOCATE',true);
+
+3. Prejdite na stránku wp-login.php vo vašom prehliadači.
+
+4. Prihláste sa ako zvyčajne.
+
+Keď je možnosť RELOCATE nastavená na hodnotu true, hodnota siteurl (NIE nastavenia domácej stránky) bude automaticky aktualizovaná na akúkoľvek cestu ktorú používate pre prístup na prihlasovaciu obrazovku.  Toto spojazdní administratívnu sekciu na novej URL, ale neopraví nijaké iné časti nastavení. Tieto budete stále musieť upraviť manuálne. 
+
+Potom ako je stránka funkčná, mali by ste odstrániť pridaný riadok. NEnechávajte ho funkčný.
+
+==Zmena URL priamo v databáze==
+
+Ak máte prístup do phpMyAdmin vášho hostiteľa môžete upraviť tieto hodnoty priamo, aby bola vaša stránka opäť funkčná,.
+
+# [[Backing Up Your Database|Zálohujte vašu databázu]] a uložte si kópiu mimo stránky.
+# Prihláste sa do [[phpMyAdmin]].
+# Kliknite na odkaz do vašich '''databáz'''.
+# Zobrazí sa zoznam vašich databáz. Vyberte tú ktorá je vašou WordPress databázou.
+# Zobrazia sa všetky tabuľky vo vašej databáze. 
+# V zozname nájdite '''<tt>wp_options</tt>'''. '''Poznámka:''' Predpona tabuľky <tt>wp_</tt> môže byť iná ak ste ju pri inštalácii zmenili.
+# Kliknite na malú ikonu označenú ako '''Prehľadávať'''.
+# Otvorí sa obrazovka so zoznamom polí v rámci tabuľky '''<tt>wp_options</tt>'''.
+# Pod poľom '''<tt>option_name</tt>''', prejdite dole a nájdite '''<tt>siteurl</tt>'''. 
+# Kliknite na ikonu '''Upraviť pole''', ktorá je zvyčajne umiestnená úplne vľavo na začiatku stĺpca.  
+# Objaví sa okno '''Upraviť pole'''.
+# V poli pre '''<tt>option_value</tt>''', dôsledne prepíšte informáciu o  URL na novú adresu. 
+# Potvrďte správnosť a kliknite na '''Ďalej''' pre uloženie informácii.
+# Budete vrátený do vašej  '''<tt>wp-options</tt>''' tabuľky.
+# Nájdite v tabuľke pole '''<tt>home</tt>''' a kliknite na '''Upraviť Pole'''. '''Poznámka:''' Vo <tt>wp_options</tt> je niekoľko strán tabuliek. Hľadajte v nich symbol pre stranu <tt>&gt;</tt>.
+# V poli pre '''<tt>option_value</tt>''', dôsledne upravte informáciu o  URL na novú adresu.
+# Potvrďte správnosť a kliknite na '''Ďalej''' pre uloženie informácii.
+# Odstráňte zložku ''wp-content/cache'' (to je nová zložka pridaná s WordPress 2.0).
+# To je všetko.
+
+== Zmena názvu domény ==
+
+<div style="border: red 3px solid; margin:20px; padding:10px; font-weight:bold; text-align:center">
+PRI ZMENE NÁZVU DOMÉNY BUĎTE OPATRNÍ.
+
+AKO PRVÉ ZÁLOHUJTE VAŠU DATABÁZU: [[Backing Up Your Database|Zálohovanie vašej databázy]].
+
+Nasledujúci postup je nevratný. Neexistuje nijaká funkcia "vrátiť" alebo "obnoviť nastavenia". Zmeny sú trvalé, takže pamätajte že tento postup môže narobiť škody.
+</div>
+
+Keď presúvate doménu, budete musieť [[Restoring_Your_Database_From_Backup|obnoviť vašu  databázu]]. Potom nahráte súbory do ich nového umiestnenia. 
+
+'''Váš blog zatiaľ NEBUDE fungovať.'''
+
+# '''Databáza'''
+## Postupujte podľa návodu vyššie pre zmenu informácii v databáze. 
+# '''Vstupy databázy'''
+## Prihláste sa do [[phpMyAdmin]].
+## [[Backing Up Your Database|Zálohujte vašu databázu]] a uložte kópiu mimo stránky.
+## Prihláste sa do [[phpMyAdmin]].
+## Kliknite na odkaz k vašim '''Databázam'''.
+## Zobrazí sa zoznam vašich databáz. Vyberte tú, ktorá je vašou WordPress databázou. 
+## V rámci vašej databázy nájdite názov tabuľky ktorá obsahuje informácie o vašich príspevkoch. Zvyčajne je nazvaná <tt>wp_posts</tt>, ale môže sa volať aj inak.  Zapíšte si to.
+## Kliknite na odkaz/ikonu '''Prehľadávať''', otvorte tabuľku <tt>wp_posts</tt>.
+## Nájdite pole ktorá obsahuje váš "guid" príspevok.  Zvyčajne je nazvané <tt>guid</tt>, ale môže sa volať aj inak.  Zapíšte si to.
+## Kliknite na vrchný tab pre  '''SQL'''.
+## S použitím informácii ktoré ste si zapísali z vyšších krokov a starých a nových URL adries ktoré chcete '''aktualizovať''' alebo nájsť a nahradiť v rámci vašej databázy, vpíšte nasledujúce ('''OPATRNE'''):<br />
+<pre>UPDATE wp_posts SET guid = REPLACE (
+guid,
+'http://prikladSTAREJurl.com',
+'http://prikladNOVEJurl.com');</pre>
+## Uistite sa že názvy pre  <tt>wp_posts</tt> a <tt>post_content</tt> zodpovedajú tabuľkám a poliam vo vašej databáze. Ak nie, zmeňte ich. 
+## Uistite sa že IBA obsah ktorý chcete zmeniť je medzi  ''' 'apostrofmi' '''. Skontrolujte  či je  VŠETKO napísané správne a že ste si tým istý.
+## Prejdite si všetko v rámci '''SQL''' okna znovu. Uistite sa že je to správne. Keď sa rozhodnete pokračovať, už nebudú možné ďalšie zmeny. Zmena je trvalá.
+## Keď ste si istí, kliknite na '''Ďalej'''.
+## Na vrchu obrazovky sa vygeneruje zoznam tabuliek a polí ktoré sa zmenili. 
+
+== Predpony tabuliek ==
+
+Tak ako množstvo administrátorov WordPress, je možné že prevádzkujete niekoľko vašich WordPress domén z jednej inštalácie s použitím rozličných <tt>wp-config.php</tt> „hackov“. Množstvo z týchto hackov zahŕňa aktívne nastavenie predpôn tabuliek, a ak skončíte pri zmenách  vo vašich predponách tabuľky, ''musíte'' tiež aktualizovať niekoľko vstupov v rámci tabuľky  ''prefix_''usermeta.
+
+Tak ako v sekcii vyššie, pamätajte že zmeny v  SQL sú trvalé a najprv by ste mali vašu databázu zálohovať:
+
+<pre>UPDATE `newprefix_usermeta` SET `meta_key` = REPLACE( `meta_key` , 'oldprefix_', 'newprefix_' );</pre>
+
+== Zmena súborov šablón ==
+
+Vo vašej [[Using Themes|WordPress téme]], otvorte každý súbor šablóny, hľadajte manuálne vložené odkazy na váš starý názov domény a nahraďte ho novým názvom. Pozrite sa tiež na špecifické manuálne kódované odkazy ktoré ste mohli vložiť do rôznych súborov šablón ako  <tt>sidebar.php</tt> a <tt>footer.php</tt>.
+
+WordPress používa značku šablóny nazvanú <tt>[[Template Tags/bloginfo|bloginfo()]]</tt> pre automatické generovanie adresy vašej stránky z informácii zadaných vo vašom  [[Administration_Panels|Administrácia]] > [[Administration_Panels#General|Nastavenia]] > [[Settings_General_SubPanel|Základné]]  paneli. Značku vo vašich súboroch šablón nebudete musieť upravovať. 
+
+==Zmena Konfiguračného súboru ==
+
+Ak sa vaša databáza presunula alebo zmenila jedným zo špecifických spôsobov, budete musieť aktualizovať váš WordPress konfiguračný súbor. 
+# Konfiguračný súbor budete potrebovať upraviť iba ak: 
+## sa vaša databáza presunula na iný server a nepracuje na vašom <tt>localhoste</tt>
+## ste premenovali vašu databázu
+## ste zmenili užívateľské meno databázy
+# "'Urobte si kópiu pre zálohovanie vášho <tt>wp-config.php</tt> súboru.'" 
+# Otvorte <tt>wp-config.php</tt> súbor v [[Glossary#Text editor|textovom editore]].
+# Prezrite si obsah. Konkrétne hľadáte [http://codex.wordpress.org/Editing_wp-config.php#Database_host database_host súbor]. 
+# Uložte súbor.
+Teraz by už mal váš WordPress blog fungovať.
+
+== Overenie profilu ==
+
+# Vo vašich [[Administration Panels|Administračných paneloch]] prejdite na [[Administration_Panels#General|Nastavenia]] > [[Settings_General_SubPanel|Základné]]. Tu overíte že zmeny ktoré ste urobili pri  [http://codex.wordpress.org/Changing_The_Site_URL#Changing_the_URL Zmene URL] vyššie, sú správne.
+# Overte že odkaz vo vašom '''WordPress URL''' obsahuje novú adresu.
+# Overte že odkaz vo vašom "Blog URL" obsahuje novú adresu. 
+# Ak ste urobili nejaké zmeny, kliknite na '''Uložiť zmeny'''.
+
+== Zmena súboru .htaccess ==
+
+Ak používate [[Using Permalinks|Trvalé odkazy]] alebo akékoľvek iné presmerovania, po úprave informácii vo vašom [[Administration_Panels|Administrácia]] > [[Administration_Panels#General|Nastavenia]] > [[Settings_General_SubPanel|Základné]] paneli, budete musieť aktualizovať váš <tt>.htaccess</tt> súbor.
+
+# '''Urobte si kópiu pre zálohovanie vášho <tt>.htaccess</tt> súboru.''' Toto nie je odporúčanie ale požiadavka. 
+# Otvorte <tt>.htaccess</tt> súbor v [[Glossary#Text editor|textovom editore]].
+# Prezrite si jeho obsah, hľadajte  akékoľvek vlastné prepisy alebo presmerovania ktoré ste vložili.   '''Skopírujte''' ich do ďalšieho textového súboru, aby sa bezpečne zachovali. 
+# Zatvorte súbor.
+# Riaďte sa pokynmi v SubPaneli pre Trvalé odkazy Permalinks SubPanel pre aktualizáciu vašich trvalých odkazov vo vašom  <tt>.htaccess</tt> súbore.
+# Otvorte nový <tt>.htaccess</tt> súbor a skontrolujte či sa tam vaše vlastné prepisy a presmerovania stále nachádzajú. Ak nie, skopírujte ich z uloženého súboru a vložte ich do nového  <tt>.htaccess</tt> súboru.
+# Vykonajte v týchto vlastných prepisoch a presmerovaniach všetky nutné zmeny týkajúce sa novej adresy stránky. 
+# Uložte súbor.
+# Vyskúšajte tieto presmerovania aby ste sa uistili že pracujú správne.
+
+Ak urobíte chybu, môžete [[Restoring Your Database From Backup|obnoviť vašu databázu zo zálohy]] a vyskúšať to znova. 
+
+== Doplňujúce informácie ==
+Množstvo z týchto informácii pochádza z  [http://www.tamba2.org.uk/wordpress/ Podz' WordPress Sprievodcov] kde sa o tejto téme tiež diskutuje.
+
+Niektoré iné veci pri ktorých by ste mali zvážiť KOMPLETNÉ „nájdenie a nahradenie“ vo vašej SQL databáze:
+# Odkazy na obrázky: odkazy na obrázky sú uložené v "post_content" vo vašej wp_posts tabuľke.  Pre aktualizáciu vašich odkazov na obrázky môžete použiť podobný kód ako je vyššie. 
+# wp_options: Okrem položiek "siteurl" a "home" spomínaných vyššie sú tu aj iné option_value položky ktoré potrebujú revíziu, ako napríklad "cesta nahrávania" a a niektoré doplnky (záleží na tom čo všetko ste nainštalovali, ako ovládacie prvky, štatistické ukazovatele, DMS knihu hostí či mapu stránky atď.)
+# Urobte KOMPLETNÉ prehľadanie databázy pre akékoľvek zostávajúce položky. UISTITE SA že viete čo meníte a skontrolujte každú položku pre možnú nesprávnu zámenu. 
+# Ak prevádzkujete sieť / vlastníte  viacero  stránok, budete POTREBOVAŤ nahradenie všetkých zmienok o URL v databáze. Sú uložené v mnohých tabuľkách, vrátane každej stránky (blogu).
+
+[http://wphacks.com/how-to-move-wordpress-blog-new-domain-name/ Ako presunúť váš WordPress blog na novú doménu] - Použitie Export/Import funkcie pre presunutie blogu na novú doménu.
+[[Category:Advanced Topics]]
+{{Copyedit}}

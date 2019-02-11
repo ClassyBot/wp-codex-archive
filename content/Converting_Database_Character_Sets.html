@@ -1,0 +1,277 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/DB">文字コードセットの変換 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>This article addresses, in general, the process of converting your WordPress <a href="https://codex.wordpress.org/Glossary#MySQL" title="Glossary">MySQL</a> or <a href="https://codex.wordpress.org/Glossary#MariaDB" title="Glossary">MariaDB</a> <a href="https://codex.wordpress.org/Database_Description" title="Database Description">database tables</a> from one <a href="https://codex.wordpress.org/Glossary#Character_set" title="Glossary">character set</a> to another.  <b>Warning:  character set conversion is not a simple process.  Please complete a backup of your database before attempting any conversion.</b>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#The_History"><span class="tocnumber">1</span> <span class="toctext">The History</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#The_basics_of_converting_a_database"><span class="tocnumber">2</span> <span class="toctext">The basics of converting a database</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Strategy:_Slowly_build_one_big_SQL_file_that_will_convert_your_site"><span class="tocnumber">3</span> <span class="toctext">Strategy: Slowly build one big SQL file that will convert your site</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Every_site_is_different_when_it_comes_to_database_charset_conversions"><span class="tocnumber">3.1</span> <span class="toctext">Every site is different when it comes to database charset conversions</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Changing_the_default_charset_of_the_database"><span class="tocnumber">4</span> <span class="toctext">Changing the default charset of the <b>database</b></span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Changing_the_default_charset_of_individual_tables"><span class="tocnumber">5</span> <span class="toctext">Changing the default charset of individual <b>tables</b></span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Changing_the_charset_of_individual_columns"><span class="tocnumber">6</span> <span class="toctext">Changing the charset of individual <b>columns</b></span></a>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#The_basic_ALTER_TABLE_command_with_a_specified_charset"><span class="tocnumber">6.1</span> <span class="toctext">The basic ALTER TABLE command with a specified charset</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Converting_columns_to_blob.2C_then_back_to_original_format_with_new_charset"><span class="tocnumber">6.2</span> <span class="toctext">Converting columns to blob, then back to original format with new charset</span></a>
+<ul>
+<li class="toclevel-3 tocsection-10"><a href="#List_of_binary_.22blob.22_counterparts_for_column_data-types"><span class="tocnumber">6.2.1</span> <span class="toctext">List of binary "blob" counterparts for column data-types</span></a></li>
+<li class="toclevel-3 tocsection-11"><a href="#Special_case:_VARCHAR_-_character_limit_must_be_specified"><span class="tocnumber">6.2.2</span> <span class="toctext">Special case: VARCHAR - character limit must be specified</span></a></li>
+<li class="toclevel-3 tocsection-12"><a href="#Special_case:_ENUM_-_Different_process"><span class="tocnumber">6.2.3</span> <span class="toctext">Special case: ENUM - Different process</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-13"><a href="#Variant:_3-step_conversion_when_data_and_table_charset_already_don.27t_match"><span class="tocnumber">6.3</span> <span class="toctext">Variant: 3-step conversion when data and table charset already don't match</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Variant:_Using_mysqldump_to_fix_strange_characters"><span class="tocnumber">6.4</span> <span class="toctext">Variant: Using mysqldump to fix strange characters</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-15"><a href="#Performing_the_actual_conversion_on_your_live_database"><span class="tocnumber">7</span> <span class="toctext">Performing the actual conversion on your live database</span></a>
+<ul>
+<li class="toclevel-2 tocsection-16"><a href="#Putting_it_all_together"><span class="tocnumber">7.1</span> <span class="toctext">Putting it all together</span></a></li>
+<li class="toclevel-2 tocsection-17"><a href="#Testing_your_script"><span class="tocnumber">7.2</span> <span class="toctext">Testing your script</span></a></li>
+<li class="toclevel-2 tocsection-18"><a href="#Running_your_script_on_the_live_database"><span class="tocnumber">7.3</span> <span class="toctext">Running your script on the live database</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-19"><a href="#Note_on_previous_versions_of_this_article"><span class="tocnumber">8</span> <span class="toctext">Note on previous versions of this article</span></a></li>
+<li class="toclevel-1 tocsection-20"><a href="#Discussions_on_character_sets"><span class="tocnumber">9</span> <span class="toctext">Discussions on character sets</span></a></li>
+<li class="toclevel-1 tocsection-21"><a href="#Resources"><span class="tocnumber">10</span> <span class="toctext">Resources</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="The_History">The History</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=1" title="Edit section: The History">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Up to and including WordPress <a href="https://codex.wordpress.org/Version_2.1.3" title="Version 2.1.3">Version 2.1.3</a>, most WordPress databases were created using the <i>latin1</i> character set and the <i>latin1_swedish_ci</i> <a href="https://codex.wordpress.org/Glossary#Collation" title="Glossary">collation</a>.
+</p><p>Beginning with <a href="https://codex.wordpress.org/Version_2.2" title="Version 2.2">Version 2.2</a>, both the database character set and the collation can be defined in the <a href="https://codex.wordpress.org/Editing_wp-config.php" title="Editing wp-config.php">wp-config.php</a> file.  Setting the <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_character_set" title="Editing wp-config.php">DB_CHARSET</a> and <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_collation" title="Editing wp-config.php">DB_COLLATE</a> values in <i>wp-config.php</i> causes WordPress to create the database with the appropriate charset settings. The default is UTF8, the standard charset for modern data which supports all internet-friendly languages.
+</p><p>Note that in addition to setting the format of any new tables created by WordPress the <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_character_set" title="Editing wp-config.php">DB_CHARSET</a> property defines the format of content <b>sent to</b> your database <b>and</b> the expected format of content retrieved from it. It does <b>not</b> alter the format of existing tables, so if you have tables formatted with a different character set from the one in <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_character_set" title="Editing wp-config.php">DB_CHARSET</a> the results will be eratic both in terms of fetching and saving text.
+</p><p>The rest of this article will explain how to convert the character set and collation for existing WordPress installations.
+</p>
+<h2><span class="mw-headline" id="The_basics_of_converting_a_database">The basics of converting a database</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=2" title="Edit section: The basics of converting a database">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Before beginning any conversion, please <b>back up your database</b>. The <a href="https://codex.wordpress.org/Backing_Up_Your_Database" title="Backing Up Your Database">Backing Up Your Database</a> article has easy-to-follow instructions. 
+</p><p><b>Note:</b> If you don't know anything about SQL and MySQL/MariaDB you are probably screwed. This is voodoo-code territory, so you may want to <a rel="nofollow" class="external text" href="http://dev.mysql.com/doc/refman/5.1/en/charset.html">RTFM about MySQL and Charsets</a>  before continuing. 
+</p><p>The goal in these conversions is always to decide on what charset/collation combination you want to use (UTF8 being the best choice in almost all scenarios) then to convert all tables/columns in your database to use that charset. At that point you can set DB_COLLATE and DB_CHARSET to the desired charset and collation to match. 
+</p><p><b>Note:</b> In most cases if a <b>collation</b> is not defined MySQL/MariaDB will assume the default collation for the CHARSET which is specified. For UTF8 the default is utf8_general_ci, which is usually the right choice. 
+</p><p>In the examples below it is assumed you have a database in the <b>latin1</b> character set that needs converting to a <b>utf8</b> character set. latin1 is the tragic default of MySQL/MariaDB and the most likely to be the problematic format of older copies of WordPress. UTF8 is the best way to support all internet-friendly languages.
+</p>
+<h2><span class="mw-headline" id="Strategy:_Slowly_build_one_big_SQL_file_that_will_convert_your_site">Strategy: Slowly build one big SQL file that will convert your site</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=3" title="Edit section: Strategy: Slowly build one big SQL file that will convert your site">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The safest way to accomplish this task is to use the advice below to build a long SQL script that will alter all of the columns and tables in your database to match each other's character set. 
+</p><p>To do this you should have a development copy of your site on your local computer or somewhere on your server safely removed from the live version. You should <b>not</b> run any untested SQL on your live database. These conversions are a dark art, and your conversion process should be tested both for effectiveness (does it actually alter the database as desired) and for safety (does your text look right after the conversion) before it is used.
+</p><p>You can run your SQL against your database using a tool like <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a> or via the MySQL/MariaDB command line if you are hardcore like that.
+</p><p>Here is an <a href="https://codex.wordpress.org/User:JeremyClarke/exampleSQLForUTF8Conversion" title="User:JeremyClarke/exampleSQLForUTF8Conversion"> example SQL script to convert a database</a>. Note that the example script should <b>not</b> be considered a solution. You will need to develop and test your own script by following the instructions below, the example is for illustration purposes only.
+</p>
+<h3><span class="mw-headline" id="Every_site_is_different_when_it_comes_to_database_charset_conversions">Every site is different when it comes to database charset conversions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=4" title="Edit section: Every site is different when it comes to database charset conversions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Your site may have special tables added by plugins that will need to be converted, or it may have custom columns added to the default tables. For your conversion to be successful and bug-free you will need to inspect every column in your database and account for every single one with a text data-type. 
+</p><p>Also note that sites that have been around a long time may have a mix of character sets on different table and columns. As you work on your SQL, be sure to account for this. You may not need to convert some parts of your database if they are already in the correct format, and some parts may require more attention than others.
+</p><p>If you are reading this now then you will probably have to do this by hand, as most of the plugins written for the purpose have stopped working in the years since WP changed its default behavior.
+</p>
+<h2><span class="mw-headline" id="Changing_the_default_charset_of_the_database">Changing the default charset of the <b>database</b></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=5" title="Edit section: Changing the default charset of the database">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following SQL command will alter the charset of your database to be UTF8:
+</p>
+<pre>ALTER DATABASE MyDb CHARACTER SET utf8;
+</pre>
+<p>This is the starting point. It modifies the default character set of any new tables created inside the database. Note that this will <b>NOT</b> modify the charset of any of the tables or columns contained within the database. You still need to convert all of those manually as described below.
+</p>
+<h2><span class="mw-headline" id="Changing_the_default_charset_of_individual_tables">Changing the default charset of individual <b>tables</b></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=6" title="Edit section: Changing the default charset of individual tables">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Once you have converted the database, you need to convert any tables in the database that are not already in the desired format. The SQL to convert a table (in this case wp_posts) is as follows:
+</p>
+<pre>ALTER TABLE wp_posts CHARACTER SET utf8;
+</pre>
+<p>Like the conversion of the parent database, altering a table <b>does not</b> automatically convert the character set of the columns contained in the table. They will still be whatever they were before the table was converted. The SQL above serves to define the <b>default</b> character set of the table, which will be used for any new columns added without a specified charset. 
+</p><p>For each table you will have to convert all text-containing columns as specified below.
+</p>
+<h2><span class="mw-headline" id="Changing_the_charset_of_individual_columns">Changing the charset of individual <b>columns</b></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=7" title="Edit section: Changing the charset of individual columns">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Once we have changed the default character sets for the database and tables we need to go through and individually alter each column of each table to use the correct character set. As you will see, this is <b>not</b> a simple process, and involves carefully executing several steps as well as carefully inspecting your database to know which steps are needed. 
+</p><p>Please read this section carefully, and keep in mind the unique nature of each database as described in the "Every site is different when it comes to database charset conversions" section above.
+</p>
+<h3><span class="mw-headline" id="The_basic_ALTER_TABLE_command_with_a_specified_charset">The basic ALTER TABLE command with a specified charset</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=8" title="Edit section: The basic ALTER TABLE command with a specified charset">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To convert the character set of a column we need to use the ALTER TABLE command, specifying the column we want to convert along with the new CHARSET we want it to be formatted with. The essential SQL command looks like this:
+</p>
+<pre>alter table <b>TABLE_NAME</b> change <b>COLUMN_NAME</b> <b>COLUMN_NAME</b> <b>COLUMN_DATA_TYPE</b> character set utf8;
+</pre>
+<p>So to convert the <b>post_content</b> column in the <b>wp_posts</b> table to UTF8 we'd use the following:
+</p>
+<pre>alter table wp_posts change post_content post_content LONGTEXT CHARACTER SET utf8;
+</pre>
+<p>As you can see we repeat the column name twice (this is necessary despite being redundant) and also repeat the old data type of LONGTEXT (which we know is the data-type from looking at the table structure in <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a> or some other MySQL/MariaDB tool). 
+</p><p>To fully convert a database all text-containing fields (TEXT, LONGTEXT, TINYTEXT, VARCHAR, ENUM) need to be converted to UTF-8. 
+</p><p><b>Unfortunately, a direct conversion like that can mangle the text in the database and make it unreadable</b>, especially if there are actual international characters (i.e. non-latin languages). The reasons for this distortion are complicated and hard to understand, but the result is that <b>each column must be converted twice as described below</b>.
+</p>
+<h3><span class="mw-headline" id="Converting_columns_to_blob.2C_then_back_to_original_format_with_new_charset">Converting columns to blob, then back to original format with new charset</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=9" title="Edit section: Converting columns to blob, then back to original format with new charset">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The solution is to first convert all text-containing fields to their binary ("BLOB") counterpart data-type (which have no charset), then alter them back to their normal data-type along with the desired new character set.
+</p><p>These steps need to be individually executed on every column of every table that has a character set property. To see which columns have a charset property <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a> is very handy, as it lists charset on the structure view for any table. 
+</p><p>Here is an example for converting the <b>post_content</b> column of the <b>wp_posts</b> table (who's format is LONGTEXT) from latin1 to utf8:
+</p>
+<pre>alter table wp_posts change post_content post_content LONGBLOB;
+alter table wp_posts change post_content post_content LONGTEXT CHARACTER SET utf8;
+</pre>
+<p>As you can see we first convert the LONGTEXT column to its blob-type counterpart: LONGBLOB. Once this is complete, we convert it back to LONGTEXT, but with our desired character set of utf8;.
+</p>
+<h4><span class="mw-headline" id="List_of_binary_.22blob.22_counterparts_for_column_data-types">List of binary "blob" counterparts for column data-types</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=10" title="Edit section: List of binary &quot;blob&quot; counterparts for column data-types">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>For each column you are converting you will need two lines of SQL like the ones above. Use the list below to figure out which 'blob' type is appropriate.
+</p>
+<ul><li> CHAR ⇾ BINARY</li>
+<li> TEXT ⇾ BLOB</li>
+<li> TINYTEXT ⇾ TINYBLOB</li>
+<li> MEDIUMTEXT ⇾ MEDIUMBLOB</li>
+<li> LONGTEXT ⇾ LONGBLOB</li>
+<li> VARCHAR ⇾ VARBINARY (see special instructions below)</li></ul>
+<h4><span class="mw-headline" id="Special_case:_VARCHAR_-_character_limit_must_be_specified">Special case: VARCHAR - character limit must be specified</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=11" title="Edit section: Special case: VARCHAR - character limit must be specified">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The VARCHAR type, which is quite common in WordPress, requires that you also specify the character limit applied to the column, e.g. <b>VARCHAR(255)</b> rather than just <b>VARCHAR</b>. 
+</p><p>When looking at a VARCHAR column in <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a> the length is shown in brackets. When writing your conversion SQL just include the brackets in both <b>alter table</b> commands like this:
+</p>
+<pre>alter table wp_posts change post_status post_status VARBINARY(20);
+alter table wp_posts change post_status post_status VARCHAR(20) character set utf8;
+</pre>
+<h4><span class="mw-headline" id="Special_case:_ENUM_-_Different_process">Special case: ENUM - Different process</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=12" title="Edit section: Special case: ENUM - Different process">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The ENUM data-type is wierd. It is used when there are a very limited set of possible values because it is more efficient than a TEXT or VARCHAR column. When converting an ENUM column you must specify extra information in your <b>alter table</b> command to tell it what the set of possible values are. 
+</p><p>The example below shows how you would convert the <b>comment_subscribe</b> column of the <b>wp_comments</b> table to UTF8. The field has two possible values, Y and N, and a default value of N. 
+</p>
+<pre>alter table wp_comments change comment_subscribe comment_subscribe ENUM('Y','N') CHARACTER SET utf8 not null default 'N'; 
+</pre>
+<p>Handling other instances of ENUM involves altering the example above to match the field you need to convert. Be careful to re-state the default value (it is visible in the <b>Default</b> column of the <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a> structure view) or the resulting column will not know what the default should be.
+</p>
+<h3><span class="mw-headline" id="Variant:_3-step_conversion_when_data_and_table_charset_already_don.27t_match">Variant: 3-step conversion when data and table charset already don't match</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=13" title="Edit section: Variant: 3-step conversion when data and table charset already don't match">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In most cases the 2-step process for converting columns will yield the desired result. However, some scenarios require that before converting to blob-format we re-cast the column with the character set of the data it contains, adding a prequel/third step for each affected column. 
+</p><p>This is necessary when the charset of the table/column does not match the charset of the data that was being saved to it. Specifically it is necessary when the WordPress site was sending data in latin1 format (because <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_character_set" title="Editing wp-config.php">DB_CHARSET</a> was not set to UTF8) but the database was in fact formatted as UTF8. This seems crazy but it can happen because of mysterious compatibility layers in MySQL/MariaDB. 
+</p><p>If this is the case for your site, you must first re-cast the data as latin1 (which works because the data was already latin1, despite being saved in a UTF8 database), then convert to blob, then back to it's original format. For example:
+</p>
+<pre>alter table wp_posts change post_content post_content LONGTEXT CHARACTER SET latin1;
+alter table wp_posts change post_content post_content LONGBLOB;
+alter table wp_posts change post_content post_content LONGTEXT CHARACTER SET utf8;
+</pre>
+<p>Knowing if your data has this issue can be complicated. When converting text all simple latin characters (ASCII, a-z, A-Z, 1-9) will usually convert fine no matter what, because those characters occupy the same spaces in almost all charsets, unlike special characters like fancy-quotes or international characters like Chinese, Hebrew, Greek etc.
+</p><p>If your data is mis-saved in the way that requires this 3-step process then it probably looks right on the site, but wrong in the database, so if you view international text in <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a> it might look like "Ø³Ø§Ø¹Ø¯Ù†Ø§" instead of proper Arabic text.
+</p><p>To explicitly test if you are subject to this issue you can try saving some international UTF8 text (e.g. from <a rel="nofollow" class="external text" href="http://ar.globalvoicesonline.org/">this Arabic site</a>) into a draft on your live site, then checking how it looks in the database. If your database and site are properly configured the text will look Arabic both in the draft preview and in <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a>, if the text looks like gibberish in phpMyAdmin then you need to perform the 3-step process.
+</p><p>As stated above, all sites are different and it is possible that some of your columns require this process while others do not. The best solution is to test carefully before running the SQL on your live database.
+</p>
+<h3><span class="mw-headline" id="Variant:_Using_mysqldump_to_fix_strange_characters">Variant: Using mysqldump to fix strange characters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=14" title="Edit section: Variant: Using mysqldump to fix strange characters">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>[original source: <a rel="nofollow" class="external free" href="http://pastebin.com/iSwVPk1w">http://pastebin.com/iSwVPk1w</a>]
+</p><p><b>ALWAYS BACK UP YOUR DATABASE FIRST!</b>
+</p><p>Rather than using MySQL/MariaDB functions over phpMyAdmin, if you have console access you can do something along the lines of:
+</p>
+<pre>mysqldump -u root -p --opt --quote-names --skip-set-charset --default-character-set=latin1 wordpress &gt; wordpress.sql
+</pre>
+<p>This creates a file with all your blog content. If you don't have latin1 characters (from the standard MySQL default before MySQL version 5.0), change latin1 to the character set your data is in. If you don't have a root user on MySQL/MariaDB you can change "root" for the DB user you want, as long as that user has access to the wordpress database. If your database is not called wordpress change that word in the above line. You will be prompted for the password after executing this command.
+</p><p>Then issue the command: (same provisos apply)
+</p>
+<pre>mysql -u root -p --default-character-set=utf8 wordpress &lt; wordpress.sql
+</pre>
+<h2><span class="mw-headline" id="Performing_the_actual_conversion_on_your_live_database">Performing the actual conversion on your live database</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=15" title="Edit section: Performing the actual conversion on your live database">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Once you have all the SQL prepared and have tested each query you need to update your actual live site. This should be done with care as, like any direct manipulation of the database, it is very dangerous and could corrupt your data. 
+</p><p><b>ALWAYS BACK UP YOUR DATABASE FIRST!</b>
+</p>
+<h3><span class="mw-headline" id="Putting_it_all_together">Putting it all together</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=16" title="Edit section: Putting it all together">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To summarize the steps outlined above, your SQL file should account for the following elements:
+</p><p>If necessary, change the default charset of <b>the database as a whole</b>, e.g.
+</p>
+<pre>ALTER DATABASE MyDb CHARACTER SET utf8;
+</pre>
+<p>Change the default charset of any <b>tables</b> that are using the old one, e.g.
+</p>
+<pre>ALTER TABLE wp_posts CHARACTER SET utf8;
+</pre>
+<p>Use the 2 or 3-step process to convert each individual column to the new character set, e.g.
+</p>
+<pre>alter table wp_posts change post_content post_content LONGBLOB;
+alter table wp_posts change post_content post_content LONGTEXT 
+</pre>
+<p>and
+</p>
+<pre>alter table wp_posts change post_status post_status VARBINARY(20);
+alter table wp_posts change post_status post_status VARCHAR(20) character set utf8;
+</pre>
+<p>and so on. This final step will likely be much longer than the others. Note that if you have a large database with thousands of posts the conversion may take as much as several hours.
+</p><p><b>Note:</b> My experience with <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a> has shown that despite taking hours it can successfully complete a database conversion, which I would not have expected to be the case, but is good news for those who use it as a DB-management tool. <a href="https://codex.wordpress.org/User:JeremyClarke" title="User:JeremyClarke">JeremyClarke</a>
+</p><p><b>Note:</b> Here is an <a href="https://codex.wordpress.org/User:JeremyClarke/exampleSQLForUTF8Conversion" title="User:JeremyClarke/exampleSQLForUTF8Conversion"> example SQL script to convert a database</a>, for illustration purposes only.
+</p>
+<h3><span class="mw-headline" id="Testing_your_script">Testing your script</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=17" title="Edit section: Testing your script">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Before editing your live site you should test your script in a development environment.
+</p>
+<ul><li> Set up a copy of your site with all the same files.</li>
+<li> Back up your live database and keep the export file handy. </li>
+<li> Load the backed-up database into your test site and make sure the test site is working and behaving the same as your live site. </li>
+<li> For testing purposes add some international text (e.g. from <a rel="nofollow" class="external text" href="http://ar.globalvoicesonline.org/">this Arabic site</a>) in a draft post to see if the conversion screws it up.</li>
+<li> Run the SQL script using the SQL tab of <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a>. </li>
+<li> Make any edits to the <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_character_set" title="Editing wp-config.php">DB_CHARSET</a> and <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_collation" title="Editing wp-config.php">DB_COLLATE</a> values in the <a href="https://codex.wordpress.org/Editing_wp-config.php" title="Editing wp-config.php">wp-config.php</a> file that are needed for the new character set you have converted your database to.</li></ul>
+<p>Now review the result and see that it works as expected. Here are some things you should look out for:
+</p>
+<ul><li> Do your old posts look right? Are there any strange characters? Do complex punctuation marks look right?</li>
+<li> If you had international text in any of your posts check it speifically, is everything looking right?</li>
+<li> Does international text also look right when viewed in <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a>?</li>
+<li> Try writing a post and making sure it looks right. </li>
+<li> Once again try saving a post with international text (e.g. from <a rel="nofollow" class="external text" href="http://ar.globalvoicesonline.org/">this Arabic site</a>) in it and ensure that it looks right both in the draft preview and when viewed directly in <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a>.</li>
+<li> Using <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a> or a similar tool, <b>inspect every column of every table in your database to ensure that none are still using the old character set</b>. If any are still using the old charset you need to add commands for them to your SQL file.</li></ul>
+<h3><span class="mw-headline" id="Running_your_script_on_the_live_database">Running your script on the live database</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=18" title="Edit section: Running your script on the live database">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>How you run the script on the live database is a matter of preference, but something like the following list would be ideal:
+</p>
+<ul><li> <b>BACK UP THE DATABASE</b></li>
+<li> Disable all edits to the database to avoid corruption caused by editing the tables while they are being converted. A good method is to temporarily remove the <b>DB_NAME</b> definition from your <b>wp-config.php</b> file. </li>
+<li> Run the script in the SQL tab of <a href="https://codex.wordpress.org/phpMyAdmin" title="phpMyAdmin">phpMyAdmin</a>.</li>
+<li> Make any edits to the <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_character_set" title="Editing wp-config.php">DB_CHARSET</a> and <a href="https://codex.wordpress.org/Editing_wp-config.php#Database_collation" title="Editing wp-config.php">DB_COLLATE</a> values in the <a href="https://codex.wordpress.org/Editing_wp-config.php" title="Editing wp-config.php">wp-config.php</a> file that are needed for the new character set you have converted your database to.</li>
+<li> Turn your site back online. </li>
+<li> Carefully test everything (see the list above) and make sure it went as expected. At this point you can still restore from your backup if there are issues.</li></ul>
+<h2><span class="mw-headline" id="Note_on_previous_versions_of_this_article">Note on previous versions of this article</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=19" title="Edit section: Note on previous versions of this article">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This article was completely rewritten in October 2010 (current WP version 3.0.1). The previous version had slowly fallen into disrepair and had information and links to plugins/scripts which no longer worked to convert WordPress sites. See the wiki history if you are curious.
+</p>
+<h2><span class="mw-headline" id="Discussions_on_character_sets">Discussions on character sets</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=20" title="Edit section: Discussions on character sets">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li><a rel="nofollow" class="external free" href="http://trac.wordpress.org/ticket/2828">http://trac.wordpress.org/ticket/2828</a></li>
+<li><a rel="nofollow" class="external free" href="http://trac.wordpress.org/ticket/2942">http://trac.wordpress.org/ticket/2942</a></li>
+<li><a rel="nofollow" class="external free" href="http://trac.wordpress.org/ticket/3184">http://trac.wordpress.org/ticket/3184</a></li>
+<li><a rel="nofollow" class="external free" href="http://trac.wordpress.org/ticket/3517">http://trac.wordpress.org/ticket/3517</a></li>
+<li><a rel="nofollow" class="external free" href="http://trac.wordpress.org/ticket/4219">http://trac.wordpress.org/ticket/4219</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/101135">http://wordpress.org/support/topic/101135</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/116746">http://wordpress.org/support/topic/116746</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/117865">http://wordpress.org/support/topic/117865</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/117955">http://wordpress.org/support/topic/117955</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/117999">http://wordpress.org/support/topic/117999</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/118781">http://wordpress.org/support/topic/118781</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/119611">http://wordpress.org/support/topic/119611</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/119750">http://wordpress.org/support/topic/119750</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/119858">http://wordpress.org/support/topic/119858</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/119998">http://wordpress.org/support/topic/119998</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/119999">http://wordpress.org/support/topic/119999</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120029">http://wordpress.org/support/topic/120029</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120065">http://wordpress.org/support/topic/120065</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120135">http://wordpress.org/support/topic/120135</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120352">http://wordpress.org/support/topic/120352</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120397">http://wordpress.org/support/topic/120397</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120414">http://wordpress.org/support/topic/120414</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120466">http://wordpress.org/support/topic/120466</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120562">http://wordpress.org/support/topic/120562</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/120687">http://wordpress.org/support/topic/120687</a></li>
+<li><a rel="nofollow" class="external free" href="http://wordpress.org/support/topic/144884">http://wordpress.org/support/topic/144884</a></li></ul>
+<h2><span class="mw-headline" id="Resources">Resources</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Converting_Database_Character_Sets&amp;action=edit&amp;section=21" title="Edit section: Resources">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li><a rel="nofollow" class="external text" href="http://en.wikipedia.org/wiki/Character_set">Character set at Wikipedia</a></li>
+<li><a rel="nofollow" class="external text" href="http://en.wikipedia.org/wiki/Unicode">Unicode at Wikipedia</a></li>
+<li><a rel="nofollow" class="external text" href="http://en.wikipedia.org/wiki/UTF-8">UTF-8 at Wikipedia</a></li>
+<li><a rel="nofollow" class="external text" href="http://dev.mysql.com/doc/refman/5.0/en/charset-general.html">Character sets and collation at MySQL</a></li>
+<li><a rel="nofollow" class="external text" href="http://dev.mysql.com/doc/refman/5.0/en/charset-charsets.html">Character Sets and Collations That MySQL Supports</a></li>
+<li><a rel="nofollow" class="external text" href="https://mariadb.com/kb/en/mariadb/supported-character-sets-and-collations/">Character Sets and Collations supported by MariaDB</a></li>
+<li><a rel="nofollow" class="external text" href="http://gentoo-wiki.com/TIP_Convert_latin1_to_UTF-8_in_MySQL">Gentoo tip on converting latin1 to utf8 in MySQL</a></li>
+<li><a rel="nofollow" class="external text" href="http://alexking.org/blog/2008/03/06/mysql-latin1-utf8-conversion">Alex King's blog about latin1 to utf8 conversion</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211003742
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.028 seconds
+Real time usage: 0.032 seconds
+Preprocessor visited node count: 102/1000000
+Preprocessor generated node count: 225/1000000
+Post‐expand include size: 549/2097152 bytes
+Template argument size: 196/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.475      1 - Template:Languages
+100.00%    3.475      1 - -total
+ 31.08%    1.080      1 - Template:ja
+ 30.39%    1.056      1 - Template:en
+-->

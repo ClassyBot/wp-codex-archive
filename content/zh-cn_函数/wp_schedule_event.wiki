@@ -1,0 +1,66 @@
+{{Languages|
+{{en|Function_Reference/wp_schedule_event}}
+{{ja|関数リファレンス/wp_schedule_event}}
+{{zh-cn|函数/wp_schedule_event}}
+}}
+
+== 描述 ==
+
+对一个钩子函数作定时处理,这个钩子会通过 WordPress 动作核心,在特定的时间间歇执行,时间间歇可以自定义.如果 定时的事件参数 (time) 被传递了的话,这个动作会在有人访问你的 WordPress 站点的时候触发.通过查看 [[Plugin API]] 获得钩子的列表.
+
+== 用法 ==
+
+%%% <?php wp_schedule_event(time(), 'hourly', 'my_schedule_hook', $args); ?> %%%
+
+== 参数 ==
+{{Parameter|$timestamp|integer|The first time that you want the event to occur. This must be in a UNIX timestamp format.<br/> 你希望事件发生的第一次事件.这里必须是一个 UNIX 风格的时间戳}}
+{{Parameter|$recurrance|string|How often the event should reoccur. Valid values:<ul><li><tt>hourly</tt></li><li><tt>twicedaily</tt></li><li><tt>daily</tt></li></ul>这个事件会在多久之后重新发生.有效值:<ul><li><tt>hourly</tt></li><li><tt>twicedaily</tt></li><li><tt>daily</tt></li></ul>}}
+{{Parameter|$hook|string|The name of an action hook to execute.要运行的动作钩子名}}
+{{Parameter|$args|array|Arguments to pass to the hook function(s).传给钩子函数的参数|optional}}
+
+== 例子 ==
+
+=== 安排一个每小时执行的任务 ===
+在一个插件中设定一个每小时执行一次的任务,在激活插件的时候的时候调用 <tt>wp_schedule_event</tt> (否则会产生很多的定时事件):
+
+<pre>
+register_activation_hook(__FILE__, 'my_activation');
+add_action('my_hourly_event', 'do_this_hourly');
+
+function my_activation() {
+  if (! wp_next_scheduled ( 'my_hourly_event' )) {
+    wp_schedule_event(time(), 'hourly', 'my_hourly_event');
+  }
+}
+
+function do_this_hourly() {
+  // do something every hour
+}
+</pre>
+
+别忘了在禁用插件的时候清理定时器:
+<pre>
+register_deactivation_hook(__FILE__, 'my_deactivation');
+
+function my_deactivation() {
+  wp_clear_scheduled_hook('my_hourly_event');
+}
+</pre>
+
+== 其它参考 ==
+
+* [[Function_Reference/wp_schedule_event|wp_schedule_event]]
+* [[Function_Reference/wp_schedule_single_event|wp_schedule_single_event]]
+* [[Function_Reference/wp_clear_scheduled_hook|wp_clear_scheduled_hook]]
+* [[Function_Reference/wp_next_scheduled|wp_next_scheduled]]
+* [[Function_Reference/wp_unschedule_event|wp_unschedule_event]]
+* [[Function_Reference/wp_get_schedule|wp_get_schedule]]
+
+== 延伸阅读 ==
+
+* [https://GenerateWP.com/schedule_event/ WordPress Cron Job Event Generator]
+* [http://holisticnetworking.net/plugins/2008/10/18/scheduling-with-wordpress-cron-functions/ How cronjobs work in wordpress]
+* For a comprehensive list of functions, take a look at the [http://codex.wordpress.org/Category:Functions category Functions]
+
+[[Category:Functions]]
+[[Category:WP-Cron Functions]]

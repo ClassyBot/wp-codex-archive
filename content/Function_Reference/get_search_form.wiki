@@ -1,0 +1,119 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/get_search_form/}}
+
+{{Languages|
+{{en|Function Reference/get_search_form}}
+{{ja|関数リファレンス/get_search_form}}
+{{it|Riferimento funzioni/get_search_form}}
+{{mk|Функција:get_search_form}}
+{{ru|Теги шаблонов/get_search_form}}
+}}
+==Description==
+
+Display search form using <tt>searchform.php</tt> Theme file.
+
+==Usage==
+
+%%%<?php get_search_form( $echo ); ?>%%%
+
+==Parameters==
+
+{{Parameter|$echo|boolean|''true'' to echo the form; ''false'' to return the form as a string.|optional|true}}
+
+==Return Values==
+; (string) : The form's HTML, if the $echo parameter is set to false.
+
+==Examples==
+
+===Default HTML4 Form===
+If you don't have <tt>searchform.php</tt> in your Theme, WordPress will render its built-in search form:
+
+<pre>
+<form role="search" method="get" id="searchform" class="searchform" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+	<div>
+		<label class="screen-reader-text" for="s"><?php _x( 'Search for:', 'label' ); ?></label>
+		<input type="text" value="<?php echo get_search_query(); ?>" name="s" id="s" />
+		<input type="submit" id="searchsubmit" value="<?php echo esc_attr_x( 'Search', 'submit button' ); ?>" />
+	</div>
+</form>
+</pre>
+The above form is used on HTML4 websites.
+
+===Default HTML5 Form===
+Since [[Version 3.6|WordPress 3.6]], If your theme supports [[Theme Markup|HTML5 Markup]], which happens if it uses:
+
+<pre>add_theme_support( 'html5', array( 'search-form' ) );</pre>
+
+WordPress will render its built-in HTML5 search form:
+
+<pre>
+<form role="search" method="get" class="search-form" action="<?php echo home_url( '/' ); ?>">
+	<label>
+		<span class="screen-reader-text"><?php echo _x( 'Search for:', 'label' ) ?></span>
+		<input type="search" class="search-field" placeholder="<?php echo esc_attr_x( 'Search &hellip;', 'placeholder' ) ?>" value="<?php echo get_search_query() ?>" name="s" title="<?php echo esc_attr_x( 'Search for:', 'label' ) ?>" />
+	</label>
+	<input type="submit" class="search-submit" value="<?php echo esc_attr_x( 'Search', 'submit button' ) ?>" />
+</form>
+</pre>
+
+Among the changes is that the form has a class="search-form". Also, the input is type="search" and not type="text". Furthermore there is a placeholder, which displays text when appropriate, which means you don't need javascript to display the placeholder.
+There are no elements with an id anymore, so you can have multiple searchforms in a valid document.
+
+===Theme Form===
+If you do have <tt>searchform.php</tt> in your Theme, it will be used instead. Keep in mind that the search form should do a GET to the homepage of your blog. The input text field should be named <tt>s</tt> and you should always include a <tt>label</tt> like in the examples above.
+
+Example of a custom <tt>searchform.php</tt>:
+
+<pre>
+<form action="/" method="get">
+	<label for="search">Search in <?php echo home_url( '/' ); ?></label>
+	<input type="text" name="s" id="search" value="<?php the_search_query(); ?>" />
+	<input type="image" alt="Search" src="<?php bloginfo( 'template_url' ); ?>/images/search.png" />
+</form>
+</pre>
+
+The only parameter here that will be submitted is <tt>s</tt> with the value of the current search query. However, you can refine it in many ways. For example by only showing posts in the search results. This can be done with the next addition to the form above:
+
+<pre>
+<input type="hidden" value="post" name="post_type" id="post_type" />
+</pre>
+
+Here we submit the value <tt>post</tt>. The default value is <tt>any</tt>, meaning, posts, pages and custom post types. With the <tt>input</tt> above added to the form it will now only search in posts with the post_type post.
+There are many additions like this. With a <tt>var_dump</tt> of the object <tt>$wp_query</tt> you can see all the default values of the search variables. With a <tt>var_dump</tt> of <tt>$wp_query->query</tt> you can see the current query.
+
+
+A last option is to write a custom function (in your <tt>functions.php</tt> file) and hook that function to the <tt>get_search_form</tt> action hook.
+
+<pre>
+function my_search_form( $form ) {
+	$form = '<form role="search" method="get" id="searchform" class="searchform" action="' . home_url( '/' ) . '" >
+	<div><label class="screen-reader-text" for="s">' . __( 'Search for:' ) . '</label>
+	<input type="text" value="' . get_search_query() . '" name="s" id="s" />
+	<input type="submit" id="searchsubmit" value="'. esc_attr__( 'Search' ) .'" />
+	</div>
+	</form>';
+
+	return $form;
+}
+
+add_filter( 'get_search_form', 'my_search_form' );
+</pre>
+
+==Notes==
+
+Please use <code>value="<?php echo get_search_query(); ?>"</code> (so a wrapper function for: <code>esc_attr( $s );</code> and other necessary filters) if you'd like to display currently searched term in the search field once searching have already occurred. This is one of the most XSS vulnerable places in themes if not secured.
+
+==Change Log==
+
+* Since: [[Version 2.7|2.7.0]]
+
+==Source File==
+
+<tt>get_search_form()</tt> is located in {{Trac|wp-includes/general-template.php}}.
+
+==Related==
+
+{{Include Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

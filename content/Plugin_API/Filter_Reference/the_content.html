@@ -1,0 +1,101 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Examples"><span class="tocnumber">2</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Debug_Page"><span class="tocnumber">2.1</span> <span class="toctext">Debug Page</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Post_Icon"><span class="tocnumber">2.2</span> <span class="toctext">Post Icon</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Featured_Image"><span class="tocnumber">2.3</span> <span class="toctext">Featured Image</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#See_Also"><span class="tocnumber">3</span> <span class="toctext">See Also</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/the_content&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <b>"the_content"</b> filter is used to filter the content of the post after it is retrieved from the database and before it is printed to the screen.
+</p><p>A plugin (or theme) can register as a content filter with the code:
+</p><p><code>&lt;?php add_filter( 'the_content', 'filter_function_name' )&#160;?&gt;</code>
+</p><p>Where 'filter_function_name' is the function WordPress should call when the content is being retrieved. Note that the filter function  <b>must</b> return the content after it is finished processing, or site visitors will see a blank page and other plugins also filtering the content may generate errors.
+</p><p><b>filter_function_name</b> should be unique function name. It cannot match any other function name already declared.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/the_content&amp;action=edit&amp;section=2" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Debug_Page">Debug Page</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/the_content&amp;action=edit&amp;section=3" title="Edit section: Debug Page">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This could be used to provide generated content for a page (as an alternative to the <a href="https://codex.wordpress.org/Shortcode_API" title="Shortcode API">Shortcode_API</a>), or for a set of pages sharing some characteristics (e.g. the same author):
+</p>
+<pre>
+// returns the content of $GLOBALS['post']
+// if the page is called 'debug'
+function my_the_content_filter($content) {
+  // assuming you have created a page/post entitled 'debug'
+  if ($GLOBALS['post']-&gt;post_name == 'debug') {
+    return var_export($GLOBALS['post'], TRUE );
+  }
+  // otherwise returns the database content
+  return $content;
+}
+
+add_filter( 'the_content', 'my_the_content_filter' );
+</pre>
+<h3><span class="mw-headline" id="Post_Icon">Post Icon</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/the_content&amp;action=edit&amp;section=4" title="Edit section: Post Icon">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This filter function adds an image before the post on the post page (see <a rel="nofollow" class="external text" href="http://codex.wordpress.org/Function_Reference/is_single">is_single()</a>). It assumes an image named post_icon.png exists in the theme images folder. It runs at a lower priority (20) which runs later than most other filters (default is 10).
+</p>
+<pre>add_filter( 'the_content', 'my_the_content_filter', 20 );
+/**
+ * Add a icon to the beginning of every post page.
+ *
+ * @uses is_single()
+ */
+function my_the_content_filter( $content ) {
+
+    if ( is_single() )
+        // Add image to the beginning of each page
+        $content = sprintf(
+            '&lt;img class="post-icon" src="%s/images/post_icon.png" alt="Post icon" title=""/&gt;%s',
+            get_bloginfo( 'stylesheet_directory' ),
+            $content
+        );
+
+    // Returns the content.
+    return $content;
+}</pre>
+<h3><span class="mw-headline" id="Featured_Image">Featured Image</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/the_content&amp;action=edit&amp;section=5" title="Edit section: Featured Image">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Adds a featured image set from the single post Edit screen which displays before the content on single posts only.
+</p>
+<pre>
+ add_filter( 'the_content', 'featured_image_before_content' ); 
+ 
+ function featured_image_before_content( $content ) { 
+    if ( is_singular('post') &amp;&amp; has_post_thumbnail()) {
+        $thumbnail = get_the_post_thumbnail();
+
+        $content = $thumbnail . $content;
+		
+		}
+
+    return $content;
+}
+</pre>
+<h2><span class="mw-headline" id="See_Also">See Also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/the_content&amp;action=edit&amp;section=6" title="Edit section: See Also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API#Create_a_Filter_Function" title="Plugin API">Creating a Filter Function</a></li>
+<li> <a href="https://codex.wordpress.org/Function_Reference/add_filter" title="Function Reference/add filter">add_filter()</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004106
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.009 seconds
+Preprocessor visited node count: 49/1000000
+Preprocessor generated node count: 88/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->

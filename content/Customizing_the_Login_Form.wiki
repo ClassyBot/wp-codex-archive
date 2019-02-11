@@ -1,0 +1,213 @@
+The Login Form is your gateway to using and configuring the WordPress publishing platform. It controls access to the [[Administration Screens]], allowing only registered users to login.
+
+== How to Login ==
+If you installed WordPress in your website's root directory, your login page is:<br /><tt><nowiki>http://example.com/wp-login.php</nowiki></tt>
+
+If you installed WordPress in its own subdirectory, e.g., <tt>/directory</tt>, your login page is:<br /><tt><nowiki>http://example.com/directory/wp-login.php</nowiki></tt>
+
+If you have a problem logging in, try the [[Login Trouble]] suggestions.
+
+== The Login Form ==
+At the top of login page is the WordPress logo and link, followed by the login form, with:
+[[Image:login_form.png|right|WordPress login form page screenshot]]
+* Input fields for "Username" and "Password."
+* A "Remember Me" checkbox. If checked your browser keeps you logged in for 14 days. (If unchecked you're logged out when you quit the browser, or after two days.)
+* The "Log In" button for submitting the form data.
+
+Below the form are two links: One is for registered users who've forgotten their password. The other goes to the front page of your WordPress site.
+
+This one login form can do three things:
+# Log into a site (by filling in a valid Username and Password).
+# Email a password to a registered user (by clicking the <span style="color:blue"><u>Lost your password?</u></span> (link: <tt>wp-login.php?action=lostpassword</tt>).
+# Register new users (who've arrived at this form by clicking a <span style="color:blue"><u>Register</u></span> (link: <tt>wp-login.php?action=register</tt>).
+
+== Customizing the WordPress Login ==
+Much of WordPress login page can be easily changed with WordPress Plugins ([http://wordpress.org/extend/plugins/search.php?q=login search for "login"]). It can also be changed by manually adding code to the [[Functions_File_Explained|WordPress Theme's <tt>functions.php</tt>]] file. 
+
+=== Change the Login Logo ===
+To change the WordPress logo to your own, you will need to change the CSS styles associated with this heading:
+
+<pre><h1><a href="http://wordpress.org/" title="Powered by WordPress">Your Site Name</a></h1></pre>
+
+WordPress uses CSS to display a background image -- the WordPress logo -- in the link (<tt>&lt;a&gt;</tt>) inside the heading tag (<tt>&lt;h1&gt;</tt>). You can use the <tt>login_enqueue_scripts</tt> hook to insert CSS into the head of the login page so your logo loads instead. To use the code below, replace the file named <tt>site-login-logo.png</tt> with the file-name of your logo, and store your logo with your active Theme files in a directory named <tt>/images</tt>:
+
+<pre>
+function my_login_logo() { ?>
+    <style type="text/css">
+        #login h1 a, .login h1 a {
+            background-image: url(<?php echo get_stylesheet_directory_uri(); ?>/images/site-login-logo.png);
+		height:65px;
+		width:320px;
+		background-size: 320px 65px;
+		background-repeat: no-repeat;
+        	padding-bottom: 30px;
+        }
+    </style>
+<?php }
+add_action( 'login_enqueue_scripts', 'my_login_logo' );
+</pre>
+
+The size of your logo should be no bigger than 80 x 80 pixels (though even this can change with [[#Styling_Your_Login|custom CSS]]). Adjust the above <tt>padding-bottom</tt> value to the spacing you want between your logo and the login form.
+
+To change the link values so the logo links to your WordPress site, use the following WordPress hooks example; edit it and paste it below the previous in the <tt>functions.php</tt>:
+
+<pre>
+function my_login_logo_url() {
+    return home_url();
+}
+add_filter( 'login_headerurl', 'my_login_logo_url' );
+
+function my_login_logo_url_title() {
+    return 'Your Site Name and Info';
+}
+add_filter( 'login_headertitle', 'my_login_logo_url_title' );
+</pre>
+
+=== Styling Your Login ===
+You can style every HTML element on the WordPress login page with CSS. To add styles to the <tt>&lt;head&gt;</tt> of your login page, use a function like the above [[#Change_the_Login_Logo|<tt>my_login_logo</tt>]]. Styles declared within the head element of a page are called an "embedded style sheet" and take precedence over styles in linked external style sheets.
+
+If you have a lot of login page styles, you may want to make your own custom login style sheet. This code, added to your <tt>functions.php</tt> file, would load a CSS file named <tt>style-login.css</tt>, stored with your active Theme files:
+<pre>
+function my_login_stylesheet() {
+    wp_enqueue_style( 'custom-login', get_stylesheet_directory_uri() . '/style-login.css' );
+    wp_enqueue_script( 'custom-login', get_stylesheet_directory_uri() . '/style-login.js' );
+}
+add_action( 'login_enqueue_scripts', 'my_login_stylesheet' );
+</pre>
+
+WordPress links two of its own external style sheets to the login page: <tt>{{Trac|wp-admin/css/colors.css}}</tt> and <tt>{{Trac|wp-admin/css/wp-admin.css}}</tt> (since [[Version 3.8]], previous versions used <tt>wp-admin/css/color/color-fresh.css, wp-admin/css/login.css</tt>). You can override the WordPress default styles by making your style declaration more "specific" -- when two styles apply to the same element, CSS gives precedence to the more specific selector.
+
+Here's some helpful, highly specifc CSS selectors for the login page:
+<pre>
+body.login {}
+body.login div#login {}
+body.login div#login h1 {}
+body.login div#login h1 a {}
+body.login div#login form#loginform {}
+body.login div#login form#loginform p {}
+body.login div#login form#loginform p label {}
+body.login div#login form#loginform input {}
+body.login div#login form#loginform input#user_login {}
+body.login div#login form#loginform input#user_pass {}
+body.login div#login form#loginform p.forgetmenot {}
+body.login div#login form#loginform p.forgetmenot input#rememberme {}
+body.login div#login form#loginform p.submit {}
+body.login div#login form#loginform p.submit input#wp-submit {}
+body.login div#login p#nav {}
+body.login div#login p#nav a {}
+body.login div#login p#backtoblog {}
+body.login div#login p#backtoblog a {}
+</pre>
+
+WordPress uses the CSS style sheet <tt>wp-admin.css</tt> to insert the logo and to hide the heading text with <tt>text-indent:-9999px;</tt>:
+<pre>.login h1 a {
+	background-image: url('../images/w-logo-blue.png?ver=20131202');
+	background-image: none, url('../images/wordpress-logo.svg?ver=20131107');
+	background-size: 80px 80px;
+	background-position: center top;
+	background-repeat: no-repeat;
+	color: #999;
+	height: 80px;
+	font-size: 20px;
+	font-weight: normal;
+	line-height: 1.3em;
+	margin: 0 auto 25px;
+	padding: 0;
+	text-decoration: none;
+	width: 80px;
+	text-indent: -9999px;
+	outline: none;
+	overflow: hidden;
+	display: block;
+}</pre>
+
+Using a more specific selector in your custom style sheet overrides the above <tt>background-image</tt> value, inserting your logo instead:
+<pre>
+body.login div#login h1 a {
+    background-image: url("images/site-logo.png");
+}</pre>
+
+The default login page style in <tt>colors.css</tt> sets the text color of the links below the form:
+<pre>.login #nav a,
+.login #backtoblog a {
+	text-decoration: none;
+	color: #999;
+}</pre>
+
+To override that, increase the specificity and include <tt>!important</tt>:
+<pre>
+body.login div#login p#nav a,
+body.login div#login p#backtoblog a {
+    color: #0c0 !important; /* Your link color. */
+}
+</pre>
+
+=== Login Hooks ===
+[[Image:login_hooks.png|right|Login form screenshot demonstrating content added via hooks]]You can customize your WordPress login page with [[Plugin_API/Action_Reference|action hooks]] and [[Plugin_API/Filter_Reference|filter hooks]], including:
+
+* Actions in the <tt><head></tt> of the document: <tt>login_enqueue_scripts</tt>, <tt>[[Plugin_API/Action_Reference/login_head|login_head]]</tt>.
+
+* Filters in the <tt><body></tt>: [[Plugin_API/Filter_Reference/login_headerurl|login_headerurl]], <tt>login_headertitle</tt>, <tt>login_message</tt>, <tt>login_errors</tt>.
+
+* Actions at the bottom of and below the form: <tt>login_form</tt>, <tt>login_footer</tt>. 
+
+The image to the right shows where several of the hooks can add content.
+
+The above hooks run when using the form to login. Others are meant for registration, password retrieval, and WordPress Plugins. 
+
+The WordPress file {{Trac|wp-login.php}} generates the HTML, containing the location and sequence of all the login page hooks.
+
+=== Make a Custom Login Page ===
+So far you've seen how to customize WordPress' built-in login page. You can also create your own custom login Page by using the [[Function_Reference/wp_login_form|wp_login_form]] function in one of your WordPress Theme's [[Pages#Creating_Your_Own_Page_Templates|Page Templates]]:
+<pre><?php wp_login_form(); ?></pre>
+
+The function has [[Function_Reference/wp_login_form#Usage|several parameters]] to change the default settings. For instance, you can specify: the ID names of the form and its elements (for CSS styling), whether to print the "Remember Me" checkbox, and the URL a user is redirected to after a successful login (default is to stay on the same Page):
+<pre>
+<?php
+if ( ! is_user_logged_in() ) { // Display WordPress login form:
+    $args = array(
+        'redirect' => admin_url(), 
+        'form_id' => 'loginform-custom',
+        'label_username' => __( 'Username custom text' ),
+        'label_password' => __( 'Password custom text' ),
+        'label_remember' => __( 'Remember Me custom text' ),
+        'label_log_in' => __( 'Log In custom text' ),
+        'remember' => true
+    );
+    wp_login_form( $args );
+} else { // If logged in:
+    wp_loginout( home_url() ); // Display "Log Out" link.
+    echo " | ";
+    wp_register('', ''); // Display "Site Admin" link.
+}
+?>
+</pre>
+
+[[Image:login_form_template.png|right|Screenshot of wp_login_form display, with filters adding text]]The above function parameters:
+* Redirect the user to the Administration [[Dashboard_Screen|Dashboard Screen]] after login.
+* Set the ID name for the form: <tt>id="loginform-custom"</tt>.
+* Change the text labels for the form elements (e.g., from the default "Username" to, in this example, "Username custom text").
+* Print the "Rememeber Me" checkbox.
+
+If the user is already logged in, the form does not print; instead they see two links: <span style="color:blue"><u>Log Out</u></span> | <span style="color:blue"><u>Site Admin</u></span>.
+
+This login form has the filters: <tt>login_form_top</tt>, <tt>login_form_middle</tt>, and <tt>login_form_bottom</tt>. Each can print text in the form, as shown in the image on the right.
+
+The form itself is generated by code in the WordPress {{Trac|wp-includes/general-template.php}} file. Because your custom login Page is different than the built-in WordPress login page ({{Trac|wp-login.php}}), the same CSS stylesheets do not apply. But your active Theme's stylesheet (<tt>style.css</tt>) does apply, so use that to style this form.
+
+Other [[Template_Tags#General_tags|template tags]] related to login functionality include [[Function_Reference/wp_login_url|wp_login_url]], [[Function_Reference/wp_logout_url|wp_logout_url]], [[Function_Reference/wp_loginout|wp_loginout]], [[Function_Reference/wp_lostpassword_url|wp_lostpassword_url]], [[Plugin_API/Filter_Reference/login_redirect|login_redirect]], and [[Function_Reference/wp_register|wp_register]].
+
+== Resources ==
+* [http://digwp.com/2010/12/login-register-password-code/ Custom Login/Register/Password Code]
+
+== Related ==
+* [[Login Screen]]
+* [[Administration Screens]]
+
+{{Login Tags}}
+
+[[Category:WordPress Lessons]]
+[[Category:WordPress Help]]
+[[Category:Templates]]
+
+[[Category:New_page_created]]

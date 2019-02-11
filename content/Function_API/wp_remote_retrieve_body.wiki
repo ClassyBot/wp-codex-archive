@@ -1,0 +1,89 @@
+{{Languages|
+{{en|Function_API/wp_remote_retrieve_body}}
+}}
+{{merge-into|[[Function_Reference/wp_remote_retrieve_body]]}}
+== Description ==
+
+Retrieves the body of an already retrieved HTTP request.
+
+See [[Function_API/wp_remote_get]] for an example of the HTTP '''GET''' method.
+
+== Usage ==
+
+%%% <?php wp_remote_retrieve_body( $response ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$response|array|HTTP response array from an already performed HTTP request.}}
+
+== Return Values ==
+
+Returns a ''string''. If there was an error returned by the existing HTTP request or a problem with the data then a blank string will be returned.
+<pre>
+Here is the content of the retrieved URL!
+</pre>
+
+== Examples ==
+<strong>$the_body</strong> will contain the actual page content returned by the server.
+<pre>
+$the_body = wp_remote_retrieve_body( wp_remote_get('http://example.com') );
+</pre>
+
+In this example, we'll use [[Function Reference/wp remote get | wp_remote_get()]], [[Function Reference/is wp error | is_wp_error()]], and finally store the remote HTML in a [[Transients API | transient]]:
+<pre>
+function get_remote_html() {
+
+        // Check for transient, if none, grab remote HTML file
+	if ( false === ( $html = get_transient( 'foo_remote_html' ) ) ) {
+
+                // Get remote HTML file
+		$response = wp_remote_get( 'http://example.com/some-remote-file.html' );
+
+                       // Check for error
+			if ( is_wp_error( $response ) ) {
+				return;
+			}
+
+                // Parse remote HTML file
+		$data = wp_remote_retrieve_body( $response );
+
+                        // Check for error
+			if ( is_wp_error( $data ) ) {
+				return;
+			}
+
+                // Store remote HTML file in transient, expire after 24 hours
+		set_transient( 'foo_remote_html', $data, 24 * HOUR_IN_SECONDS );
+
+	}
+
+	return $html;
+
+}
+</pre>
+
+== Notes ==
+
+Below is the actual function code in WordPress. As you can see it simply checks that there was no error with the HTTP response and that the body is set.  If so then it returns $response['body'].
+
+<pre>
+function wp_remote_retrieve_body(&$response) {
+	if ( is_wp_error($response) || ! isset($response['body']) )
+		return '';
+
+	return $response['body'];
+}
+</pre>
+
+== Change Log ==
+
+* Since: [[Version 2.7|2.7.0]]
+
+== Source File ==
+
+<tt>wp_remote_retrieve_body()</tt> is located in {{Trac|wp-includes/http.php}}.
+
+== Related ==
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

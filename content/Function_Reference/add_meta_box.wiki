@@ -1,0 +1,312 @@
+{{#dotorgredirect: https://developer.wordpress.org/reference/functions/add_meta_box/}}
+
+{{Languages|
+{{en|Function Reference/add_meta_box}}
+{{ja|関数リファレンス/add_meta_box}}
+{{pt-br|add_meta_box}}
+}}
+
+== Description ==
+
+The <tt>add_meta_box()</tt> function was introduced in [[Version 2.5]].  It allows plugin developers to add meta boxes to the administrative interface.
+
+This function should be called from the <tt>add_meta_boxes_{post_type}</tt> or <tt>[[Plugin_API/Action_Reference/add_meta_boxes | 'add_meta_boxes']]</tt> action. The former is preferable as it avoids triggering needless callbacks for other post types. These actions were introduced in [[Version 3.0]]; in prior versions, use <tt>[[Plugin_API/Action_Reference/admin_init | 'admin_init']]</tt> instead.
+
+== Usage ==
+
+%%%<?php
+add_meta_box( $id, $title, $callback, $screen, $context, $priority, $callback_args );
+?>%%%
+
+== Parameters ==
+
+{{Parameter|$id|string|HTML 'id' attribute of the edit screen section}}
+{{Parameter|$title|string|Title of the edit screen section, visible to user}}
+{{Parameter|$callback|callback|Function that prints out the HTML for the edit screen section. The function name as a string, or, within a class, an array to call one of the class's methods. The callback can accept up to two arguments: the first argument is the <tt>$post</tt> object for the post or page that is currently being edited. The second argument is the full <tt>$metabox</tt> item (an array), see [[#Callback args|Callback args]]. See the second example under [[Function_Reference/add_meta_box#Examples|Examples]] below.}}
+{{Parameter|$screen|string/array/WP_Screen|The type of writing screen on which to show the edit screen section (examples include <tt>'post','page','dashboard','link','attachment','custom_post_type','comment'</tt> where custom_post_type is the custom post type slug)|optional|null}}
+{{Parameter|$context|string|The part of the page where the edit screen section should be shown (<tt>'normal'</tt>, <tt>'advanced'</tt>, or <tt>'side'</tt>). (Note that 'side' doesn't exist before 2.7)|optional|'advanced'}}
+{{Parameter|$priority|string|The priority within the context where the boxes should show (<tt>'high'</tt>, <tt>'core'</tt>, <tt>'default'</tt> or <tt>'low'</tt>)|optional|'default'}}
+{{Parameter|$callback_args|array|Arguments to pass into your callback function. The callback will receive the $post object and whatever parameters are passed through this variable.|optional|null}}
+
+== Return Values ==
+None.
+
+== Examples ==
+=== Procedural ===
+Here is an example that adds a custom section to the post and page editing screens: 
+
+<pre>
+<?php
+
+/**
+ * Adds a box to the main column on the Post and Page edit screens.
+ */
+function myplugin_add_meta_box() {
+
+	$screens = array( 'post', 'page' );
+
+	add_meta_box(
+		'myplugin_sectionid',
+		__( 'My Post Section Title', 'myplugin_textdomain' ),
+		'myplugin_meta_box_callback',
+		$screens
+	);
+}
+add_action( 'add_meta_boxes', 'myplugin_add_meta_box' );
+
+/**
+ * Prints the box content.
+ * 
+ * @param WP_Post $post The object for the current post/page.
+ */
+function myplugin_meta_box_callback( $post ) {
+
+	// Add a nonce field so we can check for it later.
+	wp_nonce_field( 'myplugin_save_meta_box_data', 'myplugin_meta_box_nonce' );
+
+	/*
+	 * Use get_post_meta() to retrieve an existing value
+	 * from the database and use the value for the form.
+	 */
+	$value = get_post_meta( $post->ID, '_my_meta_value_key', true );
+
+	echo '<label for="myplugin_new_field">';
+	_e( 'Description for this field', 'myplugin_textdomain' );
+	echo '</label> ';
+	echo '<input type="text" id="myplugin_new_field" name="myplugin_new_field" value="' . esc_attr( $value ) . '" size="25" />';
+}
+
+/**
+ * When the post is saved, saves our custom data.
+ *
+ * @param int $post_id The ID of the post being saved.
+ */
+function myplugin_save_meta_box_data( $post_id ) {
+
+	/*
+	 * We need to verify this came from our screen and with proper authorization,
+	 * because the save_post action can be triggered at other times.
+	 */
+
+	// Check if our nonce is set.
+	if ( ! isset( $_POST['myplugin_meta_box_nonce'] ) ) {
+		return;
+	}
+
+	// Verify that the nonce is valid.
+	if ( ! wp_verify_nonce( $_POST['myplugin_meta_box_nonce'], 'myplugin_save_meta_box_data' ) ) {
+		return;
+	}
+
+	// If this is an autosave, our form has not been submitted, so we don't want to do anything.
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Check the user's permissions.
+	if ( isset( $_POST['post_type'] ) && 'page' == $_POST['post_type'] ) {
+
+		if ( ! current_user_can( 'edit_page', $post_id ) ) {
+			return;
+		}
+
+	} else {
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+	}
+
+	/* OK, it's safe for us to save the data now. */
+	
+	// Make sure that it is set.
+	if ( ! isset( $_POST['myplugin_new_field'] ) ) {
+		return;
+	}
+
+	// Sanitize user input.
+	$my_data = sanitize_text_field( $_POST['myplugin_new_field'] );
+
+	// Update the meta field in the database.
+	update_post_meta( $post_id, '_my_meta_value_key', $my_data );
+}
+add_action( 'save_post', 'myplugin_save_meta_box_data' );
+</pre>
+
+=== Class ===
+This is an example of how to add a meta box from inside a class
+
+<pre>
+<?php
+
+/**
+ * Calls the class on the post edit screen.
+ */
+function call_someClass() {
+	new someClass();
+}
+
+if ( is_admin() ) {
+	add_action( 'load-post.php', 'call_someClass' );
+	add_action( 'load-post-new.php', 'call_someClass' );
+}
+
+/** 
+ * The Class.
+ */
+class someClass {
+
+	/**
+	 * Hook into the appropriate actions when the class is constructed.
+	 */
+	public function __construct() {
+		add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
+		add_action( 'save_post', array( $this, 'save' ) );
+	}
+
+	/**
+	 * Adds the meta box container.
+	 */
+	public function add_meta_box( $post_type ) {
+		$post_types = array('post', 'page');   //limit meta box to certain post types
+		if ( in_array( $post_type, $post_types )) {
+			add_meta_box(
+				'some_meta_box_name'
+				,__( 'Some Meta Box Headline', 'myplugin_textdomain' )
+				,array( $this, 'render_meta_box_content' )
+				,$post_type
+				,'advanced'
+				,'high'
+			);
+		}
+	}
+
+	/**
+	 * Save the meta when the post is saved.
+	 *
+	 * @param int $post_id The ID of the post being saved.
+	 */
+	public function save( $post_id ) {
+	
+		/*
+		 * We need to verify this came from the our screen and with proper authorization,
+		 * because save_post can be triggered at other times.
+		 */
+
+		// Check if our nonce is set.
+		if ( ! isset( $_POST['myplugin_inner_custom_box_nonce'] ) )
+			return $post_id;
+
+		$nonce = $_POST['myplugin_inner_custom_box_nonce'];
+
+		// Verify that the nonce is valid.
+		if ( ! wp_verify_nonce( $nonce, 'myplugin_inner_custom_box' ) )
+			return $post_id;
+
+		// If this is an autosave, our form has not been submitted,
+		// so we don't want to do anything.
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) 
+			return $post_id;
+
+		// Check the user's permissions.
+		if ( 'page' == $_POST['post_type'] ) {
+
+			if ( ! current_user_can( 'edit_page', $post_id ) )
+				return $post_id;
+	
+		} else {
+
+			if ( ! current_user_can( 'edit_post', $post_id ) )
+				return $post_id;
+		}
+
+		/* OK, its safe for us to save the data now. */
+
+		// Sanitize the user input.
+		$mydata = sanitize_text_field( $_POST['myplugin_new_field'] );
+
+		// Update the meta field.
+		update_post_meta( $post_id, '_my_meta_value_key', $mydata );
+	}
+
+
+	/**
+	 * Render Meta Box content.
+	 *
+	 * @param WP_Post $post The post object.
+	 */
+	public function render_meta_box_content( $post ) {
+	
+		// Add an nonce field so we can check for it later.
+		wp_nonce_field( 'myplugin_inner_custom_box', 'myplugin_inner_custom_box_nonce' );
+
+		// Use get_post_meta to retrieve an existing value from the database.
+		$value = get_post_meta( $post->ID, '_my_meta_value_key', true );
+
+		// Display the form, using the current value.
+		echo '<label for="myplugin_new_field">';
+		_e( 'Description for this field', 'myplugin_textdomain' );
+		echo '</label> ';
+		echo '<input type="text" id="myplugin_new_field" name="myplugin_new_field"';
+		echo ' value="' . esc_attr( $value ) . '" size="25" />';
+	}
+}
+</pre>
+
+=== Callback args ===
+
+The <code>$callback_args</code> array will be passed to the callback function as the second argument. The first argument is the post's $post object.
+
+<pre>
+// This function adds a meta box with a callback function of my_metabox_callback()
+function add_my_meta_box() {
+	$var1 = 'this';
+	$var2 = 'that';
+	add_meta_box( 
+		'metabox_id',
+		'Metabox Title',
+		'my_metabox_callback',
+		'page',
+		'normal',
+		'low', 
+		array( 'foo' => $var1, 'bar' => $var2)
+	);
+}
+
+// $post is an object containing the current post (as a $post object)
+// $metabox is an array with metabox id, title, callback, and args elements. 
+// The args element is an array containing your passed $callback_args variables.
+
+function my_metabox_callback ( $post, $metabox ) {
+	echo 'Last Modified: ' . $post->post_modified;            // outputs last time the post was modified
+	echo $metabox['args']['foo'];                             // outputs 'this'
+	echo $metabox['args']['bar'];                             // outputs 'that'
+	echo get_post_meta( $post->ID, 'my_custom_field', true ); // outputs value of custom field
+}
+</pre>
+
+== Source File ==
+
+<code>add_meta_box()</code> is located in {{Trac|wp-admin/includes/template.php}}.
+
+== Further Reading ==
+
+* [[Migrating Plugins and Themes]]
+* [[Function Reference]]
+* [[Creating Tables with Plugins]]
+* [[Function Reference/remove_meta_box | remove_meta_box()]]
+* [[Function Reference/update post meta | update_post_meta()]]
+* [[Function Reference/add post meta | add_post_meta()]]
+* [[Function Reference/register meta | register_meta()]]
+
+== External Resources ==
+* [https://generatewp.com/the-meta-box-generator/ The Meta Box Generator] - WordPress meta box generator and a tutorial with code examples and screenshots.
+* [http://metabox.io Meta Box plugin] - Plugin that allows you to create custom meta boxes and custom fields quickly with a lot of field types and options.
+* [https://gist.github.com/1880770 Class for quickly creating metaboxes] - Allows you to declare a new metabox and set the input fields to display in a few short lines.
+* [http://farinspace.com/2010/03/page-specific-wordpress-meta-box/ Limit a WordPress Meta Box to a Specific Page]
+* [http://wpengineer.com/1991/example-how-to-add-meta-boxes-to-edit-area/ Example How To Add Meta Boxes To Edit Area] - Fully functional example plugin from April, 2010 (GPL Licensed)
+* [http://wordpress.org/support/topic/add_meta_box-callback-with-arguments add_meta_box() $callback_args parameter ] - How to use the $callback_args parameter pre/post WP 2.8
+
+{{Tag Footer}}
+
+[[Category:Functions]]

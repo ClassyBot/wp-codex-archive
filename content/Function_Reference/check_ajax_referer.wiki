@@ -1,0 +1,85 @@
+{{Languages|
+{{en|Function Reference/check_ajax_referer}}
+{{ja|関数リファレンス/check_ajax_referer}}
+}}
+== Description ==
+This function can be overridden by [[Glossary#plugins|plugins]]. If no plugin redefines this function, then the standard functionality will be used.
+
+The standard function verifies the AJAX request, to prevent any processing of requests which are passed in by third-party sites or systems.
+
+Nonces should never be relied on for authentication, authorization or access control. Protect your functions using [[Function Reference/current_user_can|<tt>current_user_can()</tt>]] and always assume that nonces can be compromised.
+
+== Usage ==
+%%%<?php check_ajax_referer( $action, $query_arg, $die ) ?>%%%
+
+== Parameters ==
+{{Parameter|$action|string|Action [[wikipedia:Cryptographic_nonce|nonce]]|optional|-1}}
+{{Parameter|$query_arg|string|where to look for [[wikipedia:Cryptographic_nonce|nonce]] in <tt>$_REQUEST</tt> (since 2.5)|optional|false}}
+{{Parameter|$die|boolean|whether to die if the nonce is invalid|optional|true}}
+
+== Return Values ==
+{{Return||boolean|If parameter <tt>$die</tt> is set to <tt>false</tt>, this function will return a boolean of <tt>true</tt> if the check passes or <tt>false</tt> if the check fails}}.
+
+== Examples ==
+In your main file, set the nonce like this:
+
+<pre>
+<?php
+//Set Your Nonce
+$ajax_nonce = wp_create_nonce( "my-special-string" );
+?>
+
+<script type="text/javascript">
+jQuery(document).ready(function($){
+	var data = {
+		action: 'my_action',
+		security: '<?php echo $ajax_nonce; ?>',
+		my_string: 'Hello World!'
+	};
+	$.post(ajaxurl, data, function(response) {
+		alert("Response: " + response);
+	});
+});
+</script>
+</pre>
+
+In your ajax file, check the referrer like this. (As the <tt>$die</tt> parameter isn't set to false in this example, processing will stop immediately if the test fails.)
+
+<pre>
+add_action( 'wp_ajax_my_action', 'my_action_function' );
+function my_action_function() {
+	check_ajax_referer( 'my-special-string', 'security' );
+	echo sanitize_text_field( $_POST['my_string'] );
+	wp_die();
+}
+</pre>
+
+== Notes ==
+* This function can be replaced via [[Glossary#plugins|plugins]]. If plugins do not redefine these functions, then this will be used instead.
+* If <tt>$query_arg</tt> is not specified (i.e. defaults to false), then the function will look for the nonce in <tt>'_ajax_nonce'</tt>. If that is not set, then it will assume that the nonce is in <tt>'_wpnonce'</tt>, regardless of whether that query arg actually exists.
+* If <tt>$die</tt> is set to <tt>true</tt>, execution of the script will be stopped if the nonce cannot be verified, and the output will be <tt>'-1'</tt>.
+
+== Change Log ==
+* Since: [[Version 2.0.4|2.0.4]]
+
+== Source File ==
+<tt>check_ajax_referer()</tt> is located in {{Trac|wp-includes/pluggable.php}}.
+
+== Related ==
+
+{{Nonce Functions}}
+
+== See also ==
+* [[Wordpress Nonce Implementation]]
+
+== External Resources ==
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ Mark Jaquith - WordPress Nonces]
+* [http://www.prelovac.com/vladimir/improving-security-in-wordpress-plugins-using-nonces Vladimir Prelovac - Using Nonces in WordPress Plugins]
+* Wikipedia: [[wikipedia:Cryptographic_nonce|Cryptographic Nonce]]
+*[https://codeseekah.com/2016/01/21/wordpress-nonces-vulnerabilities/ WordPress Nonce Vulnerabilities | codeseekah.com]
+*[https://www.bynicolas.com/code/wordpress-nonce/ Nicolas Sebastiani - How Do WordPress Nonces Really Work ]
+
+{{Tag Footer}}
+
+[[Category:Functions]]
+[[Category:New_page_created]]

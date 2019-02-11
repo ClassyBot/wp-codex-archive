@@ -1,0 +1,132 @@
+== Introducción == 
+	
+Las plantillas de WordPress encajan como las piezas de un rompecabezas para generar las páginas web en su sitio de WordPress. Algunas plantillas (los archivos de plantilla cabecera y pie, por ejemplo) se utilizan en todas las páginas web, mientras que otros se utilizan únicamente en condiciones específicas.
+
+=== De lo que trata este artículo ===
+
+Este artículo trata de responder la siguiente pregunta:
+
+<blockquote>
+''¿Qué archivo de plantilla(s) de WordPress uso cuando se muestra un cierto tipo de página?''
+</blockquote>
+
+=== ¿Quién podría encontrar útil este ===
+
+Desde la introducción de [[es:Using Themes | Temas]] en WordPress v1.5, [[es:Templates | plantillas]] se han vuelto más y más configurable. Con el fin de [[es:Theme_Development | desarrollar temas WP]], una comprensión adecuada de la manera en WordPress selecciona archivos de plantilla para mostrar las distintas páginas de su blog es esencial. Si tratan de personalizar una existente WordPress tema, este artículo tiene como objetivo ayudarle a decidir que archivo de plantilla necesidades de edición.
+
+=== Códigos condicionales y la jerarquia de plantillas ===
+
+WordPress ofrece más de una manera para unir las plantillas a los tipos de consulta. Los desarrolladores de Temas WordPress también pueden usar [[es:Theme_Development#Query-based_Templates | Códigos Condicionales]] para controlar las plantillas que se utilizarán para generar una determinada página. Algunos Temas de WordPress no puede aplicar todos los archivos de plantilla que se describen aquí. Algunos Temas utilizar los códigos condicionales para cargar otros archivos de plantilla. Véase las [[es:Conditional Tags | Códigos Condicionales]] y la página [[es:Theme Development#Query-based Templates | "Basado en consulta" en el Desarrollo de Temas]] para más informacion.
+
+== La Jerarquía de los archivos de plantilals ==
+
+=== La Idea General ===
+
+WordPress usa la [[es:Glossary#Query_string|Cadena de Consulta]] &mdash; información contenida dentro de cada vínculo en su página web &mdash; para decidir qué modelo o conjunto de las plantillas se utiliza para mostrar la página.
+
+En primer lugar, WordPress relaciona cada cadena de consulta al tipo de consulta &mdash; es decir, decide qué tipo de página (una página de búsqueda, una página de categoría, la página de inicio, etc) se está solicitando.
+
+Las plantillas son elegidas entonces &mdash; y el contenido de la página web se genera &mdash; en el orden sugerido por la jerarquía de plantillas de WordPress, dependiendo de la disponibilidad de las plantillas un determinado tema de WordPress.
+
+WordPress busca archivos de plantilla con nombres específicos en el directorio del tema actual y utiliza ''la primera coincidencia''  con el archivo de plantilla listado bajo la la consulta apropiada.
+
+Con la excepción de lo básico <tt style="font-weight:bold; color:#036"> <nowiki>index.php</nowiki></tt> archivo de plantilla, Desarrolladores de Tema puedan elegir si quieren poner en marcha un particular archivo de plantilla o no. Si WordPress no puede encontrar un archivo de plantilla con el nombre correspondiente, se salta al siguiente nombre de archivo en la jerarquía. Si WordPress no puede encontrar ningún archivo de plantilla , se usará <tt style="font-weight:bold; color:#036">index.php </tt> (el archivo de plantilla de la página de inicio del Tema).
+
+=== Ejemplos ===
+
+Si tu blog está en <tt style="font-weight:bold; color:#036"><nowiki>http://domain.com/wp/</nowiki></tt> y un visitante pincha en el enlace de una página de categoría como
+<tt style="font-weight:bold; color:#036"><nowiki>http://domain.com/wp/category/your-cat/</nowiki></tt>, WordPress busca un archivo de plantilla en el directorio del Tema actual que conincida con el ID de la categoría. Si el ID de la categoría es 4, WordPress busca un archivo de plantilla llamado <tt style="font-weight:bold; color:#036"><nowiki>category-4.php</nowiki></tt>. Si no aparece, después WordPress busca un archivo de plantilla para una categoría genérica, <tt style="font-weight:bold; color:#036"><nowiki>category.php</nowiki></tt>. Si este archivo tampoco existe, WordPress busca un archivo de plantilla generico, <tt style="font-weight:bold; color:#036"><nowiki>archive.php</nowiki></tt>. Si este tampoco aparece, WordPress vuelve al achivo principal del Tema, <tt style="font-weight:bold; color:#036"><nowiki>index.php</nowiki></tt>.
+
+Si un visitante va a tu página de inicio en <tt style="font-weight:bold; color:#036"><nowiki>http://domain.com/wp/</nowiki></tt>, WordPress buscaun archivo de plantilla llamado <tt style="font-weight:bold; color:#036">home.php</tt> y lo usa para general la página pedida. Si <tt style="font-weight:bold; color:#036">home.php</tt> no aparece, WordPress busca un archivo llamado <tt style="font-weight:bold; color:#036">index.php</tt> in el directorio de archivos del Tema, y usa esta plantilla para generar la página.
+
+
+=== Panorama visual ===
+
+El siguiente diagrama muesta qué archivo de plantilla es llamado para generar una página WordPress badado en la jerarquía de Plantillas de  WordPress. También ilustra la relación de [[es:Glossary#Query_string|Cadenas de consultas]] correspondientes a [[es:Conditional Tags | Códigos Condicionales]].
+
+[[Image:Template_Hierarchy.png|600px|Ejemplo Gráfico de la Estructura de la Jerarquía de las Plantilla de Wordpress]]
+
+=== La Jerarquía de Plantillas en detalle ===
+
+Las siguientes secciones describen el orden en el cual son llamadas los archivos de plantillas por WordPress para cada uno de los tipos de consultas.
+
+=== Página principal ===
+
+:#home.php
+:#index.php
+
+=== La Página de una Entrada Única ===
+
+:#single.php
+:#index.php
+
+=== Página de WordPress ===
+
+:#La plantilla seleccionada desde el desplegable "Plantilla de la página"  cuando editas la [[es:Pages|Página]].
+:#[[es:Pages|page.php]]
+:#index.php
+
+'''Nota:''' Esta sección hace referencia a ''Páginas WordPress'', no a entradas o páginas web desde tu blog. Por favor mira [[es:Pages|Páginas WordPress]] para los detalles.
+
+=== Página de Categoría ===
+
+:#La Plantilla de Categoría con una coincidencia de ID. Si el ID de la categoría fuera <tt style="font-weight:bold; color:#036">6</tt>, WordPress buscaría [[es:Category Templates|category-6.php]]
+:#[[es:Category Templates|category.php]]
+:#[[es:Creating_an_Archive_Index|archive.php]]
+:#index.php
+
+'''Nota:''' Ver [[es:Category Templates | Plantillas para Categoría]] para detalles.
+
+=== Página de Etiqueta ===
+
+:#La Plantilla de Etiqueta que coincida con el ''slug''. Si el ''slug'' de  la etiqueta fuera <tt style="font-weight:bold; color:#036">sometag</tt>, WordPress buscaría [[es:Tag Templates|tag-sometag.php]]
+:#[[es:Tag Templates|tag.php]]
+:#[[es:Creating_an_Archive_Index|archive.php]]
+:#index.php
+
+'''Nota:''' Ver [[es:Tag Templates | Pantillas  para Etiqueta]] para detalles.
+
+=== Pagina de Autor ===
+
+:#[[es:Author Templates|author.php]]
+:#[[es:Creating_an_Archive_Index|archive.php]]
+:#index.php
+
+'''Nota:''' La [[es:Author Templates|Plantilla de Autor]] puede ser usada para mostrar información sobre los autores.
+
+
+=== Página de Fecha ===
+
+Por ejemplo, la página del archivo mensual.
+
+:#date.php
+:#[[es:Creating_an_Archive_Index|archive.php]]
+:#index.php
+
+=== Página de Resultado de Búsqueda ===
+
+:#[[es:Creating_a_Search_Page|search.php]]
+:#index.php
+
+=== Página de 404 (No encontrado) ===
+
+:#[[es:Creating_an_Error_404_Page|404.php]]
+:#index.php
+
+'''Nota:''' Ver [[es:Creating an Error 404 Page | Creando una página de Error 404]] para más información acerca de la plantilla 404.
+
+=== Página de adjunto ===
+
+:#image.php
+:#attachment.php
+:#index.php
+
+'''Nota:''' Ver [[es:Using Image and File Attachments#Inserting_Files|Usando imagen y archivos adjuntos]] para más información acerca de la plantilla.
+
+== Ver también ==
+
+Los siguientes enlaces tienen relación directa con el tema del artículo.
+
+[[es:Theme Development | Desarrollo de Temas]] | [[es:The Loop | El Bucle]] | [[es:Conditional Tags | Etiquetas condicionales]] | [[es:Template Tags | Etiquetas de Plantilla]] | [[es:Using Permalinks | Usando los enlaces permanentes]]
+
+[[Category:Spanish Codex]]

@@ -1,0 +1,60 @@
+== Description ==
+
+The <b>"wp_link_query_args"</b> filter is used to filter the array of arguments passed to the <code>wp_link_query</code> function which is responsible for building the list of linkable content in the modal window that displays when you insert a link. <code>wp_link_query_args</code> allows you to alter the query before the list is rendered on the page.
+
+== Examples ==
+
+Any allowable WP_Query parameters can be passed to <code>wp_link_query_args</code>. One example is filtering out post types:
+
+=== Show only posts and pages ===
+
+If you wanted only allow posts and pages to show up in the linked results, you could do something like this. In this example, we're going to check to make sure we aren't in the admin, so results would only be filtered on the front end, but admins could still add links to all post types.
+
+<pre>
+function my_wp_link_query_args( $query ) {
+
+     // check to make sure we are not in the admin
+     if ( !is_admin() ) {
+          $query['post_type'] = array( 'post', 'pages' ); // show only posts and pages
+     }
+
+     return $query;
+
+}
+
+add_filter( 'wp_link_query_args', 'my_wp_link_query_args' ); 
+</pre>
+
+=== Remove specific post types from results ===
+
+You'd use something like this if you only wanted to remove specific post types from the results.
+
+<pre>
+function remove_these_post_types_from_wp_link_query_args( $query ) {
+
+     // this is the post type I want to exclude
+     $cpt_to_remove = 'article';
+
+    // find the corresponding array key
+    $key = array_search( $cpt_to_remove, $query['post_type'] ); 
+
+    // remove the array item
+    if( $key )
+        unset( $query['post_type'][$key] );
+
+    return $query;
+
+}
+
+add_filter( 'wp_link_query_args', 'remove_these_post_types_from_wp_link_query_args' );
+</pre>
+
+== Source File ==
+
+The <code>wp_link_query_args</code> filter is located in {{Trac|wp-includes/class-wp-editor.php}}.
+
+== External Resources ==
+* [http://wordpress.stackexchange.com/a/116027 Excluding post type from WordPress link builder]
+* [https://core.trac.wordpress.org/ticket/18042 Original Trac Ticket - Need a way to override wp_link_query()]
+
+[[Category:Filters]]

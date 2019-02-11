@@ -1,0 +1,198 @@
+{{Oldpage|2.0}}
+
+=Introduction and Synopsis=
+
+So you want to see what it is about [[WordPress]] that makes it Movable Type's equal?  This guide will help you with all the information you need to migrate your weblog from Movable Type (MT) or TypePad to WordPress (WP). We will use MT's exporter to export all the entries and comments in your MT blog and then import them using WP's '''import-mt.php''' importer. Finally, we will look at some issues concerning the preservation of links to articles [[Using Permalinks|(permalinks)]] after the import, and other issues that you may have. This guide will leave you feeling good, warm, and hopefully looking forward to a new life full with [[Glossary#Open Source|open source]] goodness. If you are a TypePad user, then read "TypePad" wherever this guide talks about "Movable Type". The process of exporting entries from a TypePad blog will be different, and you should contact the TypePad support folks if you are in doubt.
+
+=Overview=
+
+To begin with, the following are assumed:
+
+* You have already [[Installing_WordPress|installed WordPress]] on your server, so if you have not, please do so before continuing.
+* http://example.com/wordpress/ is the url of your WordPress installation.
+* "admin" is the login you use to login as the administrator of the WordPress blog.
+* "mtuserX" is the name of author X, in the MovableType blog.
+
+The steps involved in the migration are as follows:
+
+#Exporting from Movable Type
+#Editing the WordPress importer
+#Importing into WordPress
+#Tying up loose ends, if any
+
+=Exporting from MovableType=
+
+# Login to your MovableType blog. You will see a screen that looks like Figure 1.
+# From the main menu, click on the "Configuration" link for the blog whose entries you want to export, as shown by the red arrow in Figure 1.
+# That link should bring you to a page similar to that shown in Figure 2. Click the "Import/Export" button on the left menu, as shown by the red arrow in Figure 2. 
+# On the page that ensues, Click the "Export Entries from <your weblog's name>" link as shown by the red arrow in Figure 3. Don't worry, the comments are exported too. 
+# Now you should see readable text, split over several lines, in your browser. If the text is one long, running line, and if you are using any version of Internet Explorer, then you have a problem. Internet Explorer sometimes treats plaintext as html. To avoid this problem do one of the following:
+*Use a Gecko-based browser, such as Netscape, Mozilla, or FireFox. Save the page you see in your browser, with all the entries in text, as a text file with the name "import.txt", on your computer.
+*If you do not want to use another browser, then in Internet Explorer, copy all the text you see in the browser, open WordPad, or Notepad (a simple text editor), but definitely '''not''' MS Word, and paste the text in. Then save the file in the text editor with the name "import.txt".
+*If you are exporting from MovableType Version 3.0D, then the [http://www.movabletype.org/support/index.php?act=ST&f=8&t=40987 bug fix for AM/PM problem] is essential.
+*WordPress uses UTF-8 as the default encoding. So if your MT blog uses ISO 8859-1 or Latin - 1 to encode posts, convert the posts to UTF-8 before importing, to ensure that all characters display properly. 
+**On *nix and OSX you can use the [http://www.gnu.org/software/libiconv/documentation/libiconv/iconv.1.html iconv] program to convert your import.txt file: <tt>$ iconv -f ISO-8859-1 -t UTF-8 import.txt > import_new.txt</tt>
+**You can also use one of many [http://miscoranda.com/96 scripts] available online. 
+**Optionally, you could also set an Option (Option -> Reading -> Character Encoding) in WordPress to set the Charset for the WP weblog to ISO 8859-1 before importing the posts. 
+<gallery>
+ Image:mt-loggedin.png |Figure 1: Logged into Movable Type
+ Image:mt-configuration.png |Figure 2: Movable Type - Weblog Configuration Screen
+ Image:mt-exporting.png |Figure 3: Movable Type - Import/Export Entries Screen
+</gallery>
+
+=Editing <tt>import-mt.php</tt>=
+
+1. Open the file "import-mt.php" in your favourite text editor.  You will find it in the directory "wp-admin/import/" in your WordPress installation . For this, you have to download it first.
+
+2. On line number 2 of import-mt.php, find %%%define('MTEXPORT', '');%%% and change that to %%%define('MTEXPORT', 'import.txt');%%%
+
+3. Save import-mt.php and upload it to the "wp-admin" directory on your server, overwriting the existing "import-mt.php".
+
+4. Upload the "import.txt" file you had saved earlier after the export to the "wp-admin" directory on your server.
+
+=Importing Entries into WordPress=
+
+# Log into your WordPress installation as the user <tt>admin</tt>
+# Visit the page <nowiki>http://example.com/wordpress/wp-admin/import-mt.php</nowiki> (Of course, please visit the corresponding page on your WordPress blog, this link is just an example).
+# Click on the link that says "let's go!"
+# On the next page, you will see all the authors in the Movable Type weblog, and for each of these authors, you can choose either an existing WordPress user from the dropdown list, or type a username for a new user to be created in WordPress. You can use this to "map" users on your Movable Type weblog to users in the WordPress weblog, if in case the names of the author(s) are different in your WordPress blog, and you want to change the authors' names. For example, the Movable Type user "mtuserX" might correspond to the "admin" user on your WordPress installation. If you do not wish to change the names of the MT authors, just leave the corresponding entries blank, and new WP authors will be created with the same name as the MT authors. Make the changes you desire, and when you are done, click the "Submit" button.
+# Now you will see a number of lines informing you of the progress of the import, as it happens. When it is all over, you will be asked to "Have Fun".
+# Go ahead, have fun - the import of posts, comments, pingbacks and trackbacks is complete!
+# If any new authors were created in WordPress during the import process, according to your wishes, the password for those users/authors is '''changeme'''. You can use this password to log in as that user. Please change the password the first time you log in after the import, since everyone who's read this guide knows the password!
+
+=Odds and Ends=
+
+==Importing a Huge Number of Posts==
+If you don't have administrative control of the server (root access), then [http://wordlog.com/archives/2004/07/29/importing-large-movabletype-text-files/ Importing a Large Number of Posts] has relevant links and help. This should be helpful if your import process dies before completing the import. The php installation on your webserver may have a low script timeout, or if the file is too large, your server may run out of memory. This is what's happening when you see a blank, white page, during the import, or your browser says "Done" before WordPress says "Have Fun!" after the import.
+
+If you do have root access to the server, edit php.ini and increase the maximum memory setting. For a large import (e.g. 5MB), increase the script memory to 100MBs and restart apache. When the import is complete, restore the limit to what it was originally and restart apache again.
+
+==Preserving Permalinks==
+
+Search Engines such as [http://google.com Google] will still link to the old Movable Type generated [[Glossary#URI and URL|URLs]] when linking to your articles. This is true of other websites too, that may have linked to your posts or articles. It is your best interests to preserve those links, to prevent visitors following those links from seeing a "404: article not found" error page. The following steps will help you preserve the links, depending on how the permalinks were configured on your Movable Type weblog.
+
+===Using an MT Individual Entry Template for Redirection===
+Alex King's solution provides a [http://www.alexking.org/software/wordpress/mt-wp-redirect.zip Movable Type template for individual entries], which you can use to generate pages that will redirect visitors to the corresponding WordPress pages. However, this method requires that you maintain the Movable Type installation, as also the pages generated by it, which will do the redirection.
+
+===Using .htaccess for redirection===
+Matt's method uses the [[Glossary#.htaccess|.htaccess]] file for redirection. 
+
+Create a Movable Type template like the following, have it output to <tt>redirect.php</tt> in your WP root directory:
+<pre>
+<?php
+require('wp-config.php');
+header('Content-type: text/plain');
+?>
+<MTEntries lastn="999999">
+Redirect Permanent /archives/<$MTEntryID$>.html http://www.example.org/archives/<$MTArchiveDate format="%Y/%m/%d"$>/
+   <?php echo sanitize_title("<$MTEntryTitle$>"); ?>
+</MTEntries>
+</pre>
+
+If your entry IDs in MovableType are padded with zeroes (0), then change the line above to
+<pre>
+Redirect Permanent /archives/<$MTEntryID pad="1"$>.html http://www.example.org/archives/<$MTArchiveDate format="%Y/%m/%d"$>/
+   <?php echo sanitize_title("<$MTEntryTitle$>"); ?>
+</pre>
+
+Also, if your used the "dirify" option, 
+for example, when in MT, if you had:
+* Archive Type: Individual, 
+* Archive File Template: <MTEntryTitle dirify="1">.php, 
+* quotes in title etc,
+
+Use:
+<pre>
+Redirect Permanent /archives/<MTEntryTitle dirify="1">.php 
+ http://www.example.com/index.php?s=<$MTEntryTitle encode_url="1"$>
+</pre>
+
+or if the extension for the pages were ".html", instead of the ".php" above, use:
+<pre>
+Redirect Permanent /archives/<$MTEntryID$>.html 
+ http://www.example.com/index.php?s=<$MTEntryTitle encode_url="1"$>
+</pre>
+
+===Using .htaccess and mod_rewrite for redirection===
+
+Apache 1.3 and above have a module, called mod_rewrite, that allows URL to be seamlessly rewritten on the fly by the server. This can be used to preserve the previous permalinks from a MovableType installation. To use mod_rewrite, the module must be installed and the FollowSymLinks option must be enabled for your blog directory. If these two conditions are true, then it's as easy as creating a .htaccess file with the following lines in it:
+<pre>
+RewriteEngine on
+RewriteRule archives/0*(\d+).html /uri/to/blog/index.php?p=$1
+RewriteRule index.rdf /uri/to/blog/index.php?feed=rdf
+RewriteRule index.rss /uri/to/blog/index.php?feed=rss
+RewriteRule index.xml /uri/to/blog/index.php?feed=rss2
+</pre>
+* Note that this will also preserve RSS and RDF feeds that may be being used by third party sites.
+
+===Preserving the Numerical Post Ids===
+If you are using WordPress 2.0 or newer, you will need to use Joshua Zader's solution:
+[http://www.muditajournal.com/archives/000280.php Mudita Journal: Importing from MT to WordPress]
+
+The information below largely pertains to older versions of WordPress.
+
+If you want your imported posts in WordPress to have the same numerical post ids as in Movable Type, use [http://site-essential.com/wpstuff/mt-numeric-import.zip Kathy's MT-Numeric-Id Importer]. Note that this might not work very well, if you had "padded" numeric ids in Movable Type. However, a peek into the code, and a little familiarity with PHP should help you fix this, if required.
+
+Another option is to use [http://drbacchus.com/wordpress/index.php?p=611 Dr. Bacchus' Solution] for the same problem.
+
+See also: http://scott.yang.id.au/2004/06/wordpress-migration-notes/
+
+===Forcing Wordpress to Use the Movable Type Permalink Structure===
+Allan Barizo provides a solution that forces Wordpress to [http://www.bankblog.info/2005-12/from_mt_to_wp_using_the_same_permalinks_as_movable_type.html use the same permalinks as Movable Type]. However, since Movable Type does not always stick to a set number of characters in the entry_basename column, also known to WordPress users as a "slug" or %postname%," there are sometimes a few Page Not Found (404) errors. It is recommended that this method be used in conjunction with the strategies outlined above. It involves changing the permalink structure under "Options" to
+
+<pre>/archives/%year%/%monthnum%/%postname%.html</pre>
+
+Since the %postname% in Wordpress substitutes dashes for spaces, it may be desirable to install the [http://codex.wordpress.org/Plugins/Underscore_Permalinks Underscore Permalinks Plugin]. You may wish to defer this in case the solutions below do not work.
+
+Generally, a SQL Query must be run on the wp_posts table in the WordPress MySQL database. This is because every Movable Type installation has a different %postname% length cutoff point. (The cutoff point in Movable Type can be seen under Settings, New Entry Defaults tab, Basename Length for the value). On the contrary, WordPress displays the whole URL. Before running this SQL query, replace "15" with the number of characters in the Basename Length field for the particular MT installation. Remember, to back up your MySQL database before performing this operation. 
+
+<pre>UPDATE wp_posts SET post_name=SUBSTRING(post_name,1,15)</pre>
+
+This query assumes that all of the posts in the database are imported from MovableType. Also note that any subsequent posts written or imported after running this query will follow the unlimited %postname% WordPress rule. In other words, this query will not have any effect on later post permalinks.
+
+If the Movable Type blog is rather old, you may have upgraded Movable Type and changed it to use long URLs (more than 15 characters) for your entries. In this case, additional work may be needed. Let's assume that prior to September 1, 2005 your MT blog had a hard coded 15 character entry_basename limitation. You upgraded on September 1, 2005 and set the entry_basename limit to 50 characters. So an entry titled "This is a very long entry" written on August 30, 2005 had an entry_basename of "this_is_a_very" in Movable Type. (Movable Type will strip off the ending underscore.) This means that Page Not Found (404) errors when search engines provide these URLs. You may be able to fix many of these link errors by using phpMyAdmin to determine when the entry_basename size increased in your Movable Type MySQL database. Once you have determined the date then you can use SQL to fix all entries before this date to have the original 15 character limitation. Of course you don't want this change to affect those after this date. Example:
+
+<pre>UPDATE wp_posts SET post_name=SUBSTRING(post_name,1,15)
+WHERE post_date < '2005-09-01'</pre>
+
+There will likely still be inconsistencies. Some post_name values will contain a post_name ending in an underscore. This will cause page not found errors for these URLs. This SQL will clean up these posts, reducing but likely not eliminating this problem.
+
+<pre>UPDATE wp_posts 
+SET post_name = SUBSTRING(post_name,1,(length(post_name) -1)) 
+WHERE RIGHT(post_name,1) = '_'</pre>
+
+The next step is to change all dashes in the post_name field in WordPress to underscores. This can be done with this command:
+
+<pre>UPDATE wp_posts SET post_name=REPLACE(post_name, '-', '_')</pre>
+
+Mark D. Hamill wrote a [http://www.occams-razor.info/mt3.3_to_wp2.3_link_check.txt utility] that may help show the posts where the permalink is inconsistent between Movable Type and WordPress. It was tested using  Movable Type 3.3 and Wordpress 2.3. You will need to save the file with a .php extension and change some script variables to match your instance of MySQL. Of course it must be placed on your server and run from it with an appropriate URL. Once bad links are identified they can be changed using phpMyAdmin or a similar tool by carefully editing the post_name column for the appropriate rows in the wp_posts table. Rerun the utility until no link inconsistencies are found.
+
+=Importing Tags=
+
+If you created tags in your Movable Type blog and want to move them over, it is possible but tricky and possibly error prone.
+
+First, make sure that you have all post permalinks preserved as in Movable Type using the guidance above. In order to move tags for your blog entries, there must be a way to find a Movable Type entry in WordPress and this can only be done if they have something in common. Ensuring the same permalink between Movable Type and Wordpress allows tags in Movable Type to be associated in Wordpress.
+
+To actually move the tags, try a [http://www.occams-razor.info/mt3.3_to_wp2.3_tag_conversion.txt Movable Type tag import utility] written by Mark D. Hamill. While it worked for him, it has not been extensively tested so send him feedback. It should be considered "Alphaware" so use it at your own risk and with the expectation that it might fail. '''Make sure you backup your database before trying to use this utility.''' 
+
+Read the utility's instructions carefully before running it. It was tested using  Movable Type 3.3 and Wordpress 2.3 and may not work for other versions. You will need to save the file with a .php extension and change some script variables to match your MySQL database. Of course it must be placed on your server and run from it with an appropriate URL. Guidance on running the utility can be found by invoking it. When ready to actually move over the tags, add a ?run=1 to the end of the URL.
+
+=User Experiences=
+The following are a bunch of links to posts by users describing their MT to WP move. This might be handy to see if someone has faced the sinister problems you are facing (God Forbid!) :
+
+#[http://blog.carthik.net/vault/2004/05/14/movabletype-to-wordpress/ Carthik's notes, complete with links]
+#[http://dan.hersam.com/archives/2004/10/05/converting-links-from-mt-to-wordpress Dan Hersam on converting links]
+#[http://www.papascott.de/archives/2004/05/16/mt-to-wordpress/ PapaScott's Notes - a few gotchas]
+#[http://weblog.burningbird.net/archives/2004/05/16/additional-links-for-moving-from-mt-to-wordpress/ BurningBird's List of Links]
+#[http://drbacchus.com/wordpress/index.php?p=611 Dr. Bacchus' Solution to Preserving Links]
+#[http://www.cs.northwestern.edu/~ayman/blog/index.php?p=71 David's tips for redirection]
+#[http://www.nosoapradio.org/?p=36 Narendra's experience migrating from TypePad to WP 1.5.1.2 (6/05)]
+#[http://www.squarefree.com/2005/03/13/switching-from-movable-type-to-wordpress/ SquareFree Switching From Movable Type to WordPress]
+#[http://monsterlippa.chiedere.info/2005/07/05/large-movabletype-to-wordpress-migration/ Blau on issues when migrating a large site and the solution used]
+#[http://adamstiles.com/2005/10/painless_switch_from_typepad_to_wordpress/ Adam Stiles - Painless Switch from Typepad to WordPress]
+#[http://www.tiposaurus.co.uk/wordpress/2006/01/19/experiences-of-moving-movable-type-to-wordpress.html Steven's experiences of moving from Movable Type 3.2 to WordPress 2.0] 
+#[http://foliovision.com/2008/11/17/typepad-to-wordpress/ Folivision's 2009 Guide to Typepad to WordPress Migration]
+#[http://www.tiposaurus.co.uk/movable_type/wordpress/2012/08/29/export-movable-type-to-wordpress.html Exporting from Movable Type to WordPress]
+
+[[Category:Getting Started]]
+[[Category:Installation]]

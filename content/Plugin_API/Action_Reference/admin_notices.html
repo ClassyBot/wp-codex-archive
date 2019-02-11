@@ -1,0 +1,80 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Usage"><span class="tocnumber">2</span> <span class="toctext">Usage</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Parameters"><span class="tocnumber">3</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Example"><span class="tocnumber">4</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Disable_Nag_Notices"><span class="tocnumber">5</span> <span class="toctext">Disable Nag Notices</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/admin_notices&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Notices displayed near the top of admin pages.  The hook function should echo a message to be displayed. 
+</p>
+<h2><span class="mw-headline" id="Usage">Usage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/admin_notices&amp;action=edit&amp;section=2" title="Edit section: Usage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>&lt;div class="{class}"&gt;&lt;p&gt;{message}&lt;/p&gt;&lt;/div&gt;</pre>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/admin_notices&amp;action=edit&amp;section=3" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<dl><dt> <tt>{class}</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The class of admin notice. Should be <code>notice</code> plus any one of <code>notice-error</code>, <code>notice-warning</code>, <code>notice-success</code>, or <code>notice-info</code>. Optionally use <code>is-dismissible</code> to apply a closing icon.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>{message}</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) Message to show to user
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/admin_notices&amp;action=edit&amp;section=4" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<pre>function sample_admin_notice__success() {
+   &#160;?&gt;
+    &lt;div class="notice notice-success is-dismissible"&gt;
+        &lt;p&gt;&lt;?php _e( 'Done!', 'sample-text-domain' );&#160;?&gt;&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;?php
+}
+add_action( 'admin_notices', 'sample_admin_notice__success' );</pre>
+<p>The class <code>notice-success</code> will display the message with a white background and a <strong>green</strong> left border.
+</p>
+<pre>function sample_admin_notice__error() {
+	$class = 'notice notice-error';
+	$message = __( 'Irks! An error has occurred.', 'sample-text-domain' );
+
+	printf( '&lt;div class="%1$s"&gt;&lt;p&gt;%2$s&lt;/p&gt;&lt;/div&gt;', esc_attr( $class ), esc_html( $message ) ); 
+}
+add_action( 'admin_notices', 'sample_admin_notice__error' );</pre>
+<p>The class <code>notice-error</code> will display the message with a white background and a <strong>red</strong> left border.
+</p><p>Use <code>notice-warning</code> for a <strong>yellow/orange</strong>, and <code>notice-info</code> for a <strong>blue</strong> left border.
+</p><p><strong>Don’t use <code>update-nag</code> as a class name!</strong> 
+It is not suitable for regular admin notices, as it will apply different layout styling to the message. Additionally it will trigger the message to be moved above the page title (<code>&lt;h1&gt;</code>), thus semantically prioritizing it above other notices which is not likely to be appropriate in a plugin or theme context. 
+</p><p>The class name <code>is-dismissible</code> will automatically trigger a closing icon to be added to your message via JavaScript. Its behavior, however, applies only on the current screen. It will not prevent a message from re-appearing once the page re-loads, or another page is loaded.
+</p>
+<h2><span class="mw-headline" id="Disable_Nag_Notices">Disable Nag Notices</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/admin_notices&amp;action=edit&amp;section=5" title="Edit section: Disable Nag Notices">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In late 2017, an unofficial defined constant was proposed by LittleBizzy as a voluntary way for plugin or theme authors to allow for hiding certain admin notices that may be considered bothersome by some webmasters. It can be used as follows:
+</p>
+<pre>   define('DISABLE_NAG_NOTICES', true);
+</pre>
+<p>This code snippet, called a "defined constant" in PHP, can be added to your <code>wp-config.php</code> file, your theme <code>functions.php</code> file, or using a free plugin like <a rel="nofollow" class="external text" href="https://wordpress.org/plugins/custom-functions-littlebizzy/">Custom Functions</a> by LittleBizzy or <a rel="nofollow" class="external text" href="https://wordpress.org/plugins/my-custom-functions/">My Custom Functions</a> by Space X-Chimp.
+</p><p>It should be noted that there is not universal support for this constant, although a limited number of plugin and theme authors have began to support it. A typical use case might be for hiding recurring "nag" notices that ask users to review their extension on WordPress.org, etc. Furthermore, it should not have any effect on general notices that appear within WP Admin, and is simply a way for extensions to opt-in to disabling certain notices at their own discretion.
+</p>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/admin_notices&amp;action=edit&amp;section=6" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/network_admin_notices" title="Plugin API/Action Reference/network admin notices">network_admin_notices</a></li>
+<li> <a href="/index.php?title=Plugin_API/Action_Reference/user_admin_notices&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/user admin notices (page does not exist)">user_admin_notices</a></li>
+<li> <a href="/index.php?title=Plugin_API/Action_Reference/all_admin_notices&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/all admin notices (page does not exist)">all_admin_notices</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004049
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.013 seconds
+Preprocessor visited node count: 78/1000000
+Preprocessor generated node count: 211/1000000
+Post‐expand include size: 507/2097152 bytes
+Template argument size: 317/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    1.776      1 - -total
+ 94.82%    1.684      2 - Template:Parameter
+-->

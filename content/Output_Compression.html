@@ -1,0 +1,78 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/WordPress_の最適化/出力の圧縮">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>WordPress on its own does not offer a mechanism to compress the blog's <i>HTML output</i>. This normally is a feature provided by the webserver (Apache, see <a rel="nofollow" class="external text" href="https://httpd.apache.org/docs/2.4/mod/mod_deflate.html">Enabling Compression</a>) or based on the configuration the PHP scripting language offers (see <a rel="nofollow" class="external text" href="http://www.php.net/manual/en/zlib.configuration.php">zlib configuration</a>).
+</p>
+<h2><span class="mw-headline" id="Enable_via_.htaccess">Enable via .htaccess</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Output_Compression&amp;action=edit&amp;section=1" title="Edit section: Enable via .htaccess">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>If you prefer to enable or fine tune output compression with the apache server, you might find this code-snippet for an .htaccess file useful:
+</p>
+<pre>&lt;IfModule mod_deflate.c&gt;
+# Insert filters
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
+AddOutputFilterByType DEFLATE application/x-httpd-php
+AddOutputFilterByType DEFLATE application/x-httpd-fastphp
+AddOutputFilterByType DEFLATE image/svg+xml
+
+# Drop problematic browsers
+BrowserMatch ^Mozilla/4 gzip-only-text/html
+BrowserMatch ^Mozilla/4\.0[678] no-gzip
+BrowserMatch \bMSI[E]&#160;!no-gzip&#160;!gzip-only-text/html
+
+# Make sure proxies don't deliver the wrong content
+Header append Vary User-Agent env=!dont-vary
+&lt;/IfModule&gt;
+</pre>
+<h2><span class="mw-headline" id="Enable_via_PHP_code">Enable via PHP code</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Output_Compression&amp;action=edit&amp;section=2" title="Edit section: Enable via PHP code">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In case editing the servers configuration is not an option for your site you might want to enable compression within the PHP-code. A single small line of code within the index.php file will do the job. Just add <code>ob_start('ob_gzhandler');</code> on top of your <i>index.php</i> located in the root directory of your WordPress installation:
+</p>
+<pre>&lt;?php
+ob_start('ob_gzhandler');
+/**
+ * Front to the WordPress application. This file doesn't do anything, but loads
+ * wp-blog-header.php which does and tells WordPress to load the theme.
+ *
+ * @package WordPress
+ */
+[...]
+</pre>
+<p>NOTE: For better results, you should edit your main index.php file, not the index.php of your theme(s). Therefore, keep in mind that this file will be overwritten next time you update WordPress, so you need to modify it again after an update.
+</p><p>You need to have the <a rel="nofollow" class="external text" href="http://www.php.net/manual/en/zlib.installation.php">Zlib Compression Functions</a> in PHP in order to get this work.
+</p>
+<h2><span class="mw-headline" id="See_Also">See Also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Output_Compression&amp;action=edit&amp;section=3" title="Edit section: See Also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://www.romantika.name/v2/compressing-wordpress-output/">Compressing WordPress Output</a> (by ady; July 3, 2008)</li>
+<li> <a rel="nofollow" class="external text" href="http://www.wmtips.com/php/content-compression-using-php.htm">Content Compression Using PHP</a> (by Paul Katsandem,; Mar 3, 2007)</li>
+<li> <a rel="nofollow" class="external text" href="http://core.trac.wordpress.org/ticket/10365">Ticket #10365 related to Gzip compression</a></li>
+<li> <a href="https://codex.wordpress.org/Testing_WordPress_Performance" title="Testing WordPress Performance">Testing WordPress Performance</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004046
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.008 seconds
+Real time usage: 0.010 seconds
+Preprocessor visited node count: 30/1000000
+Preprocessor generated node count: 153/1000000
+Post‐expand include size: 521/2097152 bytes
+Template argument size: 168/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.387      1 - Template:Languages
+100.00%    3.387      1 - -total
+ 31.56%    1.069      1 - Template:ja
+ 30.02%    1.017      1 - Template:en
+-->

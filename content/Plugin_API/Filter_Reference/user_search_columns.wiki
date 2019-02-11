@@ -1,0 +1,58 @@
+== Description ==
+The <b>user_search_columns</b> filter is used to determine which user fields in the database are used when performing a search on user information.
+
+== Usage ==
+When the 'user_search_columns' filter is called, it is passed three parameters: an array of fields to search, the search term, WP_User_Query object
+
+<pre>
+add_filter( 'user_search_columns', 'filter_function_name', 10, 3 );
+
+function filter_function_name( $search_columns, $search, $wp_user_query ) {
+    // Alter $search_columns to include the fields you want to search on
+    return $search_columns;
+}
+</pre>
+
+Where 'filter_function_name' is the function WordPress should call when filter is run. Note that the filter function <b>must</b> return an value after it is finished processing or the search terms will be empty.
+
+'''filter_function_name''' should be unique function name. It cannot match any other function name already declared.
+
+== Examples ==
+
+=== Add a field to search on ===
+In this example the user's URL is also added to the list of columns searched
+<pre>
+add_filter( 'user_search_columns', 'filter_function_name', 10, 3 );
+    
+function filter_function_name( $search_columns, $search, $wp_user_query ) {
+    $search_columns[] = 'user_url';
+    return $search_columns;
+}
+</pre>
+
+=== Alter search fields based on search term ===
+In this example if the user searches for something with '.com' in it only the user_url field will be searched.
+
+<pre>
+add_filter( 'user_search_columns', 'filter_function_name', 10, 3 );
+
+function filter_function_name( $search_columns, $search, $wp_user_query ) {
+    $val = strpos($search, '.com');
+    
+    if( $val !== false ) {
+	    $search_columns = array('user_url');
+    }
+    
+    return $search_columns;
+}
+</pre>
+
+== Change Log ==
+* Since: [[Version_3.6|3.6.0]]
+
+==See Also==
+* Index: [[Plugin_API/Filter_Reference|List of filters]]
+* Tutorial: [[Plugin_API#Create_a_Filter_Function|Creating a Filter Function]]
+* Function: [[Function_Reference/add_filter|add_filter()]]
+
+[[Category:Filters]]

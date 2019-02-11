@@ -1,0 +1,67 @@
+== Description ==
+
+This action is called whenever a value for a custom column should be output for a custom post type. Combined with the [[Plugin_API/Filter_Reference/manage_$post_type_posts_columns|manage_${post_type}_posts_columns]] filter, this allows you to add or remove (unset) custom columns to a list of custom post types.
+
+For built-in post types and multiple custom types, use [[Plugin_API/Action_Reference/manage_posts_custom_column|manage_posts_custom_column]].
+
+== Parameters ==
+= Posts and Pages =
+A registered action function is passed the following parameters.
+
+{{Parameter|$column_name|string|The name of the column to display.}}
+{{Parameter|$post_id|int|The ID of the current post. Can also be taken from the global <var>$post->ID</var>}}
+
+= Terms and Taxonomies =
+When passing this function on terms and taxonomies, a third parameter is added.
+
+{{Parameter|$null|null|Unused and won't pass anything.}}
+{{Parameter|$column_name|string|The name of the column to display.}}
+{{Parameter|$term_id|int|The ID of the current term. Can also be taken from the global <var>$current_screen->taxonomy</var>.}}
+
+==Examples==
+Suppose you have a 'book' custom post type and you want to add the publisher and book author in the edit page but remove the post author.
+
+<code><pre>
+add_filter( 'manage_book_posts_columns', 'set_custom_edit_book_columns' );
+add_action( 'manage_book_posts_custom_column' , 'custom_book_column', 10, 2 );
+
+function set_custom_edit_book_columns($columns) {
+    unset( $columns['author'] );
+    $columns['book_author'] = __( 'Author', 'your_text_domain' );
+    $columns['publisher'] = __( 'Publisher', 'your_text_domain' );
+
+    return $columns;
+}
+
+function custom_book_column( $column, $post_id ) {
+    switch ( $column ) {
+
+        case 'book_author' :
+            $terms = get_the_term_list( $post_id , 'book_author' , '' , ',' , '' );
+            if ( is_string( $terms ) )
+                echo $terms;
+            else
+                _e( 'Unable to get author(s)', 'your_text_domain' );
+            break;
+
+        case 'publisher' :
+            echo get_post_meta( $post_id , 'publisher' , true ); 
+            break;
+
+    }
+}
+</pre></code>
+
+== Change Log ==
+
+* Since: [[Version 3.1|3.1]]
+
+== Source File ==
+
+<code>manage_{$post_type}_posts_custom_column</code> is located in {{Trac|wp-admin/includes/class-wp-posts-list-table.php}}.
+
+== Related ==
+
+{{Manage_Posts_Hooks}}
+
+[[Category:Actions]]

@@ -1,0 +1,74 @@
+==Description==
+The <b>"the_content"</b> filter is used to filter the content of the post after it is retrieved from the database and before it is printed to the screen.
+
+A plugin (or theme) can register as a content filter with the code:
+
+<code><?php add_filter( 'the_content', 'filter_function_name' ) ?></code>
+
+Where 'filter_function_name' is the function WordPress should call when the content is being retrieved. Note that the filter function  <b>must</b> return the content after it is finished processing, or site visitors will see a blank page and other plugins also filtering the content may generate errors.
+
+'''filter_function_name''' should be unique function name. It cannot match any other function name already declared.
+
+==Examples==
+
+===Debug Page===
+
+This could be used to provide generated content for a page (as an alternative to the [[Shortcode_API]]), or for a set of pages sharing some characteristics (e.g. the same author):
+<pre>
+// returns the content of $GLOBALS['post']
+// if the page is called 'debug'
+function my_the_content_filter($content) {
+  // assuming you have created a page/post entitled 'debug'
+  if ($GLOBALS['post']->post_name == 'debug') {
+    return var_export($GLOBALS['post'], TRUE );
+  }
+  // otherwise returns the database content
+  return $content;
+}
+
+add_filter( 'the_content', 'my_the_content_filter' );
+</pre>
+
+===Post Icon===
+This filter function adds an image before the post on the post page (see [http://codex.wordpress.org/Function_Reference/is_single is_single()]). It assumes an image named post_icon.png exists in the theme images folder. It runs at a lower priority (20) which runs later than most other filters (default is 10).
+
+<pre>add_filter( 'the_content', 'my_the_content_filter', 20 );
+/**
+ * Add a icon to the beginning of every post page.
+ *
+ * @uses is_single()
+ */
+function my_the_content_filter( $content ) {
+
+    if ( is_single() )
+        // Add image to the beginning of each page
+        $content = sprintf(
+            '<img class="post-icon" src="%s/images/post_icon.png" alt="Post icon" title=""/>%s',
+            get_bloginfo( 'stylesheet_directory' ),
+            $content
+        );
+
+    // Returns the content.
+    return $content;
+}</pre>
+
+===Featured Image===
+Adds a featured image set from the single post Edit screen which displays before the content on single posts only.
+<pre>
+ add_filter( 'the_content', 'featured_image_before_content' ); 
+ 
+ function featured_image_before_content( $content ) { 
+    if ( is_singular('post') && has_post_thumbnail()) {
+        $thumbnail = get_the_post_thumbnail();
+
+        $content = $thumbnail . $content;
+		
+		}
+
+    return $content;
+}
+</pre>
+
+==See Also==
+* [[Plugin_API#Create_a_Filter_Function|Creating a Filter Function]]
+* [[Function_Reference/add_filter|add_filter()]]

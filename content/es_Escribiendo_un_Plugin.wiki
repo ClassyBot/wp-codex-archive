@@ -1,0 +1,199 @@
+= Introducción =
+
+[[Plugin|Los Plugin de WordPress]] permiten, de una forma sencilla, la modificación, personalización y mejora de bitácoras WordPress. En vez de modificar el núcleo del programa de WordPress, se puede añadir funcionalidad a éste por medio de los plugin de WordPress. Esta es una definición básica:
+
+'''Plugin de WordPress:''' Un plugin de WordPress es un programa, o un conjunto de una o varias funciones, escritas en el lenguaje de script PHP, que añaden un conjunto específico de características o servicios a una web WordPress, que pueden integrarse perfectamente en la web utilizando puntos de acceso y métodos provistos por una [[API Plugin|Interfaz de Programación de Aplicaciones (API)]] WordPress. 
+
+¿Desea que WordPress tenga una funcionalidad nueva o modificada? Lo primero que hay que hacer es buscar en los repositorios de WordPress para saber si alguien ya ha creado el plugin que se ajuste a sus necesidades. Si no es así, este artículo le guiará a través del proceso de creación de su propio plugin WordPress.
+
+''Este artículo asume que usted está familiarizado con la funcionalidad básica de WordPress y con la programación en PHP''. 
+
+== Recursos ==
+
+* Para comprender como funcionan los plugin WordPress y como se instalan en bitácoras WordPress, consulte [[es:Plugins|Plugins]].
+* Hay una lista exhaustiva de artículos y recursos para desarrolladores de plugin, incluidos artículos externos sobre la escritura de plugin WordPress y artículos en tópicos especiales en [[Recursos de Plugins]].
+* Para aprender las bases de la escritura de plugin para WordPress, se puede consultar el código de plugin correctamente programados, tales como [[Plugin#Plugins Iniciales|Hello Dolly]] distribuidos con WordPress.
+* Una vez haya escrito el plugin WordPress, lea [[Envío y Promoción de Plugin]] para aprender como distribuirlo y compartirlo con los demás.
+
+= Creando un Plugin =
+
+Esta sección del artículo le conducirá a través de los pasos que usted necesita seguir, y las cosas a considerar, en la creación de un plugin para WordPress bien estructurado.
+
+== Nombres, Archivos y Ubicaciones ==
+
+=== Nombre del Plugin ===
+
+La primera tarea a la hora de crear un plugin de WordPress es pensar en qué va a hacer el plugin, y crear un (ojalá único) nombre para él. Compruebe en [[Plugin]] y en otros repositorios referidos en el enlace, que el nombre no exista ya; se puede hacer, también, una búsqueda en Google. Muchos desarrolladores eligen nombres que describen, de alguna manera, lo que hace el plugin; por ejemplo, un plugin que haga algo relacionado con el tiempo, podría llevar la palabra "tiempo" en su nombre. El nombre puede tener varias palabras.
+
+=== Archivos del Plugin ===
+
+El siguiente paso es crear un archivo PHP con  un nombre, derivado del nombre que usted ha elegido para el plugin. Por ejemplo, si su plugin se llamará "funcionalidad maravillosa", usted podría nombrar al archivo PHP <tt>funcimara.php</tt>. De nuevo, intente elegir un nombre único. La gente que utilice su plugin, lo pondrá en el directorio de WordPress, en su instalación <tt>wp-content/plugins/</tt>, de forma que no puede haber dos plugin distintos con el mismo nombre de archivo PHP. 
+
+Otra opción es separar el plugin en varios archivos. Su plugin WordPress debe tener al menos un archivo PHP; además puede contener archivos JavaScript, archivos CSS, archivos de imagen, archivos de localización, etc. Si hay varios archivos, elija un nombre único para una carpeta de archivos y para el archivo PHP principal, tales como  <tt>funcimara</tt> y <tt>funcimara.php</tt> en este ejemplo, coloque todos los archivos del plugin en la carpeta y diga a los usuarios que copien toda la carpeta en <tt>wp-content/plugins/</tt>. 
+
+En el resto de este artículo, nos referiremos al archivo PHP principal como "el archivo PHP del Plugin", ya esté en <tt>wp-content/plugins/</tt> o en un subdirectorio.
+
+=== Archivo Readme ===
+
+Si usted desea hospedar su plugin en http://wordpress.org/extend/plugins/, necesita, además, crear un archivo <tt>readme.txt</tt> en formato estándar, e incluirlo  con su plugin. Consulte http://wordpress.org/extend/plugins/about/readme.txt para obtener una descripción del formato de este archivo.
+
+=== Página de Inicio ===
+
+Es muy útil crear una página que haga de página de inicio del plugin WordPress. Esta página podría describir como instalar el plugin, qué hace, con qué versiones de WordPress es compatible, qué ha cambiado entre sus diferentes versiones, y cómo utilizar el plugin.
+
+== Cabeceras de Archivo ==
+
+Ahora es tiempo ya de poner algo de información en el archivo PHP principal del plugin. 
+
+=== Información Estándar del Plugin ===
+
+Las primeras líneas del archivo PHP principal del plugin deben contener la cabecera estándar de información del plugin. Esta cabecera permite a WordPress reconocer que el plugin existe, y ponerlo en la pantalla de gestión para que pueda ser activado, cargado y ejecutar sus funciones. Sin esta cabecera, su plugin no podrá ser activado ni funcionar. Este es el formato de la cabecera:
+
+<pre>
+<?php
+/*
+Plugin Name: Nombre del plugin
+Plugin URI: http://URI_De_La_Página_Que_Describe_el_Plugin_y_Actualizaciones
+Description: Una breve descripción del plugin.
+Version: El número de versión del plugin e.j.: 1.0
+Author: Nombre del autor del plugin
+Author URI: http://URI_del_Autor_del_Plugin
+License: Un nombre de licencia "pegadizo" e.j. GPL2
+*/
+?>
+</pre>
+
+El mínimo de información que WordPress necesita para reconocer su plugin es el nombre del mismo. El resto de la información (si está presente) se utilizará para crear la tabla de plugin en la pantalla de gestión de plugins. El orden de las líneas no es importante.
+
+La línea de licencia debería ser un identificador común, corto, para señalar bajo que licencia se distribuye el código y está destinado a ser una forma sencilla de ser explícito acerca de la licencia del mismo.
+
+=== Licencia ===
+
+Se acostumbra a generar la cabecera estándar, con información sobre la licencia del plugin. Muchos plugin usan la licencia [http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GPL2], utilizada por WordPress, o una licencia [http://www.fsf.org/licensing/licenses/index_html#GPLCompatibleLicenses compatible with the GPL2]. Para indicar una licencia GPL2 incluya las siguientes líneas en su plugin:
+
+<pre>
+<?php
+/*  Copyright AÑO NOMBRE_AUTOR_PLUGIN  (email : EMAIL DEL AUTOR DEL PLUGIN)
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, version 2, as 
+    published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+?>
+</pre>
+
+== Programando su Plugin ==
+
+Ahora es momento de conseguir que el plugin haga algo. Esta sección contiene ideas generales el desarrollo de plugins, y describe como llevar a cabo las diversas tareas que su plugin necesitará hacer.
+
+=== Ganchos de Plugin Wordpress ===
+
+Muchos plugin de WordPress llevan a cabo sus objetivos conectándose a uno o más "ganchos" (hooks) de plugin WordPress. La forma en que funcionan los ganchos de plugin es que en diferentes instantes mientras WordPress está corriendo, WordPress comprueba si algún plugin ha registrado alguna función para ejecutarse en ese preciso instante, y si es así, ejecuta dicha función. Estas funciones modifican el comportamiento del WordPress por defecto.
+
+Por ejemplo, antes de que WordPress añada el título de un post a la salida del navegador, primero chequea si algún plugin ha registrado una función para el gancho "filtro" llamado "the title". Si es así, el texto de título se pasará por turnos a través de cada función registrada, y el resultado final será lo que se escriba. Así, si su plugin necesita añadir información al título, puede registrar una función de filtro "the title".
+
+Otro ejemplo es el gancho "acción" llamado "wp_footer". Justo antes del final de la página HTML que WordPress está generando, comprueba si algún plugin ha registrado funciones para el gancho de acción "wp_footer" y los ejecuta por turno.
+
+Usted puede aprender más sobre como registrar funciones, tanto para ganchos de filtro como para ganchos de acción,  y qué ganchos de plugin están disponibles en WordPress, en  [[API Plugin]]. Si usted encuentra un punto en el código de WordPress donde desea disponer de una acción o un filtro, pero WordPress no lo tiene, puede sugerir nuevos  (las sugerencias, en general, se atienden.); consulte [[Informando Errores]] para saber como.
+
+=== Etiquetas de Plantilla ===
+
+Otra forma en la que un plugin puede añadir funcionalidad al WordPress es creando [[Etiquetas de Plantilla]] personalizadas. Alguien que quiera utilizar su plugin puede añadir estas "etiquetas" a su plantilla, en su barra lateral, sección de contenido del post, o donde crea adecuado. Por ejemplo, un plugin que añade etiquetas geográficas a los post, podría definir una función para etiqueta de plantilla llamada <tt>geotag_lista_estado()</tt> para la barra lateral, que lista todos los  códigos de estado, con los links a las páginas de archivo de estados que el plugin activa.
+
+Para definir una etiqueta de plantilla personalizada, solo hay que escribir una función PHP y documentarla para usuarios del plugin en la página de inicio del plugin y/o en el archivo principal PHP del plugin. Es una buena idea, cuando se documenta la función, dar un ejemplo de lo que hay que añadir exactamente a la plantilla para utilizar la función, incluyendo <tt><?php</tt> y <tt>?></tt>.
+
+===Guardando Información del Plugin en la Base de Datos===
+
+Muchos plugin de WordPress necesitan coger información de la web del propietario o los usuarios de la bitácora y salvarla entre sesiones, para usarla en sus funciones de filtro, acción o de plantilla. Esta información tiene que salvarse en la base de datos de WordPress, con el fin de ser persistente entre sesiones. Hay dos métodos básicos para guardar información en la base de datos desde el plugin:
+
+# Utilice el mecanismo de WordPress "option" (descrito más adelante). Este método es apropiado para almacenar cantidades relativamente pequeñas de porciones de información relativamente estática -- el tipo de información que usted podría esperar que el propietario de la web introdujera en la primera configuración del plugin, y que raramente fuera a cambiar en el futuro.
+# Post Meta (también conocido como Custom Fields).  Apropiado para información asociada a posts individuales, páginas o adjuntos. Consulte [[Referencia_de_Funciones/Ejemplos de la función post_meta|Ejemplos de la función post_meta]], [[Referencia_de_Funciones/add_post_meta|add_post_meta()]], y funciones relacionadas.
+# Crear una tabla de base de datos nueva y personalizada. Este método es apropiado para datos asociados con post individuales, páginas, adjuntos o comentarios -- el tipo de datos que irá creciendo según pasa el tiempo, y que no tiene nombres individuales. Consultar [[Creando Tablas con Plugins]] para información sobre como hacer ésto.
+
+=== Mecanismos de las Opciones de WordPress ===
+
+Consulte [[Creando Páginas de Opciones]] para información sobre como crear una página que salvará automáticamente sus opciones por usted.
+
+WordPress dispone de un mecanismo para salvar, actualizar y recuperar de la base de datos de WordPress unas piezas individuales de información llamadas ("options"). Los valores de Opción pueden ser cadenas, matrices u objetos PHP (éstos se "serializarán" - serán convertidos a cadenas - antes de su almacenamiento, y de-serializarán en el momento en que se recuperen). Los nombres de Opción son cadenas, y deben ser únicas, de forma que no entren en conflicto con otros plugins o el mismo WordPress. 
+
+Aquí están las principales funciones que su plugin puede utilizar para acceder a las opciones de WordPess.
+
+<pre>
+add_option($name, $value, $deprecated, $autoload);
+</pre>
+: Crea una nueva opción: no hace nada si la opción ya existe.
+;$name: Requerido (string). Nombre de la opción a añadir.
+;$value: Opcional (mixed), el valor por defecto es una cadena vacía. El valor de opción a almacenar.
+;$deprecated: Opcional (string), no se usa ya en WordPress. Usted puede pasar una cadena vacía o null si quiere utilizar el siguiente parámetro $autoload.
+;$autoload: Opcional, por defecto 'yes' (enum: 'yes' o 'no').  Si se establece como 'yes' la configuración se recupera automáticamente de la función <tt>get_alloptions</tt>.
+
+<pre>
+get_option($option);
+</pre>
+: Recupera un valor de opción de la base de datos.
+;$option: Requerido (string).  Nombre de la opción cuyo valor usted quiere recuperar. Puede encontrar una lista de las opcines por defecto instaladas con WordPress en [[Referencias de Opciones]].
+
+<pre>
+update_option($option_name, $newvalue);
+</pre>
+: Actualiza o crea un valor de opción en la base de datos (tenga en cuenta que no hay que llamar a <tt>add_option</tt>  si usted no desea utilizar los parámetros <tt>$deprecated</tt> o <tt>$autoload</tt>).
+;$option_name: Requerido (string). Nombre de la opción a actualizar.
+;$newvalue: Requerido. (string|array|object) El nuevo valor de la opción.
+
+=== Paneles de Administración ===
+
+Asumiendo que su plugin tiene opciones almacenadas en la base de datos de WordPress (mirar la sección anterior), usted, probablemente, querrá disponer de un panel de administración que permita a los usuarios de su plugin ver y editar los valores de dichas opciones. Los métodos para hacer esto se encuentran detallados en [[Añadiendo Menús de Administración]].
+
+== Internacionalizando Su Plugin ==
+
+Una vez usted haya realizado la tarea de programar su plugin, la siguiente consideración es (asumiendo que usted planea distribuirlo) la ''internacionalización''. Internacionalización es el proceso de configurar software de forma que pueda ser ''localizado''; Localización es el proceso de traducir el texto mostrado en diferentes lenguajes. WordPress se utiliza a todo lo largo del mundo, de forma que tiene herramientas de localización e internacionalización en su estructura, incluyendo localización para plugins.
+
+Por favor, tenga en cuenta que lo archivos de lenguaje para plugins  '''NO''' se cargan automáticamente. Añada al código del plugin, para estar seguro de que se cargan los archivos  de lenguaje:
+
+'''load_plugin_textdomain('su_nombre_único','/wp-content/plugins/plugin-name/ubicación-de-los-archivos_mo_po/');'''
+
+Para buscar una cadena solo tiene que utilizar '''__('nombre de la Cadena','su nombre único');''' para obtener la traducción o '''_e('nombre de la Cadena','su nombre único');''' para mostrar (echo) la traducción.
+
+El siguiente ejemplo busca los archivos mo y po dentro del mismo directorio del plugin:
+
+'''load_plugin_textdomain('su_nombre_único', false, dirname( plugin_basename( __FILE__ ) ) );'''
+
+Está altamente recomendado que internacionalice su plugin, de forma que los usuarios de diferentes países puedan localizarlo. Hay una referencia exhaustiva sobre internacionalización, incluyendo una sección que describe como internacionalizar su plugin en  [[I18n para Desarrolladores de WordPress]].
+
+= Sugerencias sobre Desarrollo de Plugin =
+
+Esta última sección contiene sugerencias aleatorias sobre el desarrollo de plugin. 
+
+* El código de un plugin WordPress debería seguir los [[Estándar de WordPress Coding]]. Por favor, también considere los estándar [[Documentación en Línea]].
+* Todas las funciones en su plugin necesitan tener nombres únicos que sean diferentes de los de funciones del núcleo de WordPress, otros plugins y plantillas. Por esta razón, es una buena idea utilizar un prefijo de nombre de función en todos sus plugins. Otra posibilidad es definir sus funciones de plufin dentro de una clase (que, a su vez, necesita tener un nombre único).
+* No utilice el prefijo de bases de datos (normalmente "wp_")de WordPress directamente en sus plugins. Asegúrese de que utiliza la variable <tt>$wpdb->prefix</tt> en su lugar. 
+* Leer la base de datos es barato, pero escribir es caro. Las bases de datos son excepcionalmente buenas recuperando datos y ofreciéndosela a usted y estas operaciones son (normalmente) veloces como el rayo. El hacer cambios en la base de datos, es un proceso más complejo, y más caro desde el punto de vista computacional. Como resultado, intente minimizar la cantidad de <em>escritura</em> que usted hace en la base de datos. Deje todo preparado en su código primero, de forma que usted hace las operaciones de escritura estrictamente necesarias.
+* SELECT solo lo que se necesita. A pesar de que las bases de dato recuperan información realmente rápido, usted debería intentar de reducir la carga sobre la base de datos, seleccionando solo la información sobre la que quiere trabajar. Si usted necesita únicamente contar el número de líneas de una tabla no haga <tt>SELECT * FROM</tt>, porque se cargarán todos los datos de cada registro, desaprovechando memoria. Así mismo, si solo necesita el post_id y el post_author en el plugin, simplemente <tt>SELECT</tt> esos campos específicos, para minimizar la carga de la base de datos. Recuerde: cientos de procesos diferentes pueden estar consultando la base de datos al mismo tiempo. La base de datos y el servidor tienen recursos limitados para atender dichos procesos. Aprender como minimizar el impacto de sus plugins en la base de datos asegurará que el suyo no sea el señalado como culpable de abuso de recursos.
+* Elimine errores de PHP en sus plugin. Añada <tt>define('WP_DEBUG', true);</tt> a su archivo  wp-config.php, compruebe toda la funcionabilidad del plugin, y chequee si hay errores y/o avisos. Arregle cualquier incidencia y continue en modo debug hasta que se hayan eliminado todos los errores.
+* Intente no utilizar directamente las etiquetas <script> y <style> - en su lugar utilice las funciones recomendadas [http://codex.wordpress.org/Referencia_de_Funciones/wp_enqueue_style wp_enqueue_style()] y [http://codex.wordpress.org/Referencia_de_Funciones/wp_enqueue_script wp_enqueue_script()]. Estas ayudan a eliminar scripts y estilos duplicados y, además, introducen soporte de dependencias. Consulte post de las siguientes personas para más información: [http://planetozh.com/blog/2008/04/how-to-load-javascript-with-your-wordpress-plugin/ Ozh Richardson], [http://beerpla.net/2010/01/13/wordpress-plugin-development-how-to-include-css-and-javascript-conditionally-and-only-when-needed-by-the-posts/ Artem Russakovskii], y [http://www.prelovac.com/vladimir/best-practice-for-adding-javascript-code-to-wordpress-plugin Vladimir Prelovac].
+
+= Recursos Externos =
+* [http://planetozh.com/blog/2009/09/top-10-most-common-coding-mistakes-in-wordpress-plugins/ Top 10 Most Common Coding Mistakes in WordPress Plugins] (11SEP09)
+* [http://markjaquith.wordpress.com/2006/06/02/wordpress-203-nonces/ WordPress 2.0.3: Nonces (Secure your forms with nonces)] (02JUN06)
+* [http://amiworks.co.in/talk/simplified-ajax-for-wordpress-plugin-developers-using-jquery/ Simplified AJAX For WordPress Plugin Developers using Jquery](10APR08)
+* [http://www.rafaeldohms.com.br/2008/03/10/desenvolvendo-plugins-para-wordpress/pt/ "Desenvolvendo Plugins para WordPress" by Rafael Dohms (in Brazilian Portuguese)] (10MAR08)
+* [http://www.devlounge.net/extras/how-to-write-a-wordpress-plugin 12 part "How to Write a Wordpress Plugin" at DevLounge.net] por [http://ronalfy.com Ronald Huereca] ([http://www.devlounge.net/publik/Devlounge%20-%20How%20to%20Write%20a%20Wordpress%20Plugin.pdf PDF])
+* [http://ditio.net/2007/08/09/how-to-create-wordpress-plugin-from-a-scratch/ How to create WordPress Plugin from a scratch] (9AUG07)
+* [http://www.devlounge.net/articles/using-ajax-with-your-wordpress-plugin Using AJAX with your WordPress Plugin], also at DevLounce.net (25MAY07)
+* [http://atd.agranite.com/emerald-coast/internet/wp-hacks/ How to Write a Simple WordPress Plugin at ATD] (22FEB05)
+* [http://blog.rswr.net/2009/04/13/wordpress-plugin-saving-options/ WordPress Plugin Creation “Saving Options”] (13APR09)
+* [http://mitcho.com/code/hookpress/ HookPress], un plugin que permite modificar Worpress con lenguajes diferentes a PHP a través de webhooks. (26SEP09)
+* [http://beerpla.net/2010/01/13/wordpress-plugin-development-how-to-include-css-and-javascript-conditionally-and-only-when-needed-by-the-posts/ How To Include CSS and JavaScript Conditionally And Only When Needed By The Posts] (13JAN10)
+* [http://aaron.jorb.in/2010/wordpress-external-cron-plugin/ Demonstrating how to use the Settings API, WP_Http, and Pseudo-cron] (01MAR10)
+
+[[Category:Plugins]]
+[[Category:WordPress Development]]

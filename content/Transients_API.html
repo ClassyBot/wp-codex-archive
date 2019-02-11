@@ -1,0 +1,204 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Transients">API 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Overview"><span class="tocnumber">1</span> <span class="toctext">Overview</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Function_Reference"><span class="tocnumber">2</span> <span class="toctext">Function Reference</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Using_Transients"><span class="tocnumber">3</span> <span class="toctext">Using Transients</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Saving_Transients"><span class="tocnumber">3.1</span> <span class="toctext">Saving Transients</span></a>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Using_Time_Constants"><span class="tocnumber">3.1.1</span> <span class="toctext">Using Time Constants</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-6"><a href="#Fetching_Transients"><span class="tocnumber">3.2</span> <span class="toctext">Fetching Transients</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Removing_Saved_Transients"><span class="tocnumber">3.3</span> <span class="toctext">Removing Saved Transients</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-8"><a href="#Complete_Example"><span class="tocnumber">4</span> <span class="toctext">Complete Example</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Overview">Overview</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Transients_API&amp;action=edit&amp;section=1" title="Edit section: Overview">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>This page contains the technical documentation of <b>WordPress Transients API</b>, which offers a simple and standardized way of storing cached data in the database temporarily by giving it a custom name and a timeframe after which it will expire and be deleted.
+</p><p>The Transients API is very similar to the <a href="https://codex.wordpress.org/Options_API" title="Options API">Options API</a> but with the added feature of an expiration time, which simplifies the process of using the <i><a href="https://codex.wordpress.org/Database_Description#Table:_wp_options" title="Database Description">wp_options</a></i> database table to temporarily store cached information.
+</p><p>Note that the "<tt>site_</tt>" functions are essentially the same as their counterparts, but work network wide when using WordPress <a href="https://codex.wordpress.org/Glossary#Multisite" title="Glossary">Multisite</a>.
+</p><p>Also of note is that Transients are inherently sped up by caching plugins, where normal Options are not. A memcached plugin, for example, would make WordPress store transient values in fast memory instead of in the database. For this reason, transients should be used to store any data that is expected to expire, or which can expire at any time. Transients should also never be assumed to be in the database, since they may not be stored there at all.
+</p><p>Furthermore, it is possible for the transient to not be available before the expiration time. Much like what is done with caching, your code should have a fall back method to re-generate the data should the transient not be available.
+</p><p>Ryan McCue explained it this way on a <a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/ticket/20316#comment:47">ticket</a>:
+</p>
+<blockquote>Everyone seems to misunderstand how transient expiration works, so the long and short of it is: transient expiration times are a maximum time. There is no minimum age. Transients might disappear one second after you set them, or 24 hours, but they will never be around after the expiration time.</blockquote>
+<p>The intended audience for this article includes WordPress theme authors, plugin authors and anyone who needs to cache specific data but wants it to be refreshed within a given timeframe. This document assumes a basic understanding of PHP scripting.
+</p>
+<h2><span class="mw-headline" id="Function_Reference">Function Reference</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Transients_API&amp;action=edit&amp;section=2" title="Edit section: Function Reference">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<table cellspacing="10" width="100%">
+
+<tr valign="top">
+<td width="50%">
+<table class="widefat">
+
+<tr style="background:#464646; color:#d7d7d7;">
+<th> <b>Set/Get  Transient</b>
+</th></tr>
+<tr>
+<td>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/set_transient" title="Function Reference/set transient"> set_transient()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/get_transient" title="Function Reference/get transient"> get_transient()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/set_site_transient" title="Function Reference/set site transient"> set_site_transient()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/get_site_transient" title="Function Reference/get site transient"> get_site_transient()</a></tt></li></ul>
+</td></tr></table>
+</td>
+<td width="50%">
+<table class="widefat">
+
+<tr style="background:#464646; color:#d7d7d7;">
+<th> <b>Delete Transient</b>
+</th></tr>
+<tr>
+<td>
+<ul><li> <tt><a href="https://codex.wordpress.org/Function_Reference/delete_transient" title="Function Reference/delete transient"> delete_transient()</a></tt></li>
+<li> <tt><a href="https://codex.wordpress.org/Function_Reference/delete_site_transient" title="Function Reference/delete site transient"> delete_site_transient()</a></tt></li></ul>
+</td></tr></table>
+</td></tr></table>
+<h2><span class="mw-headline" id="Using_Transients">Using Transients</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Transients_API&amp;action=edit&amp;section=3" title="Edit section: Using Transients">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Saving_Transients">Saving Transients</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Transients_API&amp;action=edit&amp;section=4" title="Edit section: Saving Transients">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To save a transient you use <a href="https://codex.wordpress.org/Function_Reference/set_transient" title="Function Reference/set transient">set_transient()</a>&#160;:
+</p>
+<pre>set_transient( $transient, $value, $expiration );
+</pre>
+<dl><dt> $transient&#160;</dt>
+<dd> (<i>string</i>) Transient name. Expected to not be SQL-escaped. Must be 172 characters or fewer in length.</dd>
+<dt> $value&#160;</dt>
+<dd> (<i>array|object</i>) Data to save, either a regular variable or an array/object. The API will handle serialization of complex data for you.</dd>
+<dt> $expiration&#160;</dt>
+<dd> (<i>integer</i>) The maximum of seconds to keep the data before refreshing. Transients may expire before the $expiration (Due to External Object Caches, or database upgrades) but will never return their value past $expiration.</dd></dl>
+<p>So for example to save the $special_query_results object for 12 hours you would do:
+</p>
+<pre>set_transient( 'special_query_results', $special_query_results, 60*60*12 );
+</pre>
+<h4><span class="mw-headline" id="Using_Time_Constants">Using Time Constants</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Transients_API&amp;action=edit&amp;section=5" title="Edit section: Using Time Constants">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>In <a href="https://codex.wordpress.org/Version_3.5" title="Version 3.5">WordPress 3.5</a>, several constants were introduced to easily express time
+</p>
+<pre>MINUTE_IN_SECONDS  = 60 (seconds)
+HOUR_IN_SECONDS    = 60 * MINUTE_IN_SECONDS
+DAY_IN_SECONDS     = 24 * HOUR_IN_SECONDS
+WEEK_IN_SECONDS    = 7 * DAY_IN_SECONDS
+MONTH_IN_SECONDS   = 30 * DAY_IN_SECONDS
+YEAR_IN_SECONDS    = 365 * DAY_IN_SECONDS
+</pre>
+<p>So for example, the code sample from above can be simplified to:
+</p>
+<pre>set_transient( 'special_query_results', $special_query_results, 12 * HOUR_IN_SECONDS );
+</pre>
+<h3><span class="mw-headline" id="Fetching_Transients">Fetching Transients</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Transients_API&amp;action=edit&amp;section=6" title="Edit section: Fetching Transients">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To get a saved transient you use <tt><a href="https://codex.wordpress.org/Function_Reference/get_transient" title="Function Reference/get transient">get_transient()</a></tt>&#160;:
+</p>
+<pre>get_transient( $transient );
+</pre>
+<ul><li> <b><tt>$transient</tt></b> the unique slug used while saving the transient with <tt>set_transient()</tt>.</li></ul>
+<p>In our case we could fetch our special query results with:
+</p>
+<pre>get_transient( 'special_query_results' );
+</pre>
+<p>If the transient does not exist, or has expired, then <tt>get_transient()</tt> will return <tt>false</tt>. This should be checked using the identity operator (<tt>===</tt>) instead of the normal equality operator (<tt>==</tt>), because an integer value of zero (or other "empty"/"falsey" data) could be the data you're wanting to store. Because of this "false" value, transients should not be used to hold plain boolean values (<tt>true</tt>/<tt>false</tt>). Put them into an array or convert them to integers instead.
+</p><p>Example usage:
+</p>
+<pre>if ( false === ( $value = get_transient( 'value' ) ) ) {
+     // this code runs when there is no valid transient set
+}
+</pre>
+<p>The above code will get the transient and put it into <tt>$value</tt>. The code inside the if block only runs when there's not a valid transient for it to get. This is typically a method to re-generate the transient value through other means. Keep in mind that it's possible for a transient to not be available before it's normal expiration time.
+</p>
+<h3><span class="mw-headline" id="Removing_Saved_Transients">Removing Saved Transients</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Transients_API&amp;action=edit&amp;section=7" title="Edit section: Removing Saved Transients">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Our transient will die naturally of old age once $expiration seconds have passed since we last ran <tt><a href="https://codex.wordpress.org/Function_Reference/set_transient" title="Function Reference/set transient">set_transient()</a></tt>, but we can force the transient to die early by manually deleting it. This is useful for times when a given activity (saving a post, adding a category etc.) will make the cached data inherently stale and in need of updating. 
+</p>
+<pre>delete_transient( $transient );
+</pre>
+<ul><li> <b>$transient</b> the unique name used when saving with <tt>set_transient()</tt>.</li></ul>
+<p>In our case, obviously, this would be:
+</p>
+<pre>delete_transient( 'special_query_results' );
+</pre>
+<p>WordPress infrequently cleans out expired transients. To prevent expired transients from building up in the database, it's a good practice to always remove your transient once you are done with it and no longer need it.
+</p>
+<h2><span class="mw-headline" id="Complete_Example">Complete Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Transients_API&amp;action=edit&amp;section=8" title="Edit section: Complete Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Putting it all together here is an example of how to use transients in your code. 
+</p>
+<pre>&lt;?php
+// Get any existing copy of our transient data
+if ( false === ( $special_query_results = get_transient( 'special_query_results' ) ) ) {
+    // It wasn't there, so regenerate the data and save the transient
+     $special_query_results = new WP_Query( 'cat=5&amp;order=random&amp;tag=tech&amp;post_meta_key=thumbnail' );
+     set_transient( 'special_query_results', $special_query_results, 12 * HOUR_IN_SECONDS );
+}
+
+// Use the data like you would have normally...
+?&gt;
+</pre>
+<p>And an example of using <tt><a href="https://codex.wordpress.org/Function_Reference/delete_transient" title="Function Reference/delete transient">delete_transient()</a></tt>. In this case we'll add a function to the <tt><a href="/index.php?title=Plugin_API/Action_Reference/edit_term&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/edit term (page does not exist)">edit_term</a></tt> action, which will run every time a category or tag is edited (i.e. we're assuming that the editing of a term invalidates our data and we want to remove the cached version). 
+</p>
+<pre>&lt;?php
+// Create a simple function to delete our transient
+function edit_term_delete_transient() {
+     delete_transient( 'special_query_results' );
+}
+// Add the function to the edit_term hook so it runs when categories/tags are edited
+add_action( 'edit_term', 'edit_term_delete_transient' );
+?&gt;
+</pre>
+<p>Use transients with <tt><a href="https://codex.wordpress.org/Class_Reference/WP_Query" title="Class Reference/WP Query"> WP_Query</a></tt> to retrieve "featured posts":
+</p>
+<pre>&lt;?php 
+// Check for transient. If none, then execute WP_Query
+if ( false === ( $featured = get_transient( 'foo_featured_posts' ) ) ) {
+	
+      $featured = new WP_Query(
+	   array(
+		'category' =&gt; 'featured',
+		'posts_per_page' =&gt; 5
+	   ));
+
+	// Put the results in a transient. Expire after 12 hours.
+	set_transient( 'foo_featured_posts', $featured, 12 * HOUR_IN_SECONDS );
+}&#160;?&gt;
+ 
+// Run the loop as normal
+&lt;?php if ( $featured-&gt;have_posts() )&#160;:&#160;?&gt;
+  
+   &lt;?php while ( $featured-&gt;have_posts() )&#160;: $featured-&gt;the_post();&#160;?&gt;
+          // featured posts found, do stuff
+   &lt;?php endwhile;&#160;?&gt;
+   
+   &lt;?php else:&#160;?&gt;
+         // no featured posts found
+&lt;?php endif;&#160;?&gt;
+
+&lt;?php wp_reset_postdata();&#160;?&gt;
+</pre>
+<p>Using transients in your plugins and themes is simple and only adds a few extra lines of code, but if used in the right situations (long/expensive database queries or complex processed data) it can save seconds off the load times on your site.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004137
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.020 seconds
+Preprocessor visited node count: 50/1000000
+Preprocessor generated node count: 173/1000000
+Post‐expand include size: 465/2097152 bytes
+Template argument size: 112/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    3.439      1 - Template:Languages
+100.00%    3.439      1 - -total
+ 31.52%    1.084      1 - Template:ja
+ 29.78%    1.024      1 - Template:en
+-->

@@ -1,0 +1,120 @@
+{{Languages|
+{{en|Gallery Shortcode}}
+{{it|Shortcode Gallery}}
+{{ja|ギャラリーショートコードの使い方}}
+{{pt-br|Shortcode Gallery}}
+{{ru|Короткий код для галерей}}
+}}
+
+The '''Gallery''' feature allows you to add one or more image galleries to your posts and pages using a simple [[Shortcode]]. Since WordPress [[Version_2.5|2.5]] and up until [[Version_3.5|3.5]], the gallery shortcode was commonly used in its most basic form: 
+
+ [gallery]
+
+Following 3.5, gallery shortcodes includes the image IDs by default. Like this:
+
+ [gallery ids="729,732,731,720"]
+
+It's important to note that this style of gallery shortcode is not new to 3.5, previously we could use the <tt>include</tt> attribute. However it ''is'' much easier to generate and manage with the new [[Inserting_Images_into_Posts_and_Pages|Media Workflow]] introduced in 3.5. 
+
+Specifying IDs in your shortcode allows you to include images in your gallery that aren't necessarily "attached" to your post — that is to say, not uploaded from within your post or page. This flexibility allows you to create and embed '''any number of galleries''' containing '''any number of images'''!
+
+'''Note:''' If you choose to just use the "barebones" version of the <tt>[gallery]</tt> shortcode in your post or page, only images that are "attached" to that post or page will be displayed.
+
+== Usage ==
+
+There are several options that may be specified using this syntax:
+
+ [gallery option1="value1" option2="value2"]
+
+You can also print a gallery directly in a template like so:
+
+  <?php echo do_shortcode('[gallery option1="value1"]'); ?>
+
+This works too:
+
+  <?php
+     $gallery_shortcode = '[gallery id="' . intval( $post->post_parent ) . '"]';
+     print apply_filters( 'the_content', $gallery_shortcode );
+  ?>
+
+== Options ==
+
+The following basic options are supported:
+
+; orderby : specify how to sort the display thumbnails. The default is "menu_order". Options:
+* menu_order - you can reorder the images in the Gallery tab of the Add Media pop-up
+* title - order by the title of the image in the Media Library
+* post_date - sort by date/time
+* rand - order randomly
+* ID
+
+; order : specify the sort order used to display thumbnails. ASC or DESC. For example, to sort by ID, DESC:
+
+  [gallery order="DESC" orderby="ID"]
+
+; columns : specify the number of columns. The gallery will include a break tag at the end of each row, and calculate the column width as appropriate.  The default value is 3.  If columns is set to 0, no row breaks will be included. For example, to display a 4 column gallery:
+
+ [gallery columns="4"]
+
+; id : specify the post ID. The gallery will display images which are attached to that post. The default behavior, if no ID is specified, is to display images attached to the current post. For example, to display images attached to post 123:
+
+ [gallery id="123"]
+
+; size : specify the image size to use for the thumbnail display. Valid values include "thumbnail", "medium", "large", "full" and any other additional image size that was registered with [[Function Reference/add_image_size | add_image_size()]]. The default value is "thumbnail". The size of the images for "thumbnail", "medium" and "large" can be configured in WordPress admin panel under Settings > Media. For example, to display a gallery of medium sized images:
+
+ [gallery size="medium"]
+
+Some advanced options are available:
+
+; itemtag : the name of the XHTML tag used to enclose each item in the gallery. The default is "dl".
+
+; icontag : the name of the XHTML tag used to enclose each thumbnail icon in the gallery. The default is "dt".
+
+; captiontag: the name of the XHTML tag used to enclose each caption. The default is "dd".  For example, to change the gallery markup to use div, span and p tags:
+
+ [gallery itemtag="div" icontag="span" captiontag="p"]
+
+; link: Specify where you want the image to link. The default value links to the attachment's permalink. Options:
+* file - Link directly to image file
+* none - No link
+
+ [gallery link="file"] 
+
+; include: comma separated attachment IDs to show only the images from these attachments.
+
+ [gallery include="23,39,45"] 
+
+; exclude: comma separated attachment IDs excludes the images from these attachments. Please note that '''include''' and '''exclude''' cannot be used together.
+
+ [gallery exclude="21,32,43"]
+
+== Developers - Things to consider ==
+
+The default expected behavior for a gallery that has no explicit IDs stated is to add all images that have the post as post parent assigned. In other words, add all images that were uploaded using the "Add media" button/link on this post edit screen. Keep in mind that this as well means that every attachment added to that post later on will be interpreted to be part of the gallery. No matter if it was displayed as plain attachment or not.
+
+This should be the default fallback if no argument were provided: <tt>...lorem [gallery] ipsum...</tt>
+
+<pre>
+$attachments = get_children( array(
+	'post_parent'    => $attr['id'],
+	'post_status'    => 'inherit',
+	'post_type'      => 'attachment',
+	'post_mime_type' => 'image',
+	'order'          => $attr['order'],
+	'orderby'        => $attr['orderby'],
+) );
+</pre>
+
+And stop using <tt>extract()</tt> on <tt>shortcode_atts()</tt> (or anywhere else). IDEs are '''not''' able to backtrace that.
+
+== Source File ==
+
+The gallery shortcode is located in {{Trac|wp-includes/media.php}}.
+
+== Related ==
+
+{{Shortcodes}}
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:Shortcodes]]

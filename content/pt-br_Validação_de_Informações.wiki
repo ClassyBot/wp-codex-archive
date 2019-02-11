@@ -1,0 +1,191 @@
+{{Languages|
+{{en|Data Validation}}
+{{ja|Data Validation}}
+{{pt-br|Validação de Informações}}
+}}
+
+Dados não confiáveis podem chegar ao seu site de várias maneiras (usuários, outros sites, o seu banco de dados, ...) e por este motivo é importante que todos as informações do seu site sejam veficadas tanto quando enviadas como quando forem aprensentadas ao usuário.
+
+== Limpeza de dados ==
+
+Este tipo de limpeza depende do contexto em que será usado e que tipo de informações serão analizadas. Abaixo seguem algumas das mais comuns tarefas realizadas no WordPress e como elas são verificadas.
+
+Dica: É importante que ao validar uma informação para ser escrita no navegador a limpeza dos dados seja a última coisa a ser feita no código, como exemplo, no momento quando ela é escrita.
+
+=== Inteiros ===
+; <tt>intval( $int )</tt> ou <tt>(int) $int</tt>
+:	Se a variável é um inteiro, declare ela como um.
+; <tt>absint( $int )</tt> 
+:	Garante que é um inteiro não negativo.
+
+=== HTML/XML ===
+É legal lembrar que muitos tipos de documentos XML (diferente dos documentos HTML) entendem apenas alguns caracteres de referência: <code>apos, amp, gt, lt, quot</code>. Quando você estiver lidando com dados para XML, tenha cuidado em sempre filtrar os textos que possam conter caracteres inválidos usando a função do WordPress:
+
+<code>ent2ncr( $text )</code>
+
+==== Códigos HTML/XML ====
+; <code>[[Function Reference/wp_kses|wp_kses]]( (string) $codigo_html, (array) $html_permitido, (array) $protocolos = null )</code>
+:	Todo código HTML não confiável(conteúdo de um artigo, texto de um comentário, etc.) deve ser tratado com a função <code>wp_kses()</code>.
+:
+:	Para evitar o trabalho de ter que passar um array com todas as tags HTML permitidas, você pode usar <code>[[Function Reference/wp_kses_post|wp_kses_post]]( (string) $codigo_html)</code> para ter as mesmas permissões de um post ou página ou <code>[[Function Reference/wp_kses_data|wp_kses_data]]( (string) $codigo_html )</code> para usar a lista permitida nos comentários.
+; <code>[[Function Reference/wp_rel_nofollow|wp_rel_nofollow]]( (string) $html )</code>
+:	Adiciona o atributo "rel='nofollow'" para qualquer tag <nowiki><a></nowiki>.
+
+==== Pedaços de Texto ====
+; <code>[[Function Reference/esc_html|esc_html]]( $texto )</code> (desde a 2.8)
+:	Codifica <tt>< > & " '</tt> (menor que, maior que, E comercial, aspas compostas, aspas simples). Similar a função <code>esc_attr</code>.
+; <code>esc_html__</code> (desde a 2.8)
+:	Traduz e Codigica
+; <code>[[Function Reference/esc_html_e|esc_html_e]]</code> (desde a 2.8)
+:	Traduz, codifica e escreve no navegador
+; <code>[[Function Reference/esc_textarea|esc_textarea]]</code> (desde a 3.1)
+:	Codifica para ser usado dentro de uma área de texto
+; <code>[[Function Reference/wp_specialchars|wp_specialchars]]( $string, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false )</code> (obsoleta desde a 2.8)
+:	Codifica <tt>< > &</tt> (menor que, maior que, E comercial). Nunca irá codificar duas vezesum caracter. Desde a versão 2.8, se chamado com apenas 1 argumento irá codificar Aspas também (usando <code>esc_html</code>), como proteção para plugins antigos.
+; <code>[[Function Reference/htmlspecialchars|htmlspecialchars]]( $texto, ENT_NOQUOTES )</code>
+:	Codifica <tt>< > &</tt>.  irá repetir a codificação se for rodado mais de uma vez em um mesmo texto.
+
+==== Ainda em Inglês ====
+
+==== Attribute Nodes ====
+; <code>[[Function Reference/esc_attr|esc_attr]]( $text )</code> (since 2.8)
+; <code>[[Function Reference/attribute_escape|attribute_escape]]( $text )</code> (obsoleta desde a2.8)
+:	Encodes <tt>< > & " '</tt> (less than, greater than, ampersand, double quote, single quote).  Will never double encode entities. '''See esc_url() in [[#URLs]]'''
+; <code>esc_attr__()</code>
+:	Translates and encodes
+; <code>[[Function Reference/esc_attr_e|esc_attr_e]]()</code>
+:	Translates, encodes, and echoes
+; <code>[[Function Reference/htmlspecialchars|htmlspecialchars]]( $text, ENT_QUOTES )</code>
+:	Encodes <tt>< > & " '</tt>.  Will double encode html entities if run twice. '''See esc_url() in [[#URLs]]'''
+
+==== JavaScript ====
+; <code>[[Function Reference/esc_js|esc_js]]( $text )</code> (since 2.8)
+; <code>[[Function Reference/js_escape|js_escape]]( $text )</code> (deprecated since 2.8)
+:	Escapes <tt>'</tt>, encodes <tt>"</tt>, and fixes line endings.
+
+=== URLs ===
+; <code>[[Function Reference/esc_url|esc_url]]( $url, (array) $protocols = null )</code> (since 2.8)
+:	Always use <code>esc_url</code> when sanitizing URLs (in text nodes, attribute nodes or anywhere else).  Rejects URLs that do not have one of the provided whitelisted protocols (defaulting to <tt>http</tt>, <tt>https</tt>, <tt>ftp</tt>, <tt>ftps</tt>, <tt>mailto</tt>, <tt>news</tt>, <tt>irc</tt>, <tt>gopher</tt>, <tt>nntp</tt>, <tt>feed</tt>, and <tt>telnet</tt>), eliminates invalid characters, and removes dangerous characters. Replaces <code>clean_url()</code> which was deprecated in 3.0.
+: This function encodes characters as HTML entities: use it when generating an (X)HTML or XML document. Encodes ampersands (<tt>&</tt>) and single quotes (<tt>'</tt>) as numeric entity references (<tt>&#038, &#039</tt>).
+; <code>[[Function Reference/esc_url_raw|esc_url_raw]]( $url, (array) $protocols = null )</code> (since 2.8)
+:	For inserting an URL in the database.  This function does not encode characters as HTML entities: use it when storing a URL or in other cases where you need the non-encoded URL.  This functionality can be replicated in the old <code>clean_url</code> function by setting <code>$context</code> to <code>db</code>.
+; <code>[[Function Reference/urlencode|urlencode]]( $scalar )</code>
+:	Encodes for use in URL (as a query parameter, for example)
+; <code>[[Function Reference/urlencode_deep|urlencode_deep]]( $array )</code>
+:	urlencodes all array elements.
+
+=== Database ===
+; <code>[[Class Reference/wpdb#INSERT rows|$wpdb->insert]]( $table, (array) $data )</code>
+:	<code>$data</code> should be unescaped (the function will escape them for you).  Keys are columns, Values are values.
+; <code>[[Class Reference/wpdb#UPDATE rows|$wpdb->update]]( $table, (array) $data, (array) $where )</code>
+:	<code>$data</code> should be unescaped.  Keys are columns, Values are values.  <code>$where</code> should be unescaped.  Multiple <code>WHERE</code> conditions are <code>AND</code>ed together.
+ $wpdb->update(
+   'my_table',
+   array( 'status' => $untrusted_status, 'title' => $untrusted_title ),
+   array( 'id' => 123 )
+ );
+; <code>[[Class Reference/wpdb#Protect Queries Against SQL Injection Attacks|$wpdb->prepare]]( $format, (scalar) $value1, (scalar) $value2, ... )</code>
+:	<code>$format</code> is a [http://php.net/sprintf sprintf()] like format string.  It only understands <code>%s</code> and <code>%d</code>, neither of which needs to be enclosed in quotation marks.
+ $wpdb->get_var( $wpdb->prepare(
+   "SELECT something FROM table WHERE foo = %s and status = %d",
+   $name, // an unescaped string (function will do the sanitation for you)
+   $status // an untrusted integer (function will do the sanitation for you)
+ ) );
+; <code>[[Function Reference/esc_sql|esc_sql]]( $sql )</code> (since 2.8)
+; <code>$wpdb->escape( $text )</code>
+:	Escapes a single string for use in a SQL query.  Glorified <code>addslashes()</code>.
+; <code>$wpdb->escape_by_ref( &$text )</code>
+:	No return value.
+; <code>[[Function Reference/like_escape|like_escape]]( $string )</code>
+:	Sanitizes <code>$string</code> for use in a LIKE expression of a SQL query.  Will still need to be SQL escaped (with one of the above functions).
+
+=== Filesystem ===
+; <code>[[Function Reference/validate_file|validate_file]]( (string) $filename, (array) $allowed_files = "" )</code>
+:	Used to prevent directory traversal attacks, or to test a filename against a whitelist. Returns <tt>0</tt> if <code>$filename</code> represents a valid relative path. After validating, you <em>must</em> treat <code>$filename</code> as a relative path (i.e. you must prepend it with an absolute path), since something like <tt>/etc/hosts</tt> will validate with this function. Returns an integer greater than zero if the given path contains <tt>..</tt>, <tt>./</tt>, or <tt>:</tt>, or is not in the <code>$allowed_files</code> whitelist. Be careful making boolean interpretations of the result, since <tt>false</tt> (0) indicates the filename has passed validation, whereas <tt>true</tt> (> 0) indicates failure.
+
+=== HTTP Headers ===
+Header splitting attacks are annoying since they are dependent on the HTTP client.  WordPress has little need to include user generated content in HTTP headers, but when it does, WordPress typically uses [[#Whitelist|whitelisting]] for most of its HTTP headers.
+
+WordPress does use user generated content in HTTP Location headers, and provides sanitation for those.
+
+; <code>[[Function Reference/wp_redirect|wp_redirect]]($location, $status = 302)</code>
+:	A safe way to redirect to any URL.  Ensures the resulting HTTP Location header is legitimate.
+; <code>[[Function Reference/wp_safe_redirect|wp_safe_redirect]]($location, $status = 302)</code>
+:	Even safer.  Only allows redirects to whitelisted domains.
+
+== Input Validation ==
+
+Many of the functions above in [[#Output_Sanitation]] are useful for input validation.  In addition, WordPress uses the following functions.
+
+=== Slugs ===
+; <code>[[Function Reference/sanitize_title|sanitize_title]]( $title )</code>
+: Used in post slugs, for example
+; <code>[[Function Reference/sanitize_user|sanitize_user]]( $username, $strict = false )</code>
+: Use <code>$strict</code> when creating a new user (though you should use the API for that).
+
+=== HTML ===
+; <code>[[Function Reference/balanceTags|balanceTags]]( $html )</code> or <code>[[Function Reference/force_balance_tags|force_balance_tags]]( $html )</code>
+: Tries to make sure HTML tags are balanced so that valid XML is output.
+; <code>[[Function Reference/tag_escape|tag_escape]]( $html_tag_name )</code>
+: Sanitizes an HTML tag name (does not escape anything, despite the name of the function).
+; <code>[[Function Reference/sanitize_html_class|sanitize_html_class]]( $class, $fallback )</code>
+: Santizes a html classname to ensure it only contains valid characters. Strips the string down to A-Z,a-z,0-9,'-' if this results in an empty string then it will return the alternative value supplied.
+
+=== Email ===
+; <code>[[Function Reference/is_email|is_email]]( $email_address )</code>
+: returns boolean false if invalid, or $email_address if valid
+
+=== Arrays ===
+; <code>[[Function Reference/array_map|array_map]]( 'absint', $array )</code>
+: Ensures all elements are nonnegative integers.  Replace callback with whatever is appropriate for your data.
+
+== Validation Philosophies ==
+There are several different philosophies about how validation should be done.  Each is appropriate for different scenarios.
+
+=== Whitelist ===
+Accept data only from a finite list of known and trusted values.
+
+ $possible_values = array( 'a', 1, 'good' );
+ if ( !in_array( $untrusted, $possible_values ) )
+   die( "Don't do that!" );
+
+ // Be careful here with fancy breaks and default actions.
+ switch ( $untrusted ) {
+ case 'a' :
+   ...
+   break;
+ ...
+ default :
+   die( "You hoser!" );
+ }
+
+=== Blacklist ===
+Reject data from finite list of known untrusted values.  This is very rarely a good idea.
+
+=== Format Detection ===
+Test to see if the data is of the correct format.  Only accept it if it is.
+ if ( !ctype_alnum( $data ) )
+   die( "Your data is teh suX0R" );
+ if ( preg_match( "/[^0-9.-]/", $data ) )
+   die( "Float on somewhere else, jerky" );
+
+=== Format Correction ===
+Accept most any data, but remove or alter the dangerous pieces.
+ $trusted_integer = (int) $untrusted_integer;
+ $trusted_alpha = preg_replace( '/[^a-z]/i', "", $untrusted_alpha );
+ $trusted_slug = sanitize_title( $untrusted_slug );
+
+== Changelog ==
+* [[Version 3.1|3.1]]: Introduced <code>[[Function_Reference/esc_textarea|esc_textarea]]</code>. ([http://core.trac.wordpress.org/ticket/15454 #15454])
+* [[Version 3.0|3.0]]: Deprecated <code>[[#URLs|clean_url()]]</code> in favor of <code>esc_url()</code> and <code>esc_url_raw()</code>. ([http://core.trac.wordpress.org/ticket/12309 #12309])
+* [[Version 2.8|2.8]]: Deprecated the following functions. (via [http://wpdevel.wordpress.com/tag/escaping/ WordPress Development Updates])
+** <del><code>clean_url()</code> -> <code>esc_url()</code></del>
+** <code>sanitize_url()</code> -> <code>esc_url_raw()</code>
+** <code>wp_specialchars()</code> -> <code>esc_html()</code> (also: <code>esc_html__()</code> and <code>esc_html_e()</code>)
+** <code>attribute_escape()</code> -> <code>esc_attr()</code> (also: <code>esc_attr__()</code> and <code>esc_attr_e()</code>)
+
+
+Veja também [http://groups.google.com/group/wp-hackers/browse_thread/thread/8f1466febb168935?pli=1 wp_specialchars() vs attribute_escape() ( agora esc_attr() )].
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

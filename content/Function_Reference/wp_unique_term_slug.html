@@ -1,0 +1,64 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/関数リファレンス/wp_unique_term_slug">日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<p>This function exists. The documentation of it in the code is flawed. From <a rel="nofollow" class="external free" href="http://core.trac.wordpress.org/browser/tags/3.2.1/wp-includes/taxonomy.php#L2168">http://core.trac.wordpress.org/browser/tags/3.2.1/wp-includes/taxonomy.php#L2168</a> &amp;ff: 
+</p>
+<pre>2168	/** 
+2169	 * Will make slug unique, if it isn't already.
+2170	 *
+2171	 * The $slug has to be unique global to every taxonomy, meaning that one
+2172	 * taxonomy term can't have a matching slug with another taxonomy term. Each
+2173	 * slug has to be globally unique for every taxonomy.
+2174	 *
+2175	 * The way this works is that if the taxonomy that the term belongs to is
+2176	 * hierarchical and has a parent, it will append that parent to the $slug.
+2177	 *
+2178	 * If that still doesn't return an unique slug, then it try to append a number
+2179	 * until it finds a number that is truely unique.
+2180	 *
+2181	 * The only purpose for $term is for appending a parent, if one exists.
+2182	 *
+2183	 * @package WordPress
+2184	 * @subpackage Taxonomy
+2185	 * @since 2.3.0
+2186	 * @uses $wpdb
+2187	 *
+2188	 * @param string $slug The string that will be tried for a unique slug
+2189	 * @param object $term The term object that the $slug will belong too
+2190	 * @return string Will return a true unique slug.
+2191	 */
+</pre>
+<p>Unfortunately, of course, this is false; the same term can exist with the same slug in multiple different taxonomies. But once you call this function, you are asking for a new unique slug, and this will unique it across every taxonomy. 
+</p><p>Note that while the documentation only mentions appending a single parent's slug, it will actually recursively add parents' slugs until it either comes across a unique slug or runs out of parents.
+</p>
+<div style="background-color:#F7F7F7; border:1px solid #CCCCCC; color:#000000; padding:7px; margin:0.5em auto 0.5em auto; vertical-align:middle; overflow:hidden;">See also index of <a href="https://codex.wordpress.org/Function_Reference" title="Function Reference">Function Reference</a> and index of <a href="https://codex.wordpress.org/Template_Tags" title="Template Tags">Template Tags</a>.</div>
+<p><br />
+Note that because this does not call all the filters for term creation, it is prone to error if you have filters that change slugs during term creation.
+</p><p>If you are attempting to understand the function by ignoring the documentation and reading the function instead, note that lines 2217 through 2219 have no effect because there is no variable called $args. These lines are only here to discourage you from running WordPress with verbose warnings on.
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20190211004020
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.012 seconds
+Real time usage: 0.156 seconds
+Preprocessor visited node count: 36/1000000
+Preprocessor generated node count: 225/1000000
+Post‐expand include size: 1121/2097152 bytes
+Template argument size: 346/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   64.569      1 - -total
+ 58.92%   38.042      1 - Template:Languages
+ 54.12%   34.946      1 - Template:ja
+ 40.62%   26.226      1 - Template:Tag_Footer
+  2.17%    1.403      1 - Template:Message
+  2.16%    1.397      1 - Template:en
+-->

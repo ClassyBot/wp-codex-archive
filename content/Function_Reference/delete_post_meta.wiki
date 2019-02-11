@@ -1,0 +1,78 @@
+{{Languages|
+{{en|Function Reference/delete post meta}}
+{{ru|Справочник_по_функциям/delete post meta}}
+{{ja|関数リファレンス/delete post meta}}
+}}
+==Description==
+
+This function deletes all custom fields with the specified key, or key and value, from the specified post. See also [[Function Reference/update post meta|update_post_meta()]], [[Function Reference/get post meta|get_post_meta()]] and [[Function Reference/add post meta|add_post_meta()]]. 
+
+==Usage==
+
+%%% <?php delete_post_meta($post_id, $meta_key, $meta_value); ?> %%%
+
+==Parameters==
+
+{{Parameter|$post_id|integer|The ID of the post from which you will delete a field.}}
+{{Parameter|$meta_key|string|The key of the field you will delete.}}
+{{Parameter|$meta_value|mixed|The value of the field you will delete. This is used to differentiate between several fields with the same key. If left blank, all fields with the given key will be deleted.|optional|''Empty''}}
+
+==Return values==
+; (boolean) : False for failure. True for success.
+
+==Examples==
+
+===Default Usage===
+
+ <?php delete_post_meta(76, 'my_key', 'Steve'); ?>
+
+===Other Examples===
+
+Let's assume we had a plugin that added some meta values to posts, but now when we are uninstalling the plugin, we want to delete all the post meta keys that the plugin added. Assuming the plugin added the keys <tt>related_posts</tt> and <tt>post_inspiration</tt>.
+
+To delete all the keys use delete_post_meta_by_key( $post_meta_key ). This would be added to the "uninstall" function:
+<pre><?php delete_post_meta_by_key( 'related_posts' ); ?></pre>
+
+Or, if you wanted to delete all the keys except where <tt>post_inspiration</tt> was "Sherlock Holmes":
+
+<pre><?php
+  $allposts = get_posts( 'numberposts=-1&post_type=post&post_status=any' );
+
+  foreach( $allposts as $postinfo ) {
+    delete_post_meta( $postinfo->ID, 'related_posts' );
+    $inspiration = get_post_meta( $postinfo->ID, 'post_inspiration' );
+    foreach( $inspiration as $value ) {
+      if( 'Sherlock Holmes' !== $value )
+        delete_post_meta( $postinfo->ID, 'post_inspiration', $value );
+    }
+  }
+?></pre>
+
+Or maybe post number 185 was just deleted, and you want to remove all <tt>related_posts</tt> keys that reference it:
+
+<pre><?php
+  $allposts = get_posts( 'numberposts=-1&post_type=post&post_status=any' );
+
+  foreach( $allposts as $postinfo ) {
+    delete_post_meta( $postinfo->ID, 'related_posts', '185' );
+  }
+?></pre>
+For a more detailed example, go to the [[Function Reference/post meta Function Examples|post_meta Functions Examples]] page.
+
+'''''Note:''' Unlike [[Function Reference/update post meta|update_post_meta()]], This function will delete '''all''' fields that match the criteria.''
+
+== Source File ==
+
+<tt>delete_post_meta()</tt> is located in {{Trac|wp-includes/post.php}}
+
+== Change Log ==
+
+Since [[Version 1.5|1.5.0]]
+
+==Related==
+
+{{Post Meta Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

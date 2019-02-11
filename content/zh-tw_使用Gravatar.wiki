@@ -1,0 +1,134 @@
+{{Languages|
+{{en|Using Gravatars}}
+{{ja|Gravatar の使い方}}
+{{zh-tw|使用Gravatar}}
+}}
+
+==什麼是Gravatar全球認證頭像？==
+
+大頭貼(Gravatars)是'''Globally Recognized Avatars'''，一個頭像或大頭貼是一個使用者在虛擬實境共享的圖示或是描述，這個虛擬實境像是論壇、聊天室、網站或任何線上社群的格式，在那裡使用者想要有一些東西可以來跟其他人區別，大頭貼是由Tom Werner所創立，大頭貼讓一個人可以在整個網路上使用一個頭像，頭像通常是80*80的畫素大小，使用者必須自行建構。  
+
+[[Image:gravatars-in-comments.png|frame|right|在部落格文章迴響中的Gravatars]]大頭貼本質上是一樣的東西，只是他們全都放在一個單一的伺服器上並且透過MD5演算法則將使用者的email位址編碼來呼叫，所以取代你拜訪的論壇有一個頭像，在另一個你拜訪的部落格又是另一個頭像，現在你在這兩個地方都會有相同的頭像了。
+
+大頭貼可以很容易地在WordPress用Gravatar WordPress外掛或是手動在<tt>index.php</tt>、<tt>comments.php</tt>及<tt>comments-popup.php</tt> 的[[Templates|樣板檔案]]中做修改。
+
+==大頭貼是如何建構的==
+大頭貼是從伺服器請求來的動態影像資源，請求URL在這裡分段來表示，URL總是這樣開始：
+
+ <nowiki>http://www.gravatar.com/avatar/</nowiki>
+
+接下來是使用者email位址的雜湊版本，email位址在md5雜湊前，首先要先小寫化，接下來移除所有的空格。
+
+ 279aa12c3326f87c460aa4f31d18a065
+
+另外<tt>rating</tt> (或<tt>r</tt>)分級的選項參數有<tt>[ G | PG | R | X ]</tt> 這些值，可以決定傳回的最高分級。
+
+ ?r=R
+
+選項<tt>size</tt> (或<tt>s</tt>)參數可以指定想要的大頭貼寬度跟高度，有效值從1到512（包含），任何超過80的尺寸再輸出前會讓原始的大頭貼影像重新使用雙三次採樣來處理。
+
+ &s=120
+
+選項<tt>default</tt> (或<tt>d</tt>)參數指定要傳回的GIF、JPEG或PNG影像完整的[[Glossary#URL|URL]]、編碼的URL、包含的協定，不論請求的email位址沒有相關的大頭貼又或是大頭貼有高於<tt>rating</tt>參數的分級，他也包含下列其中的一個：
+
+* '404' (傳回404)
+* 'mm' (謎樣人物)
+* 'identicon' (獨一自動產生的影像)
+* 'monsterid' (獨一自動產生的影像)
+* 'wavatar' (獨一自動產生的影像)
+
+ &d=http%3A%2F%2Fwww.somesite.com%2Fsomeimage.jpg
+
+== 在WordPress中使用大頭貼 ==
+[[Image:gravatarCWE.gif|frame|right|大頭貼的一個例子]]對很多人來說，要用MD5將email位址給編碼不是件容易事，這種編碼需要[http://www.php.net/ PHP]或其他種的指令碼，有幾個[[Plugins|WordPress外掛]]可以幫助解決這個工作，像是[http://www.gravatar.com/implement.php#section_2_2 Gravatar.com外掛]跟[http://zenpax.com/gravatars2/ Gravatars2 Enhanced Caching Plugin]，可以參閱外掛的說明文件有使用跟安裝這些WordPress外掛的資訊。
+
+在WordPress 2.5之後，大頭貼已經內建了，對於基本的使用跟管理不再需要其它的外掛來做。
+
+WordPress 2.5將佈景主題的作者跟臨時的WordPress使用者結合在WordPress控制抬來支援大頭貼的設定，佈景主題的作者有選項可以將大頭貼包含在他們的設計中，並且也被建議這樣做，WordPress使用者可以在控制台的'''設定 > 討論'''中容易地控制他們的大頭貼的使用。
+
+WordPress使用者可以做這樣的改變：
+* 大頭貼顯示與否。
+* 哪種分級的大頭貼可以顯示。
+
+=== WordPress 2.5佈景主題支援 ===
+要新增大頭貼到你的佈景主題可以這樣呼叫：<code>get_avatar</code>，這個函式傳回完整的頭像影像HTML標籤。
+
+函式可以像下列這樣的方式呼叫：
+   <nowiki><?php 
+   echo get_avatar( $id_or_email, $size = '96', $default = '<path_to_url>' ); 
+   ?></nowiki>
+
+參數：
+* id_or_email '''(必須)'''：作者的使用者ID (一個整數或字串)、E-mail位址或是評論迴圈的評論物件。 ''注意：為了顯示評論者的大頭貼你可以在大多數的評論樣板中使用<code>$comment</code>，在其他的樣板的Loop裡 (針對WordPress 2.7以前的版本)，你可以使用<code>get_the_author_id()</code> (這在WordPress 2.8已停用)，針對WordPress 2.8，請使用<code>get_the_author_meta('user_email')</code>''。
+* size '''(選項)'''：大頭貼顯示的尺寸(最大是512)。
+* default '''(選項)'''：預設的大頭貼使用絕對位置(這在使用者沒有email位址時使用)，假如保留空白那麼你會看到[http://www.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536 這裡]的大頭貼作為預設用。
+
+這裡有一些事項要注意：
+* 假如你沒使用size設定尺寸大頭貼的預設尺寸是96x96。
+* 預設的大頭貼是Gravatar全球認證頭像
+* 假如使用者在WP控制台允許使用，那麼大頭貼就會顯示(預設是啟用)。
+* 假如使用在在WordPress控制台沒有選擇分級，那麼大頭貼就不會分級顯示。
+
+程式碼輸出：
+
+當使用上述的函式時預設的輸出列於下，不同的類別用在img元素來幫你使用元素樣式。
+
+<pre>
+<img alt='' src='http://gravatarurl_or_default'
+class='avatar avatar-$size' height='$size' width='$size' />
+</pre>
+
+假如因為缺乏e-mail位址大頭貼回復為預設的影像(例如，pingback或trackback），不論你是否有指定預設值，<code>img</code>元素也會給定一個<code>avatar-default</code>的CSS類別。
+
+=== 回溯相容 ===
+
+假如你想要開發2.5版以前有大頭貼的WordPress佈景主題，要新增檢查Gravatar函式的程式碼： 
+
+    <nowiki>if (function_exists('get_avatar')) {
+      echo get_avatar($email);
+   } else {
+      //alternate gravatar code for < 2.5
+      $grav_url = "http://www.gravatar.com/avatar/" . 
+         md5(strtolower($email)) . "?d=" . urlencode($default) . "&s=" . $size;
+      echo "<img src='$grav_url'/>";
+   }</nowiki>
+
+==檢查大頭貼的存在==
+假如你請求一個大頭貼影像但是你在Gravatar系統裡沒有你的email帳號，那它會傳回預設的影像給你。 
+
+有時候這可能不是你想要的，你可能就會想知道你是否可以得到一個真正的大頭貼或者它只能是預設的。
+
+案例狀況：
+* 假如使用者沒有大頭貼你想要顯示當地的頭像來使用
+* 你想要警告沒有大頭貼的使用者他們應該去註冊一個，但是你也不想要打擾到已經註冊的使用者。
+
+警告：你需要瞭解PHP來使用下面的資訊。
+
+這樣做的技倆就是將"404"指定為預設，在這裡假如大頭貼不存在大頭貼服務會傳回404錯誤，而不是傳回一些預設的影像，真正的影像會傳回200的程式碼，最好是檢查傳回值是否為200、以及其他錯誤的傳回值。
+
+這裡有一個驗證的函式使用HTTP headers，你會需要修改它來符合你的需求：
+
+ function validate_gravatar($email) {
+ 	// Craft a potential url and test its headers
+ 	$hash = md5($email);
+ 	$uri = 'http://www.gravatar.com/avatar/' . $hash . '?d=404';
+ 	$headers = @get_headers($uri);
+ 	if (!preg_match("|200|", $headers[0])) {
+ 		$has_valid_avatar = FALSE;
+ 	} else {
+ 		$has_valid_avatar = TRUE;
+ 	}
+ 	return $has_valid_avatar;
+ }
+
+==資源==
+
+* [http://www.gravatar.com/ Gravatar全球認證頭像]
+* [[zh-tw:外掛程式|WordPress 外掛程式]]
+* [http://www.gravatar.com/implement.php Gravatars的實作]
+* [http://txfx.net/code/wordpress/gravatar-signup/ Gravatar註冊外掛]
+* [http://weblogtoolscollection.com/archives/2008/03/03/gravatars-and-wordpress-25/ Gravatars & WordPress 2.5]
+* [http://www.themelab.com/2008/05/09/add-gravatar-support-to-your-wordpress-comments/ 新增Gravatar支援到你的WordPress評論中]
+* [http://wordpress.org/support/topic/190660?replies=13 檢查大頭貼存在的WP論壇文章]
+
+[[Category:Design and Layout]]

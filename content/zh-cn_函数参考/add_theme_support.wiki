@@ -1,0 +1,169 @@
+{{Languages|
+{{en|Function Reference/add_theme_support}}
+{{ja|関数リファレンス/add_theme_support}}
+{{zh-cn|函数参考/add_theme_support}}
+}}
+{{zh-cn:Stub}}
+== 描述 ==
+
+Allows a theme or plugin to register support of a certain [[zh-cn:主题特性|主题特性]].  If called from a theme, it should be done in the theme's [[zh-cn:主题开发#函数文件|<tt>functions.php</tt>]] file to work. It can also be [http://wordpress.stackexchange.com/questions/23839/using-add-theme-support-inside-a-plugin called from a plugin] if attached to a hook.
+
+If attached to a hook, it must be [[Plugin API/Action Reference/after_setup_theme|<tt>after_setup_theme</tt>]]. The [[Plugin API/Action Reference/init|<tt>init</tt>]] hook may be too late for some features.
+
+== 用法 ==
+
+%%%<?php add_theme_support( $feature ); ?>%%%
+
+== 参数 ==
+
+{{Parameter|$feature|string|Name for the feature being added.
+::Features list:
+::* [[#Post Formats|<tt>'post-formats'</tt>]]
+::* [[#Post Thumbnails|<tt>'post-thumbnails'</tt>]]
+::* [[#Custom Background|<tt>'custom-background'</tt>]]
+::* [[#Custom Header|<tt>'custom-header'</tt>]]
+::* [[#Feed Links|<tt>'automatic-feed-links'</tt>]]
+::* <tt>'menus'</tt>
+}}
+
+== Addable Features ==
+
+===Post Formats===
+
+This feature enables [[Post Formats]] support for a Theme.  This feature became available with [[Version 3.1]].  When using [[Child Themes]], be aware that ''add_theme_support( 'post-formats' )'' will '''override''' the formats as defined by the parent theme, not add to it.
+
+To enable the specific formats (see supported formats at [[Post Formats]]), use:
+
+<pre>add_theme_support( 'post-formats', array( 'aside', 'gallery' ) );</pre>
+
+To check if there is a 'quote' post format assigned to the post, use
+
+<pre>
+// in your theme single.php, page.php or custom post type
+if ( has_post_format( 'quote' ) ) {
+	echo 'This is a quote.';
+}
+</pre>
+
+=== Post Thumbnails ===
+
+This feature enables [[Post Thumbnails]] support for a Theme.  The feature became available with [[Version 2.9]].  Note that you can optionally pass a second argument with an array of the [[Post Types]] for which you want to enable this feature.  
+
+<pre>
+add_theme_support( 'post-thumbnails' );
+add_theme_support( 'post-thumbnails', array( 'post' ) );          // Posts only
+add_theme_support( 'post-thumbnails', array( 'page' ) );          // Pages only
+add_theme_support( 'post-thumbnails', array( 'post', 'movie' ) ); // Posts and Movies
+</pre>
+
+This feature must be called before the init hook is fired. That means it needs to be placed directly into functions.php or within a function attached to the 'after_setup_theme' hook. For custom post types, you can also add post thumbnails using the register_post_type function as well.
+
+To display thumbnails in themes index.php or single.php or custom templates, use:
+
+<pre>the_post_thumbnail();</pre>
+
+To check if there is a post thumbnail assigned to the post before displaying it, use:
+
+<pre>
+if ( has_post_thumbnail() ) {
+	the_post_thumbnail();
+}
+</pre>
+
+=== 自定义背景 ===
+This feature enables [[Custom_Backgrounds]] support for a theme as of [[Version 3.4]]. 
+<pre>add_theme_support( 'custom-background' );</pre>
+
+Note that you can add default arguments using:
+
+<pre>
+$defaults = array(
+	'default-color'          => '',
+	'default-image'          => '',
+	'wp-head-callback'       => '_custom_background_cb',
+	'admin-head-callback'    => '',
+	'admin-preview-callback' => ''
+);
+add_theme_support( 'custom-background', $defaults );
+</pre>
+
+*To make this backwards compatible you can use this check to determine if WordPress is at least version 3.4 or not. So during the transition to 3.4, you can support both functions by using them in the alternative:
+
+<pre>global $wp_version;
+if ( version_compare( $wp_version, '3.4', '>=' ) ) 
+	add_theme_support( 'custom-background' ); 
+else
+	add_custom_background( $args );
+</pre>
+
+=== 自定义顶部 ===
+This feature enables [[zh-cn:自定义顶部|自定义顶部]] support for a theme as of [[zh-cn:3.4 版本|3.4 版本]].
+
+<pre>add_theme_support( 'custom-header' );</pre>
+
+请注意您可以添加的默认参数列表:
+
+<pre>
+$defaults = array(
+	'default-image'          => '',     //默认图像
+	'random-default'         => false,  //是否默认随机
+	'width'                  => 0,      //宽度
+	'height'                 => 0,      //高度
+	'flex-height'            => false,
+	'flex-width'             => false,
+	'default-text-color'     => '',     //默认文本颜色
+	'header-text'            => true,   //顶部文本开关
+	'uploads'                => true,   //是否允许上传
+	'wp-head-callback'       => '',
+	'admin-head-callback'    => '',
+	'admin-preview-callback' => '',
+);
+add_theme_support( 'custom-header', $defaults );
+</pre>
+
+*To make this backwards compatible you can use this check to determine if WordPress is at least version 3.4 or not. So during the transition to 3.4, you can support both functions by using them in the alternative:
+
+<pre>
+global $wp_version;
+if ( version_compare( $wp_version, '3.4', '>=' ) )
+	add_theme_support( 'custom-header' );
+else
+	add_custom_image_header( $args );
+</pre>
+
+===Feed Links===
+
+This feature enables post and comment RSS feed links to head.  This should be used in place of the deprecated ''automatic_feed_links()'' function.  This feature became available with [[Version 3.0]].
+
+<pre>add_theme_support( 'automatic-feed-links' );</pre>
+
+== Multisite ==
+
+To show the "Featured Image" meta box in multisite installation, make sure you update the allowed upload file types, in Network Admin, [[Network Admin Settings SubPanel#Upload_Settings]], Media upload buttons options. Default is off.
+
+== Notes ==
+The following parameters are read only, and should only be used in the context of [[Function_Reference/current_theme_supports|current_theme_supports()]]:
+
+* <tt>widgets</tt>: Use [[Function_Reference/register_sidebar|register_sidebar()]] or [[Function_Reference/register_sidebars|register_sidebars()]] instead.
+* <tt>menus</tt>: Use [[Function_Reference/register_nav_menu|register_nav_menu()]] or [[Function_Reference/register_nav_menus|register_nav_menus()]] instead.
+* <tt>editor-style</tt>: Use [[Function_Reference/add_editor_style|add_editor_style()]] instead.
+
+== 更新日志 ==
+
+* [[Version 3.4|3.4]]: Added <tt>'custom-background'</tt> instead of [[Function_Reference/add_custom_background|add_custom_background()]].
+* [[Version 3.4|3.4]]: Added <tt>'custom-header'</tt> instead of [[Function_Reference/add_custom_image_header|add_custom_image_header()]].
+* [[Version 3.1|3.1]]: Added <tt>'post-formats'</tt>.([http://core.trac.wordpress.org/ticket/14746 Ticket #14746])
+* [[Version 3.0|3.0]]: Added <tt>'automatic-feed-links'</tt> instead of [[Function_Reference/automatic_feed_links|automatic_feed_links()]].
+* [[Version 2.9|2.9]]: Introduced with <tt>'post-thumbnails'</tt> feature.
+
+== 源文件 ==
+
+<tt>add_theme_support()</tt> is located in {{Trac|wp-includes/theme.php}}.
+
+== 相关 ==
+
+{{Theme Support}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

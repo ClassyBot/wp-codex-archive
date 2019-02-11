@@ -1,0 +1,232 @@
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Parameters"><span class="tocnumber">2</span> <span class="toctext">Parameters</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Examples"><span class="tocnumber">3</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Creating_Inputs"><span class="tocnumber">3.1</span> <span class="toctext">Creating Inputs</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Saving_Data"><span class="tocnumber">3.2</span> <span class="toctext">Saving Data</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Setting_Existing_Values"><span class="tocnumber">3.3</span> <span class="toctext">Setting Existing Values</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Complete_Code_Samples"><span class="tocnumber">3.4</span> <span class="toctext">Complete Code Samples</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-8"><a href="#Change_Log"><span class="tocnumber">4</span> <span class="toctext">Change Log</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Source_File"><span class="tocnumber">5</span> <span class="toctext">Source File</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#Related"><span class="tocnumber">6</span> <span class="toctext">Related</span></a>
+<ul>
+<li class="toclevel-2 tocsection-11"><a href="#Actions"><span class="tocnumber">6.1</span> <span class="toctext">Actions</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Filters"><span class="tocnumber">6.2</span> <span class="toctext">Filters</span></a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><code>quick_edit_custom_box</code> is an action that lets a plugin print inputs for custom columns when quick editing. This action is called one time for each custom column. Custom columns are added with the <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_edit-post_type_columns" title="Plugin API/Filter Reference/manage edit-post type columns">manage_edit-${post_type}_columns</a> filter. To save the data from the custom inputs, hook the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/save_post" title="Plugin API/Action Reference/save post">save_post</a> action.
+</p>
+<h2><span class="mw-headline" id="Parameters">Parameters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=2" title="Edit section: Parameters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A registered action function is passed the following parameters.
+</p>
+<dl><dt> <tt>$column_name</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The name of the column to edit.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<dl><dt> <tt>$post_type</tt></dt>
+<dd> (<a href="https://codex.wordpress.org/How_to_Pass_Tag_Parameters#String" title="How to Pass Tag Parameters"><i>string</i></a>) (<i>required</i>) The type of the posts.
+<dl><dd> Default: <i>None</i></dd></dl></dd></dl>
+<p>Note that the action function is passed neither the post ID nor any existing value for the column.
+</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=3" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Creating_Inputs">Creating Inputs</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=4" title="Edit section: Creating Inputs">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<code><pre>add_action( 'quick_edit_custom_box', 'display_custom_quickedit_book', 10, 2 );
+
+function display_custom_quickedit_book( $column_name, $post_type ) {
+    static $printNonce = TRUE;
+    if ( $printNonce ) {
+        $printNonce = FALSE;
+        wp_nonce_field( plugin_basename( __FILE__ ), 'book_edit_nonce' );
+    }
+
+   &#160;?&gt;
+    &lt;fieldset class="inline-edit-col-right inline-edit-book"&gt;
+      &lt;div class="inline-edit-col column-&lt;?php echo $column_name;&#160;?&gt;"&gt;
+        &lt;label class="inline-edit-group"&gt;
+        &lt;?php 
+         switch ( $column_name ) {
+         case 'book_author':
+            &#160;?&gt;&lt;span class="title"&gt;Author&lt;/span&gt;&lt;input name="book_author" /&gt;&lt;?php
+             break;
+         case 'inprint':
+            &#160;?&gt;&lt;span class="title"&gt;In Print&lt;/span&gt;&lt;input name="inprint" type="checkbox" /&gt;&lt;?php
+             break;
+         }
+       &#160;?&gt;
+        &lt;/label&gt;
+      &lt;/div&gt;
+    &lt;/fieldset&gt;
+    &lt;?php
+}
+</pre></code>
+<h3><span class="mw-headline" id="Saving_Data">Saving Data</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=5" title="Edit section: Saving Data">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Data entered in custom inputs can be saved by hooking the <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/save_post" title="Plugin API/Action Reference/save post">save_post</a> action.
+</p>
+<code><pre>add_action( 'save_post', 'save_book_meta' );
+
+function save_book_meta( $post_id ) {
+    /* in production code, $slug should be set only once in the plugin,
+       preferably as a class property, rather than in each function that needs it.
+     */
+    $slug = 'book';
+    if ( $slug&#160;!== $_POST['post_type'] ) {
+        return;
+    }
+    if (&#160;!current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+    $_POST += array("{$slug}_edit_nonce" =&gt; '');
+    if (&#160;!wp_verify_nonce( $_POST["{$slug}_edit_nonce"],
+                           plugin_basename( __FILE__ ) ) )
+    {
+        return;
+    }
+
+    if ( isset( $_REQUEST['book_author'] ) ) {
+        update_post_meta( $post_id, 'author', $_REQUEST['book_author'] );
+    }
+    # checkboxes are submitted if checked, absent if not
+    if ( isset( $_REQUEST['inprint'] ) ) {
+        update_post_meta($post_id, 'inprint', TRUE);
+    } else {
+        update_post_meta($post_id, 'inprint', FALSE);
+    }
+}
+</pre></code>
+<h3><span class="mw-headline" id="Setting_Existing_Values">Setting Existing Values</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=6" title="Edit section: Setting Existing Values">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Populating inputs with existing values takes a bit of trickery. One can't simply access the <code>$post</code> global because when this action is run, <code>$post</code> refers only to the last post (the quick edit inputs are created only once, and cloned as needed when quick editing a column). There are two parts: storing the data on the page and hooking <code>inlineEditPost.edit</code> to set the input values. If the quick-edit columns are also displayed as <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_edit-post_type_columns" title="Plugin API/Filter Reference/manage edit-post type columns">custom columns</a>, the data is already in the table. Otherwise, it can be added as hidden elements to an existing custom column.
+</p><p>Hooking <code>inlineEditPost.edit</code> must be done in a JS script, loaded after <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-admin/js/inline-edit-post.js#L0">wp-admin/js/inline-edit-post.js</a></code>. The original method is saved and replaced with a new one which calls the original. This particular technique is a simple example of <a rel="nofollow" class="external text" href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">aspect-oriented programming</a>.
+</p>
+<ul>
+<li>PHP:
+<code><pre>/* load script in the footer */
+if (&#160;! function_exists('wp_my_admin_enqueue_scripts') ):
+function wp_my_admin_enqueue_scripts( $hook ) {
+
+	if ( 'edit.php' === $hook &amp;&amp;
+		isset( $_GET['post_type'] ) &amp;&amp;
+		'book' === $_GET['post_type'] ) {
+
+		wp_enqueue_script( 'my_custom_script', plugins_url('scripts/admin_edit.js', __FILE__),
+			false, null, true );
+
+	}
+
+}
+endif;
+add_action( 'admin_enqueue_scripts', 'wp_my_admin_enqueue_scripts' );
+
+
+/* example of how an existing value can be stored in the table */
+add_action( 'manage_book_posts_custom_column' , 'custom_book_column', 10, 2 );
+function custom_book_column( $column, $post_id ) {
+    switch ( $column ) {
+      case 'inprint':
+        // the&#160;!! means translate the following item to a boolean value
+        if (&#160;!!get_post_meta( $post_id , 'inprint' , true ) ) {
+            $checked = 'checked';
+        } else {
+            $checked = '';
+        }
+        echo "&lt;input type='checkbox' readonly $checked/&gt;";
+        break;
+
+      case 'book_author':
+        # ...
+    }
+}
+</pre></code></li>
+<li><code>scripts/admin_edit.js</code>:
+<code><pre>(function($) {
+
+	// we create a copy of the WP inline edit post function
+	var $wp_inline_edit = inlineEditPost.edit;
+
+	// and then we overwrite the function with our own code
+	inlineEditPost.edit = function( id ) {
+
+		// "call" the original WP edit function
+		// we don't want to leave WordPress hanging
+		$wp_inline_edit.apply( this, arguments );
+
+		// now we take care of our business
+
+		// get the post ID
+		var $post_id = 0;
+		if ( typeof( id ) == 'object' ) {
+			$post_id = parseInt( this.getId( id ) );
+		}
+
+		if ( $post_id &gt; 0 ) {
+			// define the edit row
+			var $edit_row = $( '#edit-' + $post_id );
+			var $post_row = $( '#post-' + $post_id );
+
+			// get the data
+			var $book_author = $( '.column-book_author', $post_row ).text();
+			var $inprint =&#160;!! $('.column-inprint&gt;*', $post_row ).prop('checked');
+
+			// populate the data
+			$( ':input[name="book_author"]', $edit_row ).val( $book_author );
+			$( ':input[name="inprint"]', $edit_row ).prop('checked', $inprint );
+		}
+	};
+
+})(jQuery);</pre></code>
+</li>
+</ul>
+<h3><span class="mw-headline" id="Complete_Code_Samples">Complete Code Samples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=7" title="Edit section: Complete Code Samples">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a rel="nofollow" class="external text" href="http://wpdreamer.com/2012/03/manage-wordpress-posts-using-bulk-edit-and-quick-edit/">Manage WordPress Posts Using Bulk Edit and Quick Edit</a></li></ul>
+<h2><span class="mw-headline" id="Change_Log">Change Log</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=8" title="Edit section: Change Log">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> Since <a href="https://codex.wordpress.org/Version_2.7" title="Version 2.7">2.7</a></li>
+<li> Moved to <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-admin/includes/class-wp-terms-list-table.php#L0">wp-admin/includes/class-wp-terms-list-table.php</a></code> in <a href="https://codex.wordpress.org/Version_3.1" title="Version 3.1">3.1</a></li></ul>
+<h2><span class="mw-headline" id="Source_File">Source File</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=9" title="Edit section: Source File">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> (<a href="https://codex.wordpress.org/Version_2.7" title="Version 2.7">2.7</a> - <a href="https://codex.wordpress.org/Version_3.0.6" title="Version 3.0.6">3.0.6</a>) triggered by <a href="/index.php?title=Function_Reference/inline_edit_row&amp;action=edit&amp;redlink=1" class="new" title="Function Reference/inline edit row (page does not exist)">inline_edit_row</a> and <a href="/index.php?title=Function_Reference/inline_edit_term_row&amp;action=edit&amp;redlink=1" class="new" title="Function Reference/inline edit term row (page does not exist)">inline_edit_term_row</a> in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/3.0/src/wp-admin/includes/template.php#L0">wp-admin/includes/template.php</a></code></li>
+<li> (<a href="https://codex.wordpress.org/Version_3.1" title="Version 3.1">3.1</a> -) triggered by <a href="/index.php?title=Class_Reference/WP_Posts_List_Table&amp;action=edit&amp;redlink=1" class="new" title="Class Reference/WP Posts List Table (page does not exist)">WP_Posts_List_Table-&gt;inline_edit</a> in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-admin/includes/class-wp-posts-list-table.php#L0">wp-admin/includes/class-wp-posts-list-table.php</a></code>, and by <a href="/index.php?title=Class_Reference/WP_Terms_List_Table&amp;action=edit&amp;redlink=1" class="new" title="Class Reference/WP Terms List Table (page does not exist)">WP_Terms_List_Table-&gt;inline_edit</a> in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-admin/includes/class-wp-terms-list-table.php#L0">wp-admin/includes/class-wp-terms-list-table.php</a></code>.</li></ul>
+<h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=10" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Actions">Actions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=11" title="Edit section: Actions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> Adding columns to post lists
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/manage_pages_custom_column" title="Plugin API/Action Reference/manage pages custom column">manage_pages_custom_column</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column" title="Plugin API/Action Reference/manage posts custom column">manage_posts_custom_column</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/manage_$post_type_posts_custom_column" title="Plugin API/Action Reference/manage $post type posts custom column">manage_${post_type}_posts_custom_column</a> </li>
+<li> <strong class="selflink">quick_edit_custom_box</strong></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/bulk_edit_custom_box" title="Plugin API/Action Reference/bulk edit custom box">bulk_edit_custom_box</a></li></ul></li>
+<li> Saving
+<ul><li> <a href="/index.php?title=Plugin_API/Action_Reference/edit_post&amp;action=edit&amp;redlink=1" class="new" title="Plugin API/Action Reference/edit post (page does not exist)">edit_post</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/save_post" title="Plugin API/Action Reference/save post">save_post</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Action_Reference/wp_insert_post" title="Plugin API/Action Reference/wp insert post">wp_insert_post</a></li></ul></li></ul>
+<h3><span class="mw-headline" id="Filters">Filters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Action_Reference/quick_edit_custom_box&amp;action=edit&amp;section=12" title="Edit section: Filters">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<ul><li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_pages_columns" title="Plugin API/Filter Reference/manage pages columns">manage_pages_columns</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_posts_columns" title="Plugin API/Filter Reference/manage posts columns">manage_posts_columns</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_edit-post_type_columns" title="Plugin API/Filter Reference/manage edit-post type columns">manage_edit-${post_type}_columns</a></li>
+<li> <a href="https://codex.wordpress.org/Plugin_API/Filter_Reference/manage_$post_type_posts_columns" title="Plugin API/Filter Reference/manage $post type posts columns">manage_${post_type}_posts_columns</a></li></ul>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004054
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.020 seconds
+Real time usage: 0.028 seconds
+Preprocessor visited node count: 164/1000000
+Preprocessor generated node count: 395/1000000
+Post‐expand include size: 1081/2097152 bytes
+Template argument size: 511/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    6.743      1 - -total
+ 59.90%    4.039      5 - Template:Trac
+ 27.43%    1.850      2 - Template:Parameter
+ 18.17%    1.225      4 - Template:CurrentVersion
+-->

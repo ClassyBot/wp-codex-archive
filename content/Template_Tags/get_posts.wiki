@@ -1,0 +1,334 @@
+{{Languages|
+{{en|Template_Tags/get_posts}}
+{{es|Etiquetas_de_plantilla/get_posts}}
+{{ja|テンプレートタグ/get_posts}}
+{{zh-cn|模版标签/get_posts}} 
+}}
+== Description ==
+
+The most appropriate use for <tt>get_posts</tt> is to create an array of posts based on a set of parameters. It retrieves a list of recent posts or posts matching this criteria. <tt>get_posts</tt> can also be used to create [[The_Loop#Multiple_Loops|Multiple Loops]], though a more direct reference to <tt>[[Class_Reference/WP_Query|WP_Query]]</tt> using <tt>new WP_Query</tt> is preferred in this case.
+
+The parameters of <tt>get_posts</tt> are similar to those of <tt>[[Function_Reference/get_pages|get_pages]]</tt> but are implemented quite differently, and should be used in appropriate scenarios. <tt>get_posts</tt> uses <tt>[[Class_Reference/WP_Query|WP_Query]]</tt>, whereas <tt>get_pages</tt> queries the database more directly. Each have parameters that reflect this difference in implementation.
+
+<tt>[[Function_Reference/query_posts|query_posts]]</tt> also uses <tt>[[Class_Reference/WP_Query|WP_Query]]</tt>, but is not recommended because it directly alters the main loop by changing the variables of the global variable <tt>$wp_query</tt>. <tt>get_posts</tt>, on the other hand, simply references a new <tt>WP_Query</tt> object, and therefore does not affect or alter the main loop. 
+
+If you would like to alter the main query before it is executed, you can hook into it using <tt>[[Plugin_API/Action_Reference/pre_get_posts|pre_get_posts]]</tt>. If you would just like to call an array of posts based on a small and simple set of parameters within a page, then <tt>get_posts</tt> is your best option.
+
+===Default Usage===
+
+<pre>
+<?php $args = array(
+	'posts_per_page'   => 5,
+	'offset'           => 0,
+	'cat'         => '',
+	'category_name'    => '',
+	'orderby'          => 'date',
+	'order'            => 'DESC',
+	'include'          => '',
+	'exclude'          => '',
+	'meta_key'         => '',
+	'meta_value'       => '',
+	'post_type'        => 'post',
+	'post_mime_type'   => '',
+	'post_parent'      => '',
+	'author'	   => '',
+	'author_name'	   => '',
+	'post_status'      => 'publish',
+	'suppress_filters' => true,
+	'fields'           => '',
+);
+$posts_array = get_posts( $args ); ?>
+</pre>
+Note: <tt>'numberposts'</tt> and <tt>'posts_per_page'</tt> can be used interchangeably.
+
+== Parameters ==
+See also [[Function_Reference/get_pages|<tt>get_pages()</tt>]] for example parameter usage.
+
+<tt>get_posts()</tt> makes use of the [[Class_Reference/WP_Query|<tt>WP_Query</tt>]] class to fetch posts. See [[Class_Reference/WP_Query#Parameters|the parameters section]] of the <tt>WP_Query</tt> documentation for a list of parameters that this function accepts.
+
+'''Note: ''' get_posts uses <tt>'suppress_filters' => true</tt> as default, while <tt>[[Function Reference/query_posts|query_posts()]]</tt> applies filters by default, this can be confusing when using query-modifying plugins, like WPML. Also note that even if <tt>'suppress_filters'</tt> is ''true'', any filters attached to <tt>pre_get_posts</tt> are still applied&mdash;only filters attached on <tt>'posts_*'</tt> or <tt>'comment_feed_*'</tt> are suppressed.
+
+'''Note: ''' The category parameter needs to be the ID of the category, and not the category name.
+
+'''Note: ''' The category parameter can be a comma separated list of categories, as the <tt>[http://core.trac.wordpress.org/browser/tags/3.3.1/wp-includes/post.php#L1369 get_posts()]</tt> function passes the 'category' parameter directly into <tt>WP_Query</tt> as <tt>'cat'</tt>.
+
+'''Note: ''' The category_name parameter needs to be a string, in this case, the category name.
+
+'''Note: ''' The posts_per_page parameter does NOT work without setting the offset parameter.
+
+{{Parameter|'orderby'|string|Sort retrieved posts by parameter.|optional|'date'}}
+
+:* <tt>'none'</tt> - No order (available with Version 2.8).
+:* <tt>'ID'</tt> - Order by post id. Note the capitalization.
+:* <tt>'author'</tt> - Order by author.
+:* <tt>'title'</tt> - Order by title.
+:* <tt>'date'</tt> - Order by date.
+:* <tt>'modified'</tt> - Order by last modified date.
+:* <tt>'parent'</tt> - Order by post/page parent id.
+:* <tt>'rand'</tt> - Random order.
+:* <tt>'comment_count'</tt> - Order by number of comments (available with Version 2.9).
+:* <tt>'menu_order'</tt> - Order by Page Order. Used most often for Pages (Order field in the Edit Page Attributes box) and for Attachments (the integer fields in the Insert / Upload Media Gallery dialog), but could be used for any post type with distinct <tt>'menu_order'</tt> values (they all default to 0).
+:* <tt>'meta_value'</tt> - Note that a <tt>'meta_key=keyname'</tt> must also be present in the query. Note also that the sorting will be alphabetical which is fine for strings (i.e. words), but can be unexpected for numbers (e.g. 1, 3, 34, 4, 56, 6, etc, rather than 1, 3, 4, 6, 34, 56 as you might naturally expect).
+:* <tt>'meta_value_num'</tt> - Order by numeric meta value (available with Version 2.8). Also note that a <tt>'meta_key=keyname'</tt> must also be present in the query. This value allows for numerical sorting as noted above in <tt>'meta_value'</tt>.
+:* <tt>'post__in'</tt> - Matches same order you passed in via the 'include' parameter.
+:'''Note:''' [[Function_Reference/get_pages|<tt>get_'''pages'''()</tt>]] uses the parameter <tt>'sort_column'</tt> instead of <tt>'orderby'</tt>.  Also, it requires that <tt>'post_'</tt> be prepended to these values: <tt>'author, date, modified, parent, title, excerpt, content'</tt>.
+
+{{Parameter|'post_mime_type'|string or array|List of mime types or comma separated string of mime types.|Optional}}
+
+== Return Value ==
+
+; (array) : List of [[Class_Reference/WP_Post|WP_Post]] objects.
+
+Unlike <tt>[[Function_Reference/get_pages|get_pages()]]</tt>, <tt>get_posts()</tt> will  return ''private'' pages in the appropriate context (i.e., for an administrator). (See: Andreas Kirsch, [http://blog.blackhc.net/2009/01/wordpress-hacking-ii/ WordPress Hacking II], January 24, 2009-- accessed 2012-11-09.)
+
+== Examples ==
+
+=== Posts list with offset ===
+
+If you have your blog configured to show just one post on the front page, but also want to list links to the previous five posts in category ID 1, you can use this:
+
+<pre>
+<ul>
+<?php
+
+global $post;
+$args = array( 'posts_per_page' => 5, 'offset'=> 1, 'category' => 1 );
+
+$myposts = get_posts( $args );
+foreach ( $myposts as $post ) : setup_postdata( $post ); ?>
+	<li>
+		<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+	</li>
+<?php endforeach; 
+wp_reset_postdata();?>
+
+</ul>
+</pre>
+
+'''Note:''' ''With use of the offset, the above query should be used only on a category that has more than one post in it, otherwise there'll be no output.''
+
+=== Posts with Previous Next Navigation ===
+
+You can also using the custom queries to make the post with Previous and Next Post Navigation.
+Here is the following method to make it workable.
+
+<pre><?php
+$postlist = get_posts( 'orderby=menu_order&amp;sort_order=asc' );
+$posts = array();
+foreach ( $postlist as $post ) {
+   $posts[] += $post->ID;
+}
+
+$current = array_search( get_the_ID(), $posts );
+$prevID = $posts[$current-1];
+$nextID = $posts[$current+1];
+?>
+
+<div class="navigation">
+<?php if ( !empty( $prevID ) ): ?>
+<div class="alignleft">
+<a href="<?php echo get_permalink( $prevID ); ?>"
+  title="<?php echo get_the_title( $prevID ); ?>">Previous</a>
+</div>
+<?php endif;
+if ( !empty( $nextID ) ): ?>
+<div class="alignright">
+<a href="<?php echo get_permalink( $nextID ); ?>" 
+ title="<?php echo get_the_title( $nextID ); ?>">Next</a>
+</div>
+<?php endif; ?>
+</div><!-- .navigation --></pre>
+
+==== Reset after Postlists with offset ====
+
+If you need to access the original post that existed before your `foreach()` then need to use `wp_reset_postdata()` to restore the original post object:
+
+<pre>
+<ul>
+<?php
+global $post;
+$args = array( 'posts_per_page' => 5, 'offset'=> 1, 'category' => 1 );
+$myposts = get_posts( $args );
+foreach ( $myposts as $post ) : 
+  setup_postdata( $post ); ?>
+	<li><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></li>
+<?php endforeach;
+wp_reset_postdata(); ?>
+</ul>
+</pre>
+
+=== Access all post data ===
+
+Some post-related data is not available to get_posts by default, such as post content through <tt>[[Function Reference/the_content|the_content()]]</tt>, or the numeric ID. This is resolved by calling an internal function <tt>setup_postdata()</tt>, with the $post array as its argument:
+
+<pre>
+<?php
+global $post;
+$args = array( 'posts_per_page' => 3 );
+$lastposts = get_posts( $args );
+foreach ( $lastposts as $post ) :
+  setup_postdata( $post ); ?>
+	<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
+	<?php the_content(); ?>
+<?php endforeach; 
+wp_reset_postdata(); ?>
+</pre>
+
+To access a post's ID or content without calling <tt>setup_postdata()</tt>, or in fact any post-specific data (data retained in [[Database_Description#Table:_wp_posts|the posts table]]), you can use <tt>$post->''COLUMN''</tt>, where <tt>''COLUMN''</tt> is the table column name for the data. So <tt>$post->ID</tt> holds the ID, <tt>$post->post_content</tt> the content, and so on. To display or print this data on your page use the [[Glossary#PHP|PHP]] echo command, like so:
+
+<pre>
+<?php echo $post->ID; ?>
+</pre>
+
+=== Latest posts ordered by title ===
+
+To show the last ten posts sorted alphabetically in ascending order, the following will display their post date, title and excerpt:
+
+<pre>
+<?php
+global $post;
+$args = array( 'posts_per_page' => 10, 'order'=> 'ASC', 'orderby' => 'title' );
+$postslist = get_posts( $args );
+foreach ( $postslist as $post ) :
+  setup_postdata( $post ); ?> 
+	<div>
+		<?php the_date(); ?>
+		<br />
+		<?php the_title(); ?>   
+		<?php the_excerpt(); ?>
+	</div>
+<?php
+endforeach; 
+wp_reset_postdata();
+?>
+</pre>
+
+=== Random posts ===
+
+Display a list of 5 posts selected randomly by using the [[Glossary#MySQL|MySQL]] <tt>RAND()</tt> function for the orderby parameter value:
+
+<pre>
+<ul>
+<?php
+global $post;
+$args = array( 'posts_per_page' => 5, 'orderby' => 'rand' );
+$rand_posts = get_posts( $args );
+foreach ( $rand_posts as $post ) : 
+  setup_postdata( $post ); ?>
+	<li><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></li>
+<?php endforeach; 
+wp_reset_postdata(); ?>
+</ul>
+</pre>
+
+=== Show all attachments ===
+
+Do this outside any [[The_Loop|Loops]] in your template.
+
+<pre>
+<?php
+global $post;
+$args = array( 'post_type' => 'attachment', 'posts_per_page' => -1, 'post_status' => 'any', 'post_parent' => null ); 
+$attachments = get_posts( $args );
+if ( $attachments ) {
+	foreach ( $attachments as $post ) {
+		setup_postdata( $post );
+		the_title();
+		the_attachment_link( $post->ID, false );
+		the_excerpt();
+	}
+	wp_reset_postdata();
+}
+?>
+</pre>
+
+=== Show attachments for the current post ===
+
+Do this inside [[The Loop]] (where <var>$post->ID</var> is available).
+
+<pre>
+<?php
+$args = array( 'post_type' => 'attachment', 'posts_per_page' => -1, 'post_status' =>'any', 'post_parent' => $post->ID ); 
+$attachments = get_posts( $args );
+if ( $attachments ) {
+	foreach ( $attachments as $attachment ) {
+		echo apply_filters( 'the_title' , $attachment->post_title );
+		the_attachment_link( $attachment->ID , false );
+	}
+}
+?>
+</pre>
+
+=== Get a post by its slug ===
+
+Allows you to get a post ID by post slug. 
+
+<pre>
+<?php
+$the_slug = 'my-slug';
+$args = array(
+	'name'           => $the_slug,
+	'post_type'      => 'post',
+	'post_status'    => 'publish',
+	'posts_per_page' => 1
+);
+$my_posts = get_posts( $args );
+if( $my_posts ) {
+	echo 'ID on the first post found ' . $my_posts[0]->ID;
+}
+?>
+</pre>
+
+=== Taxonomy Parameters ===
+
+Show posts associated with certain taxonomy. <s>If specifying a taxonomy registered to a custom post type then instead of using 'category' you would use <tt>'{custom_taxonomy_name}'</tt>.</s> ('''Deprecated''' since [[Version 3.1]] in favor of '<tt>tax_query</tt>').
+
+Following example displays posts tagged with 'jazz', under 'genre' custom taxonomy, using <tt>'tax_query'</tt>:
+
+<pre>
+$args = array(
+	'tax_query' => array(
+		array(
+			'taxonomy' => 'genre',
+			'field' => 'slug',
+			'terms' => 'jazz'
+		)
+	)
+);
+$postslist = get_posts( $args );
+</pre>
+
+Refer to [[Class_Reference/WP_Query#Taxonomy_Parameters|the taxonomy parameters section]] of the <tt>WP_Query</tt> documentation for more examples.
+
+=== Custom Field Parameters ===
+
+Show posts associated with a certain custom field. Following example displays posts from the 'product' post type that have meta key 'featured' with value 'yes', using <tt>'meta_query'</tt>:
+
+<pre>
+$args = array(
+	'post_type' => 'product',
+	'meta_query' => array(
+		array(
+			'key' => 'featured',
+			'value' => 'yes',
+		)
+	)
+ );
+$postslist = get_posts( $args );
+</pre>
+
+Refer to [[Class_Reference/WP_Query#Custom_Field_Parameters|the custom fields parameters section]] of the <tt>WP_Query</tt> documentation for more examples.
+
+==Change Log==
+
+* Since: [[Version 1.2|1.2.0]]
+
+==Source File==
+
+<tt>get_posts()</tt> is located in {{Trac|wp-includes/post.php}}.
+
+== Related ==
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

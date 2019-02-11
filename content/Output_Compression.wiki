@@ -1,0 +1,62 @@
+{{Languages|
+{{en|Output Compression}}
+{{ja|WordPress_の最適化/出力の圧縮}}
+}}
+
+WordPress on its own does not offer a mechanism to compress the blog's ''HTML output''. This normally is a feature provided by the webserver (Apache, see [https://httpd.apache.org/docs/2.4/mod/mod_deflate.html Enabling Compression]) or based on the configuration the PHP scripting language offers (see [http://www.php.net/manual/en/zlib.configuration.php zlib configuration]).
+
+== Enable via .htaccess ==
+
+If you prefer to enable or fine tune output compression with the apache server, you might find this code-snippet for an .htaccess file useful:
+
+ <IfModule mod_deflate.c>
+ # Insert filters
+ AddOutputFilterByType DEFLATE text/plain
+ AddOutputFilterByType DEFLATE text/html
+ AddOutputFilterByType DEFLATE text/xml
+ AddOutputFilterByType DEFLATE text/css
+ AddOutputFilterByType DEFLATE application/xml
+ AddOutputFilterByType DEFLATE application/xhtml+xml
+ AddOutputFilterByType DEFLATE application/rss+xml
+ AddOutputFilterByType DEFLATE application/javascript
+ AddOutputFilterByType DEFLATE application/x-javascript
+ AddOutputFilterByType DEFLATE application/x-httpd-php
+ AddOutputFilterByType DEFLATE application/x-httpd-fastphp
+ AddOutputFilterByType DEFLATE image/svg+xml
+ 
+ # Drop problematic browsers
+ BrowserMatch ^Mozilla/4 gzip-only-text/html
+ BrowserMatch ^Mozilla/4\.0[678] no-gzip
+ BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html
+ 
+ # Make sure proxies don't deliver the wrong content
+ Header append Vary User-Agent env=!dont-vary
+ </IfModule>
+
+== Enable via PHP code ==
+In case editing the servers configuration is not an option for your site you might want to enable compression within the PHP-code. A single small line of code within the index.php file will do the job. Just add <code>ob_start('ob_gzhandler');</code> on top of your ''index.php'' located in the root directory of your WordPress installation:
+
+ <?php
+ ob_start('ob_gzhandler');
+ /**
+  * Front to the WordPress application. This file doesn't do anything, but loads
+  * wp-blog-header.php which does and tells WordPress to load the theme.
+  *
+  * @package WordPress
+  */
+ [...]
+
+NOTE: For better results, you should edit your main index.php file, not the index.php of your theme(s). Therefore, keep in mind that this file will be overwritten next time you update WordPress, so you need to modify it again after an update.
+
+You need to have the [http://www.php.net/manual/en/zlib.installation.php Zlib Compression Functions] in PHP in order to get this work.
+
+== See Also ==
+* [http://www.romantika.name/v2/compressing-wordpress-output/ Compressing WordPress Output] (by ady; July 3, 2008)
+* [http://www.wmtips.com/php/content-compression-using-php.htm Content Compression Using PHP] (by Paul Katsandem,; Mar 3, 2007)
+* [http://core.trac.wordpress.org/ticket/10365 Ticket #10365 related to Gzip compression]
+* [[Testing WordPress Performance]]
+
+
+[[Category:Installation]]
+[[Category:Troubleshooting]]
+[[Category:WordPress Optimization]]

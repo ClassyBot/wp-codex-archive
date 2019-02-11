@@ -1,0 +1,78 @@
+{{Languages|
+{{en|HTTP API}}
+{{ja|HTTP API}}
+}}
+
+== HTTP API ==
+
+Within PHP, there are many possible ways to send an HTTP request. For simplicity, these methods will be referred to collectively as ''''transports'''' for this article. The purpose for the HTTP API is to support as many of them as possible with an API that is simple and standard for each of the transports.
+
+The problem is that web hosting servers support different transports and some might support none. The solution then is to support as many as possible to allow for those who have hosts that disable one or two to still access the web through one of the other transports that might still be enabled or supported.
+
+The other problem was that there wasn't any API for plugins and WordPress core to standardize on. Therefore, there used to be several different implementations in WordPress and many still in Plugins. The problem is even worse for plugins, because the author had to write the implementation themselves and support it afterwards. Given how many workarounds were required for the HTTP API in WordPress, that would be extremely difficult to support. It would also have to be reimplemented in each plugin that wanted to support as many as possible, which many just choose to support one or two if the plugin author was feeling generous.
+
+The HTTP API was also an attempt to standardize on a single API that handled everything as simply as possible. The actual implementation is object-oriented, but there are utility functions, which can be used to abstract the API usage.
+
+The HTTP API was added in [[Version_2.7|WordPress 2.7]] and extended further in [[Version_2.8|WordPress 2.8]]. You may want to maintain backwards compatibility with previous versions, so you should wrap the function calls in function_exists() and provide an alternative, if possible.
+
+In [[Version 2.7|WordPress 2.7]], the basics of header, body and response support was started. In the next version, [[Version 2.8|WordPress 2.8]], compression, cookie support and proxy support were added. Some of the features are passive, meaning that you don't have to set any option or do anything in order to use the feature. If you use an option that is in a later version, it won't give you an error, but may not work correctly.
+
+While most of the features can be set using the options or using filters, the proxy implementation relies on constants and thus will need to be set manually in the wp-config.php. Of course, there could be and might already be a plugin that will allow you to configure it in the WordPress administration panels.
+
+== Helper Functions ==
+
+The helper functions utilize the HTTP API classes to simplify the process as much as possible. You could use the classes and could use some of the methods to help process the code. The classes assume that you know what you are doing and can use the classes.
+
+'''You must use the helper functions if you are modifying the core code of WordPress.''' It is one of the reasons for the helper API, to reduce the amount of error checking and prevent having to edit multiple places when bugs are found.
+
+The functions below are the ones you will use to retrieve a URL. Please be aware that these functions will return a WordPress WP_Error class on failure. You will have to check for that after using these functions.
+
+ * [[Function_Reference/wp_remote_get|wp_remote_get()]] - Retrieves a URL using the GET HTTP method.
+ * [[Function_Reference/wp_remote_post|wp_remote_post()]] - Retrieves a URL using the POST HTTP method.
+ * [[Function_Reference/wp_remote_head|wp_remote_head()]] - Retrieves a URL using the HEAD HTTP method.
+ * [[Function_Reference/wp_remote_request|wp_remote_request()]] - Retrieves a URL using either the default GET or a custom HTTP method (should be caps) that you specify.
+
+The other helper functions deal with retrieving different parts of the response and do the testing for WP_Error for you, these make usage of the API very simple and are the preferred method for processing response objects.
+
+ * [[Function_Reference/wp_remote_retrieve_body|wp_remote_retrieve_body()]] - Retrieves just the body from the response.
+ * [[Function_Reference/wp_remote_retrieve_header|wp_remote_retrieve_header()]] - Gives you a single HTTP header based on name from the response.
+ * [[Function_Reference/wp_remote_retrieve_headers|wp_remote_retrieve_headers()]] - Returns all of the HTTP headers in an array for processing.
+ * [[Function_Reference/wp_remote_retrieve_response_code|wp_remote_retrieve_response_code()]] - Gives you the number for the HTTP response. This should be 200, but could be 4xx or even 3xx on failure.
+ * [[Function_Reference/wp_remote_retrieve_response_message|wp_remote_retrieve_response_message()]] - Returns the response message based on the response code.
+
+As you can see in the example below, the API also handles redirection.
+
+<pre language="php">
+$theBody = wp_remote_retrieve_body( wp_remote_get('http://www.wordpress.org') );
+</pre>
+
+== Other Arguments ==
+
+The ''''httpversion'''' argument sets the HTTP version and defaults to '1.0', however depending on the service you are interacting with you may need to set this to '1.1'.
+
+The argument ''''method'''' is the HTTP method, such as POST, GET, HEAD, PUT, etc that you want to use. The safest methods to use for server support are POST, GET, and HEAD, all others, you may meet with various degrees of success. The default for this value is 'GET'.
+
+The argument ''''timeout'''' allows for setting the time in seconds, before the connection is dropped and an error is returned. The default for this value is 5 seconds and it also has a filter named, 'http_request_timeout', in case you want to write a plugin that sets it for every request.
+
+The ''''redirection'''' argument is the amount of times to follow a redirect before giving up. The default is 5 and there is a filter for the value. The filter name is 'http_request_redirection_count' and only passes the redirection default value.
+
+The ''''user-agent'''' argument allows you to set the user-agent. The default of which is, "WordPress/2.7; http://www.example.com" where 2.7 is the WordPress version number and www.example.com is the blog URL. There is a filter for changing this value as well, which is 'http_headers_useragent'.
+
+The ''''blocking'''' argument allows you to trigger a non-blocking request. The default is true; setting it to false will generally allow PHP to continue execution while the transport is working. The key is that when you set blocking to false, then it will just send the request and won't bother you with the details. This is useful for sending a POST request, where you aren't concerned with whether it succeeded or not, or if you don't want to slow down the processing time of the page. (Note that not all the transports support non-blocking requests, and so you may still be blocked anyway. The alternative of setting an ultra-low timeout is not recommended, since low timeouts may cause the request to not be sent at all with some transports.)
+
+The argument ''''compress'''', available with [[Version 2.8]], allows you to send the request body as compressed.
+
+The ''''decompress'''' argument by default will decompress any compressed content that comes in. If you do leave this as true, then the headers will be set to tell the server that compressed data is accepted and it will be decompressed in the response. If you sent it to false, then the header will be sent that tells servers that compressed content is not accepted. If the content is still compressed, because of incorrect implementation or you sent the headers for it, then you will need to decompress the content. This is also a 2.8 argument.
+
+The ''''sslverify'''' argument was added in [[Version 2.8]] and will check to see if the SSL certificate is valid (not self-signed, actually for the site in the request) and will deny the response if it isn't. If you are requesting HTTPS and know that the site is self-signed or is invalid and are reasonably sure that it can be trusted, then set to false.\
+
+The ''''filename'''' argument allows you to define a filename that will be used when the stream option is present and the requested URL's response will be saved to the temp directory.
+
+== External References ==
+* [http://lud.icro.us/wordpress-http-api-basicauth/ Basic Authentication with the WordPress HTTP API] by johnbillion
+* [http://www.sitepoint.com/the-wordpress-http-api/ Deep Dive into the WordPress HTTP API]
+
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:API]]
+[[Category:New page created]]

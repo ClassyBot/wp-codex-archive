@@ -1,0 +1,72 @@
+==Description==
+Combined with the [[Plugin_API/Filter_Reference/manage_$post_type_posts_columns|manage_{$post_type}_posts_columns]] filter, this allows you to add or remove (unset) custom columns to the list post/page/custom post type pages (which automatically appear in Screen Options). The action described in here works both for built in post types as well as custom post types. [[Plugin_API/Action_Reference/manage_$post_type_posts_custom_column|manage_{$post_type}_posts_custom_column]] can be used in WP 3.1 and later for specific custom post types. Note that if the custom post type has <tt>'hierarchical' => true</tt>, then the correct action hook to use is <tt>[[Plugin_API/Action_Reference/manage_pages_custom_column|manage_pages_custom_column]]</tt>.
+
+=== Predefined Column Names ===
+
+The following column filters are already defined and used by WordPress. These can be redefined within a custom filter switch statement. [[http://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column#Custom_post_type See Example]]
+:* ''''cb'''' - checkbox for selecting post items for bulk actions
+:* ''''title'''' - displays the post title as well as post action links (edit, quick edit, trash, view) based on user permissions
+:* ''''author'''' - displays the username of the post author as a link to filter post by author
+:* ''''categories'''' - displays the post categories as links to filter post by category
+:* ''''tags'''' - displays the post tags as links to filter post by tags
+:* ''''comments'''' - displays a comment icon with the number of comments as a permalink to manage the comments for that post
+:* ''''date'''' - displays the date and status of the post
+
+== Parameters ==
+A registered action function is passed the following parameters.
+
+{{Parameter|$column_name|string|The name of the column to display.}}
+{{Parameter|$post_id|int|The ID of the current post. Can also be taken from the global <var>$post->ID</var>.}}
+
+==Examples==
+
+=== Custom post type ===
+Suppose you have a 'books' custom post type and you want the publish date and book author to show up in the browse page.
+
+<code><pre>add_action( 'manage_posts_custom_column' , 'custom_columns', 10, 2 );
+
+function custom_columns( $column, $post_id ) {
+	switch ( $column ) {
+		case 'book_author':
+			$terms = get_the_term_list( $post_id, 'book_author', '', ',', '' );
+			if ( is_string( $terms ) ) {
+				echo $terms;
+			} else {
+				_e( 'Unable to get author(s)', 'your_text_domain' );
+			}
+			break;
+
+		case 'publisher':
+			echo get_post_meta( $post_id, 'publisher', true ); 
+			break;
+	}
+}
+</pre></code>
+
+=== Sticky posts ===
+Built-in posts can be made [[Sticky Posts|sticky]]. <code>manage_posts_custom_column</code> can be used to show this in the post list.
+
+<code><pre>/* Display custom column */
+function display_posts_stickiness( $column, $post_id ) {
+    if ($column == 'sticky'){
+        echo '<input type="checkbox" disabled', ( is_sticky( $post_id ) ? ' checked' : ''), '/>';
+    }
+}
+add_action( 'manage_posts_custom_column' , 'display_posts_stickiness', 10, 2 );
+
+/* Add custom column to post list */
+function add_sticky_column( $columns ) {
+    return array_merge( $columns, 
+        array( 'sticky' => __( 'Sticky', 'your_text_domain' ) ) );
+}
+add_filter( 'manage_posts_columns' , 'add_sticky_column' );</pre></code>
+
+== Source File ==
+
+As of [[Version 3.1|WP 3.1]], <code>manage_posts_custom_column</code> is located in {{Trac|wp-admin/includes/class-wp-posts-list-table.php}}.
+
+== Related ==
+
+{{Manage_Posts_Hooks}}
+
+[[Category:Actions]]

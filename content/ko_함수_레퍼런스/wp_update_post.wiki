@@ -1,0 +1,110 @@
+{{Languages|
+{{en|Function_Reference/wp_update_post}}
+{{ja|関数リファレンス/wp update post}}
+{{tr|Fonksiyon Listesi/wp update post}}
+{{ko|함수 레퍼런스/wp_update_post}}
+}}
+==설명==
+
+이 함수는 데이터베이스 안의 포스트 그리고 페이지들을 업데이트시 킵니다. 예외 없이 작동시키기 위해서, 업데이트 될 post 의 ID 값을 전달하는 것이 필수입니다.
+
+포스트가 "updated" 일 때, 존재하는 포스트 기록들은 audit/revision 의 방향으로 복사되어집니다. primary(주 기록)들은 새로운 값들과 함께 업데이트 되어집니다.Category associations, custom fields, post meta 그리고 관련된 다른 엔트리들은 primary 포스트 기록들에 대한 연결되는것이 지속됩니다.
+
+==사용법==
+%%% <?php wp_update_post( $post, $wp_error ); ?> %%%
+
+==파라메터==
+{{Parameter|$post|array/object|포스트를 구성하는 각 요소들을 대표하는 array 혹은 object. 이러한 요소들과 데이터베이스 내부의 <tt>[[Database_Description#Table:_wp_posts | wp_posts]]</tt> 테이블안의 column 들의 이름들 사이에 1대1 연결관계가 있습니다.
+
+ID 필드를 벗어나는 것은 제한적이게 필수는 아닙니다. 그러나 ID가 없는것은, 일부 활용가능한 함수들 안에서만 사용됩니다.|optional|An empty array}}
+
+{{Parameter|$wp_error|Boolean|Boolean 은 실패에서 리턴되어지는 것을 컨트롤하기 위해서 전달되어집니다. 기본 셋팅 (<tt>false</tt>) 는 포스트가 업데이트하는 것을 실패한다면 <tt>0</tt>을 리턴시킬 것 입니다. 그러나, 이 값이 <tt>true</tt> 값으로 셋팅되어진다면, 이것은 <tt>[[Class_Reference/WP_Error | WP_Error]]</tt> 와 함께 리턴될 것입니다. |optional|<tt>false</tt>}}
+
+==예제==
+
+<tt>wp_update_post()</tt>  호출되기 전에, 필수적인 요소들을 전달하는 배열을 생성하는 것이 필수입니다.
+<tt>[[Function Reference/wp insert post|wp_insert_post()]]</tt> 와는 다르게, 이것은 유일하게 업데이트될 포스트의 ID 그리고 요소들을 전달하는 것이 필수입니다. 요소들의 이름은 반드시 데이터베이스 안의 것들과 일치되어야 합니다.
+
+<pre>
+// 포스트 37번을 업데이트합니다.
+  $my_post = array(
+      'ID'           => 37,
+      'post_title'   => 'This is the post title.',
+      'post_content' => 'This is the updated content.',
+  );
+
+// 포스트를 데이터베이스로 업데이트 시킵니다.
+  wp_update_post( $my_post );
+</pre>
+
+<strong>$wp_error  다루기</strong>
+
+업데이트가 동작하지 않는다면, 이것은 아마도 에러일 것입니다. $wp_error 을 true 로 설정하는 것은 아주 좋은 생각입니다 (그렇군) 그리고 즉각적으로 이후에 에러를 보여줄 겁니다.
+<pre>
+<?php
+// 물론, 개발환경 안에서만 수행되어져야 합니다 그리고 사이트에서 사용한 이후에 주석을 달거나 제거하십시오.
+
+$post_id = wp_update_post( $current_item, true );						  
+if (is_wp_error($post_id)) {
+	$errors = $post_id->get_error_messages();
+	foreach ($errors as $error) {
+		echo $error;
+	}
+}
+?>
+</pre>
+
+
+===카테고리===
+카테고리들은 안의 카테고리 ID들에 매치되는 integer 배열을 전달해야만 합니다. 심지어 포스트 하나에 한 카테고리가 배정되어질 수도 있습니다.
+
+===주의 - 무한루프===
+<tt>save_post</tt> 을 향해서 후킹을 할때 (예를들면 custom metabox 에 대해서), <tt>wp_update_post()</tt> 는 잠정적인 무한루프를 생성합니다. 이 상황은 (1) <tt>wp_update_post()</tt> 가 <tt>save_post</tt>가 실행되도록 초래하도록 하기 때문입니다. (2) <tt>save_post</tt> 는 리비젼이 허용될때 (리비젼이 생성되면서 한번), 그리고 원본 포스트가 업데이트 되면서 끝나지않는 리비젼을 생성하는 것을 초래함에 있어서 두번 불리게 됩니다.
+
+<tt>save_post</tt> 에 의해서 코드를 불러오는 것으로부터 포스트를 반드시 업데이트 해야만 한다면, <tt>post_type</tt>이 <tt>'revision'</tt> 이 아니라고 확인되었다는 것과 <tt>$post</tt> 오브젝트가 실제로 업데이트되어져야 된다는 것을 보증해야만 합니다.
+
+이와같이, <tt>edit_attachment</tt>를 후킹하는 것은 함수가 <tt>"ID"</tt>의 키값과 함께 배열 파라메터를 전달하면서 하나의 Attachment 에 부합하는 관련된 값들이라면 <tt>wp_update_post</tt>를 포함하는 함수를 부르는 것을 포함한다면 잠정적인 무한루프를 야기시킬 수 있습니다.
+
+후크를 추가하고나서 지워야만 한다는 것을 알아두세요, 코드 샘플은 API/Action reference: <tt>[[Plugin_API/Action_Reference/save_post | save_post]]</tt> 로부터 수정되어졌습니다.
+<pre>
+<?php
+function my_function( $post_id ){
+	if ( ! wp_is_post_revision( $post_id ) ){
+	
+		// unhook this function so it doesn't loop infinitely
+		remove_action('save_post', 'my_function');
+	
+		// update the post, which calls save_post again
+		wp_update_post( $my_args );
+
+		// re-hook this function
+		add_action('save_post', 'my_function');
+	}
+}
+add_action('save_post', 'my_function');
+?>
+</pre>
+
+===포스트 스케쥴링===
+
+<tt>wp_update_post()</tt>가 현존하는 draft 에 대해서 스케쥴 하는 것을 시도하고 있다면, <tt>$my_post->edit_date = true</tt>를 전달하지 않는다면 아마 작동하지 않을겁니다. 워드프레스는 <tt>edit_date</tt> 가 true가 아니라면 draft 들을 업데이트 하면서  <tt>post_date</tt>를 무시할 겁니다.
+
+==리턴==
+{{Return||integer|데이터베이스 안에서 성공적으로 업데이트 되어진 포스트가 있다면, post의 ID가 리턴됩니다. 만약 실패한다면 <tt>0</tt>}}을 전달할껍니다.
+
+==Change Log==
+* Since: [[Version 1.0|1.0.0]]
+
+== 소스 파일 ==
+<tt>wp_update_post()</tt>  {{Trac|wp-includes/post.php}} 안에 위치되어져 있습니다.
+
+==관련==
+[[Function Reference/wp insert post|wp_insert_post()]]
+
+{{Tag Footer}}
+{{Copyedit}}
+
+[[Category:Functions]]
+[[Category:New page created]]
+
+이 번역은 한국인 워드프레스 유저 Remoted 에 의해서 작성되어졌습니다. 이외에 추가적인 문의사항이 있을 경우, 35mwlee@naver.com 혹은 http://35mwlee.blog.me 로 문의주세요.

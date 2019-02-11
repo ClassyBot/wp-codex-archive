@@ -1,0 +1,96 @@
+{{Languages|
+{{en|Function_Reference/add_cap}}
+{{ja|関数リファレンス/add_cap}}
+}}
+== Description ==
+
+Adds a [[Roles_and_Capabilities#Capabilities|capability]] to a [[Roles_and_Capabilities#Roles|role]] or specific user. Changing the capabilities of a role or user is persistent, meaning the added capability will stay in effect until explicitly revoked.
+
+'''N.B.: This setting is saved to the database (in table wp_options, field wp_user_roles), so it might be better to run this on theme/plugin activation'''
+
+== Usage ==
+
+%%%<?php 
+  global $wp_roles; // global class wp-includes/capabilities.php
+  $wp_roles->add_cap( $role, $cap ); 
+?> %%%
+or
+%%%<?php
+  $role = get_role( 'author' );
+  $role->add_cap( $cap );
+?> %%%
+
+== Parameters ==
+
+{{Parameter|role (just with WP_Roles)|string|role name|Required}}
+{{Parameter|cap|string|capability name|Required}}
+{{Parameter|grant|boolean|Whether the role is capable of performing this capability.|optional|true}}
+
+== Return Values ==
+; void : No return value
+
+== Example ==
+<pre>
+function add_theme_caps() {
+    // gets the author role
+    $role = get_role( 'author' );
+
+    // This only works, because it accesses the class instance.
+    // would allow the author to edit others' posts for current theme only
+    $role->add_cap( 'edit_others_posts' ); 
+}
+add_action( 'admin_init', 'add_theme_caps');
+</pre>
+'''NB: This setting is saved to the database, so it might be better to run this on theme/plugin activation'''
+<pre>
+function add_theme_caps(){
+  global $pagenow;
+
+  // gets the author role
+  $role = get_role( 'author' );
+
+  if ( 'themes.php' == $pagenow && isset( $_GET['activated'] ) ){ // Test if theme is activated
+    // Theme is activated
+
+    // This only works, because it accesses the class instance.
+    // would allow the author to edit others' posts for current theme only
+    $role->add_cap( 'edit_others_posts' ); 
+  }
+  else {
+    // Theme is deactivated
+    // Remove the capability when theme is deactivated
+    $role->remove_cap( 'edit_others_posts' ); 
+  }
+}
+add_action( 'load-themes.php', 'add_theme_caps' );
+</pre>
+To add capability to specific user :
+<pre>
+$user = new WP_User( $user_id );
+$user->add_cap( 'can_edit_posts' );
+</pre>
+
+== Notes ==
+
+
+There is '''no''' public function called <code>add_cap()</code> - just the class methods inside <code>WP_Roles</code>, <code>WP_Role</code>, <code>WP_User</code> that can add capabilities.
+
+If you want to add a new role with capabilities, just add them when you add the role using <code>add_role();</code>.
+
+== Changelog ==
+
+* Since [[Version 2.0|2.0.0]]
+
+==Source File==
+
+<tt>add_cap</tt> is located in three places:
+
+{{Trac|wp-includes/class-wp-role.php}}, {{Trac|wp-includes/class-wp-roles.php}}, {{Trac|wp-includes/class-wp-user.php}}
+
+== Related ==
+
+{{Role and Capability Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

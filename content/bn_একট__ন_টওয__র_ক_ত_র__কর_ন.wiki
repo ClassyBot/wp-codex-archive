@@ -1,0 +1,140 @@
+{{Languages|
+{{bn|একটি নেটওয়ার্ক তৈরি করুন}}
+{{en|Create A Network}}
+{{fr|Créer_un_réseau}}
+{{ja|Create A Network}}
+{{pt-br|Crie uma Rede}}
+{{ru|Создание сети}}
+{{zh-hans|创建站点网络}}
+{{es|Crear una red}}
+}}
+
+[[Version 3.0|ওয়ার্ডপ্রেস ৩.০]] থেকে আপনি [[Glossary#Multisite|মাল্টিসাইট]] ফিচার ব্যবহার করে একটি [[Glossary#Network|নেটওয়ার্ক]] তৈরি করতে পারেন। এই আর্টিকেল থেকে মাল্টিসাইট নেটওয়ার্ক তৈরি করার দিক নির্দেশনা পাবেন।
+
+একটি মাল্টিসাইট নেটওয়ার্ক অনেকটা WordPress.com এর আপনার ব্যক্তিগত ভার্সনের মত। আপনার নেটওয়ার্কের ব্যবহারকারীরা চাইলে প্রয়োজন অনুযায়ী তাদের নিজেদের সাইট তৈরি করতে পারেন, ঠিক যেমন ব্যবহারকারীরা WordPress.com এ নিজেদের ব্লগ তৈরি করতে পারেন। যদি আপনি সাধারন ব্যবহারকারীদের নিজেদের প্রয়োজনমত সাইট বানাতে দিতে না চান তবে আপনি এমন একটি মাল্টিসাইট নেটওয়ার্ক তৈরি করতে পারেন যেখানে শুধুমাত্র আপনি, অর্থাৎ এডমিনিস্ট্রেটর নতুন সাইট যোগ করতে পারবেন।
+
+একটি মাল্টিসাইট নেটওয়ার্ক কয়েকটি সাইটের সমষ্টি যেগুলো সবাই একই ওয়ার্ডপ্রেস ইন্সটলেশন ব্যবহার করে। এমনকি তারা থিম এবং প্লাগিন ও শেয়ার করতে পারে। নেটওয়ার্কের অধীনস্ত প্রতিটি সাইট অনেকটা ''ভার্চুয়াল'' সাইটের মত, যেহেতু তাদের নিজেদের নামে কোন ডিরেক্টরি থাকে না সার্ভারে। যদিও তাদের জন্য আলাদা আপলোড ডিরেক্টরি থাকে এবং ডাটাবেইজে আলাদা টেবিল থাকে।
+
+{{Note| আপনি যদি ইতোমধ্যে [[WPMU|WordPress MU]] ব্যবহারকারী হোন, তবে নিচের ধাপগুলো করার <strong>প্রয়োজন নেই</strong>। আপনার নেটওয়ার্ক ইতোমধ্যে সক্রিয় করা আছে । যখনই আপনি ৩.x শাখায় হালনাগাদ করবেন, তখন আপনাকে মাল্টিসাইটের জন্য .htaccess rules আপডেট করতে বলা হবে। ওয়ার্ডপ্রেস ৩.১ থেকে আপনি অবশ্যই ম্যানুয়ালি WPMU আপগ্রেড করতে হবে। WPMU থেকে মাল্টিসাইটে অটোমেটিক আপগ্রেড করতে পারবেন না। }}
+
+{{Note|[[Multisite_Network_Administration#Network_Admin_Link_Location|আপগ্রেড করেছেন কিন্তু নেটওয়ার্ক এডমিন মেনু পাচ্ছেন না?]]}}
+
+== ধাপ ০: শুরু করার আগে==
+
+__TOC__
+
+সাধারন ওয়ার্ডপ্রেস এর সাথে তুলনা করলে নেটওয়ার্ক ইন্সটলেশন এ কিছু অতিরিক্ত বিষয় খেয়াল করতে হয়। আপনাকে অবশ্যই সিদ্ধান্ত নিতে হবে যে আপনি কি সাবডোমেইন ব্যবহার করবেন নাকি সাবফোল্ডার ব্যবহার করবেন এবং আপনি কিভাবে সেগুলো নিয়ন্ত্রন করতে চান। থিম এবং প্লাগিন এর ইন্সটলেশন প্রক্রিয়া ভিন্নঃ উদাহরণ স্বরূপ, একটি নেটওয়ার্কের অধীনে প্রতিটি আলাদা সাইট সব প্লাগিন বা থিম সক্রিয় করতে পারবে কিন্তু ইন্সটল করতে পারবে না।
+
+এই গাইড দেখাবে কিভাবে আপনার বর্তমান ওয়ার্ডপ্রেস ইন্সটলেশনে মাল্টিসাইট ইন্সটল করবেন। এছাড়াও বিটনামি এর থেকে আছে ঃ  [http://codex.wordpress.org/User:Beltranrubo/BitNami_Multisite ready-to-run packages]
+
+<strong>অনুগ্রহ করে নেটওয়ার্ক তৈরি করার আগে অবশ্যই পূরো আর্টিকেলটি পড়ে নিন ঃ [[Before You Create A Network]] </strong>
+
+== ধাপ ১: আপনার ওয়ার্ডপ্রেস তৈরি করুন ==
+
+নেটওয়ার্ক তৈরি করার সময় আপনার বিদ্যমান ওয়ার্ডপ্রেস সাইট হালনাগাদ হবে। যদি এটি সম্পূর্ন খালি ইন্সটলেশন হয় এবং হারানোর মত কিছু না থাকে তাহলে এগিয়ে যান, অন্যথায় অর্থাৎ পুরনো ইন্সটলেশন হলে অবশ্যই [[WordPress Backups| ফাইল এবং ডাটাবেজ এর ব্যাকআপ নিয়ে নিন]]।
+
+ওয়ার্ডপ্রেস এর সিঙ্গেল ইন্সটলেশনে [[Using Permalinks|প্রেটি পার্মালিঙ্কস]] কাজ করে কিনা দেখে নিন।
+
+সব সক্রিয় প্লাগিনকে নিষ্ক্রিয় করুন, নেটওয়ার্ক তৈরি হবার পর আপনি আবার সক্রিয় করতে পারবেন।
+
+আপনি যদি [[Giving WordPress Its Own Directory|ওয়ার্ডপ্রেস কে তার নিজ ডিরেক্টরির বাইরে রাখতে চান]] , তবে অবশ্যই সেটা মাল্টিসাইট সক্রিয় করার আগে করুন।
+
+== ধাপ ২: মাল্টিসাইটের অনুমতি দিন ==
+
+নেটওয়ার্ক সেটাপ মেনু আইটেম সক্রিয় করার জন্য প্রথমে আপনাকে অবশ্যই [[Editing wp-config.php|<code>wp-config.php</code>]] ফাইলে মাল্টিসাইট ঘোষনা (define) করতে হবে।
+
+<code>wp-config.php</code> ফাইলটি ওপেন করুন এবং নিচের লাইনটি যোগ করুন ঠিক যেখানে <code>/* That's all, stop editing! Happy blogging. */</code> আছে তার উপরে। যদি এই লাইনটি কোথাও না থাকে, তবে <code>require</code> অথবা <code>include</code> শুরু হওয়ার আগে যেকোন জায়গায় দিন।
+
+ /* Multisite */
+ define( 'WP_ALLOW_MULTISITE', true );
+
+ব্রাউজার রিফ্রেশ করুন পরবর্তী ধাপের জন্য।
+
+== ধাপ ৩: একটি নেটওয়ার্ক ইনস্টল করা ==
+আগের ধাপ টুলস মেনুর অধীনে নেটওয়ার্ক মেনু যোগ করে। সেই মেনু আইটেম ব্যবহার করে '''Create a Network of WordPress Sites''' স্ক্রীনে যান।
+
+[[Image:network-create.png|thumb|নেটওয়ার্ক স্ক্রীন]]
+
+To see an example of the Create a Network of WordPress Sites screen, look at [[Administration Screens|Administration]] > [[Administration Screens#Tools|Tools]] > [[Tools Network Screen|Network Setup]]. The screen does not look exactly the same in all circumstances. The example shown is for an installation on <code>localhost</code>, which restricts the options available.
+
+'''Addresses of Sites in your Network'''
+
+You are given the choice between sub-domains and sub-directories, except when [[Before_You_Create_A_Network#WordPress_Settings_Requirements|existing settings]] restrict your choice.
+
+You must choose one or the other. You can reconfigure your network to use the other choice after installation, despite the advice on the screen, but reconfiguring it might not be easy.
+
+You only need wildcard DNS for on-demand domain-based sites, despite the advice that may be on the screen.
+
+Once more: See [http://codex.wordpress.org/Before_You_Create_A_Network Before You Create A Network].
+
+:* '''Sub-domains''' &mdash; a domain-based network in which on-demand sites use subdomains
+:* '''Sub-directories''' &mdash; a path-based network in which on-demand sites use paths
+
+'''Network Details'''
+
+These are filled in automatically, but you can make changes.
+:; Server Address
+:: The domain of the URL you are using to access your WordPress installation.
+:; Network Title 	
+:: The title of your network as a whole.
+:; Admin E-mail Address
+:: Your email address as super admin of the network as a whole.
+
+Double-check the details and press the '''Install''' button.
+
+'''Note:''' The installer may perform a check for wildcard subdomains when you have not configured them yet, or when you do not need them at all. Ignore the warning if it does not apply to your network. See the [http://codex.wordpress.org/Before_You_Create_A_Network#Server_Requirements Server Requirements] section in [[Before You Create A Network]] for information about wildcard subdomains.
+
+== ধাপ ৪: নেটওয়ার্ক সক্রিয় করা ==
+[[Image:tools-network-created.png|thumb|Tools Network Created]]
+
+To enable your network, follow the instructions on the Create a Network of WordPress Sites screen. The instructions that you see are customized for your installation. They might not be the same as the examples you see here.
+
+Back up your existing <code>wp-config.php</code> and <code>.htaccess</code> files, unless this is a fresh install and you have nothing to lose.
+
+There are two steps:
+
+;1. Add the specified lines to your [[Editing wp-config.php|<code>wp-config.php</code> file]]
+: The extra lines go just after where you added the line in [[#Step 1: Prepare Your WordPress|Step 1: Prepare Your WordPress]].
+
+;2. Add the specified lines to your <code>.htaccess</code> file
+: If you do not have a <code>.htaccess</code> file, then create it in the same directory as your <code>wp-config.php</code> file.
+:If you <em>ALREADY</em> have a <code>.htaccess</code> file, replace any existing WP lines with these new ones.
+: In some cases you might also have to add Options FollowSymlinks at the start of the file.
+
+After completing these steps, log in again using the link provided. You might have to clear your browser's cache and cookies in order to log in.
+
+== ধাপ ৫: নেটওয়ার্ক অ্যাডমিন সেটিংস ==
+
+[[Image:network-admin-link.png|left|Network Admin]]
+
+At the left of your WordPress toolbar, <b>My Sites</b> is now the second item. There, all your sites are listed, with handy fly-out menus, as well as a '''Network Admin''' menu item. Under '''Network Admin''' you can use the '''Dashboard''' item to go to the Network Dashboard screen.
+
+Go to the [[Network Admin#Settings|Settings Screen]] to configure network options, and the [[Network Admin#Sites|Sites Screen]] to manage your sites.
+
+আরো তথ্যের জন্য দেখুন : [[Network Admin]]
+
+[[File:icon_question.gif‎|alt=?]] [[Multisite_Network_Administration#Network Admin Link Location|আপগ্রেড করেছেন কিন্তু নেটওয়ার্ক এডমিন মেনু পাচ্ছেন না?]]
+
+== ধাপ ৬: পরিচালনা ==
+
+There are some additional things you might need to know about advanced administration of the network, due to the additional complexity of a Multisite. Even if you're familiar with WordPress, the location and behavior of Multisite Network Administration can be confusing.
+
+Read [[Multisite Network Administration]] for more information.
+
+For help troubleshooting:
+
+* [[Debugging a WordPress Network]]
+* [[Migrating Multiple Blogs into WordPress 3.0 Multisite]]
+
+== সংশ্লিষ্ট নিবন্ধ সমূহ ==
+
+* [http://wordpress.org/extend/plugins/wordpress-mu-domain-mapping/ Setting up Top-Level Domains Using the Domain Mapping Plugin]
+* [http://lauragentry.com/blog/2010/07/30/how-to-create-a-wordpress-3-0-multisite-network-on-a-windows-server-using-sub-directories/ Getting setup on Windows Servers]
+* [http://codex.wordpress.org/Hosting_WordPress Hosting WordPress]
+* [[Installing Multiple Blogs]]
+
+
+[[Category:WPMS]]
+[[Category:Network]]
+[[Category:UI Link]]
+[[Category:Hosting]]

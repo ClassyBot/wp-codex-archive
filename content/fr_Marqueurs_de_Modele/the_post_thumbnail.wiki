@@ -1,0 +1,140 @@
+{{Languages|
+{{en|Template Tags/the_post_thumbnail}}
+{{ja|テンプレートタグ/the_post_thumbnail}}
+}}
+
+({{French Header}})
+({{Stub}})
+
+== Description ==
+
+Affiche l' "Image à la une" (anciennement appelé Vignette ([[Post Thumbnails]] )) de l'article en cours, de la manière définie sur la page d'édition de l'article.
+
+Cette balise doit être utilisée dans la boucle ( [[The Loop]] ). Utilisez <code>[[Function Reference/get_the_post_thumbnail|get_the_post_thumbnail]]($id, $size, $attr )</code> instead to get the featured image for any post.
+
+Pour activer les vignettes des articles, le thème utilisé doit inclure <code>[[Function Reference/add theme support|add_theme_support]]( 'post-thumbnails' );</code> dans son fichier <tt>[[Theme_Development#Functions_File|functions.php]]</tt>. Voir aussi [[Post Thumbnails]].
+
+
+== Utilisation ==
+
+%%% <?php the_post_thumbnail( $size, $attr ); ?> %%%
+
+== Paramètres ==
+
+{{Parameter|$size|string/array|Image size. Either a string keyword (thumbnail, medium, large, full), or any custom size keyword defined by [[Function Reference/add image size|add_image_size()]], or a 2-item array representing width and height in pixels, e.g. array(32,32).|Optional|'post-thumbnail', which theme sets using [[Function Reference/set_post_thumbnail_size|set_post_thumbnail_size]]. }}
+
+PLEASE NOTE: The crop does not work in WP 3.0+. All that is needed for WP 3.0+ is the call for the thumbnail to post. Then proceed to media in the dashboard and set your thumbnail to crop to the size you wish to use.
+
+{{Parameter|$attr|array|Array of attribute/value pairs. For details, search source for the function that <code>the_post_thumbnail</code> relies on: <code>wp_get_attachment_image</code>|Optional|None}}
+<pre>
+$default_attr = array(
+			'src'	=> $src,
+			'class'	=> "attachment-$size",
+			'alt'	=> trim(strip_tags( $wp_postmeta->_wp_attachment_image_alt )),
+			'title'	=> trim(strip_tags( $attachment->post_title )),
+		);
+</pre>
+
+== Examples ==
+
+=== Default Usage ===
+
+ <?php 
+ if ( has_post_thumbnail() ) { // check if the post has a Post Thumbnail assigned to it.
+   the_post_thumbnail();
+ } 
+ ?>
+ <?php the_content(); ?>
+
+'''Note:''' To return the Post Thumbnail for use in your PHP code instead of displaying it, use: [[Function Reference/get_the_post_thumbnail|get_the_post_thumbnail()]]
+
+=== Thumbnail Sizes  ===
+
+The default image sizes of WordPress are "thumbnail", "medium", "large" and "full" (the size of the image you uploaded). These image sizes can be configured in the WordPress Administration [[Settings Media SubPanel|Media panel]] under Settings > Media. This is how you can use these default sizes with the_post_thumbnail():
+
+ the_post_thumbnail();                  // without parameter -> 'post-thumbnail'
+ 
+ the_post_thumbnail('thumbnail');       // Thumbnail (default 150px x 150px max)
+ the_post_thumbnail('medium');          // Medium resolution (default 300px x 300px max)
+ the_post_thumbnail('large');           // Large resolution (default 640px x 640px max)
+ the_post_thumbnail('full');            // Full resolution (original size uploaded)
+ 
+ the_post_thumbnail( array(100,100) );  // Other resolutions
+
+Register new image sizes for Post Thumbnails with: [[Function Reference/add_image_size|add_image_size()]].<br />To set the default size for Post Thumbnails see: [[Function Reference/set_post_thumbnail_size|set_post_thumbnail_size()]].
+
+=== Post Thumbnail Linking to the Post Permalink ===
+
+'''Note:''' Don't use these two examples together in the same Theme.
+
+example 1. To link Post Thumbnails to the Post Permalink in a '''specific loop''', use the following within your Theme's template files:
+
+ <pre>
+ <?php if ( has_post_thumbnail()) : ?>
+   <a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>" >
+   <?php the_post_thumbnail(); ?>
+   </a>
+ <?php endif; ?></pre>
+
+example 2. To link '''all Post Thumbnails''' on your website to the Post Permalink, put this in the current Theme's [[Theme_Development#Functions_File|functions.php]] file:
+
+<pre>add_filter( 'post_thumbnail_html', 'my_post_image_html', 10, 3 );
+
+function my_post_image_html( $html, $post_id, $post_image_id ) {
+
+  $html = '<a href="' . get_permalink( $post_id ) . '" title="' . esc_attr( get_post_field( 'post_title', $post_id ) ) . '">' . $html . '</a>';
+  return $html;
+
+}</pre>
+
+=== Post Thumbnail Linking to Large Image Size ===
+
+This example links to the "large" Post Thumbnail image size and must be used within [[The Loop]].
+
+ <pre>
+ <?php 
+ if ( has_post_thumbnail()) {
+   $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id(), 'large');
+   echo '<a href="' . $large_image_url[0] . '" title="' . the_title_attribute('echo=0') . '" >';
+   the_post_thumbnail('thumbnail');
+   echo '</a>';
+ }
+ ?></pre>
+
+=== Styling Post Thumbnails ===
+
+Post Tumbnails are given a class "wp-post-image". They also get a class depending on the size of the thumbnail being displayed
+You can style the output with these [[Glossary#CSS|CSS selectors]]:
+
+ img.wp-post-image
+ img.attachment-thumbnail
+ img.attachment-medium
+ img.attachment-large
+ img.attachment-full
+
+You can also give Post Thumbnails their own class.<br>Display the Post Thumbnail with a class "alignleft":
+
+<pre><?php the_post_thumbnail('thumbnail', array('class' => 'alignleft')); ?></pre>
+
+== Change Log  ==
+
+* Since: [[Version 2.9|2.9.0]]
+
+== Source File ==
+
+<tt>the_post_thumbnail()</tt> is located in {{Trac|wp-includes/post-thumbnail-template.php}}.
+
+== External Resources ==
+
+* [http://justintadlock.com/archives/2009/11/16/everything-you-need-to-know-about-wordpress-2-9s-post-image-feature Everything you need to know about WordPress 2.9’s post image feature], by JustinTadlock.com
+* [http://wpengineer.com/the-ultimative-guide-for-the_post_thumbnail-in-wordpress-2-9/ The Ultimative Guide For the_post_thumbnail In WordPress 2.9], by wpEngineer.com
+* [http://markjaquith.wordpress.com/2009/12/23/new-in-wordpress-2-9-post-thumbnail-images/ New in WordPress 2.9: Post Thumbnail Images], by Mark Jaquith
+* [http://www.prelovac.com/vladimir/simple-wordpress-thumbnail-function Simple WordPress thumbnail function], by Vladimir Prelovac
+
+== Related ==
+
+{{Post Thumbnail Tags}}
+
+{{Tag Footer}}
+
+[[Category:Template Tags]]

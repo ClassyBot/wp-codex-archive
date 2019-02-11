@@ -1,0 +1,77 @@
+{{Languages|
+{{en|Function_Reference/plugins_url}}
+{{ja|関数リファレンス/plugins_url}}
+}}
+
+== Description ==
+
+Retrieves the absolute URL to the [[Glossary#Plugin|plugins]] or mu-plugins directory (without the trailing slash) or, when using the <tt>$path</tt> argument, to a specific file under that directory. You can either specify the <tt>$path</tt> argument as a hardcoded path relative to the plugins or mu-plugins directory, or conveniently pass [http://php.net/manual/en/language.constants.predefined.php <tt>__FILE__</tt>] as the second argument to make the <tt>$path</tt> relative to the parent directory of the current PHP script file.
+
+== Usage ==
+
+%%% <?php plugins_url( $path, $plugin ); ?> %%%
+
+=== Default Usage ===
+
+%%%<?php $url = plugins_url(); ?>%%%
+
+== Parameters ==
+
+{{Parameter|$path|string|Path to the plugin file of which URL you want to retrieve, relative to the plugins or mu-plugins directory or to <tt>$plugin</tt> if specified.|optional}}
+{{Parameter|$plugin|string|Path under the plugins or mu-plugins directory of which parent directory you want the <tt>$path</tt> to be relative to.|optional}}
+
+== Return Values ==
+
+{{Return||string| Absolute URL to the plugins or mu-plugins directory (without the trailing slash) or optionally to a file under that directory.}}
+
+== Example ==
+
+=== Default Usage ===
+
+ <?php
+ $plugins_url = plugins_url();
+ ?>
+
+The <tt>$plugins_url</tt> variable will equal to the absolute URL to the plugins or mu-plugins directory, e.g. ''"<nowiki>http://www.example.com/wp-content/plugins</nowiki>"''.
+
+=== Common Usage ===
+
+The <tt>plugins_url()</tt> function is commonly used in a [[Writing a Plugin#Plugin_Files|plugin file]]. Passing the [http://php.net/manual/en/language.constants.predefined.php <tt>__FILE__</tt>] PHP magic constant in the place of <tt>$plugin</tt> parameter makes the <tt>$path</tt> relative to the parent directory of that file:
+
+ <?php
+ echo '<img src="' . plugins_url( 'images/wordpress.png', __FILE__ ) . '" > ';
+ ?>
+
+The above might ouput this HTML markup: <tt><img src="<nowiki>http://www.example.com/wp-content/plugins/my-plugin/images/wordpress.png</nowiki>"></tt>.
+
+If you are using the <tt>plugins_url()</tt> function in a file that is nested inside a subdirectory of your plugin directory, you should use PHP's [http://php.net/manual/en/function.dirname.php dirname()] function:
+
+ <?php
+ echo '<img src="' . plugins_url( 'images/wordpress.png', dirname(__FILE__) ) . '" > ';
+ ?>
+
+The above might ouput this HTML markup: <tt><img src="<nowiki>http://www.example.com/wp-content/plugins/images/wordpress.png</nowiki>"></tt>.
+
+== Notes ==
+
+* Uses the <tt>WP_PLUGIN_URL</tt> or, in the case the <tt>$plugin</tt> path begins with the <tt>WPMU_PLUGIN_DIR</tt> path, the <tt>WPMU_PLUGIN_URL</tt> constant internally, to compose the resultant URL. Note that the direct usage of WordPress internal constants [[Determining Plugin and Content Directories|is not recommended]].
+* Uses [[Function Reference/apply_filters|<tt>apply_filters()</tt>]] to apply "plugins_url" filters on the resultant URL, with the following line of code: <pre>return apply_filters( 'plugins_url', $url, $path, $plugin );</pre>
+* The <tt>plugins_url()</tt> function should not be called in the global context of plugins, but rather in a [[Glossary#Hook|hook]] like "init" or "admin_init" to ensure that the "plugins_url" filters are already hooked at the time the function is called. This is vital for many site configurations to work, and if <tt>plugins_url()</tt> is called in the global context of a plugin file it cannot be filtered by other plugins (though [[Must Use Plugins|mu-plugins]] are able to filter it because they run before any other plugins).
+
+== Change Log ==
+
+* Since: [[Version 2.6|2.6.0]]
+
+== Source File ==
+
+<tt>plugins_url()</tt> is located in {{Trac|wp-includes/link-template.php}}.
+
+== Related ==
+
+{{Tag Plugin Paths}}
+
+{{Directory URL Tags}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]

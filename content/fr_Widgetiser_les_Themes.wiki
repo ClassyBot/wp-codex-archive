@@ -1,0 +1,204 @@
+{{Languages|
+{{en|Widgetizing Themes}}
+{{fr|Widgetiser les Themes}}
+}}
+
+{{French Header}}
+
+== Je suis l'auteur d'un thème. C'est quoi ce courriel me demandant de mettre à jour mon thème ? ==
+
+Vous devriez être heureux qu'ils aiment votre thème suffisamment pour communiquer avec vous plutôt que d'en changer pour des thèmes de quelqu'un d'autre. Bon travail que de rendre les utilisateurs heureux ! Nous sommes désolés si cela semble menaçant. Cela nous fait plus de mal encore qu'à vous. S'il vous plaît corriger votre thème. Les widgets sont maintenant une composante standard de l'installation WordPress, et donc, afin d'atteindre le plus large public votre thème doit les supporter, ainsi que les anciennes barres latérales.
+
+== D'accord. Comment puis-je corriger mon thème? ==
+
+Vous devez d'abord vous demander : « Est-ce que je sais quelque chose au sujet de mon thème ? Utilise-t-il une liste non ordonnée pour créer la barre latérale ? » (Si vous ne pouvez pas répondre à cela, vous aurez besoin d'une aide plus poussée pour cette tâche et cela signifie généralement payer quelqu'un beaucoup d'argent ou demander très gentiment dans ​​les forums. Mieux encore, vous pouvez apprendre le HTML. Désolé, nous n'enseignons pas cela ici.)
+
+Voici un exemple de code d'une bonne barre latérale :
+
+<pre>
+<ul id="sidebar">
+ <li id="about">
+  <h2>About</h2>
+  <p>This is my blog.</p>
+ </li>
+ <li id="links">
+  <h2>Links</h2>
+  <ul>
+   <li><a href="http://example.com">Example</a></li>
+  </ul>
+ </li>
+</ul>
+</pre>
+
+Notez que l'ensemble de la barre latérale est une liste non ordonnée et que les titres sont dans les balises &lt;h2&gt;. Tous les thèmes ne sont pas construit de cette façon et ce n'est pas nécessaire de le faire, mais c'est actuellement le balisage de la barre latérale la plus répandue dans les thèmes que nous avons sondés. C'est pourquoi nous l'avons donc adopté ici. L'élément avec id="links" est l'équivalent d'un widget de base.
+
+Les barres latérales proposent quelques fonctions à utiliser dans votre modèle comme des balises de modèles. Ces fonctions permettent à WordPress de remplacer la barre latérale de votre thème par une barre dynamique tout en retombant sur la vieille barre latérale dans le cas où vous supprimez tous les widgets.
+
+Voici un exemple d'une mise à niveau de la barre latérale de base en utilisant les mêmes balises que ci-dessus :
+
+<pre>
+<ul id="sidebar">
+<?php if ( !dynamic_sidebar() ) : ?>
+ <li id="about">
+  <h2>About</h2>
+  <p>This is my blog.</p>
+ </li>
+ <li id="links">
+  <h2>Links</h2>
+  <ul>
+   <li><a href="http://example.com">Example</a></li>
+  </ul>
+ </li>
+<?php endif; ?>
+</ul>
+</pre>
+
+Vous voyez ? Nous venons d'ajouter deux lignes au modèle et maintenant il va afficher une barre latérale dynamique si possible, sinon afficher la vieille barre latérale. Supprimer tous les widgets dans la barre latérale dans l'interface d'administration fera s'afficher l'ancienne barre latérale.
+
+Maintenant, il y a encore une chose à faire pour le thème. En supposant que vous utilisez WordPress 2.0 ou supérieur, ce changement sera effectué dans le fichier functions.php dans le répertoire de votre thème.
+
+{{Note| Certains exemples suivants concernent la modification du ficher functions.php de votre thème. Une modification incorrecte peut empêcher vos pages d'administration de s'afficher. C'est une bonne idée de faire une sauvegarde de votre functions.php avant toute modification.}}
+
+Voici un exemple de functions.php pour un thème qui ne dispose pas encore d'un tel fichier (s'il vous plaît, n'ajoutez pas de lignes vides au début ou à la fin du fichier) :
+
+<pre>
+<?php
+    register_sidebar();
+?>
+</pre>
+
+Ça y est, seulement trois lignes. Ce code indique à l'extension que votre thème a besoin d'une seule barre latérale dynamique. À ce stade, votre interface d'administration devrait avoir un élément supplémentaire dans le menu Présentation : Widgets. Essayez de faire glisser des widgets à partir de la palette sur la gauche dans la case marquée Sidebar 1 et enregistrer vos modifications. Ça marche ?  Fantastique.
+
+=== Ma barre latérale n'est pas une liste. Que dois-je faire ? ===
+
+Nous savions que vous demanderiez cela. Vous aurez à découvrir le modèle de conception de votre barre latérale, puis utiliser des paramètres supplémentaires pour dire à l'extension comment les formater pour travailler avec votre thème. Nous allons travailler à partir d'un exemple.
+
+Voici le code d'origine :
+
+<pre>
+<div id="sidebar">
+ <div class="title">About</div>
+ <p>This is my blog.</p>
+ <div class="title">Links</div>
+ <ul>
+  <li><a href="http://example.com">Example</a></li>
+ </ul>
+</div>
+</pre>
+
+Oui, nous avons vu des balises comme celles-ci. C'est le second modèle de conception de la barre latérale le plus courant, c'est pourquoi nous l'avons choisi comme exemple. La première différence est que la barre latérale ne se construit pas dans une balise &lt;ul&gt;. Cela signifie que nous ne devrons pas encadrer chacun de nos widgets par les balises &lt;li&gt;. La deuxième différence est que nos titres sont encadrés des balises &lt;div class=”title”&gt; au lieu des balises &lt;h2&gt;.
+
+Nous préférons changer les balises pour nos ul/li/h2, mais l'API est assez puissante que nous n'ayons pas à le faire. Au lieu de cela, nous corrigeons ce problème en y ajoutant quelques paramètres dans le code du functions.php :
+
+<pre>
+<?php
+    register_sidebar(array(
+        'before_widget' => '',
+        'after_widget' => '',
+        'before_title' => '<div class="title">',
+        'after_title' => '</div>',
+    ));
+?>
+</pre>
+
+Et voici le code de sidebar.php avec nos balises spéciales du template :
+
+<pre>
+<div id="sidebar">
+<?php if ( !dynamic_sidebar() ) : ?>
+ <div class="title">About</div>
+ <p>This is my blog.</p>
+ <div class="title">Links</div>
+ <ul>
+  <li><a href="http://example.com">Example</a></li>
+ </ul>
+<?php endif; ?>
+</div>
+</pre>
+
+C'est tout. Votre code HTML est pris en charge.
+
+Bien, le plus souvent pris en charge. Le before_widget par défaut est un peu plus qu'un simple &lt;li&gt;. Il comprend un id et une classe. En quelque sorte, mais c'est là que ça se complique. Le before_widget par défaut inclut des directives sprintf %1$s et %2$s, qui sont respectivement remplacés par les id et class. L'identifiant est généré par la sécurisation du nom du widget (ce qui explique pourquoi vous devez nommer votre widget avec attention : vous ne voulez pas dupliquer un id est dans un document HTML) et la classe est générée à partir de la fonction de rappel du widget. Cela garantit que tous les widgets texte et RSS, ont, par instance, des id uniques et des nom de classes similaires. En outre, il existe une classe "widget" pour chaque widget.
+
+Donc, si vous voulez que votre thème soit plus flexible, vous devez utiliser cela à la place des chaînes vides ci-dessus :
+
+<pre>
+    'before_widget' => '<div id="%1$s" class="widget %2$s">',
+    'after_widget' => '</div>',
+</pre>
+
+Maintenant, votre balisage HTML est VRAIMENT pris en charge.
+
+==== Un autre exemple complet ====
+
+Dans le functions.php, mettez :
+<pre>
+<?php
+/**
+ * Register our sidebars and widgetized areas.
+ *
+ */
+function arphabet_widgets_init() {
+
+	register_sidebar( array(
+		'name' => 'Home right sidebar',
+		'id' => 'home_right_1',
+		'before_widget' => '<div>',
+		'after_widget' => '</div>',
+		'before_title' => '<h2 class="rounded">',
+		'after_title' => '</h2>',
+	) );
+}
+add_action( 'widgets_init', 'arphabet_widgets_init' );
+?>
+</pre>
+
+Ensuite, placez ce code à l'endroit où vous voulez que votre widget/sidebar s'affiche :
+
+<pre>
+<?php 
+if ( dynamic_sidebar('home_right_1') ) : 
+else : 
+?>
+<?php endif; ?>
+</pre>
+
+=== Le HTML s'affiche bien, mais la page est affreuse dans le navigateur ! ===
+
+Oui, nous savions que cela arriverait. Votre thème a probablement été écrit avant l'apparition des widgets, ainsi l'auteur ne savait pas qu'il ou elle devait faire une feuille de style suffisamment souple pour gérer de nouvelles balises dans la barre latérale. Si vous connaissez un peu de CSS, vous devriez être capable de gérer les problèmes avec quelques nouvelles règles à la fin de votre feuille de style. Regardez dans le balisage de votre blog pour les sélecteurs (Identifiant et / ou classe) appartenant à chaque widget dont vous souhaitez modifier le style.
+
+Si CSS est un mystère pour vous, nous regrettons de ne pas pouvoir vous offrir plus d'aide. Nous aimerions vous aider à cet égard, mais ce n'est tout simplement pas possible en raison des variations furieuses des thèmes. Contactez l'auteur de votre thème et demandez-lui de mettre à jour le thème pour une meilleure compatibilité avec les widgets.
+
+=== Le widget de recherche est toujours laid. Je veux la boîte de recherche originale de mon thème sous forme de widget. ===
+
+Les widgets sont sélectionnable par CSS de sorte que vous pouvez les personnaliser de façon très ciblée. Toutefois, le code peut ne pas être à votre goût. De nombreux thèmes rendront beaucoup mieux s'ils fournissent leurs propres widgets pour remplacer quelques-uns des widgets de base, tels que celui de recherche et Meta. Il est généralement préférable de copier le balisage existant depuis sidebar.php dans un nouveau widget dans functions.php, puis utiliser les fonctions d'enregistrement pour remplacer le widget standard par celui personnalisé.
+
+Vous pouvez faire cela avec n'importe quelle partie de la barre latérale du thème, ou chacun d'eux. Voici un exemple de la façon de le faire :
+
+<pre>
+function widget_mytheme_search() {
+?>
+    << COPIER VOTRE FORMULAIRE DE RECHERCHE ICI >>
+<?php
+}
+if ( function_exists('register_sidebar_widget') )
+    register_sidebar_widget(__('Search'), 'widget_mytheme_search');
+</pre>
+
+== J'ai un thème avec plus d'une barre latérale. Comment puis-je les rendre toutes dynamiques ? ==
+
+Oh, c'est facile. Au lieu de register_sidebar(), vous devez utiliser register_sidebars (n) où n est le nombre barres latérales. Ensuite, placez le numéro approprié dans la fonction dynamic_sidebar(), en commençant par 1. (Il y a plusieurs autres façons d'utiliser ces fonctions.).
+
+Vous pouvez même donner les noms de vos barres latérales plutôt que des chiffres, ce qui vous permet de conserver un ensemble différent de barres latérales enregistrés pour chaque thème. Mais si vous avez besoin de savoir tant de choses sur cette extension, pourquoi ne pas lire l'API?
+
+== En relation ==
+
+{{Sidebar Tags}}
+
+{{Widget Tags}}
+
+[[Category:fr:UI Link]]
+
+[[fr:Accueil|Retour à la page d'accueil en français]]
+
+[[Category:French Codex]]

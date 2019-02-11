@@ -1,0 +1,110 @@
+{{Languages|
+{{en|Sidebars}}
+{{ja|サイドバー}}
+}}
+
+'''Sidebar''' is a [[Theme Features|theme feature]] introduced with [[Version 2.2]].  It's basically a vertical column provided by a theme for displaying information other than the main content of the web page.  Themes usually provide at least one sidebar at the left or right of the content.  Sidebars usually contain [[Widgets API|widgets]] that an administrator of the site can customize.
+
+== Function Reference ==
+
+{| cellspacing="10" width="100%"
+|- valign="top"
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Register Sidebar'''
+|-
+|
+* <tt>[[Function Reference/register_sidebar | register_sidebar()]]</tt>
+* <tt>[[Function Reference/register_sidebars | register_sidebars()]]</tt>
+* <tt>[[Function Reference/unregister_sidebar | unregister_sidebar()]]</tt>
+|}
+
+| width="50%" |
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+! '''Show Sidebars'''
+|-
+|
+* <tt>[[Function Reference/is_active_sidebar | is_active_sidebar()]]</tt>
+* <tt>[[Function Reference/is_dynamic_sidebar | is_dynamic_sidebar()]]</tt>
+* <tt>[[Function Reference/dynamic_sidebar | dynamic_sidebar()]]</tt>
+|}
+
+|}
+__TOC__
+
+== Define Sidebars ==
+
+The functions listed below are used to add functioning sidebars to a [[Glossary#Theme|theme]].
+
+=== Register Several Sidebars ===
+
+ [[Function Reference/register_sidebars|register_sidebars]]( $count, $args );
+
+Registers one or more sidebars to be used in the current theme. Many themes have only one sidebar. For this reason, the count parameter is optional and defaults to one.
+
+The $args parameter will be passed to [[Function_Reference/register_sidebar|register_sidebar()]] and follows its format, with the exception of the name, which is treated with [http://www.php.net/manual/en/function.sprintf.php sprintf()] to insert or append a unique number to each sidebar if count is plural.
+
+For example, the following line will create sidebars name "Foobar 1" and "Foobar 2":
+
+ [[Function Reference/register_sidebars|register_sidebars]]( 2, array( 'name' => 'Foobar %d' ) );
+
+=== Register Single Sidebar ===
+
+ [[Function Reference/register_sidebar|register_sidebar]]( $args );
+
+The optional $args parameter is an associative array that will be passed as a first argument to every active widget callback. (If a string is passed instead of an array, it will be passed through parse_str() to generate an associative array.) The basic use for these arguments is to pass theme-specific HTML tags to wrap the widget and its title. Here are the default values:
+
+<pre>
+$args = array(
+	'name'          => sprintf( __( 'Sidebar %d' ), $i ),
+	'id'            => "sidebar-$i",
+	'description'   => '',
+	'class'         => '',
+	'before_widget' => '<li id="%1$s" class="widget %2$s">',
+	'after_widget'  => "</li>\n",
+	'before_title'  => '<h2 class="widgettitle">',
+	'after_title'   => "</h2>\n",
+);
+</pre>
+
+There are times you might need to call this function instead of register_sidebars().  An example of this would be when you want to give unique names to the sidebars, such as "Right Sidebar" and "Left Sidebar", or when they should be marked up differently.  The names appear in the admin interface and are used as an index for saving sidebar arrangement.  Please note: sidebar arrangements can be reused and overwritten when another theme is chosen that uses the same sidebar names.
+
+The default before and after values are intended for themes that generate a sidebar marked up as a list with "h2" titles. This is the recommended convention for themes. Themes built using this structure can simply register sidebars without issues in regard to the before and after tags. If a theme cannot be marked up in this way, these tags must be specified when registering sidebars. It is recommended to copy the id and class attributes verbatim so that an internal sprintf call can work and CSS styles can be applied to individual widgets.
+
+=== Display Sidebar on Theme ===
+
+ [[Function Reference/dynamic_sidebar|dynamic_sidebar]]( $sidebar );
+
+This function calls each of the active widget callbacks in order, which prints the markup for the sidebar. If you have more than one sidebar, you should give this function the name or number of the sidebar you want to print. This function returns true on success, false on failure.
+
+The return value should be used to determine whether to display a static sidebar. This ensures your theme will look good when the Widgets plug-in is not active. Along with a sanity test to prevent fatal errors, below is the recommended use of this function:
+
+<pre>
+<ul id="sidebar">
+	<?php if ( ! dynamic_sidebar() ) : ?>
+		<li>{static sidebar item 1}</li>
+		<li>{static sidebar item 2}</li>
+	<?php endif; ?>
+</ul>
+</pre>
+
+If your sidebars were registered by number, they should be retrieved by number. If they had names when you registered them, you will use their assigned names to retrieve them.
+
+== Resources ==
+* [http://generatewp.com/sidebar/ WordPress Sidebar Generator]
+
+== Related ==
+* [[Customizing Your Sidebar]]
+* [[Stepping Into Templates]]
+
+{{Sidebar Tags}}
+
+{{Theme Support}}
+
+[[Category:Sidebars|*]]
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]

@@ -1,0 +1,120 @@
+<p class="LanguageLinks" style="border:1px solid #CCCCCC; line-height:1.5; text-align:left; color:#333333; font-size:90%; padding:10px;"><span style="white-space:nowrap;"><a href="https://codex.wordpress.org/Multilingual_Codex" title="Multilingual Codex" class="mw-redirect">Languages</a>:</span> 
+<strong class="selflink">English</strong> • 
+<a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/Post">to your blog using email 日本語</a> 
+ <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Using_Plugins"><span class="tocnumber">1</span> <span class="toctext">Using Plugins</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Configure_WordPress_Install"><span class="tocnumber">2</span> <span class="toctext">Configure WordPress Install</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Customizing_How_WordPress_Checks_for_New_Mail"><span class="tocnumber">2.1</span> <span class="toctext">Customizing How WordPress Checks for New Mail</span></a>
+<ul>
+<li class="toclevel-3 tocsection-4"><a href="#Action-based_functions.php_Activation"><span class="tocnumber">2.1.1</span> <span class="toctext"><b>Action-based functions.php Activation</b></span></a></li>
+<li class="toclevel-3 tocsection-5"><a href="#Cron_Job_Activation"><span class="tocnumber">2.1.2</span> <span class="toctext"><b>Cron Job Activation</b></span></a></li>
+<li class="toclevel-3 tocsection-6"><a href="#Procmail_Activation"><span class="tocnumber">2.1.3</span> <span class="toctext"><b>Procmail Activation</b></span></a></li>
+<li class="toclevel-3 tocsection-7"><a href="#.qmail_Activation"><span class="tocnumber">2.1.4</span> <span class="toctext"><b>.qmail Activation</b></span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-8"><a href="#References"><span class="tocnumber">3</span> <span class="toctext">References</span></a></li>
+</ul>
+</div>
+
+<p>WordPress can be configured to use e-mail to post to a blog through the use of plugins. 
+</p>
+<h2><span class="mw-headline" id="Using_Plugins">Using Plugins</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_to_your_blog_using_email&amp;action=edit&amp;section=1" title="Edit section: Using Plugins">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li> <a rel="nofollow" class="external text" href="http://wordpress.org/plugins/post-by-email">Post By Email Plugin</a></li>
+<li> <a rel="nofollow" class="external text" href="http://jetpack.me/support/post-by-email/">Post by Mail in Jetpack</a></li>
+<li> <a rel="nofollow" class="external text" href="http://wordpress.org/extend/plugins/postie">Postie Plugin</a></li></ul>
+<h2><span class="mw-headline" id="Configure_WordPress_Install">Configure WordPress Install</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_to_your_blog_using_email&amp;action=edit&amp;section=2" title="Edit section: Configure WordPress Install">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The built-in WordPress functionality is <strong>deprecated</strong> and will be removed in an upcoming release.  Please use one of the plugins listed above, instead.  For installation and configuration instructions, refer to the documentation for these plugins.
+</p>
+<h3><span class="mw-headline" id="Customizing_How_WordPress_Checks_for_New_Mail">Customizing How WordPress Checks for New Mail</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_to_your_blog_using_email&amp;action=edit&amp;section=3" title="Edit section: Customizing How WordPress Checks for New Mail">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Most plugins should manage this for you!
+</p><p>Calling <tt>wp-mail.php</tt> directly will be deprecated in an upcoming WordPress release, so the old methods of adding code to your footer or manually visiting <tt>wp-mail.php</tt> are no longer recommended.
+</p><p>Instead, use some method to trigger the action <code>wp-mail.php</code>.  If you're using a plugin that doesn't allow you to customize this, you can try the suggestions below.
+</p>
+<h4><span class="mw-headline" id="Action-based_functions.php_Activation"><b>Action-based <code>functions.php</code> Activation</b></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_to_your_blog_using_email&amp;action=edit&amp;section=4" title="Edit section: Action-based functions.php Activation">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>You can add an action to your active theme's <code>functions.php</code> file. This will check for mail every 15 minutes and does not add any HTML to your theme.
+</p>
+<pre>
+add_action( 'shutdown', 'retrieve_post_via_mail' );
+function retrieve_post_via_mail() {
+	flush(); // Display the page before the mail fetching begins
+	if ( get_transient( 'retrieve_post_via_mail' ) ) { 
+		return; // The mail has been checked recently; don't check again
+	} else { // The mail has not been checked in more than 15 minutes
+		do_action( 'wp-mail.php' );
+		set_transient( 'retrieve_post_via_mail', 1, 15 * MINUTE_IN_SECONDS ); // check again in 15 minutes.
+	}
+}
+</pre>
+<p>This method is good for users who would like to avoid using cron jobs, which are configured on the server. Unlike cron jobs, this process will only run when pages on the blog are loaded. <em>Cron jobs run independent of site traffic.</em>
+</p>
+<h4><span class="mw-headline" id="Cron_Job_Activation"><b>Cron Job Activation</b></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_to_your_blog_using_email&amp;action=edit&amp;section=5" title="Edit section: Cron Job Activation">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Set up a UNIX cron job to have your blog periodically view <tt>http://example.com/installdir/wp-mail.php</tt> using a command-line HTTP agent like wget, curl or GET. The command to execute will look like:
+</p><p>wget -N http://example.com/installdir/wp-mail.php
+</p><p>If you use a different program than <tt>wget</tt>, substitute that program and its arguments for <tt>wget</tt> in this line.
+</p><p><b>Note:</b> Another possibility is to run "php /full/path/to/wp-mail.php" in a cronjob. This will run the php-script using php, without the need for an extra program to run. (You are more likely authorized to run php than wget.)
+</p><p>For more information about setting up a cron job, see:
+</p>
+<ul><li> <a rel="nofollow" class="external text" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html">Intro To Cron Jobs</a></li>
+<li> Your hosting provider's FAQ or manual pages</li></ul>
+<p><b>Note to Windows Users:</b> There are similar programs to cron available if your host runs Windows. For example, <a rel="nofollow" class="external text" href="http://www.visualcron.com">VisualCron</a>, <a rel="nofollow" class="external text" href="http://cronw.sourceforge.net/">Cron for Windows</a> and <a rel="nofollow" class="external text" href="http://www.google.com/url?sa=U&amp;start=2&amp;q=http://sourceforge.net/projects/pycron/&amp;e=1102&amp;mr=8,2!619021,!a:sr4">pycron</a>. Consult these projects' documentation for further information.
+</p>
+<h4><span class="mw-headline" id="Procmail_Activation"><b>Procmail Activation</b></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_to_your_blog_using_email&amp;action=edit&amp;section=6" title="Edit section: Procmail Activation">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>If your server uses <a rel="nofollow" class="external text" href="http://www.procmail.org/">procmail</a>, a simple <tt>.procmailrc</tt> in the blogmailaccounts home directory will be sufficient:
+</p>
+<pre>Shell=/bin/sh
+MAILDIR=$HOME/.maildir/
+DEFAULT=$MAILDIR
+:0
+{
+:0Wc
+./
+:0
+| wget -N <a rel="nofollow" class="external free" href="http://example.com/installdir/wp-mail.php">http://example.com/installdir/wp-mail.php</a>
+}
+</pre>
+<p>This could be more specific, such as capturing certain subject expressions.  Check <a rel="nofollow" class="external text" href="http://www.procmail.org/">procmail</a> for more information.
+</p>
+<h4><span class="mw-headline" id=".qmail_Activation"><b>.qmail Activation</b></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_to_your_blog_using_email&amp;action=edit&amp;section=7" title="Edit section: .qmail Activation">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>If your server uses qmail to process e-mail, you may be able to use it to call wp-mail.php whenever an e-mail message is delivered.  To do this, first create a small shell script to call wp-mail.php.  You could call the file <tt>wp-mail</tt>:
+</p>
+<pre>#!/bin/sh
+/bin/sh -c "sleep 5; /path/to/php /path/to/your/blog/wp-mail.php &gt; /dev/null" &amp;
+</pre>
+<p>The <tt>sleep</tt> command causes a 5-second delay to allow qmail to finish processing the message before wp-mail.php is called.  Note that the ampersand on the end of the line is required.  The above script should go in your root directory, and the execute bit should be set (chmod 700).  For debugging purposes, you could change <tt>/dev/null</tt> to a filename to save the output generated by wp-mail.php.
+</p><p>Then all you need to do create/modify the appropriate .qmail file to call your shell script.  Add the following line to the .qmail file for your mailbox name:
+</p>
+<pre>|/path/to/your/root/directory/wp-mail
+</pre>
+<p>See your ISP's documentation for use of .qmail files.  Naming conventions may vary for different ISPs.
+</p><p><br />
+</p>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Post_to_your_blog_using_email&amp;action=edit&amp;section=8" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+
+<!-- 
+NewPP limit report
+Cached time: 20190211004112
+Cache expiry: 86400
+Dynamic content: false
+CPU time usage: 0.016 seconds
+Real time usage: 0.024 seconds
+Preprocessor visited node count: 97/1000000
+Preprocessor generated node count: 277/1000000
+Post‐expand include size: 525/2097152 bytes
+Template argument size: 172/2097152 bytes
+Highest expansion depth: 3/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    7.128      1 - Template:Languages
+100.00%    7.128      1 - -total
+ 60.21%    4.292      1 - Template:ja
+ 17.53%    1.250      1 - Template:en
+-->

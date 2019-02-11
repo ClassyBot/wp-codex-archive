@@ -1,0 +1,274 @@
+{{Languages|
+{{en|Template Hierarchy}}
+{{fr|Hiérarchie de modeles}}
+{{it|Gerarchia dei template}}
+{{ja|テンプレート階層}}
+{{ko|Template Hierarchy}}
+{{ru|Иерархия шаблонов}}
+{{es|Jerarquía de plantillas}}
+{{pt-br|Hierarquia de Temas Wordpress}}
+{{zh-cn|模板层次}}
+}}
+== 简介 == 
+
+WordPress模板像拼图一样拼在一起，来生成你网站的页面。有些模板，比如页眉和页脚，是所有页面公用的；也有的只在一些特定页面/情况中使用。
+
+=== 这篇文章是关于： ===
+
+这篇文章回答了下面这些问题：
+
+<blockquote>
+''WordPress生成特定页面的时候调用了什么模板文件？''
+</blockquote>
+
+=== 这篇文章可能对谁有用： ===
+
+自从WordPress引入[[Using Themes|主题]]以来，[[Templates|模板]]的可配置性越来越高，为了[[Theme_Development|开发WordPress主题]]，你有必要了解WordPress是如何为不同页面选择模板文件的。如果你希望自定义一个现有的主题，这篇文章将告诉你需要修改那些模板文件。
+
+=== 使用条件标签函数判断 ===
+
+Wordpress 提供多种将查询匹配到模板的方式。主题开发者也可以使用条件标签来控制特定页面的模板使用。有些Wordpress主题可能并未实现这里提到的所有功能。有些主题则使用条件标签来载入其他模板文件。参见[[Conditional Tags|条件标签]]页面和[[Theme Development#Query-based_Template_Files|"基于查询"的主题开发]]。
+
+== 模版文件的分层结构 ==
+
+=== 基本理念 ===
+
+Wordpress使用[[Glossary#Query_string|查询字符串]]——你网站中每个链接所包含的信息，来决定使用哪个或哪些模板文件。
+
+First, WordPress matches every Query String to query types &mdash; i.e. it decides what type of page (a search page, a category page, the home page etc.) is being requested.
+
+Templates are then chosen &mdash; and web page content is generated &mdash; in the order suggested by the WordPress Template hierarchy, depending upon what templates are available in a particular WordPress Theme.
+
+WordPress looks for template files with specific names in the current Theme's directory and uses the ''first matching'' template file listed under the appropriate query section below. 
+
+With the exception of the basic <tt style="font-weight:bold; color:#036">index.php</tt> template file, Theme developers can choose whether they want to implement a particular template file or not. If WordPress cannot find a template file with a matching name, it skips down to the next file name in the hierarchy. If WordPress cannot find any matching template file, <tt style="font-weight:bold; color:#036">index.php</tt> (the Theme's home page template file) will be used.
+
+=== 举例 ===
+
+如果你的博客网址是 <tt style="font-weight:bold; color:#036"><nowiki>http://example.com/blog/</nowiki></tt> ，有一个访客点击了其中一个分类的链接：
+<tt style="font-weight:bold; color:#036"><nowiki>http://example.com/blog/category/your-cat/</nowiki></tt>: WordPress将按照如下方式寻找模板文件并生成页面。
+
+WordPress在当前主题目录下寻找一个匹配当前文章分类ID的模板文件。
+
+# 如果文章分类ID是4, WordPress会找这样一个文件： <tt style="font-weight:bold; color:#036">category-4.php</tt>.
+# 如果没有这个文件, WordPress再找通用的文章分类模板, <tt style="font-weight:bold; color:#036">category.php</tt>. 
+# 如果这也没有, WordPress再找通用文章归档模板, <tt style="font-weight:bold; color:#036">archive.php</tt>. 
+# 如果还没有, WordPress回到主题主模板文件, <tt style="font-weight:bold; color:#036">index.php</tt>.
+
+如果访客访问了你的首页： <tt style="font-weight:bold; color:#036"><nowiki>http://example.com/blog/</nowiki></tt>:
+
+# WordPress首先看是否有 [[Creating_a_Static_Front_Page|静态首页]]. 如果有，则根据 [[Template_Hierarchy#Page_display|模板层次]]载入那个页面.
+# 如果没有静态首页，则去到 <tt style="font-weight:bold; color:#036">home.php</tt> ，用它来生成请求的页面。 
+# 如果 <tt style="font-weight:bold; color:#036">home.php</tt> 也没有, 再回到当前主题目录下的<tt style="font-weight:bold; color:#036">index.php</tt> 文件，用它来生成页面。
+
+=== Visual Overview ===
+
+The following diagram shows which template files are called to generate a WordPress page based on the WordPress Template hierarchy.
+
+[[Image:Template_Hierarchy.png|750px|Graphic Example of the WordPress Template Hierarchy Structure]]
+<small>[http://codex.wordpress.org/images/1/18/Template_Hierarchy.png Full-Size Image (png)]</small>
+
+A more in depth hierarchy diagram, including template-related conditional tags and body CSS classes, can be found [http://www.chipbennett.net/themes/template-hierarchy here].
+
+=== 模板层次细节 ===
+
+The following sections describe the order in which template files are being called by WordPress for each query type.
+
+==== 首页显示 ====
+Template file used to render the Blog Posts Index, whether on the site front page or on a static page. Note: on the Site Front Page, the Front Page template takes precedence over the Blog Posts Index (Home) template.
+:#<tt style="font-weight:bold; color:#036">home.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Front Page display ====
+Template file used to render the Site Front Page, whether the front page displays the Blog Posts Index or a static page. The Front Page template takes precedence over the Blog Posts Index (Home) template.
+:#<tt style="font-weight:bold; color:#036">front-page.php</tt> - Used for both '''Your latest posts''' or '''A static page''' as set in the '''Front page displays''' section of [[Administration_Panels#Reading|Settings]] -> [[Settings_Reading_SubPanel|Reading]]
+:#[[#Page display|Page display rules]] - When '''Front page''' is set in the '''Front page displays''' section of [[Administration_Panels#Reading|Settings]] -> [[Settings_Reading_SubPanel|Reading]]
+:#[[#Home Page display|Home Page display rules]] - When '''Posts page''' is set in the '''Front page displays''' section of [[Administration_Panels#Reading|Settings]] -> [[Settings_Reading_SubPanel|Reading]]
+
+==== Single Post display ====
+Template file used to render a single post page.
+:#<tt style="font-weight:bold; color:#036">single-{post_type}.php</tt> - If the [[Post Types|post type]] were <tt style="font-weight:bold; color:#036">product</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">single-product.php</tt>. 
+:#<tt style="font-weight:bold; color:#036">single.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Page display ====
+Template file used to render a static page (<tt>page</tt> post-type)
+:#<tt style="font-weight:bold; color:#036">custom template file</tt> - The [[Pages#Page_Templates|Page Template]] assigned to the Page. See [[Function Reference/get page templates|get_page_templates()]].
+:#<tt style="font-weight:bold; color:#036">page-{slug}.php</tt> - If the page slug is '''recent-news''', WordPress will look to use <tt style="font-weight:bold; color:#036">page-recent-news.php</tt>
+:#<tt style="font-weight:bold; color:#036">page-{id}.php</tt> - If the page ID is '''6''', WordPress will look to use <tt style="font-weight:bold; color:#036">page-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">page.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Category display ====
+Template file used to render a Category Archive Index page
+:#<tt style="font-weight:bold; color:#036">category-{slug}.php</tt> - If the category's slug were <tt style="font-weight:bold; color:#036">news</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">category-news.php</tt>
+:#<tt style="font-weight:bold; color:#036">category-{id}.php</tt> - If the category's ID were <tt style="font-weight:bold; color:#036">6</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">category-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">category.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Tag display ====
+Template file used to render a Tag Archive Index page
+:#<tt style="font-weight:bold; color:#036">tag-{slug}.php</tt> - If the tag's slug were <tt style="font-weight:bold; color:#036">sometag</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">tag-sometag.php</tt>
+:#<tt style="font-weight:bold; color:#036">tag-{id}.php</tt> - If the tag's ID were <tt style="font-weight:bold; color:#036">6</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">tag-6.php</tt>
+:#<tt style="font-weight:bold; color:#036">tag.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Custom Taxonomies display ====
+Template file used to render the Archive Index page for a [[Taxonomies|Custom Taxonomy]]
+:#<tt style="font-weight:bold; color:#036">taxonomy-{taxonomy}-{term}.php</tt> - If the taxonomy were <tt style="font-weight:bold; color:#036">sometax</tt>, and  taxonomy's term were <tt style="font-weight:bold; color:#036">someterm</tt> WordPress would look for <tt style="font-weight:bold; color:#036">taxonomy-sometax-someterm.php.</tt> In the case of Post Formats, the taxonomy is 'post_format' and the terms are 'post-format-{format}. i.e. <tt style="font-weight:bold; color:#036">taxonomy-post_format-post-format-link.php</tt>
+:#<tt style="font-weight:bold; color:#036">taxonomy-{taxonomy}.php</tt> - If the taxonomy were <tt style="font-weight:bold; color:#036">sometax</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">taxonomy-sometax.php</tt>
+:#<tt style="font-weight:bold; color:#036">taxonomy.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Custom Post Types display ====
+Template file used to render the Archive Index page for a [[Post Types|Custom Post Type]]
+:#<tt style="font-weight:bold; color:#036">archive-{post_type}.php</tt> - If the [[Post Types|post type]] were <tt style="font-weight:bold; color:#036">product</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">archive-product.php</tt>. 
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+(For rendering a single custom post type, refer to the Single Post display section above.)
+
+==== Author display ====
+Template file used to render an Author Archive Index page
+:#<tt style="font-weight:bold; color:#036">author-{nicename}.php</tt> - If the author's nice name were <tt style="font-weight:bold; color:#036">rami</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">author-rami.php</tt>.
+:#<tt style="font-weight:bold; color:#036">author-{id}.php</tt> - If the author's ID were <tt style="font-weight:bold; color:#036">6</tt>, WordPress would look for <tt style="font-weight:bold; color:#036">author-6.php</tt>. 
+:#<tt style="font-weight:bold; color:#036">author.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Date display ====
+Template file used to render a Date-Based Archive Index page
+:#<tt style="font-weight:bold; color:#036">date.php</tt>
+:#<tt style="font-weight:bold; color:#036">archive.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Search Result display ====
+Template file used to render a Search Results Index page
+:#<tt style="font-weight:bold; color:#036">search.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== 404 (Not Found) display ====
+Template file used to render a Server 404 error page
+:#<tt style="font-weight:bold; color:#036">404.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+==== Attachment display ====
+Template file used to render a single attachment (<tt>attachment</tt> post-type) page
+:#<tt style="font-weight:bold; color:#036">MIME_type.php</tt> - it can be any [http://en.wikipedia.org/wiki/Internet_media_type MIME type] (<tt style="font-weight:bold; color:#036">image.php</tt>, <tt style="font-weight:bold; color:#036">video.php</tt>, <tt style="font-weight:bold; color:#036">application.php</tt>).  For <tt>text/plain</tt>, in order:  
+:##<tt style="font-weight:bold; color:#036">text.php</tt>
+:##<tt style="font-weight:bold; color:#036">plain.php</tt>
+:##<tt style="font-weight:bold; color:#036">text_plain.php</tt>
+:#<tt style="font-weight:bold; color:#036">attachment.php</tt>
+:#<tt style="font-weight:bold; color:#036">single-attachment.php</tt>
+:#<tt style="font-weight:bold; color:#036">single.php</tt>
+:#<tt style="font-weight:bold; color:#036">index.php</tt>
+
+== Filter Hierarchy ==
+
+The WordPress templates system allow you to filter the hierarchy. The filter (located in the [[Function_Reference/get_query_template|<tt>get_query_template()</tt>]] function) uses this filter name: <tt style="font-weight:bold; color:#036">"{$type}_template"</tt> where <tt style="font-weight:bold; color:#036">$type</tt> is the a file name in the hierarchy without the <tt style="font-weight:bold; color:#036">.php</tt> extension.
+
+Full list:
+
+* index_template
+* 404_template
+* archive_template
+* author_template
+* category_template
+* tag_template
+* taxonomy_template
+* date_template
+* home_template
+* front_page_template
+* page_template
+* paged_template
+* search_template
+* single_template
+* text_template, plain_template, text_plain_template (all mime types)
+* attachment_template
+* comments_popup
+
+
+=== 举例 ===
+
+For example, let's take the default author hierarchy:
+
+* <tt style="font-weight:bold; color:#036">author-{nicename}.php</tt>
+* <tt style="font-weight:bold; color:#036">author-{id}.php</tt>
+* <tt style="font-weight:bold; color:#036">author.php</tt>
+
+To add <tt style="font-weight:bold; color:#036">author-{role}.php</tt> before <tt style="font-weight:bold; color:#036">author.php</tt> we can manipulate the actual hierarchy using the 'author_template' hook.  This allows a request for /author/username where username has the role of editor to display using author-editor.php if present in the current themes directory.
+
+<pre>
+function author_role_template( $templates='' )
+{
+	$author = get_queried_object();
+	$role=$author->roles[0];
+	
+	if(!is_array($templates) && !empty($templates)) {
+		$templates=locate_template(array("author-$role.php",$templates),false);
+	} 
+	elseif(empty($templates)) {
+		$templates=locate_template("author-$role.php",false);
+	}
+	else {
+		$new_template=locate_template(array("author-$role.php"));
+		if(!empty($new_template)) array_unshift($templates,$new_template);
+	}
+	
+	return $templates;
+}
+add_filter( 'author_template', 'author_role_template' );
+</pre>
+
+== 更新日志 ==
+
+* [[Version 3.1|3.1]] :
+** [[#Custom Post Types display|archive-{post_type}.php]] added
+
+* [[Version 3.0|3.0]] :
+** [[#Front Page display|front-page.php]] added
+** [[#Single Post display|single-{post_type}.php]] added
+** [[#Custom Taxonomies display|taxonomy.php]] added
+** [[#Custom Taxonomies display|taxonomy-{taxonomy}.php]] added
+** [[#Custom Taxonomies display|taxonomy-{taxonomy}-{term}.php]] added
+** [[#Author_display|author-{id}.php]] added
+** [[#Author_display|author-{nicename}.php]] added
+
+* [[Version 2.9|2.9]] :
+** [[#Page_display|page-{id}.php]] added
+** [[#Page_display|page-{slug}.php]] added
+** [[#Tag display|tag-{id}.php]] added
+**[[#Category display|category-{slug}.php]] added
+
+* [[Version 2.3|2.3]] :
+** [[#Tag display|tag.php]] added
+** [[#Tag display|tag-{slug}.php]] added
+
+* [[Version 2.0|2.0]] :
+** [[#Attachment display|attachment.php]] added
+
+* [[Version 1.5|1.5]] :
+** Introduction of the theme system.
+
+== 源文件 ==
+
+* The template hierarchy functions are located in {{Trac|wp-includes/theme.php}}.
+* The template-load hierarchy is located in {{Trac|wp-includes/template-loader.php}}.
+
+== 相关阅读 ==
+
+* [[Theme Development]]
+* [[The Loop]]
+* [[Conditional Tags]]
+* [[Template Tags]]
+* [[Using Permalinks]]
+
+{{Theme Templates}}
+
+[[Category:zh-cn:Design and Layout]]
+[[Category:zh-cn:Advanced Topics]]
+[[Category:zh-cn:Templates]]
+[[Category:zh-cn:Template Tags]]
+[[Category:zh-cn:UI Link]]

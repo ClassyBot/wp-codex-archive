@@ -1,0 +1,54 @@
+== Description ==
+
+Applies filters that can be hooked to perform specific sanitization procedures for the particular metadata type and key. Does not sanitize anything on its own. Custom filters must be hooked in to do the work. The filter hook tag has the form <tt>"sanitize_{$meta_type}_meta_{$meta_key}"</tt>.
+
+== Usage ==
+
+%%% <?php $clean_value = sanitize_meta( $meta_key, $meta_value, $meta_type ); ?> %%%
+
+== Parameters ==
+
+{{Parameter|$meta_key|string|The metadata key.}}
+{{Parameter|$meta_value|mixed|The metadata value to be sanitized.}}
+{{Parameter|$meta_type|string|The metadata type.}}
+
+== Return Value ==
+
+<tt>(mixed)</tt> Sanitized value as processed by any hooked filter functions.
+
+== Example ==
+<pre>
+$clean_value = sanitize_meta( 'birth-year', $user_input, 'user' );
+
+function sanitize_birth_year_meta( $year ) {
+
+	$now = date( 'Y' );
+	$then = $now - 115; // No users older than 115.
+
+	if ( $then > $year || $year > $now ) {
+
+		wp_die( 'Invalid entry, go back and try again.' );
+	}
+
+	return $year;
+}
+add_filter( 'sanitize_user_meta_birth-year', 'sanitize_birth_year_meta' );
+</pre>
+
+== Notes ==
+This function is called by [[Function Reference/add metadata|add_meta_data()]] and [[Function Reference/update metadata|update_metadata()]] WordPress functions.
+== Change Log ==
+
+Since: [[Version_3.1.3 | 3.1.3]]
+
+== Source File ==
+
+<tt>sanitize_meta()</tt> is located in {{Trac|wp-includes/meta.php}}.
+
+== Related ==
+
+{{sanitize functions|sanitize_meta()}}
+
+{{Tag Footer}}
+
+[[Category:Functions]]
