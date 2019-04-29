@@ -97,7 +97,7 @@ The basic steps to make this happen (described in more detail below) are:
 === Create an Action Function ===
 
  	
-The first step in creating an action in your plugin is to create a PHP function with the action functionality of your plugin, and put it in your plugin file (your plugin file must go into the ''wp-content/plugins'' directory). For example, if you want your friends to get an email message whenever you create a new post, you might define the following function:
+The first step in creating an action in your plugin is to create a PHP function with the action functionality of your plugin and put it in your plugin file (your plugin file must go into the ''wp-content/plugins'' directory). For example, if you want your friends to get an email message whenever you create a new post, you might define the following function:
 
 <pre>
 function email_friends($post_ID) {
@@ -118,11 +118,11 @@ Any text output by the function (e.g. with print) will appear in the page source
  	
 It is possible that someone has created a plugin with a function named the same as one in your plugin.
 
-This is a problem because PHP does not allow multiple functions with the same name. If two plugins provide function with the same name, or a plugin provides a function with a name the same as a WordPress function, the blog could cease to function. There are two ways to avoid this problem.
+This is a problem because PHP does not allow multiple functions with the same name. If two plugins provide a function with the same name, or a plugin provides a function with a name the same as a WordPress function, the blog could cease to function. There are two ways to avoid this problem.
  	
-The first solution is to prefix every function in your plugin with a unique set of characters.  If your name is John Q. Public, you might declare your functions as <code>function jqp_output() {...}</code>.  The likelihood that someone with the same initials does the same thing with their plugin is possible, but low.
+The first solution is to prefix every function in your plugin with a unique set of characters.  If your name is John Q. Public, you might declare your functions as <code>function jqp_output() {...}</code>.  The likelihood that someone with the same initials does the same thing with their plugin is possible but low.
 
-The second - and possibly easier - solution is to enclose your plugin functions in a class and call the class methods statically. This sounds more complicated than it is.
+The second - and possibly easier - a solution is to enclose your plugin functions in a class and call the class methods statically. This sounds more complicated than it is.
 
 Consider this class, which expands on the examples provided above:
 
@@ -136,7 +136,7 @@ Consider this class, which expands on the examples provided above:
  
  add_action('publish_post', array('emailer', 'send'));
 
-This class, called ''emailer'' has a method ''send'' that implements the plugin functionality.
+This class called ''emailer'' has a method ''send'' that implements the plugin functionality.
 
 The add_action() function outside of the class adds the action to WordPress that tells it to call the ''send'' method when a post is published. The array used in the second parameter tells the plugin system to call the static method of the class 'emailer' named 'send'.
 
@@ -147,7 +147,7 @@ The above example is for static methods. If you have an instance of a class then
 <code>
  class emailer {
    function send($post_ID)  {
-     $friends = 'bob@example.org,susie@example.org';
+     $friends = 'ToT@example.org,alles@example.org';
      mail($friends,"sally's blog updated",'I just put something on my blog: http://blog.example.com');
      return $post_ID;
    }
@@ -190,7 +190,7 @@ See [[Plugin API/Action Reference]] for a current list of action hooks in WordPr
 
 == Filters ==
 
-'''Filters''' are functions that WordPress passes data through, at certain points in execution, just before taking some action with the data (such as adding it to the database or sending it to the browser screen). Filters sit between the database and the browser (when WordPress is generating pages), and between the browser and the database (when WordPress is adding new posts and comments to the database); most input and output in WordPress passes through at least one filter. WordPress does some  filtering by default, and your plugin can add its own filtering.
+'''Filters''' are functions that WordPress passes data through, at certain points in execution, just before taking some action with the data (such as adding it to the database or sending it to the browser screen). Filters sit between the database and the browser (when WordPress is generating pages), and between the browser and the database (when WordPress is adding new posts and comments to the database); most input and output in WordPress passes through at least one filter. WordPress does some filtering by default, and your plugin can add its own filtering.
 
 The basic steps to add your own filters to WordPress (described in more detail below) are:
 # Create the PHP function that filters the data. 
@@ -199,7 +199,7 @@ The basic steps to add your own filters to WordPress (described in more detail b
 
 === Create a Filter Function ===
 
-A filter function takes as input the unmodified data, and returns modified data (or in some cases, a null value to indicate the data should be deleted or disregarded). If the data is not modified by your filter, then the original data must be returned so that subsequent plugins can continue to modify the value if necessary. 
+A filter function takes as input the unmodified data and returns modified data (or in some cases, a null value to indicate the data should be deleted or disregarded). If the data is not modified by your filter, then the original data must be returned so that subsequent plugins can continue to modify the value if necessary. 
 
 So, the first step in creating a filter in your plugin is to create a PHP function to do the filtering, and put it in your plugin file (your plugin file must go into the ''wp-content/plugins'' directory). For example, if you want to make sure that your posts and comments contain no profanity, you might define a variable with a list of forbidden words, and then create the following PHP function: 
 
@@ -277,15 +277,15 @@ Note that if a hook was registered using a priority other than the default of 10
 
 == Pluggable Functions ==
 
-Besides the hooks (actions and filters) described above, another way for a plugin to modify WordPress's behavior is to override WordPress functions. In fact, there is a small set of functions WordPress intends for plugins to redefine.  These are called [[Pluggable Functions]] and they are defined in {{Trac|wp-includes/pluggable.php}}.  WordPress loads these functions only if they are still undefined after all plugins have been loaded.  For more details examine {{Trac|wp-settings.php}} file.
+Besides the hooks (actions and filters) described above, another way for a plugin to modify WordPress's behavior is to override WordPress functions. In fact, there is a small set of functions WordPress intends for plugins to redefine. These are called [[Pluggable Functions]] and they are defined in {{Trac|wp-includes/pluggable.php}}.  WordPress loads these functions only if they are still undefined after all plugins have been loaded.  For more details examine {{Trac|wp-settings.php}} file.
 
 == Activation/Deactivation/Uninstall ==
 
-If your plugin has tasks to complete only at activation or deactivation time, it can use <tt>[[Function Reference/register_activation_hook | register_activation_hook]]</tt> and <tt>[[Function Reference/register_deactivation_hook | register_deactivation_hook]]</tt>.  Many plugins do not need to use these, as the plugins only modify current behavior.  However, if your plugin (for example) needs to change a default option on activation, it can use these functions.  
+If your plugin has tasks to complete only at activation or deactivation time, it can use <tt>[[Function Reference/register_activation_hook | register_activation_hook]]</tt> and <tt>[[Function Reference/register_deactivation_hook | register_deactivation_hook]]</tt>. Many plugins do not need to use these, as the plugins only modify current behavior.  However, if your plugin (for example) needs to change a default option on activation, it can use these functions.  
 
 [[Creating Tables with Plugins]] has an example using the <tt>[[Function Reference/register_activation_hook | register_activation_hook]]</tt> function to make the database compatible with the current version of the plugin.
 
-The <tt>[[Function Reference/register_uninstall_hook | register_uninstall_hook]]</tt> gives your plugin the option of cleaning up after itself when it is deleted from the WordPress installation. Users have reasons to temporarily deactivate plugins, so do not do anything from the deactivation hook that would lose any user settings. This is what  the uninstall hook is for.
+The <tt>[[Function Reference/register_uninstall_hook | register_uninstall_hook]]</tt> gives your plugin the option of cleaning up after itself when it is deleted from the WordPress installation. Users have reasons to temporarily deactivate plugins, so do not do anything from the deactivation hook that would lose any user settings. This is what the uninstall hook is for.
 
 == Related ==
 

@@ -132,7 +132,7 @@
 <li> Hook this function to the event by using the <tt><a href="https://codex.wordpress.org/Function_Reference/add_action" title="Function Reference/add action">add_action()</a></tt> function.</li>
 <li> Put your PHP function in a plugin file, and activate it.</li></ol>
 <h3><span class="mw-headline" id="Create_an_Action_Function">Create an Action Function</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API&amp;action=edit&amp;section=5" title="Edit section: Create an Action Function">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
-<p>The first step in creating an action in your plugin is to create a PHP function with the action functionality of your plugin, and put it in your plugin file (your plugin file must go into the <i>wp-content/plugins</i> directory). For example, if you want your friends to get an email message whenever you create a new post, you might define the following function:
+<p>The first step in creating an action in your plugin is to create a PHP function with the action functionality of your plugin and put it in your plugin file (your plugin file must go into the <i>wp-content/plugins</i> directory). For example, if you want your friends to get an email message whenever you create a new post, you might define the following function:
 </p>
 <pre>
 function email_friends($post_ID) {
@@ -148,9 +148,9 @@ function email_friends($post_ID) {
 </p>
 <h4><span class="mw-headline" id="Avoiding_Function_Name_Collisions">Avoiding Function Name Collisions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API&amp;action=edit&amp;section=6" title="Edit section: Avoiding Function Name Collisions">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
 <p>It is possible that someone has created a plugin with a function named the same as one in your plugin.
-</p><p>This is a problem because PHP does not allow multiple functions with the same name. If two plugins provide function with the same name, or a plugin provides a function with a name the same as a WordPress function, the blog could cease to function. There are two ways to avoid this problem.
-</p><p>The first solution is to prefix every function in your plugin with a unique set of characters.  If your name is John Q. Public, you might declare your functions as <code>function jqp_output() {...}</code>.  The likelihood that someone with the same initials does the same thing with their plugin is possible, but low.
-</p><p>The second - and possibly easier - solution is to enclose your plugin functions in a class and call the class methods statically. This sounds more complicated than it is.
+</p><p>This is a problem because PHP does not allow multiple functions with the same name. If two plugins provide a function with the same name, or a plugin provides a function with a name the same as a WordPress function, the blog could cease to function. There are two ways to avoid this problem.
+</p><p>The first solution is to prefix every function in your plugin with a unique set of characters.  If your name is John Q. Public, you might declare your functions as <code>function jqp_output() {...}</code>.  The likelihood that someone with the same initials does the same thing with their plugin is possible but low.
+</p><p>The second - and possibly easier - a solution is to enclose your plugin functions in a class and call the class methods statically. This sounds more complicated than it is.
 </p><p>Consider this class, which expands on the examples provided above:
 </p>
 <pre>class emailer {
@@ -163,7 +163,7 @@ function email_friends($post_ID) {
 
 add_action('publish_post', array('emailer', 'send'));
 </pre>
-<p>This class, called <i>emailer</i> has a method <i>send</i> that implements the plugin functionality.
+<p>This class called <i>emailer</i> has a method <i>send</i> that implements the plugin functionality.
 </p><p>The add_action() function outside of the class adds the action to WordPress that tells it to call the <i>send</i> method when a post is published. The array used in the second parameter tells the plugin system to call the static method of the class 'emailer' named 'send'.
 </p><p>The function <i>send</i> is protected from the global namespace by the class declaration. It is not possible to call send() directly, and so any other function named <i>send</i> will not collide with this one. If you did want to call send(), you would need to use a scope resolution operator, like this: <code>emailer::send()</code>
 </p><p>The above example is for static methods. If you have an instance of a class then that won't work. To call a method of an instance you need to pass the instance as a variable. Consider the above example modified to take this into account:
@@ -171,7 +171,7 @@ add_action('publish_post', array('emailer', 'send'));
 </p>
 <pre>class emailer {
   function send($post_ID)  {
-    $friends = 'bob@example.org,susie@example.org';
+    $friends = 'ToT@example.org,alles@example.org';
     mail($friends,"sally's blog updated",'I just put something on my blog: <a rel="nofollow" class="external free" href="http://blog.example.com'">http://blog.example.com'</a>);
     return $post_ID;
   }
@@ -212,14 +212,14 @@ add_action ( 'publish_post', 'email_friends' );
 <p>See <a href="https://codex.wordpress.org/Plugin_API/Action_Reference" title="Plugin API/Action Reference">Plugin API/Action Reference</a> for a current list of action hooks in WordPress, and links to previous versions of WordPress.
 </p>
 <h2><span class="mw-headline" id="Filters">Filters</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API&amp;action=edit&amp;section=10" title="Edit section: Filters">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-<p><b>Filters</b> are functions that WordPress passes data through, at certain points in execution, just before taking some action with the data (such as adding it to the database or sending it to the browser screen). Filters sit between the database and the browser (when WordPress is generating pages), and between the browser and the database (when WordPress is adding new posts and comments to the database); most input and output in WordPress passes through at least one filter. WordPress does some  filtering by default, and your plugin can add its own filtering.
+<p><b>Filters</b> are functions that WordPress passes data through, at certain points in execution, just before taking some action with the data (such as adding it to the database or sending it to the browser screen). Filters sit between the database and the browser (when WordPress is generating pages), and between the browser and the database (when WordPress is adding new posts and comments to the database); most input and output in WordPress passes through at least one filter. WordPress does some filtering by default, and your plugin can add its own filtering.
 </p><p>The basic steps to add your own filters to WordPress (described in more detail below) are:
 </p>
 <ol><li> Create the PHP function that filters the data. </li>
 <li> Hook to the filter in WordPress, by calling <tt><a href="https://codex.wordpress.org/Function_Reference/add_filter" title="Function Reference/add filter">add_filter()</a></tt>.</li>
 <li> Put your PHP function in a plugin file, and activate it.</li></ol>
 <h3><span class="mw-headline" id="Create_a_Filter_Function">Create a Filter Function</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API&amp;action=edit&amp;section=11" title="Edit section: Create a Filter Function">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
-<p>A filter function takes as input the unmodified data, and returns modified data (or in some cases, a null value to indicate the data should be deleted or disregarded). If the data is not modified by your filter, then the original data must be returned so that subsequent plugins can continue to modify the value if necessary. 
+<p>A filter function takes as input the unmodified data and returns modified data (or in some cases, a null value to indicate the data should be deleted or disregarded). If the data is not modified by your filter, then the original data must be returned so that subsequent plugins can continue to modify the value if necessary. 
 </p><p>So, the first step in creating a filter in your plugin is to create a PHP function to do the filtering, and put it in your plugin file (your plugin file must go into the <i>wp-content/plugins</i> directory). For example, if you want to make sure that your posts and comments contain no profanity, you might define a variable with a list of forbidden words, and then create the following PHP function: 
 </p>
 <pre>
@@ -289,12 +289,12 @@ function mybloginfo( $result='', $show='' ) {
 </p><p>Note that if a hook was registered using a priority other than the default of 10, then you must also specify the priority in the call to <tt><a href="https://codex.wordpress.org/Function_Reference/remove_action" title="Function Reference/remove action">remove_action()</a></tt>. Also note that in general, you shouldn't remove anything unless you know what it does and why it does it -- check the WordPress or other plugin source code to be sure.
 </p>
 <h2><span class="mw-headline" id="Pluggable_Functions">Pluggable Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API&amp;action=edit&amp;section=17" title="Edit section: Pluggable Functions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-<p>Besides the hooks (actions and filters) described above, another way for a plugin to modify WordPress's behavior is to override WordPress functions. In fact, there is a small set of functions WordPress intends for plugins to redefine.  These are called <a href="https://codex.wordpress.org/Pluggable_Functions" title="Pluggable Functions">Pluggable Functions</a> and they are defined in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-includes/pluggable.php#L0">wp-includes/pluggable.php</a></code>.  WordPress loads these functions only if they are still undefined after all plugins have been loaded.  For more details examine <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.0.3/src/wp-settings.php#L0">wp-settings.php</a></code> file.
+<p>Besides the hooks (actions and filters) described above, another way for a plugin to modify WordPress's behavior is to override WordPress functions. In fact, there is a small set of functions WordPress intends for plugins to redefine. These are called <a href="https://codex.wordpress.org/Pluggable_Functions" title="Pluggable Functions">Pluggable Functions</a> and they are defined in <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.1.1/src/wp-includes/pluggable.php#L0">wp-includes/pluggable.php</a></code>.  WordPress loads these functions only if they are still undefined after all plugins have been loaded.  For more details examine <code><a rel="nofollow" class="external text" href="https://core.trac.wordpress.org/browser/tags/5.1.1/src/wp-settings.php#L0">wp-settings.php</a></code> file.
 </p>
 <h2><span class="mw-headline" id="Activation.2FDeactivation.2FUninstall">Activation/Deactivation/Uninstall</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API&amp;action=edit&amp;section=18" title="Edit section: Activation/Deactivation/Uninstall">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-<p>If your plugin has tasks to complete only at activation or deactivation time, it can use <tt><a href="https://codex.wordpress.org/Function_Reference/register_activation_hook" title="Function Reference/register activation hook"> register_activation_hook</a></tt> and <tt><a href="https://codex.wordpress.org/Function_Reference/register_deactivation_hook" title="Function Reference/register deactivation hook"> register_deactivation_hook</a></tt>.  Many plugins do not need to use these, as the plugins only modify current behavior.  However, if your plugin (for example) needs to change a default option on activation, it can use these functions.  
+<p>If your plugin has tasks to complete only at activation or deactivation time, it can use <tt><a href="https://codex.wordpress.org/Function_Reference/register_activation_hook" title="Function Reference/register activation hook"> register_activation_hook</a></tt> and <tt><a href="https://codex.wordpress.org/Function_Reference/register_deactivation_hook" title="Function Reference/register deactivation hook"> register_deactivation_hook</a></tt>. Many plugins do not need to use these, as the plugins only modify current behavior.  However, if your plugin (for example) needs to change a default option on activation, it can use these functions.  
 </p><p><a href="https://codex.wordpress.org/Creating_Tables_with_Plugins" title="Creating Tables with Plugins">Creating Tables with Plugins</a> has an example using the <tt><a href="https://codex.wordpress.org/Function_Reference/register_activation_hook" title="Function Reference/register activation hook"> register_activation_hook</a></tt> function to make the database compatible with the current version of the plugin.
-</p><p>The <tt><a href="https://codex.wordpress.org/Function_Reference/register_uninstall_hook" title="Function Reference/register uninstall hook"> register_uninstall_hook</a></tt> gives your plugin the option of cleaning up after itself when it is deleted from the WordPress installation. Users have reasons to temporarily deactivate plugins, so do not do anything from the deactivation hook that would lose any user settings. This is what  the uninstall hook is for.
+</p><p>The <tt><a href="https://codex.wordpress.org/Function_Reference/register_uninstall_hook" title="Function Reference/register uninstall hook"> register_uninstall_hook</a></tt> gives your plugin the option of cleaning up after itself when it is deleted from the WordPress installation. Users have reasons to temporarily deactivate plugins, so do not do anything from the deactivation hook that would lose any user settings. This is what the uninstall hook is for.
 </p>
 <h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API&amp;action=edit&amp;section=19" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
 <ul><li> <a href="https://codex.wordpress.org/Pluggable_Functions" title="Pluggable Functions"><b>Pluggable Functions</b></a> - A listing of WordPress's pluggable functions</li>
@@ -307,10 +307,10 @@ function mybloginfo( $result='', $show='' ) {
 
 <!-- 
 NewPP limit report
-Cached time: 20190211004048
+Cached time: 20190429054105
 Cache expiry: 86400
 Dynamic content: false
-CPU time usage: 0.036 seconds
+CPU time usage: 0.040 seconds
 Real time usage: 0.047 seconds
 Preprocessor visited node count: 232/1000000
 Preprocessor generated node count: 861/1000000
@@ -322,14 +322,14 @@ Expensive parser function count: 0/100
 
 <!-- 
 Transclusion expansion time report (%,ms,calls,template)
-100.00%   17.138      1 - -total
- 81.05%   13.890      1 - Template:Languages
- 14.68%    2.516      2 - Template:Trac
-  8.38%    1.436      1 - Template:fr
-  7.62%    1.306      1 - Template:th
-  7.08%    1.213      1 - Template:bn
-  7.03%    1.205      1 - Template:ja
-  6.66%    1.141      1 - Template:en
-  6.64%    1.138      1 - Template:es
-  6.46%    1.107      1 - Template:pt-br
+100.00%   15.703      1 - -total
+ 80.72%   12.675      1 - Template:Languages
+ 14.61%    2.294      2 - Template:Trac
+  7.54%    1.184      1 - Template:th
+  7.06%    1.108      1 - Template:en
+  6.92%    1.087      1 - Template:bn
+  6.92%    1.086      1 - Template:ja
+  6.71%    1.053      1 - Template:pt-br
+  6.66%    1.046      1 - Template:es
+  6.61%    1.038      1 - Template:fr
 -->
