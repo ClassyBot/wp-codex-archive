@@ -7,7 +7,7 @@ cd ..
 
 node node_modules/.bin/wiki-mirror-content \
 	https://codex.wordpress.org/ \
-	~/cp/wp-codex/content/ \
+	./content/ \
 	--subdirs \
 	2>&1 \
 	| tee archive.log
