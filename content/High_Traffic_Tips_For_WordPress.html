@@ -28,8 +28,9 @@
 <li class="toclevel-2 tocsection-11"><a href="#W3_Total_Cache"><span class="tocnumber">3.2</span> <span class="toctext">W3 Total Cache</span></a></li>
 <li class="toclevel-2 tocsection-12"><a href="#WP_Super_Cache"><span class="tocnumber">3.3</span> <span class="toctext">WP Super Cache</span></a></li>
 <li class="toclevel-2 tocsection-13"><a href="#Varnish_Cache"><span class="tocnumber">3.4</span> <span class="toctext">Varnish Cache</span></a></li>
-<li class="toclevel-2 tocsection-14"><a href="#Turn_Off_or_Limit_WordPress_Plugins_and_Graphics"><span class="tocnumber">3.5</span> <span class="toctext">Turn Off or Limit WordPress Plugins and Graphics</span></a></li>
-<li class="toclevel-2 tocsection-15"><a href="#New_Hosting"><span class="tocnumber">3.6</span> <span class="toctext">New Hosting</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Sirv"><span class="tocnumber">3.5</span> <span class="toctext">Sirv</span></a></li>
+<li class="toclevel-2 tocsection-15"><a href="#Turn_Off_or_Limit_WordPress_Plugins_and_Graphics"><span class="tocnumber">3.6</span> <span class="toctext">Turn Off or Limit WordPress Plugins and Graphics</span></a></li>
+<li class="toclevel-2 tocsection-16"><a href="#New_Hosting"><span class="tocnumber">3.7</span> <span class="toctext">New Hosting</span></a></li>
 </ul>
 </li>
 </ul>
@@ -122,17 +123,27 @@ affect the actual transfer rate seen by your server.
 </p><p>While Varnish gives excellent performance, administrators should be aware that Varnish is "allergic" to cookies. If deployed with default settings, Varnish will not recognize or honor normal WordPress cookies for logged in users, etc. Therefore, the configuration file should be written so that the presence of WordPress cookies triggers Varnish to bypass the cache and send the request on to the web server directly. In effect this means that logged-in users (site admins, authors, contributors) will make requests directly to the web server, while public (anonymous) users will make their requests from the Varnish cache. A quick search of GitHub should provide a variety of VCL configuration files specifically written to work with WordPress, such as <a rel="nofollow" class="external text" href="https://github.com/dreamhost/varnish-vcl-collection">DreamHost's WordPress VCL example</a>.
 </p><p>Please be aware that Varnish, like most other caching mechanisms, will serve up the same content from the cache until it expires. This means that administrators will need to either clear the cache when new content is added, or install a management plugin such as <a rel="nofollow" class="external text" href="https://wordpress.org/plugins/varnish-http-purge/">Varnish HTTP Purge</a>, which resets the cache for any pages or posts that have been updated, and gives administrators a simple interface to clear the cache when theme or menu changes have been made.
 </p>
-<h3><span class="mw-headline" id="Turn_Off_or_Limit_WordPress_Plugins_and_Graphics">Turn Off or Limit WordPress Plugins and Graphics</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=High_Traffic_Tips_For_WordPress&amp;action=edit&amp;section=14" title="Edit section: Turn Off or Limit WordPress Plugins and Graphics">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<h3><span class="mw-headline" id="Sirv">Sirv</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=High_Traffic_Tips_For_WordPress&amp;action=edit&amp;section=14" title="Edit section: Sirv">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a rel="nofollow" class="external text" href="https://wordpress.org/plugins/sirv/">Sirv</a> is an image performance plugin that accelerates image delivery. It uses a separate platform to process and deliver your images, following these best-practices: resizing according to device; image compression; optimal image format conversion; retina image creation; meta stripping; caching; and CDN delivery.
+</p>
+<ul><li> Image Optimization: the <a rel="nofollow" class="external text" href="https://sirv.com/blog/optimal-image-format/">optimal image format</a> is served (including WebP if the browser supports it), which generate images that are 30%-80% smaller.</li>
+<li> Personalized Per Visitor: each user receives images tailored to their browser and device. This optimizes the user experience and avoids serving overly large images.</li>
+<li> CDN Delivery: optimized images are cached and served from a CDN, which usually relieves the server of 30-50% of its data transfer.</li>
+<li> HTTP/2 Delivery: images are served using TLS 1.3 and the <a rel="nofollow" class="external text" href="https://developers.google.com/web/fundamentals/performance/http2/">HTTP/2 protocol</a>, which batch serves up to 20 images in a single TCP/IP packet. This "multiplexing" technique overcomes the latency issue of HTTP/1.1.</li>
+<li> Reduced Server Load: requests go directly to the Sirv network, which helps lower requests by 20-30% on the WordPress server.</li></ul>
+<p>The plugin works by synchronizing your WordPress media library to your Sirv account (free or paid). New images are automatically fetched from your WordPress library on demand.
+</p>
+<h3><span class="mw-headline" id="Turn_Off_or_Limit_WordPress_Plugins_and_Graphics">Turn Off or Limit WordPress Plugins and Graphics</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=High_Traffic_Tips_For_WordPress&amp;action=edit&amp;section=15" title="Edit section: Turn Off or Limit WordPress Plugins and Graphics">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
 <p>You may notice the effects of high traffic more if your blog has a high number of code and design elements.
 </p><p>For example, let's say the front page of your blog calls upon 8 graphics to create the "look" of your blog's design. Add this number to the various WordPress template files it takes to build your page.  At minimum, this includes the header, sidebar, footer, and post content area, creating four more "calls" to files on your site. For 100 visitors, those files get loaded 1200 times. For 1000 visitors, those files are loaded 12000 times, increasing both bandwidth and server activity.
 </p><p>WordPress Plugins are also files that are "called" by your WordPress Theme. In turn, these plugins make queries to your database to generate the information on your blog. The more WordPress Plugins, the more queries to your database. Combine all these access files and database queries with an exponential increase in visitors, and you have a lot of demand on your site.
-</p><p>You can lower the number of files accessed and the queries to your database during periods of heavy traffic by: 
+</p><p>You can lower the number of files accessed and the queries to your database during periods of heavy traffic by:
 </p>
 <ol><li>Limiting the number of graphics on your blog. You can do this by editing the stylesheet and template files of your WordPress Theme. </li>
 <li>Turning off a few WordPress Plugins temporarily. Go through your list of WordPress Plugins to see if there are any listed that you could live without for a day or two.</li></ol>
 <p>Keep access to files and your database to a minimum as much as possible. Reactivate and restore these features after the heavy traffic volume has died down.
 </p>
-<h3><span class="mw-headline" id="New_Hosting">New Hosting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=High_Traffic_Tips_For_WordPress&amp;action=edit&amp;section=15" title="Edit section: New Hosting">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<h3><span class="mw-headline" id="New_Hosting">New Hosting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=High_Traffic_Tips_For_WordPress&amp;action=edit&amp;section=16" title="Edit section: New Hosting">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
 <p>As painful as it may be to hear it, you might simply require a more powerful server.
 </p><p>Here is a simple outline of upgrade steps for a site that is having problems with high traffic.  If you are having trouble with:
 </p>

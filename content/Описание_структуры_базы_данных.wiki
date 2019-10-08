@@ -1,0 +1,942 @@
+{{Languages|
+{{en|Database Description}}
+{{ar|وصف قاعدة البيانات}}
+{{ja|データベース概要}}
+{{zh-hans|数据库描述}}
+{{ko|한국어}}
+{{ru|Описание структуры базы данных}}
+}}
+
+__TOC__
+Ниже приводится схема и описание таблиц [[Glossary#Database|базы данных]], созданных во время стандартной установки WordPress. Структура базы данных и диаграмма ниже были в последний раз обновлены в [[Version 4.4|версии 4.4]].
+
+WordPress поддерживает только [[Glossary#MySQL|MySQL]] версии 5.0.15 или выше, или любую версию [[Glossary#MariaDB|MariaDB]].
+
+См. также предыдущие версии Описания Структуры Базы Данных для [[Database_Description/1.5|WordPress 1.5]], [[Database_Description/2.0|WordPress 2.0]], [[Database_Description/2.2|WordPress 2.2]], [[Database_Description/2.3|WordPress 2.3]], [[Database_Description/2.5|WordPress 2.5]], [[Database_Description/2.7|WordPress 2.7]], [[Database_Description/2.8|WordPress 2.8]], [[Database_Description/2.9|WordPress 2.9]] и [[Database_Description/3.3|WordPress 3.3]]. 
+
+Поскольку WordPress взаимодействует с этой базой данных сам, вам, как конечному пользователю, не нужно сильно беспокоиться о ее структуре. Однако, если вы [[Написание плагина|пишете плагин]], вам может быть интересно узнать, как WordPress хранит свои данные. Если вы уже пытались использовать существующий [[:Category:API|WordPress API]] для доступа к нужным вам данным, но решили, что это невозможно без прямого доступа к базе данных, WordPress предоставляет класс [[Class Reference/wpdb|wpdb]], чтобы упростить эту задачу.
+
+== Схема база данных ==
+На диаграмме ниже представлен визуальный обзор базы данных WordPress и связей между таблицами, созданными в ходе стандартной установки WordPress. В приведенном ниже Обзоре Таблиц, содержатся дополнительные сведения о таблицах и столбцах базы данных.
+
+
+[[Image:WP4.4.2-ERD.png|500px|thumb|none|(Схема базы данных WP 4.4.2)]]
+
+
+Пожалуйста, обратите внимание, что при стандартной установке WordPress, целостность данных между таблицами не обеспечивается, например между постами и комментариями. Если вы создаете плагин или расширение, которое манипулирует базой данных WordPress, ваш код должен выполнять служебную работу, чтобы в таблицах не оставалось бесхозных записей, например, удаляя записи в других таблицах с помощью набора команд SQL, при удалении внешних ключей (не забудьте напомнить пользователям о необходимости резервного копирования перед такими операциями).
+
+== Обзор таблиц ==
+В этом разделе представлен обзор всех таблиц, созданных во время стандартной установки WordPress. За этим следует конкретная информация о том, что находится в каждой таблице.
+
+{| class="widefat"
+|- valign="top" style="background:#464646; color:#d7d7d7;"
+! colspan="3" bordercolor="#FFFFFF" | '''Таблицы WordPress 4.4 (12)'''
+|- valign="top" style="background:#464646; color:#d7d7d7;"
+! width="6%" | Имя таблицы !! width="35%" | Описание !! Соответствующие области пользовательского интерфейса WordPress
+|- valign="top"
+!  [[#Table:_wp_commentmeta|wp_commentmeta]]
+| У каждого '''комментария''' есть информация, называемая '''метаданные''' и она хранится в таблице <tt>wp_commentmeta</tt>. ||
+* [[Administration Panels|Administration]] > [[Administration Panels#Comments|Comments]] > [[Comments Comments SubPanel|Comments]]
+|- valign="top"
+!  [[#Table:_wp_comments|wp_comments]]
+| В таблице <tt>wp_comments</tt> в WordPress хранятся собственно сами '''Комментарии'''. ||
+* [[Administration Panels|Administration]] > [[Administration Panels#Comments|Comments]] > [[Comments Comments SubPanel|Comments]]
+|- valign="top"
+! [[#Table:_wp_links|wp_links]]
+| Таблица <tt>wp_links</tt> хранит информацию, относящуюся к '''ссылкам''' функциональность которых была введена как [[Administration Panels#Links - Putting the Inter in the Internet|Links]] в WordPress. ''(Эта функциональность устарела, но её можно снова включить с помощью плагина [http://wordpress.org/extend/plugins/link-manager/ Links Manager] plugin.)'' || 
+* [[Administration Panels|Administration]] > [[Administration Panels#Add New Link|Links]] > [[Links Add New SubPanel|Add New]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Edit Links|Links]] > [[Links Links SubPanel|Links]]
+|- valign="top"
+!  [[#Table:_wp_options|wp_options]]
+| '''[[Administration Panels#Settings|Настройки]]''', сделанные в '''Administration > [[Administration Panels#Settings|Settings]]''' панели хранятся в таблице <tt>wp_options</tt>. Названия настроек <code>option_name</code> и их значения по умолчанию, см. в [[Option Reference]]. || 
+* [[Administration Panels|Administration]] > [[Administration Panels#Settings|Settings]] > [[Settings General SubPanel|General]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Settings|Settings]] > [[Settings Writing SubPanel|Writing]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Settings|Settings]] > [[Settings Reading SubPanel|Reading]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Settings|Settings]] > [[Settings Discussion SubPanel|Discussion]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Settings|Settings]] > [[Settings Privacy SubPanel|Privacy]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Settings|Settings]] > [[Settings Permalinks SubPanel|Permalinks]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Widgets|Appearance]] > [[Appearance Widgets SubPanel|Widgets]]
+|- valign="top"
+! [[#Table:_wp_postmeta|wp_postmeta]]
+| У каждой '''записи''' есть информация, называемая '''метаданные''' и она хранится в таблице <tt>wp_postmeta</tt>. Некоторые плагины могут добавлять в эту таблицу их собственную информацию. || 
+* [[Administration Panels|Administration]] > [[Administration Panels#Add New Post|Posts]] > [[Posts Add New SubPanel|Add New]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Add New Page|Pages]] > [[Pages Add New SubPanel|Add New]]
+|- valign="top"
+! [[#Table:_wp_posts|wp_posts]]
+| Самые важные данные в WordPress это [[Glossary#Post|'''записи''']]. Они хранятся в таблице <tt>wp_posts</tt>. В этой таблице также хранятся [[Glossary#Page|Страницы]] и элементы меню навигации. || 
+* [[Administration Panels|Administration]] > [[Administration Panels#Add New Post|Posts]] > [[Posts Add New SubPanel|Add New]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Posts|Posts]] > [[Posts Posts SubPanel|Posts]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Add New Page|Pages]] > [[Pages Add New SubPanel|Add New]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Pages|Pages]] > [[Pages Pages SubPanel|Pages]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Upload New Media|Media]] > [[Media Add New SubPanel|Add New]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Media Library|Media]] > [[Media Library SubPanel|Library]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Appearance|Appearance]] > [[Appearance Menus SubPanel|Menus]]
+|- valign="top"
+! [[#Table:_wp_terms|wp_terms]]
+| В таблице <tt>wp_terms</tt> хранятся '''категории''' как для записей так и для ссылок, а также '''теги''' для записей. || rowspan="3" |
+* [[Administration Panels|Administration]] > [[Administration Panels#Post Tags|Posts]] > [[Posts Post Tags SubPanel|Post Tags]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Categories|Posts]] > [[Posts Categories SubPanel|Categories]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Link Categories|Links]] > [[Links Link Categories SubPanel|Link Categories]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Add New Post|Posts]] > [[Posts Add New SubPanel|Add New]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Posts|Posts]] > [[Posts Posts SubPanel|Posts]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Add New Page|Pages]] > [[Pages Add New SubPanel|Add New]]
+* [[Administration Panels|Administration]] > [[Administration Panels#Pages|Page]] > [[Pages Pages SubPanel|Pages]]
+|- valign="top"
+!  [[#Table:_wp_termmeta|wp_termmeta]]
+| У каждого '''термина''' есть информация, называемая '''метаданные''' и она хранится в таблице <tt>wp_termmeta</tt>. 
+|- valign="top"
+! [[#Table:_wp_term_relationships|wp_term_relationships]]
+| '''Записи''' связываются с категориями и тегами с помощью таблицы <tt>wp_terms</tt> и эти связи обслуживаются в таблице <tt>wp_term_relationships</tt>.  Связи '''ссылок''' с соответствующими их категориями, также хранятся в этой таблице.
+|- valign="top"
+! [[#Table:_wp_term_taxonomy|wp_term_taxonomy]]
+| Эта таблица описывает таксономию ('''категорию''', '''ссылку''' или '''тег''') для записей в таблице <tt>wp_terms</tt>.
+|- valign="top"
+! [[#Table:_wp_usermeta|wp_usermeta]]
+| У каждого '''пользолвателя''' есть информация, называюемая '''метаданные''' и она хранится в таблице <tt>wp_usermeta</tt>. ||
+* [[Administration Panels|Administration]] > [[Administration Panels#Users|Users]]
+|- valign="top"
+! [[#Table:_wp_users|wp_users]]
+| Список'''пользователей''' обслуживается в таблице <tt>wp_users</tt>. || 
+* [[Administration Panels|Administration]] > [[Administration Panels#Users|Users]]
+|}
+
+==Подробное описание таблиц==
+Ниже приведены конкретные поля в каждой из таблиц, созданных во время стандартной установки WordPress.
+
+===Таблица: wp_commentmeta===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|meta_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|comment_id||bigint(20)  unsigned||&nbsp;||IND||0||&nbsp;
+|-
+|meta_key||varchar(255)||YES||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||YES||&nbsp;||NULL||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||meta_id
+|-  
+|comment_id||INDEX||comment_id  
+|-  
+|meta_key||INDEX||meta_key  
+|}
+
+
+
+===Таблица: wp_comments===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|comment_ID||bigint(20) unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|comment_post_ID||bigint(20) unsigned||&nbsp;||IND||0||&nbsp;
+|-
+|comment_author||tinytext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_email||varchar(100)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|comment_author_url||varchar(200)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_author_IP||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_date||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|comment_date_gmt||datetime||&nbsp;||IND & IND Pt2||0000-00-00 00:00:00||&nbsp;
+|-
+|comment_content||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_karma||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|comment_approved||varchar(20)||&nbsp;||IND Pt1||1||&nbsp;
+|-
+|comment_agent||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_type||varchar(20)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_parent||bigint(20) unsigned||&nbsp;||IND||0||&nbsp;
+|-
+|user_id||bigint(20) unsigned||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||comment_ID
+|-  
+|comment_post_ID||INDEX||comment_post_ID  
+|- style="vertical-align:top;"
+|comment_approved_date_gmt||INDEX||comment_approved<br />comment_date_gmt
+|-  
+|comment_date_gmt||INDEX||comment_date_gmt  
+|-  
+|comment_parent||INDEX||comment_parent
+|-  
+|comment_author_email||INDEX||comment_author_email
+|}
+
+
+
+===Таблица: wp_links===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|link_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|link_url||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_name||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_image||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_target||varchar(25)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_description||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_visible||varchar(20)||&nbsp;||IND||Y||&nbsp;
+|-
+|link_owner||bigint(20)  unsigned||&nbsp;||&nbsp;||1||&nbsp;
+|-
+|link_rating||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|link_updated||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|link_rel||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_notes||mediumtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|link_rss||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||link_id
+|-  
+|link_visible||INDEX||link_visible  
+|}
+
+
+
+
+
+===Таблица: wp_options===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|option_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|option_name||varchar(64)||&nbsp;||UNI||&nbsp;||&nbsp;
+|-
+|option_value||longtext||&nbsp;||&nbsp;||&nbsp;||
+|-
+|autoload||varchar(20)||&nbsp;||&nbsp;||yes||&nbsp;
+|}
+
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||option_id
+|-  
+|option_name||UNIQUE||option_name  
+|}
+
+===Таблица: wp_postmeta===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|meta_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|post_id||bigint(20)  unsigned||&nbsp;||IND||0||&nbsp;
+|-
+|meta_key||varchar(255)||YES||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||YES||&nbsp;||NULL||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||meta_id
+|-  
+|post_id||INDEX||post_id  
+|-  
+|meta_key||INDEX||meta_key  
+|}
+
+
+
+===Таблица: wp_posts===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI & IND Pt4||&nbsp;||auto_increment
+|-
+|post_author||bigint(20) unsigned||&nbsp;||IND||0||&nbsp;
+|-
+|post_date||datetime||&nbsp;||IND Pt3||0000-00-00 00:00:00||&nbsp;
+|-
+|post_date_gmt||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_content||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_title||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_excerpt||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_status||varchar(20)||&nbsp;||IND PT2||publish||&nbsp;
+|-
+|comment_status||varchar(20)||&nbsp;||&nbsp;||open||&nbsp;
+|-
+|ping_status||varchar(20)||&nbsp;||&nbsp;||open||&nbsp;
+|-
+|post_password||varchar(20)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_name||varchar(200)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|to_ping||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|pinged||text||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|post_modified||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_modified_gmt||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|post_content_filtered||longtext||&nbsp;||&nbsp;||&nbsp;||
+|-
+|post_parent||bigint(20) unsigned||&nbsp;||IND||0||&nbsp;
+|-
+|guid||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|menu_order||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|post_type||varchar(20)||&nbsp;||IND Pt1||post||&nbsp;
+|-
+|post_mime_type||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|comment_count||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||ID
+|-  
+|post_name||INDEX||post_name  
+|- style="vertical-align:top;"
+|type_status_date||INDEX||post_type<br />post_status<br />post_date<br />ID
+|-
+|post_parent||INDEX||post_parent
+|-
+|post_author||INDEX||post_author
+|}
+
+
+
+===Таблица: wp_terms===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|term_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|name||varchar(200)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|slug||varchar(200)||&nbsp;||UNI||&nbsp;||&nbsp;
+|-
+|term_group||bigint(10)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||term_id
+|-  
+|slug||UNIQUE||slug 
+|-
+|name||INDEX||name
+|}
+
+
+
+===Таблица: wp_termmeta===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|meta_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|term_id||bigint(20)  unsigned||&nbsp;||IND||0||&nbsp;
+|-
+|meta_key||varchar(255)||YES||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||YES||&nbsp;||NULL||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||meta_id
+|-  
+|term_id||INDEX||term_id  
+|-  
+|meta_key||INDEX||meta_key  
+|}
+
+
+===Таблица: wp_term_relationships===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|object_id||bigint(20)  unsigned||&nbsp;||PRI Pt1||0||&nbsp;
+|-
+|term_taxonomy_id||bigint(20)  unsigned||&nbsp;||PRI Pt2 & IND||0||&nbsp;
+|-
+|term_order||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|- style="vertical-align:top;"
+|PRIMARY||PRIMARY||object_id<br />term_taxonomy_id
+|-  
+|term_taxonomy_id||INDEX||term_taxonomy_id  
+|}
+
+
+
+===Таблица: wp_term_taxonomy===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|term_taxonomy_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|term_id||bigint(20)  unsigned||&nbsp;||UNI Pt1||0 ||&nbsp;
+|-
+|taxonomy||varchar(32)||&nbsp;||UNI Pt2 & IND||&nbsp;||&nbsp;
+|-
+|description||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|parent||bigint(20)  unsigned||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|count||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||term_taxonomy_id
+|-  
+|term_id_taxonomy||UNIQUE||term_id<br />taxonomy 
+|-  
+|taxonomy||INDEX||taxonomy 
+|}
+
+
+
+===Таблица: wp_usermeta===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|umeta_id||bigint(20)  unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|user_id||bigint(20)  unsigned||&nbsp;||IND||0||&nbsp;
+|-
+|meta_key||varchar(255)||Yes||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||Yes||&nbsp;||NULL||&nbsp;
+|}
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||umeta_id
+|-  
+|user_id||INDEX||user_id  
+|-  
+|meta_key||INDEX||meta_key  
+|}
+
+===Таблица: wp_users===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|user_login||varchar(60)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_pass||varchar(64)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_nicename||varchar(50)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_url||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|user_activation_key||varchar(60)||&nbsp;||&nbsp;||&nbsp;||
+|-
+|user_status||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|display_name||varchar(250)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|}
+
+
+ОБРАТИТЕ ВНИМАНИЕ: 
+NOTE: Включение функции мультисайтов в WordPress добавляет два поля в таблицу wp_users: '''spam''' и '''deleted'''. См. [[#Table:_wp_users_2|Мультисайтовую версию]].
+
+====Индексы====
+
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||ID
+|-  
+|user_login_key||INDEX||user_login  
+|-  
+|user_nicename||INDEX||user_nicename  
+|}
+
+== Обзор таблиц при работе фукнциональности мультисайтов ==
+Этот раздел представляет собой обзор таблиц, созданных для использования с функциональностью [[Glossary#Multisite|мультисайтов]] в WordPress. Эти таблицы создаются с помощью процессов в разделе
+ [[Super Admin Menu|Administration]] > [[Super Admin Menu#Tools|Tools]] > [[Tools Network SubPanel|Network]].
+
+Эти таблицы считаются многосайтовыми глобальными таблицами.
+
+{| class="widefat"
+|- valign="top" style="background:#464646; color:#d7d7d7;"
+! colspan="3" bordercolor="#FFFFFF" | '''Мультисайтовые таблицы WordPress 3.0'''
+|- valign="top" style="background:#464646; color:#d7d7d7;"
+! width="6%" | Имя таблицы !! width="35%" | Описание !! Соответствующие области пользовательского интерфейса WordPress 
+|- valign="top"
+!  [[#Table:_wp_blogs|wp_blogs]]
+| Каждый созданный '''сайт''' хранятся в таблице <tt>wp_blogs</tt>. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Tools|Tools]] > [[Tools Network SubPanel|Network]] 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Sites|Super Admin]] > [[Super Admin Sites SubPanel|Sites]]  
+|- valign="top"
+!  [[#Table:_wp_blog_versions|wp_blog_versions]]
+| Состояние текущей версии базы данных каждого '''сайта''' обслуживается в таблице <tt>wp_blogs_versions</tt> и обновляется для каждого сайта при его обновлении. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Update|Super Admin]] > [[Super Admin Update SubPanel|Update]] 
+|- valign="top"
+! [[#Table:_wp_registration_log|wp_registration_log]]
+| Когда администратор создаёт новый сайт, в таблице <tt>wp_registration_log</tt> создаются соответствующие записи. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Sites|Super Admin]] > [[Super Admin Sites SubPanel|Sites]]   
+|- valign="top"
+!  [[#Table:_wp_signups|wp_signups]]
+| Эта таблица содержит пользователя, который зарегистрировался на сайте через процесс регистрации. Регистрация пользователей включается в [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Options|Super Admin]] > [[Super Admin Options SubPanel|Options]]. || 
+* [[Administration Panels|Administration]] > [[Administration Panels#Settings|Settings]] > [[Settings General SubPanel|General]]
+|- valign="top"
+! [[#Table:_wp_site|wp_site]]
+| Таблица <tt>wp_site</tt> содержит адрес главного сайта. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Tools|Tools]] > [[Tools Network SubPanel|Network]] 
+|- valign="top"
+! [[#Table:_wp_sitemeta|wp_sitemeta]]
+| У каждого '''сайта''' есть информация, называемая '''данные сайта''' и она хранится в таблице <tt>wp_sitemeta</tt>. Также в этой таблице хранится различная информация, связанная с '''настройкой''', включая администратора сайта. || 
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Options|Super Admin]] > [[Super Admin Options SubPanel|Options]]
+|- valign="top"
+! [[#Table:_wp_users_2|wp_users]]
+| Список всех '''пользователей''' обслуживается в таблице <tt>wp_users</tt>. Мультисайтовость добавляет два поля, которых нет в [[#Table: wp_users|обычной версии]].|| 
+* [[Administration Panels|Administration]] > [[Administration Panels#Users|Users]]
+* [[Super Admin Menu|Administration]] > [[Super Admin Menu#Super Admin|Super Admin]] > [[Super Admin Users SubPanel|Users]]
+* [[Super Admin Menu|Administration]] > [[Super Admin Menu#Super Admin|Super Admin]] > [[Super Admin Sites SubPanel|Sites]] - Edit Site
+|- valign="top"
+! [[#Table:_wp_usermeta|wp_usermeta]]
+| Данная таблица не пересоздаётся для мультисайтовости, но '''мета данные пользователей''' для каждого сайта, хранятся в <tt>wp_usermeta</tt>. ||
+* [[Administration Panels|Administration]] > [[Administration Panels#Users|Users]]
+* [[Super Admin Menu|Administration]] > [[Super Admin Menu#Super Admin|Super Admin]] > [[Super Admin Users SubPanel|Users]]
+* [[Super Admin Menu|Administration]] > [[Super Admin Menu#Super Admin|Super Admin]] > [[Super Admin Sites SubPanel|Sites]] - Edit Site
+|- valign="top"
+! [[#Site Specific Tables|Site Specific Tables]]
+| Данные основного сайта хранятся в существующих ненумерованных таблицах. Данные дополнительных сайтов хранятся в новых пронумерованных таблицах.
+||
+* [[Super_Admin_Menu|Administration]] > [[Super_Admin_Menu#Sites|Super Admin]] > [[Super Admin Sites SubPanel|Sites]] - Add Site
+|}<br /><br />
+
+==Подробное описание мультисайтовых таблиц==
+Ниже описаны таблицы и поля, созданные [[Create A Network#Step 4: Installing a Network|во время сетевой установки]]. Обратите внимание, что при создании сетевой установки, создается глобальный набор таблиц, а [[#Site Specific Tables|специфичные для каждого сайта таблицы]] создаются при создании каждого сайта.
+
+===Таблица: wp_blogs===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|blog_id||bigint(20)||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|site_id||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|domain||varchar(200)||&nbsp;||IND Pt1||&nbsp;||&nbsp;
+|-
+|path||varchar(100)||&nbsp;||IND Pt2||&nbsp;||&nbsp;
+|-
+|registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|last_updated||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|public||tinyint(2)||&nbsp;||&nbsp;||1||&nbsp;
+|-
+|archived||tinyint(2)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|mature||tinyint(2)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|spam||tinyint(2)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|deleted||tinyint(2)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|lang_id||int(11)||&nbsp;||IND||0||&nbsp;
+|}
+
+ПРИМЕЧАНИЕ: '''blog_id''' идентифицирует сайт, а '''site_id''' идентифицирует сеть. Это след прошлого, когда 'сайт' назывался 'блог' в WordPress 2.x. Если вы добавите свой сайт в сеть, новая запись будет добавлена в  таблицу <tt>wp_blogs</tt> с увеличенным значением '''blog_id''' и тем же самым '''site_id'''.
+
+====Индексы====
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||blog_id
+|-  
+|domain||INDEX||domain<br/>path
+|-  
+|lang_id||INDEX||lang_id  
+|}
+
+
+
+===Таблица: wp_blog_versions===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|blog_id||bigint(20)||&nbsp;||PRI||0||&nbsp; 
+|-
+|db_version||varchar(20)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|last_updated||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|}
+
+====Индексы====
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле
+|-
+|PRIMARY||PRIMARY||blog_id
+|-  
+|db_version||INDEX||db_version
+|}
+
+
+
+===Таблица: wp_registration_log===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|ID||bigint(20)||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|email||varchar(255)||&nbsp;||&nbsp;||&nbsp;||&nbsp; 
+|-
+|IP||varchar(30)||&nbsp;||IND||&nbsp;||&nbsp; 
+|-
+|blog_id||bigint(20)||&nbsp;||&nbsp;||0||&nbsp; 
+|-
+|date_registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|}
+
+====Индексы====
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||ID
+|-  
+|IP||INDEX||IP
+|}
+
+===Таблица: wp_signups===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|signup_id||bigint(20)||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|domain||varchar(200)||&nbsp;||IND Pt1||&nbsp;||&nbsp;
+|-
+|path||varchar(100)||&nbsp;||IND Pt2||&nbsp;||&nbsp;
+|-
+|title||longtext||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_login||varchar(60)||&nbsp;||IND Pt1||&nbsp;||&nbsp;
+|-
+|user_email||varchar(100)||&nbsp;||IND & IND Pt2||&nbsp;||&nbsp;
+|-
+|registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|activated||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|active||tinyint(1)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|activation_key||varchar(50)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|meta||longtext||Yes||&nbsp;||NULL||&nbsp;
+|}
+
+====Индексы====
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|signup_id||PRIMARY||signup_id
+|-
+|activation_key||INDEX||activation_key
+|-  
+|user_email||INDEX||user_email
+|- style="vertical-align:top;"
+|user_login_email||INDEX||user_login<br/>user_email
+|-  
+|domain_path||INDEX||domain<br/>path
+|}
+
+===Таблица: wp_site===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|id||bigint(20)||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|domain||varchar(200)||&nbsp;||IND Pt1||&nbsp;||&nbsp;
+|-
+|path||varchar(100)||&nbsp;||IND Pt2||&nbsp;||&nbsp;
+|}
+
+====Индексы====
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||id
+|-  
+|domain||INDEX||domain<br/>path
+|}
+
+
+
+===Таблица: wp_sitemeta===
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|meta_id||bigint(20)||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|site_id||bigint(20)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|meta_key||varchar(255)||Yes||IND||NULL||&nbsp;
+|-
+|meta_value||longtext||Yes||IND||NULL||&nbsp;
+|}
+
+====Индексы====
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||meta_id
+|-  
+|meta_key||INDEX||meta_key  
+|- 
+|site_id||INDEX||site_id  
+|}
+
+
+
+===Таблица: wp_users===
+
+{| class="widefat"
+|- style="background:#464646; color:#d7d7d7;"
+!Поле!!Тип!!Null!!Ключ!!Умолчание!!Дополнительно
+|-
+|ID||bigint(20) unsigned||&nbsp;||PRI||&nbsp;||auto_increment
+|-
+|user_login||varchar(60)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_pass||varchar(64)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_nicename||varchar(50)||&nbsp;||IND||&nbsp;||&nbsp;
+|-
+|user_email||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_url||varchar(100)||&nbsp;||&nbsp;||&nbsp;||&nbsp;
+|-
+|user_registered||datetime||&nbsp;||&nbsp;||0000-00-00 00:00:00||&nbsp;
+|-
+|user_activation_key||varchar(60)||&nbsp;||&nbsp;||&nbsp;||
+|-
+|user_status||int(11)||&nbsp;||&nbsp;||0||&nbsp;
+|-
+|display_name||varchar(250)||&nbsp;||&nbsp;||&nbsp; ||&nbsp;
+|-
+|spam||tinyint(2)||&nbsp;||&nbsp;|| 0 || &nbsp;
+|-
+|deleted||tinyint(2)||&nbsp;||&nbsp;|| 0 || &nbsp; 
+|}
+
+====Индексы====
+{| class="dummy-to-narrow"
+|- style="background:#464646; color:#d7d7d7;"
+ !Имя ключа !! Тип !! Поле 
+|-
+|PRIMARY||PRIMARY||ID
+|-  
+|user_login_key||INDEX||user_login  
+|-  
+|user_nicename||INDEX||user_nicename  
+|}
+
+===Специфичные таблицы для сайта===
+Когда создается новый дополнительный сайт, создаются таблицы, специфичные для сайта, аналогичные [[#Table Overview|стандартным таблицам выше]]. Каждый набор таблиц для сайта создается с идентификатором сайта ([[#Table: wp_blogs|<code>blog_id</code>]]) как частью имени таблицы. Это таблицы, которые должны быть созданы для идентификатора сайта ''2'' и [[Editing wp-config.php#table_prefix|table_prefix]] ''wp_'':
+* [[#Table: wp_commentmeta|''wp_2''_commentmeta]]
+* [[#Table: wp_comments|''wp_2''_comments]]
+* [[#Table: wp_links|''wp_2''_links]]
+* [[#Table: wp_options|''wp_2''_options]]
+* [[#Table: wp_postmeta|''wp_2''_postmeta]]
+* [[#Table: wp_posts|''wp_2''_posts]]
+* [[#Table: wp_terms|''wp_2''_terms]]
+* [[#Table: wp_term_relationships|''wp_2''_term_relationships]]
+* [[#Table: wp_term_taxonomy|''wp_2''_term_taxonomy]]
+* [[#Table: wp_termmeta|''wp_2''_term_termmeta]]
+
+
+Данные главного сайта хранятся в ненумерованных таблицах.
+
+==Исходный файл==
+
+Структура базы данных определяется в {{Trac|wp-admin/includes/schema.php}}
+
+==Ресурсы==
+* [[WordPress Backups]] - выполнение резервных копий
+* [http://wordpress.org/extend/plugins/tags/backup backup related plugins] - плагины с тегом backup
+* [http://wordpress.org/extend/plugins/tags/database database related plugins] - плагины с тегом database
+
+==Changelog==
+* [[Version 4.2.2|4.2.2]] : 
+** [[#Table: wp_termmeta|termmeta table]]: New table to house term related data.
+** Database Diagram: Added the new diagram including the wp_termmeta table.
+
+* [[Version 3.4|3.4]] : 
+** [[#Table: wp_comments|comments table]]: Drop Index <code>comment_approved</code>.
+** [[#Table: wp_options|options table]]: Drop field <code>blog_id</code>.
+** [[#Table: wp_posts|posts table]]: Change field <code>post_content_filtered</code> from text to longtext.
+
+* [[Version 3.0|3.0]] : 
+** [[#Table: wp_comments|comments table]]: Added Index <code>comment_parent</code>.
+** [[#Table: wp_posts|posts table]]: Added Index <code>post_author</code>.
+** When the [[Glossary#Multisite|Multisite]] feature enabled:
+*** Add [[#Multisite Table Overview|multisite tables]].
+*** Add the <code>spam</code> field and the <code>deleted</code> field to [[#Table:_wp_users_2|users table]].
+
+* [[Version 2.9|2.9]] : 
+** [[#Table: wp_commentmeta|commentmeta table]]: New table to house comment related data.
+** [[#Table: wp_option|options table]]: Added Index <code>option_name</code> UNIQUE.
+** [http://schemabank.com/p/5Lj5F updated diagram]
+
+* [[Version 2.8|2.8]] : 
+** [[#Table: wp_comments|comments table]]: Changed <code>comment_post_ID</code> column from <code>int(11)</code> to <code>bigint(20) unsigned</code>.
+** [[#Table: wp_links|links table]]: Deleted <code>link_category</code> column. Changed <code>link_owner</code> column from <code>int(11)</code> to <code>bigint(20) unsigned</code>.
+** [[#Table: wp_posts|posts table]]: Deleted <code>post_category</code> column.
+** [[#Table: wp_term_taxonomy|term_taxonomy table]]: Added KEY <code>taxonomy</code>.
+** Add <code>unsigned</code> attribute to various <code>bigint(20)</code> fields.
+
+* [[Version 2.7|2.7]] : 
+** [[#Table: wp_terms|term table]]: Changed <code>name</code> field <code>varchar(55)</code> -> <code>varchar(200)</code>.
+** Added KEY <code>name</code> to the [[#Table: wp_terms|term table]].
+** Added KEY <code>post_parent</code> to the [[#Table: wp_posts|posts table]].
+
+* [[Version 2.5|2.5]] : 
+** All of <code>enum</code> type fields -> <code>varchar(20)</code>:
+*** [[#Table: wp_comments|comments table]]: <code>comment_approved</code> field
+*** [[#Table: wp_links|links table]]: <code>link_visible</code>
+*** [[#Table: wp_options|options table]]: <code>autoload</code>
+*** [[#Table: wp_posts|posts table]]: <code>post_status</code>, <code>comment_status</code>, <code>ping_status</code>
+** Added KEY <code>comment_approved_date_gmt</code> and <code>comment_date_gmt</code> to the [[#Table: wp_comments|comments table]].
+** Added <code>term_order</code> field to the [[#Table: term_relationships|term_relationships table]]
+** see also: [[Migrating Plugins and Themes to 2.5#Database changes|Migrating Plugins and Themes to 2.5 - Database changes]]
+
+* [[Version 2.3|2.3]] :
+** Added the [[#Table: wp_terms|terms]], [[#Table: wp_term_taxonomy|term_taxonomy]] and [[#Table: wp_term_relationships|term_relationships]] tables. Removed <code>categories</code>, <code>link2cat</code> and <code>post2cat</code> tables.
+** Rremoved 6 fields from the [[#Table: wp_options|options table]]. (<code>option_can_override</code>, <code>option_type</code>, <code>option_width</code>, <code>option_height</code>, <code>option_description</code>, and <code>option_admin_level</code>)
+** Added new status <code>'pending'</code> for <code>post_status</code> field to the [[#Table: wp_posts|posts table]].
+** see also: [[WordPress Taxonomy]]
+
+* [[Version 2.1|2.1]] :
+** Removed the <code>linkcategories</code> table. linkcategories data were marged to the <code>categories</code> table, and IDs were reseted.
+** Added <code>post_type</code> field to the [[#Table: wp_posts|posts table]] (in 2.0.x, <code>post_status</code> = <code>'static'</code> for [[Pages]])
+** Added new status <code>'future'</code> for <code>post_status</code> field to the [[#Table: wp_posts|posts table]], instead of <code>NOW()</code> in 2.0.x.
+** see also: [[Migrating Plugins and Themes to 2.1#Core WordPress Database Changes|Migrating Plugins and Themes to 2.1 - Core WordPress Database Changes]]
+
+[[Category:Getting Started]]
+[[Category:Advanced Topics]]
+[[Category:WordPress Development]]
+[[Category:WordPress Database]]
+[[Category:Network]]
+[[Category:Russian Codex]]

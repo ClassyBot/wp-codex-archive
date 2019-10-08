@@ -1,24 +1,27 @@
 <p>The "single_template" filter can be used to load a custom template for a given post. It will replace the template used whenever the "single" template is called.
 </p><p>A plugin can register as a content filter with the code:
 </p>
-<pre>&lt;?php add_filter( "single_template", "plugin_function_name" );&#160;?&gt;
+<pre>
+&lt;?php add_filter( 'single_template', 'plugin_function_name' );&#160;?&gt;
 </pre>
-<p>Where "plugin_function_name" is the function WordPress should call when the content is being retrieved. Note that the filter function the plugin defines must return the a full path to a template file or the resulting page will be blank. The template file should have the same entries as the "single.php" file has in the theme.
+<p>Where "plugin_function_name" is the function WordPress should call when the content is being retrieved. Note that the filter function the plugin defines must return a full path to a template file or the resulting page will be blank. The template file should have the same entries as the "single.php" file has in the theme.
 </p><p>This is especially useful for plugins using <a href="https://codex.wordpress.org/Function_Reference/register_post_type" title="Function Reference/register post type">Custom Post Types</a> to load template files specific to your new post type.
 </p>
 <h2><span class="mw-headline" id="Example_with_Custom_Post_Type">Example with Custom Post Type</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/single_template&amp;action=edit&amp;section=1" title="Edit section: Example with Custom Post Type">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
 <pre>
 &lt;?php
-function get_custom_post_type_template($single_template) {
-     global $post;
+function get_custom_post_type_template( $single_template ) {
+	global $post;
 
-     if ($post-&gt;post_type == 'my_post_type') {
-          $single_template = dirname( __FILE__ ) . '/post-type-template.php';
-     }
-     return $single_template;
+	if ( 'my_post_type' === $post-&gt;post_type ) {
+		$single_template = dirname( __FILE__ ) . '/post-type-template.php';
+	}
+
+	return $single_template;
 }
 add_filter( 'single_template', 'get_custom_post_type_template' );
 ?&gt;
+
 </pre>
 <p>The example code will load the template file "post-type-template.php" located in your plugins folder for any posts or pages that have the type of 'my_post_type' else uses default template.
 </p>
@@ -27,18 +30,17 @@ add_filter( 'single_template', 'get_custom_post_type_template' );
 </p>
 <pre>
 &lt;?php
-function add_posttype_slug_template( $single_template )
-{
-	$object = get_queried_object();
-	$single_postType_postName_template = locate_template("single-{$object-&gt;post_type}-{$object-&gt;post_name}.php");
-	if( file_exists( $single_postType_postName_template ) )
-	{
-		return $single_postType_postName_template;
+function add_posttype_slug_template( $single_template ) {
+	$object                            = get_queried_object();
+	$single_posttype_postname_template = locate_template( "single-{$object-&gt;post_type}-{$object-&gt;post_name}.php" );
+
+	if ( file_exists( $single_posttype_postname_template ) ) {
+		return $single_posttype_postname_template;
 	} else {
 		return $single_template;
 	}
 }
-add_filter( 'single_template', 'add_posttype_slug_template', 10, 1 );
+add_filter( 'single_template', 'add_postType_slug_template', 10, 1 );
 ?&gt;
 </pre>
 <h2><span class="mw-headline" id="Related">Related</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=Plugin_API/Filter_Reference/single_template&amp;action=edit&amp;section=3" title="Edit section: Related">edit</a><span class="mw-editsection-bracket">]</span></span></h2>

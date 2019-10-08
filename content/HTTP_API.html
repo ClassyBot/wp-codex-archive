@@ -3,61 +3,6 @@
 <a rel="nofollow" class="external text" href="https://wpdocs.osdn.jp/HTTP">API 日本語</a> 
  <small>(<a href="https://codex.wordpress.org/Multilingual_Codex#Language_Cross_Reference" title="Multilingual Codex" class="mw-redirect">Add your language</a>)</small>
 </p>
-<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
-<ul>
-<li class="toclevel-1 tocsection-1"><a href="#HTTP_API"><span class="tocnumber">1</span> <span class="toctext">HTTP API</span></a></li>
-<li class="toclevel-1 tocsection-2"><a href="#Helper_Functions"><span class="tocnumber">2</span> <span class="toctext">Helper Functions</span></a></li>
-<li class="toclevel-1 tocsection-3"><a href="#Other_Arguments"><span class="tocnumber">3</span> <span class="toctext">Other Arguments</span></a></li>
-<li class="toclevel-1 tocsection-4"><a href="#External_References"><span class="tocnumber">4</span> <span class="toctext">External References</span></a></li>
-</ul>
-</div>
-
-<h2><span class="mw-headline" id="HTTP_API">HTTP API</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=HTTP_API&amp;action=edit&amp;section=1" title="Edit section: HTTP API">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-<p>Within PHP, there are many possible ways to send an HTTP request. For simplicity, these methods will be referred to collectively as '<b>transports'</b> for this article. The purpose for the HTTP API is to support as many of them as possible with an API that is simple and standard for each of the transports.
-</p><p>The problem is that web hosting servers support different transports and some might support none. The solution then is to support as many as possible to allow for those who have hosts that disable one or two to still access the web through one of the other transports that might still be enabled or supported.
-</p><p>The other problem was that there wasn't any API for plugins and WordPress core to standardize on. Therefore, there used to be several different implementations in WordPress and many still in Plugins. The problem is even worse for plugins, because the author had to write the implementation themselves and support it afterwards. Given how many workarounds were required for the HTTP API in WordPress, that would be extremely difficult to support. It would also have to be reimplemented in each plugin that wanted to support as many as possible, which many just choose to support one or two if the plugin author was feeling generous.
-</p><p>The HTTP API was also an attempt to standardize on a single API that handled everything as simply as possible. The actual implementation is object-oriented, but there are utility functions, which can be used to abstract the API usage.
-</p><p>The HTTP API was added in <a href="https://codex.wordpress.org/Version_2.7" title="Version 2.7">WordPress 2.7</a> and extended further in <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">WordPress 2.8</a>. You may want to maintain backwards compatibility with previous versions, so you should wrap the function calls in function_exists() and provide an alternative, if possible.
-</p><p>In <a href="https://codex.wordpress.org/Version_2.7" title="Version 2.7">WordPress 2.7</a>, the basics of header, body and response support was started. In the next version, <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">WordPress 2.8</a>, compression, cookie support and proxy support were added. Some of the features are passive, meaning that you don't have to set any option or do anything in order to use the feature. If you use an option that is in a later version, it won't give you an error, but may not work correctly.
-</p><p>While most of the features can be set using the options or using filters, the proxy implementation relies on constants and thus will need to be set manually in the wp-config.php. Of course, there could be and might already be a plugin that will allow you to configure it in the WordPress administration panels.
+<p>This page was moved to <a rel="nofollow" class="external free" href="https://developer.wordpress.org/plugins/http-api/">https://developer.wordpress.org/plugins/http-api/</a> except above language locator.
 </p>
-<h2><span class="mw-headline" id="Helper_Functions">Helper Functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=HTTP_API&amp;action=edit&amp;section=2" title="Edit section: Helper Functions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-<p>The helper functions utilize the HTTP API classes to simplify the process as much as possible. You could use the classes and could use some of the methods to help process the code. The classes assume that you know what you are doing and can use the classes.
-</p><p><b>You must use the helper functions if you are modifying the core code of WordPress.</b> It is one of the reasons for the helper API, to reduce the amount of error checking and prevent having to edit multiple places when bugs are found.
-</p><p>The functions below are the ones you will use to retrieve a URL. Please be aware that these functions will return a WordPress WP_Error class on failure. You will have to check for that after using these functions.
-</p>
-<pre>* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_get" title="Function Reference/wp remote get">wp_remote_get()</a> - Retrieves a URL using the GET HTTP method.
-* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_post" title="Function Reference/wp remote post">wp_remote_post()</a> - Retrieves a URL using the POST HTTP method.
-* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_head" title="Function Reference/wp remote head">wp_remote_head()</a> - Retrieves a URL using the HEAD HTTP method.
-* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_request" title="Function Reference/wp remote request">wp_remote_request()</a> - Retrieves a URL using either the default GET or a custom HTTP method (should be caps) that you specify.
-</pre>
-<p>The other helper functions deal with retrieving different parts of the response and do the testing for WP_Error for you, these make usage of the API very simple and are the preferred method for processing response objects.
-</p>
-<pre>* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_retrieve_body" title="Function Reference/wp remote retrieve body">wp_remote_retrieve_body()</a> - Retrieves just the body from the response.
-* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_retrieve_header" title="Function Reference/wp remote retrieve header">wp_remote_retrieve_header()</a> - Gives you a single HTTP header based on name from the response.
-* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_retrieve_headers" title="Function Reference/wp remote retrieve headers">wp_remote_retrieve_headers()</a> - Returns all of the HTTP headers in an array for processing.
-* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_retrieve_response_code" title="Function Reference/wp remote retrieve response code">wp_remote_retrieve_response_code()</a> - Gives you the number for the HTTP response. This should be 200, but could be 4xx or even 3xx on failure.
-* <a href="https://codex.wordpress.org/Function_Reference/wp_remote_retrieve_response_message" title="Function Reference/wp remote retrieve response message">wp_remote_retrieve_response_message()</a> - Returns the response message based on the response code.
-</pre>
-<p>As you can see in the example below, the API also handles redirection.
-</p>
-<pre>
-$theBody = wp_remote_retrieve_body( wp_remote_get('http://www.wordpress.org') );
-</pre>
-<h2><span class="mw-headline" id="Other_Arguments">Other Arguments</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=HTTP_API&amp;action=edit&amp;section=3" title="Edit section: Other Arguments">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-<p>The '<b>httpversion'</b> argument sets the HTTP version and defaults to '1.0', however depending on the service you are interacting with you may need to set this to '1.1'.
-</p><p>The argument '<b>method'</b> is the HTTP method, such as POST, GET, HEAD, PUT, etc that you want to use. The safest methods to use for server support are POST, GET, and HEAD, all others, you may meet with various degrees of success. The default for this value is 'GET'.
-</p><p>The argument '<b>timeout'</b> allows for setting the time in seconds, before the connection is dropped and an error is returned. The default for this value is 5 seconds and it also has a filter named, 'http_request_timeout', in case you want to write a plugin that sets it for every request.
-</p><p>The '<b>redirection'</b> argument is the amount of times to follow a redirect before giving up. The default is 5 and there is a filter for the value. The filter name is 'http_request_redirection_count' and only passes the redirection default value.
-</p><p>The '<b>user-agent'</b> argument allows you to set the user-agent. The default of which is, "WordPress/2.7; <a rel="nofollow" class="external free" href="http://www.example.com">http://www.example.com</a>" where 2.7 is the WordPress version number and www.example.com is the blog URL. There is a filter for changing this value as well, which is 'http_headers_useragent'.
-</p><p>The '<b>blocking'</b> argument allows you to trigger a non-blocking request. The default is true; setting it to false will generally allow PHP to continue execution while the transport is working. The key is that when you set blocking to false, then it will just send the request and won't bother you with the details. This is useful for sending a POST request, where you aren't concerned with whether it succeeded or not, or if you don't want to slow down the processing time of the page. (Note that not all the transports support non-blocking requests, and so you may still be blocked anyway. The alternative of setting an ultra-low timeout is not recommended, since low timeouts may cause the request to not be sent at all with some transports.)
-</p><p>The argument '<b>compress'</b>, available with <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">Version 2.8</a>, allows you to send the request body as compressed.
-</p><p>The '<b>decompress'</b> argument by default will decompress any compressed content that comes in. If you do leave this as true, then the headers will be set to tell the server that compressed data is accepted and it will be decompressed in the response. If you sent it to false, then the header will be sent that tells servers that compressed content is not accepted. If the content is still compressed, because of incorrect implementation or you sent the headers for it, then you will need to decompress the content. This is also a 2.8 argument.
-</p><p>The '<b>sslverify'</b> argument was added in <a href="https://codex.wordpress.org/Version_2.8" title="Version 2.8">Version 2.8</a> and will check to see if the SSL certificate is valid (not self-signed, actually for the site in the request) and will deny the response if it isn't. If you are requesting HTTPS and know that the site is self-signed or is invalid and are reasonably sure that it can be trusted, then set to false.\
-</p><p>The '<b>filename'</b> argument allows you to define a filename that will be used when the stream option is present and the requested URL's response will be saved to the temp directory.
-</p>
-<h2><span class="mw-headline" id="External_References">External References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/index.php?title=HTTP_API&amp;action=edit&amp;section=4" title="Edit section: External References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
-<ul><li> <a rel="nofollow" class="external text" href="http://lud.icro.us/wordpress-http-api-basicauth/">Basic Authentication with the WordPress HTTP API</a> by johnbillion</li>
-<li> <a rel="nofollow" class="external text" href="http://www.sitepoint.com/the-wordpress-http-api/">Deep Dive into the WordPress HTTP API</a></li></ul>
-
 
